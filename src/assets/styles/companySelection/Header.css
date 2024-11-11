@@ -1,0 +1,97 @@
+/* src/assets/styles/companySelection/Header.css */
+
+.company-header {
+    background-color: var(--blue-light);
+    color: white;
+    padding: 30px 20px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+  }
+  
+  .header-left h2 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+  }
+  
+  .header-left h3 {
+    font-size: 1.2rem;
+    color: white;
+    margin: 0;
+    font-weight: normal;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .icon-background {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    color: white;
+  }
+  
+  /* Menu Toggle Button for Mobile */
+  .menu-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: none;
+  }
+  .mobile-menu {
+    display: none;
+  }
+  /* Show menu toggle button on smaller screens */
+  @media (max-width: 768px) {
+    .menu-toggle {
+      display: block;
+    }
+    
+    .header-right {
+      display: none !important;
+    }
+    
+    .mobile-menu {
+      display: block;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background-color: var(--blue-light);
+      width: 100%;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      z-index: 10;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+  
+    .mobile-menu .support,
+    .mobile-menu .user-info {
+      margin-bottom: 10px;
+    }
+  
+    .mobile-menu .support-info,
+    .mobile-menu .user-name {
+      color: white;
+      font-size: 1rem;
+    }
+  
+    .mobile-menu .icon-background {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+  }
+  

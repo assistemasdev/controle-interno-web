@@ -1,0 +1,15 @@
+:root {
+    --blue-light: #4da8ff;
+}
+
+.btn-blue-light {
+    color: var(--blue-light) !important;
+    border-color: var(--blue-light) !important;
+}
+  
+.btn-blue-light:hover,
+.btn-blue-light:focus {
+    background-color: var(--blue-light) !important;
+    color: white !important;
+    border-color: var(--blue-light) !important;
+}
