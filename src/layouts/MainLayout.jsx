@@ -1,15 +1,19 @@
 import React from 'react';
-import Sidebar from './Sidebar';
-import Topbar from './Topbar';
-import '../assets/styles/layouts/MainLayout.css';
+import Sidebar from './Sidebar'; 
+import Topbar from './Topbar'; 
 
-const MainLayout = ({ children, selectedCompany }) => {
+const MainLayout = ({ children }) => {
   return (
-    <div className="main-layout">
-      <Sidebar selectedCompany={selectedCompany} />
-      <div className="main-content">
-        <Topbar selectedCompany={selectedCompany} />
-        <div className="content">{children}</div>
+    <div id="wrapper" className="d-flex">
+        <Sidebar />
+
+      <div id="content-wrapper" className="d-flex flex-column w-100">
+        <div id="content" className="flex-grow-1">
+          <Topbar />
+          <div className="container-fluid">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );

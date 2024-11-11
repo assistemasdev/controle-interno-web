@@ -1,12 +1,14 @@
-// src/components/Topbar.js
 import React from 'react';
-import '../assets/styles/layouts/Topbar.css';
 
-const Topbar = ({ selectedCompany }) => {
+const Topbar = () => {
   return (
-    <div className="topbar">
-      <span>Empresa Selecionada: <strong>{selectedCompany}</strong></span>
-    </div>
+    <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+      <ul className="navbar-nav ml-auto">
+        <li className="nav-item">
+          <span className="topbar-title">ADI</span>
+        </li>
+      </ul>
+    </nav>
   );
 };
 

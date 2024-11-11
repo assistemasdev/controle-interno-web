@@ -1,128 +1,125 @@
-// src/components/Sidebar.js
-import React from 'react';
+import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUserFriends, faUsers, faUser, faCoins, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons'; // √çcones do FontAwesome
 import { Link } from 'react-router-dom';
-import '../assets/styles/layouts/sidebar.css';
 
-const companyColors = {
-  ALUCOM: '#BF2626',
-  MOREIA: 'DarkOrange',
-  default: '#5d8dbb',
-};
+const Sidebar = () => {
+  const [openDropdown, setOpenDropdown] = useState(null);  // √önico estado para controlar o dropdown aberto
+  const [isCollapsed, setIsCollapsed] = useState(false);  // Estado para controlar o bot√£o de toggle da sidebar
 
-const Sidebar = ({ selectedCompany }) => {
-  const bgColor = companyColors[selectedCompany] || companyColors.default;
+  const toggleDropdown = (dropdown) => {
+    setOpenDropdown(openDropdown === dropdown ? null : dropdown); // Alterna entre abrir e fechar o dropdown
+  };
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed); // Alterna entre colapsar e expandir a sidebar
+  };
 
   return (
-    <div className="sidebar" style={{ backgroundColor: bgColor }}>
-      {/* Sidebar - Brand */}
-      <div className="sidebar-brand d-flex align-items-center justify-content-center">
+    <ul className={`navbar-nav bg-gray-900 sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`} id="accordionSidebar">
+      {/* Logo e Nome da Sidebar */}
+      <a className="d-flex align-items-center justify-content-center" href="index.html">
         <div className="sidebar-brand-icon">
-          <i className="fas fa-users"></i>
+            <i className="fas fa-users"></i>
         </div>
-        <div className="sidebar-brand-text mx-3">Tabula</div>
-      </div>
+        {/* O nome "ADI" vai continuar vis√≠vel, n√£o importa se a sidebar est√° colapsada */}
+        <div className="sidebar-brand-text mx-3 py-4 text-white font-weight-bold">ADI</div>
+        </a>
 
       {/* Divider */}
       <hr className="sidebar-divider my-0" />
 
-      {/* Nav Item - Dashboard */}
+      {/* Link com op√ß√µes colaps√°veis - Usu√°rios */}
       <li className="nav-item">
-        <Link to="/dashboard" className="nav-link">
-          <i className="fas fa-fw fa-tachometer-alt"></i>
-          <span>Dashboard</span>
-        </Link>
+        <a
+          className="nav-link d-flex justify-content-between"
+          href="#collapseTwo"
+          onClick={() => toggleDropdown('users')} // Passa a chave 'users' para controlar este dropdown
+        >
+          <div className="d-flex align-items-center">
+            <FontAwesomeIcon icon={faUserFriends} className="mr-3" />
+            <span className={`${isCollapsed ? 'd-none' : ''}`}>Usu√°rios</span> {/* O nome desaparece se sidebar for colapsada */}
+          </div>
+          {/* Icone da seta, dependendo do estado */}
+          <FontAwesomeIcon icon={openDropdown === 'users' ? faChevronDown : faChevronRight} className="ml-auto" />
+        </a>
+        <div
+          id="collapseTwo"
+          className={`collapse ${openDropdown === 'users' ? 'show' : ''}`} // Colapsa ou expande baseado no estado
+          aria-labelledby="headingTwo"
+          data-bs-parent="#accordionSidebar"
+        >
+          <div className="bg-white py-2 collapse-inner rounded">
+            <Link className="collapse-item" to="/usuarios/tables.html">
+              <FontAwesomeIcon icon={faUsers} className="mr-3" />
+              Administradores
+            </Link>
+            <Link className="collapse-item" to="/usuarios/tables_user.html">
+              <FontAwesomeIcon icon={faUser} className="mr-3" />
+              Usu√°rio
+            </Link>
+            <Link className="collapse-item" to="/usuarios/tables_conquistas.html">
+              <FontAwesomeIcon icon={faCoins} className="mr-3" />
+              Conquistas Usu√°rio
+            </Link>
+            <Link className="collapse-item" to="/usuarios/contas_bancarias.html">
+              <FontAwesomeIcon icon={faCoins} className="mr-3" />
+              Contas Bancarias
+            </Link>
+            <Link className="collapse-item" to="/usuarios/tables_empresas.html">
+              <FontAwesomeIcon icon={faUserFriends} className="mr-3" />
+              Empresas
+            </Link>
+          </div>
+        </div>
       </li>
 
       {/* Divider */}
       <hr className="sidebar-divider my-0" />
 
-      {/* Nav Item - RD Station */}
+      {/* Link com op√ß√µes colaps√°veis - Tipos de Equipamentos */}
       <li className="nav-item">
-        <Link to="/rd-station" className="nav-link">
-          <i className="fas fa-project-diagram"></i>
-          <span>RD Station</span>
-        </Link>
-      </li>
-
-      {/* Divider */}
-      <hr className="sidebar-divider" />
-
-      {/* Heading */}
-      <div className="sidebar-heading">InformaÁıes dos Usu·rios</div>
-
-      {/* Nav Item - Usu·rios */}
-      <li className="nav-item">
-        <Link to="#" className="nav-link collapsed" data-toggle="collapse" data-target="#collapseUsers" aria-expanded="true" aria-controls="collapseUsers">
-          <i className="fas fa-user-friends"></i>
-          <span>Usu·rios</span>
-        </Link>
-        <div id="collapseUsers" className="collapse" aria-labelledby="headingUsers">
+        <a
+          className="nav-link d-flex justify-content-between"
+          href="#collapseEquipments"
+          onClick={() => toggleDropdown('equipments')} // Passa a chave 'equipments' para controlar este dropdown
+        >
+          <div className="d-flex align-items-center">
+            <FontAwesomeIcon icon={faUserFriends} className="mr-3" />
+            <span className={`${isCollapsed ? 'd-none' : ''}`}>Tipos de Equipamentos</span> {/* O nome desaparece se sidebar for colapsada */}
+          </div>
+          {/* Icone da seta, dependendo do estado */}
+          <FontAwesomeIcon icon={openDropdown === 'equipments' ? faChevronDown : faChevronRight} className="ml-auto" />
+        </a>
+        <div
+          id="collapseEquipments"
+          className={`collapse ${openDropdown === 'equipments' ? 'show' : ''}`} // Colapsa ou expande baseado no estado
+          aria-labelledby="headingEquipments"
+          data-bs-parent="#accordionSidebar"
+        >
           <div className="bg-white py-2 collapse-inner rounded">
-            <Link className="collapse-item" to="/usuarios/admin">Administradores</Link>
-            <Link className="collapse-item" to="/usuarios/usuarios">Usu·rios</Link>
-            <Link className="collapse-item" to="/usuarios/conquistas">Conquistas Usu·rio</Link>
-            <Link className="collapse-item" to="/usuarios/contas-bancarias">Contas Banc·rias</Link>
-            <Link className="collapse-item" to="/usuarios/empresas">Empresas</Link>
+            <Link className="collapse-item" to="/equipamentos/tipos.html">
+              <FontAwesomeIcon icon={faUser} className="mr-3" />
+              Tipos de Equipamentos
+            </Link>
+            <Link className="collapse-item" to="/equipamentos/itens.html">
+              <FontAwesomeIcon icon={faUser} className="mr-3" />
+              Itens de Equipamentos
+            </Link>
           </div>
         </div>
       </li>
 
       {/* Divider */}
-      <hr className="sidebar-divider" />
+      <hr className="sidebar-divider d-none d-md-block" />
 
-      {/* Heading */}
-      <div className="sidebar-heading">InformaÁıes dos Cursos</div>
-
-      {/* Nav Item - Cursos */}
-      <li className="nav-item">
-        <Link to="#" className="nav-link collapsed" data-toggle="collapse" data-target="#collapseCourses" aria-expanded="true" aria-controls="collapseCourses">
-          <i className="fas fa-book"></i>
-          <span>Cursos</span>
-        </Link>
-        <div id="collapseCourses" className="collapse" aria-labelledby="headingCourses">
-          <div className="bg-white py-2 collapse-inner rounded">
-            <Link className="collapse-item" to="/cursos">Cursos</Link>
-            <Link className="collapse-item" to="/cursos/categorias">Categorias</Link>
-            <Link className="collapse-item" to="/cursos/subcategorias">SubCategorias</Link>
-            <Link className="collapse-item" to="/cursos/dados">Dados Cursos</Link>
-            <Link className="collapse-item" to="/cursos/destaque">Cursos em Destaque</Link>
-            <Link className="collapse-item" to="/cursos/live">Live</Link>
-            <Link className="collapse-item" to="/cursos/mentoria">Cursos com Mentoria</Link>
-            <Link className="collapse-item" to="/cursos/marcas">Marcas</Link>
-            <Link className="collapse-item" to="/cursos/banner-marcas">Banner Marcas</Link>
-          </div>
-        </div>
-      </li>
-
-      {/* Divider */}
-      <hr className="sidebar-divider" />
-
-      {/* Heading */}
-      <div className="sidebar-heading">NotificaÁıes do Sistema</div>
-
-      {/* Nav Item - NotificaÁıes */}
-      <li className="nav-item">
-        <Link to="#" className="nav-link collapsed" data-toggle="collapse" data-target="#collapseNotifications" aria-expanded="true" aria-controls="collapseNotifications">
-          <i className="fas fa-bell"></i>
-          <span>NotificaÁ„o</span>
-          <span className="badge bg-gradient-light text-black-50 pt-0 pb-0">4</span>
-        </Link>
-        <div id="collapseNotifications" className="collapse" aria-labelledby="headingNotifications">
-          <div className="bg-white py-2 collapse-inner rounded">
-            <Link className="collapse-item" to="/notificacoes/admin">Admin <span className="badge bg-info text-bg-secondary">4</span></Link>
-            <Link className="collapse-item" to="/notificacoes/usuario">Usu·rio <span className="badge bg-info text-bg-secondary">4</span></Link>
-          </div>
-        </div>
-      </li>
-
-      {/* Divider */}
-      <hr className="sidebar-divider" />
-
-      {/* Sidebar Toggler */}
+      {/* Bot√£o de Toggle para a Sidebar */}
       <div className="text-center d-none d-md-inline">
-        <button className="rounded-circle border-0" id="sidebarToggle"></button>
+        <button className="rounded-circle border-0 py-1 px-2" onClick={() => setIsCollapsed(!isCollapsed)}>
+          <FontAwesomeIcon icon={isCollapsed ? faChevronRight : faChevronDown} />
+        </button>
       </div>
-    </div>
+    </ul>
   );
 };
 
