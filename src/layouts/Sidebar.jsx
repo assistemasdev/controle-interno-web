@@ -17,8 +17,7 @@ const Sidebar = () => {
 
   return (
     <ul
-      className={`navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`}
-      style={{ backgroundColor: 'var(--blue-light)' }}  // Aplica a cor de fundo da sidebar
+      className={`bg-gray-900 navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`}
     >
       <a className="d-flex align-items-center justify-content-center" href="index.html">
         <div className="sidebar-brand-icon">
