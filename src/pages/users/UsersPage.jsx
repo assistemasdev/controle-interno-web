@@ -1,20 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout'; 
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons'; 
 import DynamicTable from '../../components/DynamicTable'; 
 import Button from '../../components/Button';
 import InputField from '../../components/InputField'; 
+import axios from '../../services/api'; // Supondo que tenha uma instância de axios em `src/services/api.js`
 import '../../assets/styles/custom-styles.css'; 
 
 const UsersPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [users, setUsers] = useState([
-    { name: 'João Silva', email: 'joao.silva@email.com', phone: '(11) 91234-5678', userType: 'Admin', createdAt: '01/01/2022' },
-    { name: 'Maria Oliveira', email: 'maria.oliveira@email.com', phone: '(11) 92345-6789', userType: 'Usuário', createdAt: '15/03/2021' },
-    { name: 'Carlos Souza', email: 'carlos.souza@email.com', phone: '(11) 93456-7890', userType: 'Admin', createdAt: '10/05/2020' },
-    { name: 'Ana Santos', email: 'ana.santos@email.com', phone: '(11) 94567-8901', userType: 'Usuário', createdAt: '20/07/2019' },
-  ]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/users/'); 
+      console.log(response)
+      // setUsers(response.data);
+    } catch (error) {
+      setError('Erro ao carregar usuários');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleFilter = (e) => {
     e.preventDefault();
@@ -98,7 +114,13 @@ const UsersPage = () => {
           />
         </div>
 
-        <DynamicTable headers={headers} data={users} actions={actions} />
+        {loading ? (
+          <div>Carregando...</div>
+        ) : error ? (
+          <div className="text-danger">{error}</div>
+        ) : (
+          <DynamicTable headers={headers} data={users} actions={actions} />
+        )}
       </div>
     </MainLayout>
   );
