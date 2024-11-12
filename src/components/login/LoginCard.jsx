@@ -1,11 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';  
 import InputField from './InputField';
 import Button from './Button';
 
 const LoginCard = () => {
+  const navigate = useNavigate();  
+
   const handleLogin = (e) => {
     e.preventDefault();
     console.log("Login efetuado");
+
+    navigate('/dashboard');  
   };
 
   return (
