@@ -5,24 +5,30 @@ import { useNavigate } from 'react-router-dom';
 import InputField from './InputField';
 import Button from './Button';
 import { useAuth } from '../../hooks/useAuth'; 
+import api from '../../services/api';
 
 const LoginCard = () => {
   const navigate = useNavigate();  
   const { login } = useAuth();  
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (email === 'user@example.com' && password === 'password123') {
-      const userData = { email, role: 'Admin', name: 'João Silva' };  
-      login(userData); 
-      navigate('/dashboard');
-    } else {
-      setErrorMessage('Credenciais inválidas');
+    try {
+      const response = await api.post('/login', { username, password });
+      if (response.data && response.data.access_token) {
+        const token = response.data.access_token; 
+        login(token);
+        // navigate('/dashboard');
+      } else {
+        setErrorMessage('Credenciais inválidas');
+      }
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || 'Erro ao realizar o login');
     }
   };
 
@@ -41,11 +47,11 @@ const LoginCard = () => {
 
                 <form className="user" onSubmit={handleLogin}>
                   <InputField
-                    type="email"
-                    id="exampleInputEmail"
-                    placeholder="Insira seu email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    id="exampleInputUsername"
+                    placeholder="Insira seu usuário"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                   <InputField
                     type="password"
