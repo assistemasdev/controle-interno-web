@@ -13,3 +13,8 @@
     color: white !important;
     border-color: var(--blue-light) !important;
 }
+
+.sidebar-divider {
+    background-color: #fff;  
+}
+  

@@ -1,7 +1,6 @@
-// src/layouts/Sidebar.jsx
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUsers, faUser, faCoins, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons'; 
+import { faUserFriends, faUsers, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons'; 
 import { Link } from 'react-router-dom';
 
 const Sidebar = () => {
@@ -17,7 +16,10 @@ const Sidebar = () => {
   };
 
   return (
-    <ul className={`navbar-nav bg-gray-900 sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`} id="accordionSidebar">
+    <ul
+      className={`navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`}
+      style={{ backgroundColor: 'var(--blue-light)' }}  // Aplica a cor de fundo da sidebar
+    >
       <a className="d-flex align-items-center justify-content-center" href="index.html">
         <div className="sidebar-brand-icon">
             <i className="fas fa-users"></i>
@@ -25,9 +27,8 @@ const Sidebar = () => {
         <div className="sidebar-brand-text mx-3 py-4 text-white font-weight-bold">ADI</div>
       </a>
 
-      <hr className="sidebar-divider my-0" />
+      <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
 
-      {/* Usuários Link com Dropdown */}
       <li className="nav-item">
         <a
           className="nav-link d-flex justify-content-between"
@@ -55,8 +56,7 @@ const Sidebar = () => {
         </div>
       </li>
 
-      {/* Resto dos itens da Sidebar */}
-      <hr className="sidebar-divider my-0" />
+      <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
 
       <div className="text-center d-none d-md-inline my-3">
         <button className="rounded-circle border-0 py-1 px-2" onClick={() => setIsCollapsed(!isCollapsed)}>
