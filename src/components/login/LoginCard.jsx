@@ -23,7 +23,7 @@ const LoginCard = () => {
       if (response.data && response.data.access_token) {
         const token = response.data.access_token; 
         login(token);
-        // navigate('/dashboard');
+        navigate('/dashboard');
       } else {
         setErrorMessage('Credenciais inválidas');
       }

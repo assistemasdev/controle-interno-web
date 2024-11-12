@@ -22,12 +22,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = (token) => {
     const decoded = jwtDecode(token);
-    console.log('Decoded Token:', decoded);
 
-    // localStorage.setItem('token', 'fakeToken123');
-    // localStorage.setItem('user', JSON.stringify(userData)); 
-    // setIsAuthenticated(true);
-    // setUser(userData);
+    const userData = {
+      id: decoded.user_id,
+      name: decoded.username
+    }
+    
+    localStorage.setItem('token', 'token');
+    localStorage.setItem('user', JSON.stringify(userData)); 
+    setIsAuthenticated(true);
+    setUser(userData);
   };
 
   const logout = () => {
