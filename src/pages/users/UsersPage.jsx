@@ -18,8 +18,13 @@ const UsersPage = () => {
     try {
       setLoading(true);
       const response = await axios.get('/users/'); 
-      console.log(response)
-      // setUsers(response.data);
+      const filteredUsers = response.data.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      }));
+
+      setUsers(filteredUsers);
     } catch (error) {
       setError('Erro ao carregar usuários');
       console.error(error);
@@ -50,7 +55,7 @@ const UsersPage = () => {
     console.log('Excluindo usuário', user);
   };
 
-  const headers = ['Nome', 'E-mail', 'Telefone', 'Tipo de usuário', 'Cadastro'];
+  const headers = ['id', 'Nome', 'E-mail'];
 
   const actions = [
     {
