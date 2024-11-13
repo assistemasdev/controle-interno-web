@@ -10,26 +10,26 @@ import PrivateRoute from './components/PrivateRoute';
 
 const AppRoutes = () => {
   return (
-    <AuthProvider>
       <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-          <Route
-            path="/dashboard"
-            element={<PrivateRoute element={Dashboard} />}
-          />
-          <Route
-            path="/usuarios"
-            element={<PrivateRoute element={UsersPage} />}
-          />
-          <Route
-            path="/usuarios/criar"
-            element={<PrivateRoute element={CreateUserPage} />}
-          />
-        </Routes>
+            <Route
+              path="/dashboard"
+              element={<PrivateRoute element={Dashboard} />}
+            />
+            <Route
+              path="/usuarios"
+              element={<PrivateRoute element={UsersPage} />}
+            />
+            <Route
+              path="/usuarios/criar"
+              element={<PrivateRoute element={CreateUserPage} />}
+            />
+          </Routes>
+        </AuthProvider>
       </Router>
-    </AuthProvider>
   );
 };
 
