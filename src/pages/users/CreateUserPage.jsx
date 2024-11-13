@@ -4,22 +4,47 @@ import InputField from '../../components/InputField';
 import Button from '../../components/Button'; 
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
+import api from '../../services/api';
+import MyAlert from '../../components/MyAlert';
 
 const CreateUserPage = () => {
   const navigate = useNavigate(); 
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [userType, setUserType] = useState('');
-  const [createdAt, setCreatedAt] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation , setPasswordConfirmation] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [formErrors, setFormErrors] = useState({username: '', email:'',name: '', password:''}); 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newUser = { name, email, phone, userType, createdAt };
-    
-    console.log('Novo usuário criado:', newUser);
+    setFormErrors({username: '', email:'', name: '', password:''});
+    setSuccessMessage('');
+    setErrorMessage('');
+    try {
+      const response = await api.post('/users/', {name, username, email, password, password_confirmation: passwordConfirmation});
 
-    navigate('/usuarios'); 
+      setSuccessMessage(response.data.message);
+      setName('');
+      setUsername('');
+      setEmail('');
+      setPassword('');
+      setPasswordConfirmation('');
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.errors) {
+        const { errors } = error.response.data;
+        setFormErrors({
+          username: errors?.username ? errors.username[0] : '',
+          password: errors?.password ? errors.password[0] : '',
+          email: errors?.email ? errors.email[0] : '',
+          name: errors?.name ? errors.name[0] : '',
+        });
+      } else {
+        setErrorMessage(error.response?.data?.error || 'Erro ao realizar o cadastro');
+      }
+    }    
   };
 
   const handleBack = () => {
@@ -34,6 +59,9 @@ const CreateUserPage = () => {
         </div>
 
         <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
+          {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
+          {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
+
           <div className="d-flex row">
             <div className="d-flex flex-column col-6">
               <label htmlFor="name" className="form-label text-dark font-weight-bold">Nome:</label>
@@ -43,52 +71,57 @@ const CreateUserPage = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Digite o nome do usuário"
+                error={formErrors.name} 
               />
             </div>
             <div className="d-flex flex-column col-6">
+              <label htmlFor="username" className="form-label text-dark font-weight-bold">Usuário:</label>
+              <InputField
+                type="text"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Digite o nome de usuário"
+                error={formErrors.username} 
+              />
+            </div>
+          </div>
+
+          <div className="d-flex row">
+            <div className="d-flex flex-column col-12">
               <label htmlFor="email" className="form-label text-dark font-weight-bold">E-mail:</label>
               <InputField
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Digite o e-mail do usuário"
+                placeholder="Digite seu e-mail"
+                error={formErrors.email} 
               />
             </div>
           </div>
 
           <div className="d-flex row">
             <div className="d-flex flex-column col-6">
-              <label htmlFor="phone" className="form-label text-dark font-weight-bold">Telefone:</label>
+              <label htmlFor="password" className="form-label text-dark font-weight-bold">Senha:</label>
               <InputField
-                type="text"
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Digite o telefone do usuário"
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite sua senha"
+                error={formErrors.password} 
               />
             </div>
             <div className="d-flex flex-column col-6">
-              <label htmlFor="userType" className="form-label text-dark font-weight-bold">Tipo de usuário:</label>
+              <label htmlFor="passwordConfirmation" className="form-label text-dark font-weight-bold">Confirme sua senha:</label>
               <InputField
-                type="text"
-                id="userType"
-                value={userType}
-                onChange={(e) => setUserType(e.target.value)}
-                placeholder="Digite o tipo de usuário"
-              />
-            </div>
-          </div>
-
-          <div className="d-flex row">
-            <div className="d-flex flex-column col-6">
-              <label htmlFor="createdAt" className="form-label text-dark font-weight-bold">Data de Cadastro:</label>
-              <InputField
-                type="date"
-                id="createdAt"
-                value={createdAt}
-                onChange={(e) => setCreatedAt(e.target.value)}
-              />
+                type="password"
+                id="passwordConfirmation"
+                value={passwordConfirmation}
+                onChange={(e) => setPasswordConfirmation(e.target.value)}
+                placeholder="Confirme sua senha"
+                />
             </div>
           </div>
 

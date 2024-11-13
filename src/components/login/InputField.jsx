@@ -10,7 +10,7 @@ const InputField = ({ type, id, placeholder, value, onChange, error }) => {
         placeholder={placeholder}
         onChange={onChange}
       />
-        {error && <div className="invalid-feedback">{error}</div>}
+      {error && <div className="invalid-feedback">{error}</div>}
     </div>
   );
 };

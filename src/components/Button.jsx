@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Button = ({ text, className, link }) => {
+const Button = ({ text, className, link, onClick }) => {
   return link ? (
     <Link to={link} className={className}>
       {text}
     </Link>
   ) : (
-    <button className={className}>{text}</button>
+    <button onClick={onClick} className={className}>{text}</button>
   );
 };
 
