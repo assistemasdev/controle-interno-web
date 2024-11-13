@@ -17,4 +17,12 @@
 .sidebar-divider {
     background-color: #fff;  
 }
+
+.bg-blue-light {
+    background-color: var(--blue-light);
+}
+
+.font-color-blue-light {
+    color: var(--blue-light);
+}
   

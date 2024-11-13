@@ -4,7 +4,7 @@ import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import DynamicTable from '../../components/DynamicTable'; 
 import Button from '../../components/Button';
 import InputField from '../../components/InputField'; 
-import axios from '../../services/api'; // Supondo que tenha uma instância de axios em `src/services/api.js`
+import axios from '../../services/api'; 
 import '../../assets/styles/custom-styles.css'; 
 
 const UsersPage = () => {

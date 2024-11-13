@@ -1,10 +1,9 @@
-// src/components/login/LoginCard.js
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InputField from './InputField';
 import Button from './Button';
 import { useAuth } from '../../hooks/useAuth'; 
+import MyAlert from '../MyAlert';  
 import api from '../../services/api';
 
 const LoginCard = () => {
@@ -14,21 +13,35 @@ const LoginCard = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-
+  const [successMessage, setSuccessMessage] = useState('');
+  const [formErrors, setFormErrors] = useState({ username: '', password: '' }); 
+  
   const handleLogin = async (e) => {
     e.preventDefault();
+    setSuccessMessage('');
+    setErrorMessage('');
+    setFormErrors({ username: '', password: '' });
 
     try {
       const response = await api.post('/login', { username, password });
       if (response.data && response.data.access_token) {
         const token = response.data.access_token; 
         login(token);
-        navigate('/dashboard');
+        setSuccessMessage('Login realizado com sucesso!');
+        navigate('/dashboard');  
       } else {
         setErrorMessage('Credenciais inválidas');
       }
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Erro ao realizar o login');
+      if (error.response && error.response.data && error.response.data.errors) {
+        const { errors } = error.response.data;
+        setFormErrors({
+          username: errors?.username ? errors.username[0] : '',
+          password: errors?.password ? errors.password[0] : '',
+        });
+      } else {
+        setErrorMessage(error.response?.data?.error || 'Erro ao realizar o login');
+      }
     }
   };
 
@@ -40,18 +53,20 @@ const LoginCard = () => {
             <div className="col-lg-12">
               <div className="p-5">
                 <div className="text-center">
-                  <h1 className="h4 text-gray-900 mb-4">Bem Vindo!</h1>
+                  <h1 className="h2 font-color-blue-light mb-4">Bem Vindo!</h1>
                 </div>
 
-                {errorMessage && <div className="text-danger text-center">{errorMessage}</div>}
-
                 <form className="user" onSubmit={handleLogin}>
+                  {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
+                  {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
+
                   <InputField
                     type="text"
                     id="exampleInputUsername"
                     placeholder="Insira seu usuário"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    error={formErrors.username}
                   />
                   <InputField
                     type="password"
@@ -59,6 +74,7 @@ const LoginCard = () => {
                     placeholder="Senha"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    error={formErrors.password} 
                   />
                   <Button
                     text="Login"
