@@ -1,29 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import MainLayout from '../../layouts/MainLayout'; 
-import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons'; 
-import DynamicTable from '../../components/DynamicTable'; 
+import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
+import DynamicTable from '../../components/DynamicTable';
 import Button from '../../components/Button';
-import InputField from '../../components/InputField'; 
-import axios from '../../services/api'; 
-import '../../assets/styles/custom-styles.css'; 
+import InputField from '../../components/InputField';
+import axios from '../../services/api';
+import ConfirmationModal from '../../components/modals/ConfirmationModal'; 
+import '../../assets/styles/custom-styles.css';
+import api from '../../services/api';
+import MyAlert from '../../components/MyAlert';
+import MainLayout from '../../layouts/MainLayout';  
+import { CircularProgress } from '@mui/material';
 
 const UsersPage = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);  
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);  
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/users/'); 
+      const response = await axios.get('/users/');
       const filteredUsers = response.data.map(user => ({
         id: user.id,
         name: user.name,
         email: user.email,
       }));
-
       setUsers(filteredUsers);
     } catch (error) {
       setError('Erro ao carregar usuários');
@@ -48,11 +57,28 @@ const UsersPage = () => {
   };
 
   const handleEdit = (user) => {
-    console.log('Editando usuário', user);
+    navigate(`/usuarios/editar/${user.id}`);
   };
 
   const handleDelete = (user) => {
-    console.log('Excluindo usuário', user);
+    setSelectedUser(user);  
+    setOpenDeleteModal(true);  
+  };
+
+  const handleConfirmDelete = async (id) => {
+    try {
+      await api.delete(`/users/${id}`);
+      setSuccessMessage('Usuário excluído com sucesso!');
+      setOpenDeleteModal(false);  
+    } catch (error) {
+        console.log(error)
+        setErrorMessage('Erro ao excluir o usuário');
+        setOpenDeleteModal(false);  
+    }    
+  };
+
+  const handleCancelDelete = () => {
+    setOpenDeleteModal(false);  
   };
 
   const headers = ['id', 'Nome', 'E-mail'];
@@ -80,6 +106,9 @@ const UsersPage = () => {
         </div>
 
         <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilter}>
+          {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
+          {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
+
           <div className="d-flex row">
             <div className="d-flex flex-column col-6">
               <label htmlFor="name" className="form-label text-dark font-weight-bold">Nome do usuário:</label>
@@ -109,23 +138,32 @@ const UsersPage = () => {
         </form>
 
         <div className="mt-4 d-flex justify-content-between align-items-center">
-          <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex ">
+          <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
             Lista de usuários
           </div>
           <Button
             text="Novo usuário"
             className="btn btn-blue-light fw-semibold"
-            link="/usuarios/criar" 
+            link="/usuarios/criar"
           />
         </div>
 
         {loading ? (
-          <div>Carregando...</div>
+          <div className="d-flex justify-content-center mt-4">
+            <CircularProgress size={50} />
+          </div>
         ) : error ? (
           <div className="text-danger">{error}</div>
         ) : (
           <DynamicTable headers={headers} data={users} actions={actions} />
         )}
+        
+        <ConfirmationModal
+          open={openDeleteModal}
+          onClose={handleCancelDelete}
+          onConfirm={() => handleConfirmDelete(selectedUser.id)}
+          userName={selectedUser ? selectedUser.name : ''}
+        />
       </div>
     </MainLayout>
   );

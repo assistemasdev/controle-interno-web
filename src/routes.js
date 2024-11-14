@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import UsersPage from './pages/users/UsersPage';
 import CreateUserPage from './pages/users/CreateUserPage';
+import EditUserPage from './pages/users/EditUserPage';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute'; 
 
@@ -26,6 +27,10 @@ const AppRoutes = () => {
             <Route
               path="/usuarios/criar"
               element={<PrivateRoute element={CreateUserPage} />}
+            />
+            <Route
+              path="/usuarios/editar/:id"
+              element={<PrivateRoute element={EditUserPage} />}
             />
           </Routes>
         </AuthProvider>
