@@ -8,6 +8,7 @@ import CreateUserPage from './pages/users/CreateUserPage';
 import EditUserPage from './pages/users/EditUserPage';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute'; 
+import CompanySelection from './pages/CompanySelection';
 
 const AppRoutes = () => {
   return (
@@ -19,6 +20,10 @@ const AppRoutes = () => {
             <Route
               path="/dashboard"
               element={<PrivateRoute element={Dashboard} />}
+            />
+            <Route
+              path="/empresas"
+              element={<PrivateRoute element={CompanySelection} />}
             />
             <Route
               path="/usuarios"
