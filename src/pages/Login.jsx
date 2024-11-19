@@ -7,7 +7,7 @@ import LoginCard from '../components/login/LoginCard';
 
 const Login = () => {
   return (
-    <div className="d-flex align-items-center justify-content-center vh-100 bg-blue-light">
+    <div className="d-flex align-items-center justify-content-center vh-100" style={{background:'#efefef'}}>
       <LoginCard />
     </div>
   );

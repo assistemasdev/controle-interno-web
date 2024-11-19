@@ -6,7 +6,7 @@ import { faTools, faExchangeAlt, faWrench, faUserPlus } from '@fortawesome/free-
 const Dashboard = () => {
 
   return (
-    <MainLayout selectedCompany="ALUCOM">
+    <MainLayout>
       <div className="container-fluid">
         <div className="row">
           <DashboardCard
