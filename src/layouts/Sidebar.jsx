@@ -1,27 +1,36 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUsers, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons'; 
+import { faUserFriends, faUsers, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { useCompany } from '../hooks/useCompany';
 
 const Sidebar = () => {
-  const [openDropdown, setOpenDropdown] = useState(null);  
-  const [isCollapsed, setIsCollapsed] = useState(false); 
+  const { selectedCompany } = useCompany();
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const sidebarBackgroundColor = selectedCompany ? selectedCompany.color : '#343a40';
+
+  useEffect(() => {
+    console.log(selectedCompany); 
+  }, [selectedCompany]);
 
   const toggleDropdown = (dropdown) => {
     setOpenDropdown(openDropdown === dropdown ? null : dropdown);
   };
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed); 
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
     <ul
-      className={`bg-gray-900 navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`}
+      className={`navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`}
+      style={{ backgroundColor: sidebarBackgroundColor }} 
     >
       <a className="d-flex align-items-center justify-content-center" href="index.html">
         <div className="sidebar-brand-icon">
-            <i className="fas fa-users"></i>
+          <i className="fas fa-users"></i>
         </div>
         <div className="sidebar-brand-text mx-3 py-4 text-white font-weight-bold">ADI</div>
       </a>
@@ -32,7 +41,7 @@ const Sidebar = () => {
         <a
           className="nav-link d-flex justify-content-between"
           href="#collapseUsers"
-          onClick={() => toggleDropdown('users')} 
+          onClick={() => toggleDropdown('users')}
         >
           <div className="d-flex align-items-center">
             <FontAwesomeIcon icon={faUserFriends} className="mr-3" />

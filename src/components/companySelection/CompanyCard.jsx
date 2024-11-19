@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCompany } from '../../hooks/useCompany'; 
 import '../../assets/styles/companySelection/CompanyCard.css';
 
 const CompanyCard = ({ title, subtitle, options }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
+  const { selectCompany, selectedCompany } = useCompany(); 
 
   const handleOptionClick = (option) => {
-    localStorage.setItem('selectedCompany', JSON.stringify({ name: option.name, color: option.color }));
+    selectCompany(option);
+    console.log(selectedCompany)
     navigate('/dashboard');
   };
 

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import { faTools, faExchangeAlt, faWrench, faUserPlus } from '@fortawesome/free-solid-svg-icons'; 
 
 const Dashboard = () => {
+
   return (
     <MainLayout selectedCompany="ALUCOM">
       <div className="container-fluid">

@@ -14,8 +14,8 @@ const companies = [
         subtitle: 'Toque para exibir os órgãos', 
         options: [
         { name: 'ALUCOM', color: '#BF2626' },
-        { name: 'IP', color: '#FFA500' },
-        { name: 'MOREIA', color: '#5d8dbb' }
+        { name: 'IP', color: '#5d8dbb' },
+        { name: 'MOREIA', color: '#FFA500' }
         ]
     },
 ];

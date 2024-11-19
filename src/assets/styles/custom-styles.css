@@ -1,28 +1,29 @@
 :root {
+    --primary-color: #4da8ff; 
+    --secondary-color: #ffffff; 
     --blue-light: #4da8ff;
 }
 
 .btn-blue-light {
-    color: var(--blue-light) !important;
-    border-color: var(--blue-light) !important;
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
 }
   
 .btn-blue-light:hover,
 .btn-blue-light:focus {
-    background-color: var(--blue-light) !important;
-    color: white !important;
-    border-color: var(--blue-light) !important;
+    background-color: var(--primary-color) !important;
+    color: var(--secondary-color) !important;
+    border-color: var(--primary-color) !important;
 }
 
 .sidebar-divider {
-    background-color: #fff;  
+    background-color: var(--secondary-color);  
 }
 
 .bg-blue-light {
-    background-color: var(--blue-light);
+    background-color: var(--primary-color);
 }
 
 .font-color-blue-light {
-    color: var(--blue-light);
+    color: var(--primary-color);
 }
-  

@@ -28,7 +28,7 @@ const LoginCard = () => {
         const token = response.data.access_token; 
         login(token);
         setSuccessMessage('Login realizado com sucesso!');
-        navigate('/dashboard');  
+        navigate('/empresas');  
       } else {
         setErrorMessage('Credenciais inválidas');
       }

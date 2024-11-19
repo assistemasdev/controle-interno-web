@@ -9,35 +9,38 @@ import EditUserPage from './pages/users/EditUserPage';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute'; 
 import CompanySelection from './pages/CompanySelection';
+import { CompanyProvider } from './context/CompanyContext';
 
 const AppRoutes = () => {
   return (
       <Router>
         <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
+          <CompanyProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
 
-            <Route
-              path="/dashboard"
-              element={<PrivateRoute element={Dashboard} />}
-            />
-            <Route
-              path="/empresas"
-              element={<PrivateRoute element={CompanySelection} />}
-            />
-            <Route
-              path="/usuarios"
-              element={<PrivateRoute element={UsersPage} />}
-            />
-            <Route
-              path="/usuarios/criar"
-              element={<PrivateRoute element={CreateUserPage} />}
-            />
-            <Route
-              path="/usuarios/editar/:id"
-              element={<PrivateRoute element={EditUserPage} />}
-            />
-          </Routes>
+              <Route
+                path="/dashboard"
+                element={<PrivateRoute element={Dashboard} />}
+              />
+              <Route
+                path="/empresas"
+                element={<PrivateRoute element={CompanySelection} />}
+              />
+              <Route
+                path="/usuarios"
+                element={<PrivateRoute element={UsersPage} />}
+              />
+              <Route
+                path="/usuarios/criar"
+                element={<PrivateRoute element={CreateUserPage} />}
+              />
+              <Route
+                path="/usuarios/editar/:id"
+                element={<PrivateRoute element={EditUserPage} />}
+              />
+            </Routes>
+          </CompanyProvider>
         </AuthProvider>
       </Router>
   );
