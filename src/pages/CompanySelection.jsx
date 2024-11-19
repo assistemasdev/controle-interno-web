@@ -5,19 +5,14 @@ import Header from '../components/companySelection/Header';
 
 const companies = [
     { 
-        title: 'Almoxarifado', 
-        subtitle: 'Toque para exibir os órgãos', 
-        options: [] 
-    },
-    { 
-        title: 'Aluguel - Equipamentos', 
-        subtitle: 'Toque para exibir os órgãos', 
-        options: [
-        { name: 'ALUCOM', color: '#BF2626' },
-        { name: 'IP', color: '#5d8dbb' },
-        { name: 'MOREIA', color: '#FFA500' }
-        ]
-    },
+      title: 'Aluguel - Equipamentos', 
+      subtitle: 'Toque para exibir os órgãos', 
+      options: [
+      { name: 'ALUCOM', color: '#BF2626', hoverColor: '#A02222' },
+      { name: 'IP', color: '#5d8dbb', hoverColor: '#4a77a2' },
+      { name: 'MOREIA', color: '#FFA500', hoverColor: '#e69500' }
+      ]
+  },
 ];
 
 

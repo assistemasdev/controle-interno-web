@@ -28,12 +28,12 @@ const Sidebar = () => {
       className={`navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`}
       style={{ backgroundColor: sidebarBackgroundColor }} 
     >
-      <a className="d-flex align-items-center justify-content-center" href="index.html">
+      <Link className="d-flex align-items-center justify-content-center" to="/dashboard">
         <div className="sidebar-brand-icon">
           <i className="fas fa-users"></i>
         </div>
         <div className="sidebar-brand-text mx-3 py-4 text-white font-weight-bold">ADI</div>
-      </a>
+      </Link>
 
       <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
 
