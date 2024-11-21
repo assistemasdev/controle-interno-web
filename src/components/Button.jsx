@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useCompany } from '../hooks/useCompany';
+import { useOrgan } from '../hooks/useOrgan';
 
 const Button = ({ text, className = 'btn', link, onClick, type = 'button' }) => {
-  const { selectedCompany } = useCompany();
+  const { selectedCompany } = useOrgan();
 
   const buttonStyles = selectedCompany?.color
     ? {

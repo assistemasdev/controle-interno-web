@@ -1,11 +1,11 @@
 import React from 'react';
 import Sidebar from './Sidebar'; 
 import Topbar from './Topbar'; 
-import { useCompany } from '../hooks/useCompany';
+import { useOrgan } from '../hooks/useOrgan';
 import { CircularProgress } from '@mui/material';
 
 const MainLayout = ({ children }) => {
-  const { loading } = useCompany();
+  const { loading } = useOrgan();
 
   return (
     <div id="wrapper" className="d-flex">

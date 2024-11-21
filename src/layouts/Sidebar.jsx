@@ -2,25 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserFriends, faUsers, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
-import { useCompany } from '../hooks/useCompany';
+import { useOrgan } from '../hooks/useOrgan';
 
 const Sidebar = () => {
-  const { selectedCompany } = useCompany();
+  const { selectedOrgan } = useOrgan();
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const sidebarBackgroundColor = selectedCompany ? selectedCompany.color : '#343a40';
-
-  useEffect(() => {
-    console.log(selectedCompany); 
-  }, [selectedCompany]);
+  const sidebarBackgroundColor = selectedOrgan ? selectedOrgan.color : '#343a40';
 
   const toggleDropdown = (dropdown) => {
     setOpenDropdown(openDropdown === dropdown ? null : dropdown);
-  };
-
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
   };
 
   return (

@@ -4,6 +4,10 @@
     --blue-light: #4da8ff;
 }
 
+body {
+    background-color: #efefef;
+}
+
 .btn-blue-light {
     color: var(--primary-color) !important;
     border-color: var(--primary-color) !important;

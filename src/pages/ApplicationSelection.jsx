@@ -3,16 +3,16 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../assets/styles/sb-admin-2.min.css';
 import '../assets/styles/custom-styles.css'; 
-import OrganCard from '../components/organ/OrganCard';
+import ApplicationCard from '../components/application/ApplicationCard';
 
-const CompanySelection = () => {
+const ApplicationSelection = () => {
   return (
     <div className="d-flex align-items-center justify-content-center vh-100" style={{background:'#efefef'}}>
-      <OrganCard>
-      </OrganCard>
+      <ApplicationCard>
+      </ApplicationCard>
     </div>
   );
 };
 
-export default CompanySelection;
+export default ApplicationSelection;
 
