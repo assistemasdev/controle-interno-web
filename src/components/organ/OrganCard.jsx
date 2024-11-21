@@ -39,7 +39,7 @@ const OrganCard = () => {
       <div className="card o-hidden border-0 shadow-lg">
         <div className="card-body p-4">
           <div className="text-center mb-4">
-            <h1 className="h4 font-color-blue-light">Selecione uma aplicação!</h1>
+            <h1 className="h4 font-color-blue-light">Selecione um órgão!</h1>
           </div>
 
           {options.length > 0 ? (

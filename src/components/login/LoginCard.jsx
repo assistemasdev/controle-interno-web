@@ -53,7 +53,7 @@ const LoginCard = () => {
             <div className="col-lg-12">
               <div className="p-5">
                 <div className="text-center">
-                  <h1 className="h2 font-color-blue-light mb-4">Bem Vindo!</h1>
+                  <h1 className="h2 font-color-blue-light mb-4">Bem vindo!</h1>
                 </div>
 
                 <form className="user" onSubmit={handleLogin}>
