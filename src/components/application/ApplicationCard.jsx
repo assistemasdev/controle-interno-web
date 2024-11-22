@@ -4,17 +4,19 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow, Navigation } from "swiper/modules";
 import { useApplication } from "../../hooks/useApplication";
 import { useNavigate } from "react-router-dom";
-import ApplicationService from "../../services/ApplicationService"; // Serviço para buscar aplicações
+import ApplicationService from "../../services/ApplicationService";
+import { useAuth } from "../../hooks/useAuth";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
 
 const ApplicationCard = () => {
   const { selectApplication } = useApplication();
+  const { logout } = useAuth(); 
   const navigate = useNavigate();
 
-  const [applications, setApplications] = useState([]); 
-  const [selectedApplication, setSelectedApplication] = useState(null); 
+  const [applications, setApplications] = useState([]);
+  const [selectedApplication, setSelectedApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -24,7 +26,7 @@ const ApplicationCard = () => {
         const data = await ApplicationService.getAll();
         if (data.length > 0) {
           setApplications(data);
-          setSelectedApplication(data[0]); 
+          setSelectedApplication(data[0]);
         } else {
           setError("Nenhuma aplicação disponível.");
         }
@@ -47,6 +49,11 @@ const ApplicationCard = () => {
       selectApplication(selectedApplication);
       navigate("/orgaos");
     }
+  };
+
+  const handleBack = () => {
+    logout(); 
+    navigate("/login"); 
   };
 
   if (loading) return <p>Carregando aplicações...</p>;
@@ -102,12 +109,23 @@ const ApplicationCard = () => {
             </div>
           )}
 
-          <Button
-            text="Avançar"
-            className="btn btn-blue-light w-100 d-flex align-items-center justify-content-center"
-            onClick={handleAdvance}
-            disabled={!selectedApplication || loading} 
-          />
+          <div className="row mt-3 g-2 justify-content-center">
+            <div className="col-12 col-md-6 d-flex justify-content-center">
+              <Button
+                text="Voltar"
+                className="btn btn-blue-light w-100"
+                onClick={handleBack}
+              />
+            </div>
+            <div className="col-12 col-md-6 d-flex justify-content-center">
+              <Button
+                text="Avançar"
+                className="btn btn-blue-light w-100"
+                onClick={handleAdvance}
+                disabled={!selectedApplication || loading}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

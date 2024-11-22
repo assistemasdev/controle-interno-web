@@ -14,6 +14,12 @@ export const ApplacationProvider = ({ children }) => {
     setLoading(false); 
   };
 
+  const removeApplication = () => {
+    setApplication(null);
+    localStorage.removeItem("selectedApplication");
+    navigate("/aplicacoes"); 
+  };
+
   useEffect(() => {
     const savedApplicaiton = localStorage.getItem('selectedApplication');
     
@@ -27,7 +33,7 @@ export const ApplacationProvider = ({ children }) => {
   }, []); 
 
   return (
-    <ApplicationContext.Provider value={{ selectedApplication, selectApplication, loading }}>
+    <ApplicationContext.Provider value={{ selectedApplication, selectApplication, removeApplication, loading }}>
       {children}
     </ApplicationContext.Provider>
   );

@@ -47,6 +47,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.clear();
     setIsAuthenticated(false); 
     setUser(null); 
+    document.documentElement.style.setProperty('--primary-color','#4da8ff');
+
   };
 
   return (

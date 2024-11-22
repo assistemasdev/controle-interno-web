@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow, Navigation } from "swiper/modules";
 import { useNavigate } from "react-router-dom";
 import { useOrgan } from "../../hooks/useOrgan";
-import { useAuth } from "../../hooks/useAuth"; 
+import { useAuth } from "../../hooks/useAuth";
 import { useApplication } from "../../hooks/useApplication";
 import UserOrganizationService from "../../services/UserOrganizationService";
 import "swiper/css";
@@ -14,7 +14,7 @@ import "swiper/css/navigation";
 const OrganCard = () => {
   const { selectOrgan } = useOrgan();
   const { user } = useAuth();
-  const { selectedApplication } = useApplication();
+  const { selectedApplication, removeApplication } = useApplication();
   const navigate = useNavigate();
   const [options, setOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -30,16 +30,15 @@ const OrganCard = () => {
             selectedApplication.id
           );
 
-          // Garante que todas as propriedades necessárias estão presentes
           const formattedOrgans = organs.map((organ) => ({
             ...organ,
-            color: organ.color || "#cccccc", // Valor padrão para cor
-            hoverColor: organ.hoverColor || "#bbbbbb", // Valor padrão para hover
-            name: organ.name || "Sem nome", // Nome padrão
+            color: organ.color || "#cccccc",
+            hoverColor: organ.hoverColor || "#bbbbbb",
+            name: organ.name || "Sem nome",
           }));
 
           setOptions(formattedOrgans);
-          setSelectedOption(formattedOrgans.length > 0 ? formattedOrgans[0] : null); 
+          setSelectedOption(formattedOrgans.length > 0 ? formattedOrgans[0] : null);
         } catch (error) {
           console.error("Erro ao buscar órgãos:", error);
           setOptions([]);
@@ -53,7 +52,7 @@ const OrganCard = () => {
   }, [user, selectedApplication]);
 
   const handleSlideChange = (swiper) => {
-    const selected = options[swiper.activeIndex] || null; 
+    const selected = options[swiper.activeIndex] || null;
     setSelectedOption(selected);
   };
 
@@ -62,6 +61,10 @@ const OrganCard = () => {
       selectOrgan(selectedOption);
       navigate("/dashboard");
     }
+  };
+
+  const handleBack = () => {
+    removeApplication();
   };
 
   return (
@@ -124,12 +127,23 @@ const OrganCard = () => {
             </div>
           )}
 
-          <Button
-            text="Avançar"
-            className="btn btn-blue-light w-100 d-flex align-items-center justify-content-center"
-            onClick={handleAdvance}
-            disabled={!selectedOption || loading} 
-          />
+<div className="row mt-3 g-2 justify-content-center">
+  <div className="col-12 col-md-6 d-flex justify-content-center">
+    <Button
+      text="Voltar"
+      className="btn btn-blue-light w-100"
+      onClick={handleBack}
+    />
+  </div>
+  <div className="col-12 col-md-6 d-flex justify-content-center">
+    <Button
+      text="Avançar"
+      className="btn btn-blue-light w-100"
+      onClick={handleAdvance}
+      disabled={!selectedOption || loading}
+    />
+  </div>
+</div>
         </div>
       </div>
     </div>
