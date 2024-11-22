@@ -28,6 +28,10 @@ body {
     background-color: var(--primary-color);
 }
 
+.bg-pages-blue-light {
+    background-color: #4da8ff;
+}
+
 .font-color-blue-light {
     color: var(--primary-color);
 }

@@ -7,7 +7,7 @@ import OrganCard from '../components/organ/OrganCard';
 
 const CompanySelection = () => {
   return (
-    <div className="d-flex align-items-center justify-content-center vh-100" style={{background:'#efefef'}}>
+    <div className="d-flex bg-pages-blue-light align-items-center justify-content-center vh-100">
       <OrganCard>
       </OrganCard>
     </div>

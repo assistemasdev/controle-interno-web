@@ -7,7 +7,7 @@ import ApplicationCard from '../components/application/ApplicationCard';
 
 const ApplicationSelection = () => {
   return (
-    <div className="d-flex align-items-center justify-content-center vh-100" style={{background:'#efefef'}}>
+    <div className="d-flex align-items-center justify-content-center vh-100 bg-pages-blue-light">
       <ApplicationCard>
       </ApplicationCard>
     </div>

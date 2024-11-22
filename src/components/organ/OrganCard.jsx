@@ -4,34 +4,64 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow, Navigation } from "swiper/modules";
 import { useNavigate } from "react-router-dom";
 import { useOrgan } from "../../hooks/useOrgan";
+import { useAuth } from "../../hooks/useAuth"; 
+import { useApplication } from "../../hooks/useApplication";
+import UserOrganizationService from "../../services/UserOrganizationService";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
 
 const OrganCard = () => {
   const { selectOrgan } = useOrgan();
+  const { user } = useAuth();
+  const { selectedApplication } = useApplication();
   const navigate = useNavigate();
   const [options, setOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedApplication = localStorage.getItem("selectedApplication");
-    if (storedApplication) {
-      const parsedApplication = JSON.parse(storedApplication);
-      if (parsedApplication.organs) {
-        setOptions(parsedApplication.organs);
-        setSelectedOption(parsedApplication.organs[0]); 
+    const fetchOrgans = async () => {
+      if (user && selectedApplication) {
+        try {
+          setLoading(true);
+          const organs = await UserOrganizationService.getOrganizationsByUserAndApplication(
+            user.id,
+            selectedApplication.id
+          );
+
+          // Garante que todas as propriedades necessárias estão presentes
+          const formattedOrgans = organs.map((organ) => ({
+            ...organ,
+            color: organ.color || "#cccccc", // Valor padrão para cor
+            hoverColor: organ.hoverColor || "#bbbbbb", // Valor padrão para hover
+            name: organ.name || "Sem nome", // Nome padrão
+          }));
+
+          setOptions(formattedOrgans);
+          setSelectedOption(formattedOrgans.length > 0 ? formattedOrgans[0] : null); 
+        } catch (error) {
+          console.error("Erro ao buscar órgãos:", error);
+          setOptions([]);
+        } finally {
+          setLoading(false);
+        }
       }
-    }
-  }, []);
+    };
+
+    fetchOrgans();
+  }, [user, selectedApplication]);
 
   const handleSlideChange = (swiper) => {
-    setSelectedOption(options[swiper.activeIndex]);
+    const selected = options[swiper.activeIndex] || null; 
+    setSelectedOption(selected);
   };
 
   const handleAdvance = () => {
-    selectOrgan(selectedOption);
-    navigate("/dashboard");
+    if (selectedOption) {
+      selectOrgan(selectedOption);
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -42,7 +72,9 @@ const OrganCard = () => {
             <h1 className="h4 font-color-blue-light">Selecione um órgão!</h1>
           </div>
 
-          {options.length > 0 ? (
+          {loading ? (
+            <div className="text-center">Carregando órgãos...</div>
+          ) : options.length > 0 ? (
             <Swiper
               modules={[EffectCoverflow, Navigation]}
               effect="coverflow"
@@ -87,13 +119,16 @@ const OrganCard = () => {
               ))}
             </Swiper>
           ) : (
-            <div className="text-center">Nenhum órgão disponível.</div>
+            <div className="text-center py-4">
+              <p className="text-muted mb-3">Nenhum órgão disponível para esta aplicação.</p>
+            </div>
           )}
 
           <Button
             text="Avançar"
             className="btn btn-blue-light w-100 d-flex align-items-center justify-content-center"
             onClick={handleAdvance}
+            disabled={!selectedOption || loading} 
           />
         </div>
       </div>
