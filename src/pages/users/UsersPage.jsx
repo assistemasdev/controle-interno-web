@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import DynamicTable from '../../components/DynamicTable';
 import Button from '../../components/Button';
 import InputField from '../../components/InputField';
-import axios from '../../services/api';
 import ConfirmationModal from '../../components/modals/ConfirmationModal'; 
 import '../../assets/styles/custom-styles.css';
 import api from '../../services/api';
 import MyAlert from '../../components/MyAlert';
 import MainLayout from '../../layouts/MainLayout';  
 import { CircularProgress } from '@mui/material';
+import UserService from '../../services/UserService';
 
 const UsersPage = () => {
   const navigate = useNavigate();
@@ -27,8 +27,9 @@ const UsersPage = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/users/');
-      const filteredUsers = response.data.map(user => ({
+      const response = await UserService.getAll(navigate);
+      
+      const filteredUsers = response.map(user => ({
         id: user.id,
         name: user.name,
         email: user.email,
@@ -153,7 +154,9 @@ const UsersPage = () => {
             <CircularProgress size={50} />
           </div>
         ) : error ? (
-          <div className="text-danger">{error}</div>
+          <div className='mt-3'>
+            <MyAlert notTime={true} severity="error" message={error} />
+          </div>
         ) : (
           <DynamicTable headers={headers} data={users} actions={actions} />
         )}

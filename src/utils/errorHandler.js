@@ -4,14 +4,15 @@ const handleError = (error, navigate = null) => {
 
       if (error.response.status === 401 && navigate) {
         localStorage.clear();
-        navigate('/login', {state: { message: 'Sessão expirada, por favor faça login novamente.'}})
+        document.documentElement.style.setProperty('--primary-color','#4da8ff');
+        navigate('/login', {state: { message: 'Usuário não autenticado.'}})
       }
-
+      
       return {
         success: false,
         message: error.response.data.message || "Erro ao processar a solicitação.",
         status: error.response.status,
-        data: null,
+        data: error.response.data.errors,
       };
     } else if (error.request) {
       console.error("Sem resposta do servidor:", error.request);

@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Stack } from '@mui/material';
 
-const MyAlert = ({ severity, message, onClose }) => {
+const MyAlert = ({ severity, message, onClose, notTime = false }) => {
   const [showAlert, setShowAlert] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowAlert(false); 
-    }, 5000); 
+    if (!notTime) {
+      const timer = setTimeout(() => {
+        setShowAlert(false); 
+      }, 5000);
+       
+      return () => clearTimeout(timer); 
+    }
 
-    return () => clearTimeout(timer); 
   }, []);
 
   return (
