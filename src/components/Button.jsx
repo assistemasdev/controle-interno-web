@@ -11,9 +11,7 @@ const Button = ({ text, className = 'btn', link, onClick, type = 'button' }) => 
         borderColor: selectedCompany.color,
       }
     : {};
-  useEffect(() => {
-    console.log(buttonStyles)
-  },[])
+    
   return link ? (
     <Link to={link} className={className} style={buttonStyles}>
       {text}

@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
+import LoginService from '../services/LoginService';
 
 export const AuthContext = createContext();
 
@@ -14,16 +15,22 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     const storedUser = JSON.parse(localStorage.getItem('user'));
 
-    if (token && storedUser) {
-      const decodedToken = jwtDecode(token);
-
-      if (decodedToken.exp * 1000 < Date.now()) {
-        logout();
-        navigate('/login');
-      } else {
-        setIsAuthenticated(true);
-        setUser(storedUser);
+    try {
+      if (token && storedUser) {
+        const decodedToken = jwtDecode(token);
+  
+        if (decodedToken.exp * 1000 < Date.now()) {
+          logout();
+          navigate('/login');
+        } else {
+          setIsAuthenticated(true);
+          setUser(storedUser);
+        }
       }
+    } catch (error) {
+      console.log('Erro ao decodificar o token:', error)
+      logout();
+      navigate('/login', { state: { message: 'Sua sessão expirou. Por favor, faça login novamente.' } });
     }
 
     setLoading(false);
@@ -43,12 +50,17 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.clear();
-    setIsAuthenticated(false); 
-    setUser(null); 
-    document.documentElement.style.setProperty('--primary-color','#4da8ff');
-
+  const logout = async () => {
+    try {
+      await LoginService.logout();
+    } catch (error) {
+      console.error('Erro ao desconectar do servidor:', error);
+    } finally {
+      localStorage.clear();
+      setIsAuthenticated(false); 
+      setUser(null); 
+      document.documentElement.style.setProperty('--primary-color','#4da8ff');
+    }
   };
 
   return (

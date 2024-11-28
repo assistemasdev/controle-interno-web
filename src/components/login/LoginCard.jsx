@@ -1,21 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InputField from './InputField';
 import Button from './Button';
 import { useAuth } from '../../hooks/useAuth'; 
 import MyAlert from '../MyAlert';  
-import api from '../../services/api';
+import LoginService from '../../services/LoginService';
+import { useLocation } from 'react-router-dom';
 
 const LoginCard = () => {
   const navigate = useNavigate();  
   const { login } = useAuth();  
-
+  const location = useLocation();
+  
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [formErrors, setFormErrors] = useState({ username: '', password: '' }); 
   
+  useEffect(() => {
+    if (location.state?.message) {
+      setErrorMessage(location.state.message);
+    }
+  }, [location.state]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setSuccessMessage('');
@@ -23,18 +31,18 @@ const LoginCard = () => {
     setFormErrors({ username: '', password: '' });
 
     try {
-      const response = await api.post('/login', { username, password });
-      if (response.data && response.data.access_token) {
-        const token = response.data.access_token; 
+      const response = await LoginService.login({
+        username,
+        password
+      });
+      if (response && response.access_token) {
+        const token = response.access_token; 
         login(token);
-        setSuccessMessage('Login realizado com sucesso!');
         navigate('/aplicacoes');  
-      } else {
-        setErrorMessage('Credenciais inválidas');
-      }
+      };
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.errors) {
-        const { errors } = error.response.data;
+      if (error.response && error.response && error.response.errors) {
+        const { errors } = error.response;
         setFormErrors({
           username: errors?.username ? errors.username[0] : '',
           password: errors?.password ? errors.password[0] : '',

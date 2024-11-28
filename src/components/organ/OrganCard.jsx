@@ -13,6 +13,7 @@ import "swiper/css/navigation";
 
 const OrganCard = () => {
   const { selectOrgan } = useOrgan();
+  const [message, setMessage] = useState('Nenhum órgão disponível para esta aplicação.');
   const { user } = useAuth();
   const { selectedApplication, removeApplication } = useApplication();
   const navigate = useNavigate();
@@ -22,21 +23,27 @@ const OrganCard = () => {
 
   useEffect(() => {
     const fetchOrgans = async () => {
+
       if (user && selectedApplication) {
         try {
           setLoading(true);
-          const organs = await UserOrganizationService.getOrganizationsByUserAndApplication(
+          const response = await UserOrganizationService.getOrganizationsByUserAndApplication(
             user.id,
-            selectedApplication.id
+            selectedApplication.id,
+            navigate
           );
-
-          const formattedOrgans = organs.map((organ) => ({
+          
+          if (!response.data || !response.data == null) {
+            setMessage(response.message)
+            return;
+          }
+  
+          const formattedOrgans = response.data.map((organ) => ({
             ...organ,
             color: organ.color || "#cccccc",
-            hoverColor: organ.hoverColor || "#bbbbbb",
             name: organ.name || "Sem nome",
           }));
-
+  
           setOptions(formattedOrgans);
           setSelectedOption(formattedOrgans.length > 0 ? formattedOrgans[0] : null);
         } catch (error) {
@@ -47,7 +54,7 @@ const OrganCard = () => {
         }
       }
     };
-
+  
     fetchOrgans();
   }, [user, selectedApplication]);
 
@@ -123,7 +130,7 @@ const OrganCard = () => {
             </Swiper>
           ) : (
             <div className="text-center py-4">
-              <p className="text-muted mb-3">Nenhum órgão disponível para esta aplicação.</p>
+              <p className="text-muted mb-3"> { message }</p>
             </div>
           )}
 

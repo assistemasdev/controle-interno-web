@@ -12,7 +12,7 @@ import "swiper/css/navigation";
 
 const ApplicationCard = () => {
   const { selectApplication } = useApplication();
-  const { logout } = useAuth(); 
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const [applications, setApplications] = useState([]);
@@ -23,16 +23,17 @@ const ApplicationCard = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const data = await ApplicationService.getAll();
+        const data = await ApplicationService.getAll(navigate);
         if (data.length > 0) {
           setApplications(data);
           setSelectedApplication(data[0]);
         } else {
           setError("Nenhuma aplicação disponível.");
         }
-        setLoading(false);
-      } catch (err) {
-        setError("Erro ao buscar aplicações.");
+      } catch (error) {
+        setError("Erro ao carregar as aplicações.");
+        console.error("Erro ao buscar aplicações:", error);
+      } finally {
         setLoading(false);
       }
     };
@@ -41,7 +42,8 @@ const ApplicationCard = () => {
   }, []);
 
   const handleSlideChange = (swiper) => {
-    setSelectedApplication(applications[swiper.activeIndex]);
+    const selected = applications[swiper.activeIndex] || null;
+    setSelectedApplication(selected);
   };
 
   const handleAdvance = () => {
@@ -52,12 +54,9 @@ const ApplicationCard = () => {
   };
 
   const handleBack = () => {
-    logout(); 
-    navigate("/login"); 
+    logout();
+    navigate("/login");
   };
-
-  if (loading) return <p>Carregando aplicações...</p>;
-  if (error) return <p>{error}</p>;
 
   return (
     <div className="col-xl-4 col-lg-6 col-md-8 mx-auto">
@@ -67,7 +66,13 @@ const ApplicationCard = () => {
             <h1 className="h4 font-color-blue-light">Selecione uma aplicação!</h1>
           </div>
 
-          {applications.length > 0 ? (
+          {loading ? (
+            <div className="text-center">Carregando aplicações...</div>
+          ) : error ? (
+            <div className="text-center py-4">
+              <p className="text-muted mb-3">{error}</p>
+            </div>
+          ) : applications.length > 0 ? (
             <Swiper
               modules={[EffectCoverflow, Navigation]}
               effect="coverflow"
@@ -85,20 +90,22 @@ const ApplicationCard = () => {
               className="mb-4"
               onSlideChange={handleSlideChange}
             >
-              {applications.map((application) => (
-                <SwiperSlide key={application.id}>
+              {applications.map((application, index) => (
+                <SwiperSlide key={index}>
                   <div
                     className="d-flex align-items-end justify-content-center rounded shadow"
                     style={{
-                      backgroundImage: `url(${application.image || "https://via.placeholder.com/300x300"})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
+                      backgroundColor: "#cccccc", 
                       height: "200px",
                       width: "200px",
                       margin: "0 auto",
+                      cursor: "pointer",
+                      transition: "background-color 0.3s",
                     }}
                   >
-                    <p className="text-white fw-bold text-shadow p-2 m-0">{application.name}</p>
+                    <p className="font-color-blue-light fw-bold text-shadow p-2 m-0">
+                      {application.name}
+                    </p>
                   </div>
                 </SwiperSlide>
               ))}
