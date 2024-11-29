@@ -35,3 +35,19 @@ body {
 .font-color-blue-light {
     color: var(--primary-color);
 }
+
+
+.open-sidebar {
+    visibility: hidden;
+}
+
+
+@media (max-width: 767px) {
+    .open-sidebar{
+        visibility: visible;
+    }
+
+    .option-sidebar {
+        display: none!important;
+    }
+}

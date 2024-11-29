@@ -4,6 +4,7 @@ import AppRoutesContent from "./AppRoutesContent";
 import { AuthProvider } from "../context/AuthContext";
 import { ApplacationProvider } from "../context/ApplicationContext";
 import { OrganProvider } from "../context/OrganContext";
+import { SideBarProvider } from "../context/SideBarContext";
 
 const AppRoutes = () => {
   return (
@@ -11,7 +12,9 @@ const AppRoutes = () => {
       <AuthProvider>
         <ApplacationProvider>
           <OrganProvider>
-            <AppRoutesContent />
+            <SideBarProvider>
+              <AppRoutesContent />
+            </SideBarProvider>
           </OrganProvider>
         </ApplacationProvider>
       </AuthProvider>

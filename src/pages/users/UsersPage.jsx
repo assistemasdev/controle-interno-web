@@ -112,17 +112,16 @@ const UsersPage = () => {
 
   return (
     <MainLayout selectedCompany="ALUCOM">
-      <div className="container-fluid">
+      <div className="container-fluid p-1">
         <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
           Usuários
         </div>
 
-        <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilter}>
+        <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilter}>
           {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
           {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
 
-          <div className="d-flex row">
-            <div className="d-flex flex-column col-6">
+            <div className="form-group col-md-6">
               <label htmlFor="name" className="form-label text-dark font-weight-bold">Nome do usuário:</label>
               <InputField
                 type="text"
@@ -132,7 +131,7 @@ const UsersPage = () => {
                 placeholder="Digite o nome do usuário"
               />
             </div>
-            <div className="d-flex flex-column col-6">
+            <div className="form-group col-md-6">
               <label htmlFor="email" className="form-label text-dark font-weight-bold">E-mail do usuário:</label>
               <InputField
                 type="text"
@@ -142,14 +141,13 @@ const UsersPage = () => {
                 placeholder="Digite o e-mail do usuário"
               />
             </div>
-          </div>
-          <div className="d-flex mt-3 gap-2">
+          <div className="form-row mt-3 gap-2">
             <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold" />
-            <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold mx-2" onClick={handleClearFilters} />
+            <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold" onClick={handleClearFilters} />
           </div>
         </form>
 
-        <div className="mt-4 d-flex justify-content-between align-items-center">
+        <div className="form-row mt-4 d-flex justify-content-between align-items-center">
           <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
             Lista de usuários
           </div>

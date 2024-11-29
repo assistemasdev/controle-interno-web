@@ -3,9 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserFriends, faUsers, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
+import { useSideBar } from '../hooks/useSideBar';
 
 const Sidebar = () => {
   const { selectedOrgan } = useOrgan();
+  const { open } = useSideBar();
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -17,7 +19,7 @@ const Sidebar = () => {
 
   return (
     <ul
-      className={`navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`}
+      className={`navbar-nav sidebar sidebar-dark accordion ${open ? 'd-block' : 'd-none'} ${isCollapsed ? 'toggled' : ''}`}
       style={{ backgroundColor: sidebarBackgroundColor }} 
     >
       <Link className="d-flex align-items-center justify-content-center" to="/dashboard">
@@ -37,7 +39,7 @@ const Sidebar = () => {
         >
           <div className="d-flex align-items-center">
             <FontAwesomeIcon icon={faUserFriends} className="mr-3" />
-            <span className={`${isCollapsed ? 'd-none' : ''}`}>Usuários</span>
+            <span className={`option-sidebar ${isCollapsed ? 'd-none' : ''}`}>Usuários</span>
           </div>
           <FontAwesomeIcon icon={openDropdown === 'users' ? faChevronDown : faChevronRight} className="ml-auto" />
         </a>
