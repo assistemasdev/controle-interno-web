@@ -23,10 +23,11 @@ const ApplicationCard = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const data = await ApplicationService.getAll(navigate);
-        if (data.length > 0) {
-          setApplications(data);
-          setSelectedApplication(data[0]);
+        const response = await ApplicationService.getAll(navigate);
+        const { result } = response
+        if (result.length > 0) {
+          setApplications(result);
+          setSelectedApplication(result[0]);
         } else {
           setError("Nenhuma aplicação disponível.");
         }

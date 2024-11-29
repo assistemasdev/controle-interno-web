@@ -15,7 +15,7 @@ const CreateUserPage = () => {
     username: '',
     email: '',
     password: '',
-    passwordConfirmation: ''
+    password_confirmation: ''
   });
 
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -30,14 +30,14 @@ const CreateUserPage = () => {
     e.preventDefault();
     setFormErrors({});
     setMessage({ type: '', text: '' });
-
+  
     try {
       const response = await UserService.create(formData, navigate);
-      
-      if (response.success) {
-        setMessage({ type: 'success', text: response.data.message });
-        
-        // Limpar os campos após sucesso
+      console.log(response)
+      const { status, data, message } = response; 
+  
+      if (status === 201) {
+        setMessage({ type: 'success', text: message });
         setFormData({
           name: '',
           username: '',
@@ -45,20 +45,20 @@ const CreateUserPage = () => {
           password: '',
           passwordConfirmation: ''
         });
-      } else {
-        if (response.data) {
-          setFormErrors({
-            email: response.data.email?.[0] || '',
-            username: response.data.username?.[0] || '',
-            name: response.data.name?.[0] || '',
-            password: response.data.password?.[0] || ''
-          })
-
-          return;
-        }
-        setMessage({ type: 'error', text: response.data.error || 'Erro ao realizar o cadastro' });
-        return 
+        return;
       }
+  
+      if (status === 422 && data) {
+        setFormErrors({
+          email: data.email?.[0] || '',
+          username: data.username?.[0] || '',
+          name: data.name?.[0] || '',
+          password: data.password?.[0] || ''
+        });
+        return;
+      }
+  
+      setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
     } catch (error) {
       setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
     }
@@ -134,8 +134,8 @@ const CreateUserPage = () => {
               <label htmlFor="passwordConfirmation" className="form-label text-dark font-weight-bold">Confirme sua senha:</label>
               <InputField
                 type="password"
-                id="passwordConfirmation"
-                value={formData.passwordConfirmation}
+                id="password_confirmation"
+                value={formData.password_confirmation}
                 onChange={handleChange}
                 placeholder="Confirme sua senha"
                 />

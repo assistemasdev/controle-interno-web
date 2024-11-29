@@ -1,37 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom'; // Importando useParams
+import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
 import Button from '../../components/Button';
-import { CircularProgress } from '@mui/material'; // Importando CircularProgress
+import { CircularProgress } from '@mui/material'; 
 import '../../assets/styles/custom-styles.css';
 import api from '../../services/api';
 import MyAlert from '../../components/MyAlert';
+import UserService from '../../services/UserService';
 
 const EditUserPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    username: '',
+    email: ''
+  });
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const [message, setMessage] = useState();
   const [formErrors, setFormErrors] = useState({ username: '', email: '', name: '' });
-  const [loading, setLoading] = useState(true); // Adicionando o estado de loading
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await api.get(`/users/${id}`);
-        const user = response.data;
-        setName(user.name);
-        setUsername(user.username);
-        setEmail(user.email);
+        const response = await UserService.getById(id, navigate);
+        const { status , message, result } = response; 
+
+        if (status == 200) {
+          const user = result;
+          setFormData({
+            name:user.name,
+            username:user.username,
+            email:user.email
+          });
+        }
+
+        if (status == 404) {
+          navigate('/usuarios', {state: { message: message }});
+        }
       } catch (error) {
-        setErrorMessage('Erro ao carregar dados do usuário');
+        console.log(error)
+        setMessage({ type: 'success', text:'Erro ao carregar dados do usuário' });
       } finally {
-        setLoading(false); // Finaliza o loading após os dados serem carregados
+        setLoading(false); 
       }
     };
 
@@ -43,12 +62,11 @@ const EditUserPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormErrors({ username: '', email: '', name: '' });
-    setSuccessMessage('');
-    setErrorMessage('');
+    setMessage({ type: '', text: '' });
 
     try {
-      await api.put(`/users/${id}`, { name, username, email });
-      setSuccessMessage('Usuário atualizado com sucesso!');
+      await UserService.update(id, formData, navigate);
+      setMessage({ type:'success', text: 'Usuário atualizado com sucesso!' });
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const { errors } = error.response.data;
@@ -58,7 +76,7 @@ const EditUserPage = () => {
           name: errors?.name ? errors.name[0] : ''
         });
       } else {
-        setErrorMessage(error.response?.data?.error || 'Erro ao editar o usuário');
+        setMessage({ type:'success', text: error.response?.data?.error || 'Erro ao editar o usuário' });
       }
     }
   };
@@ -75,8 +93,7 @@ const EditUserPage = () => {
         </div>
 
         <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-          {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
-          {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
+          {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
 
           {loading ? (
             <div className="d-flex justify-content-center mt-4">
@@ -90,8 +107,8 @@ const EditUserPage = () => {
                   <InputField
                     type="text"
                     id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="Digite o nome do usuário"
                     error={formErrors.name}
                   />
@@ -101,8 +118,8 @@ const EditUserPage = () => {
                   <InputField
                     type="text"
                     id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={formData.username}
+                    onChange={handleChange}
                     placeholder="Digite o nome de usuário"
                     error={formErrors.username}
                   />
@@ -115,8 +132,8 @@ const EditUserPage = () => {
                   <InputField
                     type="email"
                     id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="Digite seu e-mail"
                     error={formErrors.email}
                   />

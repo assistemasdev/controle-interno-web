@@ -35,21 +35,27 @@ const LoginCard = () => {
         username,
         password
       });
-      if (response && response.access_token) {
-        const token = response.access_token; 
+
+      const { status, data, message, result} = response;
+
+      if (status === 200  && result) {
+        const token = result; 
         login(token);
         navigate('/aplicacoes');  
       };
-    } catch (error) {
-      if (error.response && error.response && error.response.errors) {
-        const { errors } = error.response;
+
+      if (status == 422 && data) {
         setFormErrors({
-          username: errors?.username ? errors.username[0] : '',
-          password: errors?.password ? errors.password[0] : '',
+          username: data?.username ? data.username[0] : '',
+          password: data?.password ? data.password[0] : '',
         });
-      } else {
-        setErrorMessage(error.response?.data?.error || 'Erro ao realizar o login');
       }
+
+      if (status == 400) {
+        setErrorMessage(message);
+      }
+    } catch (error) {
+        setErrorMessage(error.response?.data?.error || 'Erro ao realizar o login');
     }
   };
 

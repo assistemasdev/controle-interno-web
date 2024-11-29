@@ -11,9 +11,11 @@ import MyAlert from '../../components/MyAlert';
 import MainLayout from '../../layouts/MainLayout';  
 import { CircularProgress } from '@mui/material';
 import UserService from '../../services/UserService';
+import { useLocation } from 'react-router-dom';
 
 const UsersPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [users, setUsers] = useState([]);
@@ -24,16 +26,25 @@ const UsersPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  useEffect(() => {
+    if (location.state?.message) {
+      setErrorMessage(location.state.message);
+    }
+  }, [location.state]);
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
+
       const response = await UserService.getAll(navigate);
-      
-      const filteredUsers = response.map(user => ({
+      const result = response.result
+
+      const filteredUsers = result.map(user => ({
         id: user.id,
         name: user.name,
         email: user.email,
       }));
+      
       setUsers(filteredUsers);
     } catch (error) {
       setError('Erro ao carregar usuários');

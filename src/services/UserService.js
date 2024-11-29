@@ -5,7 +5,11 @@ const UserService = {
   async getAll(navigate) {
     try {
       const response = await api.get("/users");
-      return response.data;
+      return {
+        message: response.data.message,
+        result: response.data.result,
+        status: response.status
+      };
     } catch (error) {
       return handleError(error, navigate); 
     }
@@ -14,7 +18,11 @@ const UserService = {
   async getById(id, navigate) {
     try {
       const response = await api.get(`/users/${id}`);
-      return response.data.data;
+      return {
+        message: response.data.message,
+        result: response.data.result,
+        status: response.status
+      };
     } catch (error) {
       return handleError(error, navigate); 
     }
@@ -23,7 +31,11 @@ const UserService = {
   async create(data, navigate) {
     try {
       const response = await api.post("/users", data);
-      return response.data;
+
+      return {
+        status: response.status,
+        message: response.data.message,
+      };
     } catch (error) {
       return handleError(error, navigate); 
     }
@@ -32,7 +44,7 @@ const UserService = {
   async update(id, data, navigate) {
     try {
       const response = await api.put(`/users/${id}`, data);
-      return response.data;
+      return response;
     } catch (error) {
       return handleError(error, navigate); 
     }
@@ -41,7 +53,7 @@ const UserService = {
   async delete(id, navigate) {
     try {
       const response = await api.delete(`/users/${id}`);
-      return response.data;
+      return response;
     } catch (error) {
       return handleError(error, navigate); 
     }

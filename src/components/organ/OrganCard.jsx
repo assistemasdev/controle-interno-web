@@ -33,19 +33,24 @@ const OrganCard = () => {
             navigate
           );
           
-          if (!response.data || !response.data == null) {
-            setMessage(response.message)
+          const { message, result, status } = response;
+
+          if (status == 200 && (!result || !result == null)) {
+            setMessage(message)
             return;
           }
-  
-          const formattedOrgans = response.data.map((organ) => ({
-            ...organ,
-            color: organ.color || "#cccccc",
-            name: organ.name || "Sem nome",
-          }));
-  
-          setOptions(formattedOrgans);
-          setSelectedOption(formattedOrgans.length > 0 ? formattedOrgans[0] : null);
+
+          if (status == 200 && result) {
+            const formattedOrgans = result.map((organ) => ({
+              ...organ,
+              color: organ.color || "#cccccc",
+              name: organ.name || "Sem nome",
+            }));
+    
+            setOptions(formattedOrgans);
+            setSelectedOption(formattedOrgans.length > 0 ? formattedOrgans[0] : null);
+            return
+          }
         } catch (error) {
           console.error("Erro ao buscar órgãos:", error);
           setOptions([]);
