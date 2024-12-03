@@ -19,8 +19,8 @@ const Sidebar = () => {
 
   return (
     <ul
-      className={`navbar-nav sidebar sidebar-dark accordion ${open ? 'd-block' : 'd-none'} ${isCollapsed ? 'toggled' : ''}`}
-      style={{ backgroundColor: sidebarBackgroundColor }} 
+      className={`navbar-nav sidebar sidebar-dark accordion ${!open ? '' : 'mobile'} ${isCollapsed ? 'toggled' : ''}`}
+      style={{ backgroundColor: sidebarBackgroundColor }}
     >
       <Link className="d-flex align-items-center justify-content-center" to="/dashboard">
         <div className="sidebar-brand-icon">

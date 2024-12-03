@@ -87,7 +87,7 @@ const EditUserPage = () => {
 
   return (
     <MainLayout selectedCompany="ALUCOM">
-      <div className="container-fluid">
+      <div className="container-fluid p-1">
         <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
           Edição de Usuário
         </div>
@@ -101,8 +101,8 @@ const EditUserPage = () => {
             </div>
           ) : (
             <>
-              <div className="d-flex row">
-                <div className="d-flex flex-column col-6">
+              <div className="form-row">
+                <div className="d-flex flex-column col-md-6">
                   <label htmlFor="name" className="form-label text-dark font-weight-bold">Nome:</label>
                   <InputField
                     type="text"
@@ -113,7 +113,7 @@ const EditUserPage = () => {
                     error={formErrors.name}
                   />
                 </div>
-                <div className="d-flex flex-column col-6">
+                <div className="d-flex flex-column col-md-6">
                   <label htmlFor="username" className="form-label text-dark font-weight-bold">Usuário:</label>
                   <InputField
                     type="text"
@@ -126,8 +126,8 @@ const EditUserPage = () => {
                 </div>
               </div>
 
-              <div className="d-flex row">
-                <div className="d-flex flex-column col-12">
+              <div className="form-row">
+                <div className="d-flex flex-column col-md-12">
                   <label htmlFor="email" className="form-label text-dark font-weight-bold">E-mail:</label>
                   <InputField
                     type="email"

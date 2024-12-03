@@ -3,16 +3,11 @@ import Sidebar from './Sidebar';
 import Topbar from './Topbar'; 
 import { useOrgan } from '../hooks/useOrgan';
 import { CircularProgress } from '@mui/material';
-import { FaBars } from 'react-icons/fa'; // Ícone do menu (hamburger)
+import '../assets/styles/custom-styles.css'; 
 
 const MainLayout = ({ children }) => {
   const { loading } = useOrgan();
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true); // Estado para controlar a visibilidade da sidebar
-
-  // Função para alternar a visibilidade da sidebar
-  const toggleSidebar = () => {
-    setIsSidebarVisible(!isSidebarVisible);
-  };
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true); 
 
   return (
     <div id="wrapper" className="d-flex">

@@ -70,7 +70,7 @@ const CreateUserPage = () => {
 
   return (
     <MainLayout selectedCompany="ALUCOM">
-      <div className="container-fluid">
+      <div className="container-fluid p-1">
         <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
           Cadastro de Usuário
         </div>
@@ -79,8 +79,8 @@ const CreateUserPage = () => {
           {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
 
 
-          <div className="d-flex row">
-            <div className="d-flex flex-column col-6">
+          <div className="form-row">
+            <div className="d-flex flex-column col-md-6">
               <label htmlFor="name" className="form-label text-dark font-weight-bold">Nome:</label>
               <InputField
                 type="text"
@@ -91,7 +91,7 @@ const CreateUserPage = () => {
                 error={formErrors.name} 
               />
             </div>
-            <div className="d-flex flex-column col-6">
+            <div className="d-flex flex-column col-md-6">
               <label htmlFor="username" className="form-label text-dark font-weight-bold">Usuário:</label>
               <InputField
                 type="text"
@@ -104,8 +104,8 @@ const CreateUserPage = () => {
             </div>
           </div>
 
-          <div className="d-flex row">
-            <div className="d-flex flex-column col-12">
+          <div className="form-row">
+            <div className="d-flex flex-column col-md-12">
               <label htmlFor="email" className="form-label text-dark font-weight-bold">E-mail:</label>
               <InputField
                 type="email"
@@ -118,8 +118,8 @@ const CreateUserPage = () => {
             </div>
           </div>
 
-          <div className="d-flex row">
-            <div className="d-flex flex-column col-6">
+          <div className="form-row">
+            <div className="d-flex flex-column col-md-6">
               <label htmlFor="password" className="form-label text-dark font-weight-bold">Senha:</label>
               <InputField
                 type="password"
@@ -130,7 +130,7 @@ const CreateUserPage = () => {
                 error={formErrors.password} 
               />
             </div>
-            <div className="d-flex flex-column col-6">
+            <div className="d-flex flex-column col-md-6">
               <label htmlFor="passwordConfirmation" className="form-label text-dark font-weight-bold">Confirme sua senha:</label>
               <InputField
                 type="password"
@@ -142,7 +142,7 @@ const CreateUserPage = () => {
             </div>
           </div>
 
-          <div className="mt-3 d-flex gap-2">
+          <div className="mt-3 form-row gap-2">
             <Button type="submit" text="Cadastrar Usuário" className="btn btn-blue-light fw-semibold" />
             <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
           </div>
