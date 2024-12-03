@@ -1,13 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import { faTools, faExchangeAlt, faWrench, faUserPlus } from '@fortawesome/free-solid-svg-icons'; 
-
+import { useLocation } from 'react-router-dom';
+import MyAlert from '../components/MyAlert';
 const Dashboard = () => {
+  const [errorMessage, setErrorMessage] = useState('');
+  const location = useLocation();
 
+  useEffect(() => {
+    if (location.state?.message) {
+      setErrorMessage(location.state.message);
+    }
+  }, [location.state]);
   return (
     <MainLayout>
       <div className="container-fluid">
+        {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
+
         <div className="row">
           <DashboardCard
             title="Equipamentos"

@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
 import MyAlert from '../../components/MyAlert';
 import UserService from '../../services/UserService';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const CreateUserPage = () => {
   const navigate = useNavigate(); 
-
+  const { canAccess } = usePermissions();
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -143,7 +144,9 @@ const CreateUserPage = () => {
           </div>
 
           <div className="mt-3 form-row gap-2">
-            <Button type="submit" text="Cadastrar Usuário" className="btn btn-blue-light fw-semibold" />
+            {canAccess('create users') && (
+              <Button type="submit" text="Cadastrar Usuário" className="btn btn-blue-light fw-semibold" />
+            )}
             <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
           </div>
         </form>

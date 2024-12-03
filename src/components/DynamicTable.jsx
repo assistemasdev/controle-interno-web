@@ -1,7 +1,9 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import { usePermissions } from '../hooks/usePermissions';
 const DynamicTable = ({ headers, data, actions }) => {
+  const { canAccess } = usePermissions();
+
   return (
     <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
       <table className="table table-striped">
@@ -22,14 +24,16 @@ const DynamicTable = ({ headers, data, actions }) => {
                 ))}
                 <td className="align-middle">
                   {actions.map((action, idx) => (
-                    <button
-                      key={idx}
-                      className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
-                      title={action.title}
-                      onClick={() => action.onClick(item)}
-                    >
-                      <FontAwesomeIcon icon={action.icon} />
-                    </button>
+                    canAccess(action.permission) && (
+                      <button
+                        key={idx}
+                        className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
+                        title={action.title}
+                        onClick={() => action.onClick(item)}
+                      >
+                        <FontAwesomeIcon icon={action.icon} />
+                      </button>
+                    )
                   ))}
                 </td>
               </tr>

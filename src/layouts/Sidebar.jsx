@@ -4,18 +4,32 @@ import { faUserFriends, faUsers, faChevronDown, faChevronRight } from '@fortawes
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { useSideBar } from '../hooks/useSideBar';
-
+import MenuItem from '../components/MenuItem';
 const Sidebar = () => {
   const { selectedOrgan } = useOrgan();
   const { open } = useSideBar();
-  const [openDropdown, setOpenDropdown] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const sidebarBackgroundColor = selectedOrgan ? selectedOrgan.color : '#343a40';
 
-  const toggleDropdown = (dropdown) => {
-    setOpenDropdown(openDropdown === dropdown ? null : dropdown);
-  };
+  const menuItems = [
+    {
+      name: 'Usuários',
+      icon: faUserFriends,
+      to: '/users',
+      href:"collapseUsers",
+      dropdown:"users",
+      isCollapsed: isCollapsed,
+      children: [
+        {
+          name: 'Página Inicial',
+          to: '/usuarios/',
+          requiredPermission: 'show all users', 
+          icon: faUsers
+        },
+      ],
+    }
+  ]
 
   return (
     <ul
@@ -31,35 +45,19 @@ const Sidebar = () => {
 
       <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
 
-      <li className="nav-item">
-        <a
-          className="nav-link d-flex justify-content-between"
-          href="#collapseUsers"
-          onClick={() => toggleDropdown('users')}
-        >
-          <div className="d-flex align-items-center">
-            <FontAwesomeIcon icon={faUserFriends} className="mr-3" />
-            <span className={`option-sidebar ${isCollapsed ? 'd-none' : ''}`}>Usuários</span>
-          </div>
-          <FontAwesomeIcon icon={openDropdown === 'users' ? faChevronDown : faChevronRight} className="ml-auto" />
-        </a>
-        <div
-          id="collapseUsers"
-          className={`collapse ${openDropdown === 'users' ? 'show' : ''}`}
-          aria-labelledby="headingUsers"
-          data-bs-parent="#accordionSidebar"
-        >
-          <div className="bg-white py-2 collapse-inner rounded">
-            <Link className="collapse-item" to="/usuarios">
-              <FontAwesomeIcon icon={faUsers} className="mr-3" />
-              Página Inicial
-            </Link>
-          </div>
-        </div>
-      </li>
-
-      <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
-
+      {menuItems.map((item, index) => (
+        <>
+          <MenuItem
+            key={index}
+            name={item.name}
+            icon={item.icon}
+            to={item.to}
+            requiredPermission={item.requiredPermission}
+            children={item.children}
+          />
+          <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
+        </>
+      ))}
       <div className="text-center d-none d-md-inline my-3">
         <button className="rounded-circle border-0 py-1 px-2" onClick={() => setIsCollapsed(!isCollapsed)}>
           <FontAwesomeIcon icon={isCollapsed ? faChevronRight : faChevronDown} />

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate  } from "react-router-dom";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
@@ -55,6 +55,8 @@ const AppRoutesContent = () => {
               <PrivateRoute element={EditUserPage} />
             }
           />
+
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </CSSTransition>
     </TransitionGroup>

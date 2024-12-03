@@ -6,10 +6,14 @@ import { useAuth } from '../../hooks/useAuth';
 import MyAlert from '../MyAlert';  
 import LoginService from '../../services/LoginService';
 import { useLocation } from 'react-router-dom';
+import RoleService from '../../services/RoleService';
+import PermissionService from '../../services/PermissionService';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const LoginCard = () => {
   const navigate = useNavigate();  
   const { login } = useAuth();  
+  const { addRoles, addPermissions } = usePermissions();
   const location = useLocation();
   
   const [username, setUsername] = useState('');
@@ -41,7 +45,22 @@ const LoginCard = () => {
       if (status === 200  && result) {
         const token = result; 
         login(token);
-        navigate('/aplicacoes');  
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+
+        try {
+          const userRoles = await RoleService.getRolesUser(storedUser.id, navigate);
+          addRoles(userRoles?.result || []);
+        } catch (error) {
+          console.error('Erro ao buscar cargos do usuário', error)
+        }
+
+        try {
+          const userPermissions = await PermissionService.getPermissionUser(storedUser.id, navigate)
+          addPermissions(userPermissions?.result || []);
+        } catch (error) {
+          console.error('Erro ao buscar permissões do usuário', error)
+        }
+        navigate('/aplicacoes')
       };
 
       if (status == 422 && data) {

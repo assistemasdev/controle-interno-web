@@ -12,10 +12,12 @@ import MainLayout from '../../layouts/MainLayout';
 import { CircularProgress } from '@mui/material';
 import UserService from '../../services/UserService';
 import { useLocation } from 'react-router-dom';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const UsersPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { canAccess } = usePermissions();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [users, setUsers] = useState([]);
@@ -100,12 +102,14 @@ const UsersPage = () => {
       icon: faEdit,
       title: 'Editar usuário',
       buttonClass: 'btn-primary',
-      onClick: handleEdit,
+      permission: 'update users',
+      onClick: handleEdit
     },
     {
       icon: faTrashAlt,
       title: 'Excluir usuário',
       buttonClass: 'btn-danger',
+      permission:'delete users',
       onClick: handleDelete,
     },
   ];
@@ -151,11 +155,14 @@ const UsersPage = () => {
           <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
             Lista de usuários
           </div>
-          <Button
-            text="Novo usuário"
-            className="btn btn-blue-light fw-semibold"
-            link="/usuarios/criar"
-          />
+          {canAccess('create users') && (
+            <Button
+              text="Novo usuário"
+              className="btn btn-blue-light fw-semibold"
+              link="/usuarios/criar"
+            />
+          )}
+
         </div>
 
         {loading ? (
