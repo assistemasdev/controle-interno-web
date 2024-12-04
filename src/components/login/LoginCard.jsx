@@ -49,14 +49,14 @@ const LoginCard = () => {
 
         try {
           const userRoles = await RoleService.getRolesUser(storedUser.id, navigate);
-          addRoles(userRoles.result );
+          addRoles(userRoles?.result || []);
         } catch (error) {
           console.error('Erro ao buscar cargos do usuário', error)
         }
 
         try {
           const userPermissions = await PermissionService.getPermissionUser(storedUser.id, navigate)
-          addPermissions(userPermissions.result);
+          addPermissions(userPermissions?.result || []);
         } catch (error) {
           console.error('Erro ao buscar permissões do usuário', error)
         }

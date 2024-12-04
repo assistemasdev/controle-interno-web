@@ -8,3 +8,7 @@ export const hasPermission = (userRoles, userPermissions, requiredPermission) =>
   const hasPermission = userPermissions.find(permission => permission.name === requiredPermission);
   return hasPermission !== undefined;
 };
+
+export const hasRole = (rolesName, rolesUser) => {
+  return rolesUser.some(role => rolesName.includes(role.name));
+};

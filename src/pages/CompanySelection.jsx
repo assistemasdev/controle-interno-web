@@ -21,7 +21,7 @@ const CompanySelection = () => {
   const { selectOrgan } = useOrgan();
   const [message, setMessage] = useState('Nenhum órgão disponível para esta aplicação.');
   const { user } = useAuth();
-  const { userRoles } = usePermissions();
+  const { userRoles, UserHasRole } = usePermissions();
   const { selectedApplication, removeApplication } = useApplication();
   const navigate = useNavigate();
   const [options, setOptions] = useState([]);
@@ -53,9 +53,9 @@ const CompanySelection = () => {
               color: organ.color || "#cccccc",
               name: organ.name || "Sem nome",
             }));
-
-            const hasAdminRole = userRoles.some(role => role.name === 'Super Admin' || role.name === 'Admin');
-
+            console.log(formattedOrgans)
+            const hasAdminRole = UserHasRole(['Super Admin', 'Admin'], userRoles);
+            console.log(hasAdminRole)
             if (hasAdminRole) {
               const adminOrgan = {
                 id: "admin",

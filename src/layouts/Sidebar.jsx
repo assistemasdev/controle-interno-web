@@ -9,27 +9,35 @@ const Sidebar = () => {
   const { selectedOrgan } = useOrgan();
   const { open } = useSideBar();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [menuItems, setMenuItems] = useState([]);
 
   const sidebarBackgroundColor = selectedOrgan ? selectedOrgan.color : '#343a40';
+useEffect(() => {
 
-  const menuItems = [
-    {
-      name: 'Usuários',
-      icon: faUserFriends,
-      to: '/users',
-      href:"collapseUsers",
-      dropdown:"users",
-      isCollapsed: isCollapsed,
-      children: [
+    if (selectedOrgan && selectedOrgan.id === 'admin') {
+      setMenuItems([
         {
-          name: 'Página Inicial',
-          to: '/usuarios/',
-          requiredPermission: 'show all users', 
-          icon: faUsers
+          name: 'Usuários',
+          icon: faUserFriends,
+          to: '/users',
+          href: "collapseUsers",
+          dropdown: "users",
+          isCollapsed: isCollapsed,
+          children: [
+            {
+              name: 'Página Inicial',
+              to: '/usuarios/',
+              requiredPermission: 'show all users', 
+              icon: faUsers
+            },
+          ],
         },
-      ],
+      ]);
+    } else {
+      setMenuItems([]);
     }
-  ]
+  }, [selectedOrgan, isCollapsed]);
+
 
   return (
     <ul

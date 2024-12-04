@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { hasPermission } from '../utils/permission';
+import { hasPermission, hasRole } from '../utils/permission';
 import { CircularProgress } from '@mui/material';
 
 export const PermissionsContext = createContext();
@@ -42,6 +42,10 @@ export const PermissionsProvider = ({ children }) => {
     return hasPermission(userRoles, userPermissions, requiredPermission);
   };
 
+  const UserHasRole = (rolesName, rolesUser) => {
+    return hasRole(rolesName, rolesUser)
+  };
+
   const addRoles = (roles) => {
     localStorage.setItem('userRoles', JSON.stringify(roles));
     setUserRoles(roles);
@@ -63,7 +67,8 @@ export const PermissionsProvider = ({ children }) => {
         userPermissions,
         canAccess,
         addRoles,
-        addPermissions
+        addPermissions,
+        UserHasRole
       }}
     >
       {children}
