@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import LoginService from '../services/LoginService';
+import { CircularProgress } from '@mui/material';
 
 export const AuthContext = createContext();
 
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     setLoading(false);
-  }, [navigate]);
+  }, []);
 
   const login = (token) => {
     const decoded = jwtDecode(token);
@@ -62,6 +63,10 @@ export const AuthProvider = ({ children }) => {
       document.documentElement.style.setProperty('--primary-color','#4da8ff');
     }
   };
+
+  if (loading) {
+    return <div style={{width:'100vw', height:'100vh', display:'flex', justifyContent:'center', alignItems:'center'}}><CircularProgress/></div>; 
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>

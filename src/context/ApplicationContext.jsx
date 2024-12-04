@@ -21,17 +21,23 @@ export const ApplacationProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const savedApplicaiton = localStorage.getItem('selectedApplication');
+    const savedApplication = localStorage.getItem('selectedApplication');
     
-    if (savedApplicaiton) {
-      const company = JSON.parse(savedApplicaiton);
-      setApplication(company);
-      setLoading(false); 
+    if (savedApplication) {
+      try {
+        const application = JSON.parse(savedApplication);
+        setApplication(application);
+        setLoading(false);
+      } catch (error) {
+        console.error("Erro ao carregar a aplicação do localStorage:", error);
+        setLoading(false); 
+      }
     } else {
-        navigate('/aplicacoes'); 
+      navigate('/aplicacoes'); 
     }
-  }, []); 
+  }, []);
 
+  
   return (
     <ApplicationContext.Provider value={{ selectedApplication, selectApplication, removeApplication, loading }}>
       {children}
