@@ -49,6 +49,10 @@ body {
     display: flex!important;
 }
 
+hr {
+    background-color: #333;
+}
+
 @media (max-width: 767px) {
     .open-sidebar{
         visibility: visible;

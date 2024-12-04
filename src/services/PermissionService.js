@@ -14,6 +14,33 @@ const PermissionService = {
       return handleError(error, navigate); 
     }
   },
+
+  async getPermissions(navigate = null) {
+    try {
+      const response = await api.get(`/permissions`);
+      return {
+        message: response.data.message,
+        status: response.status,
+        result: response.data.result
+      };
+    } catch (error) {
+      return handleError(error, navigate)
+    }
+  },
+
+  async updateUserPermissions (userId, data, navigate) {
+    try {
+      const response = await api.put(`/users/${userId}/permissions`, data);
+      return {
+        message: response.data.message,
+        status: response.status,
+        result: response.data.result
+      };
+    } catch (error) {
+      return handleError(error, navigate)
+    }
+  }
+
 };
 
 export default PermissionService;

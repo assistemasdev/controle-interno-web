@@ -33,27 +33,20 @@ const MenuItem = ({ name, to, icon, children, href, dropdown, isCollapsed }) => 
             aria-labelledby="headingUsers"
             data-bs-parent="#accordionSidebar"
           >
-            <div
-              id={href}
-              className={`collapse ${openDropdown === dropdown ? 'show' : ''}`}
-              aria-labelledby="headingUsers"
-              data-bs-parent="#accordionSidebar"
-            >
-              {children.map((child, index) => {
-                if (child.requiredPermission && !canAccess(child.requiredPermission)) {
-                  return null; 
-                }
+            {children.map((child, index) => {
+              if (child.requiredPermission && !canAccess(child.requiredPermission)) {
+                return null; 
+              }
 
-                return (
-                  <div key={index} className="bg-white py-2 collapse-inner rounded">
-                    <Link className="collapse-item" to="/usuarios" >
-                      <FontAwesomeIcon icon={child.icon} className="mr-3" />
-                      {child.name}
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
+              return (
+                <div key={index} className="bg-white py-2 collapse-inner rounded">
+                  <Link className="collapse-item" to="/usuarios" >
+                    <FontAwesomeIcon icon={child.icon} className="mr-3" />
+                    {child.name}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         )}
     </li>

@@ -14,6 +14,31 @@ const RoleService = {
       return handleError(error, navigate); 
     }
   },
+  async getRoles(navigate) {
+    try {
+      const response = await api.get(`/roles`);
+      return {
+        message: response.data.message,
+        status: response.status,
+        result: response.data.result
+      };
+    } catch (error) {
+      return handleError(error, navigate); 
+    }
+  },
+
+  async showRolePermissions(roleId, navigate) {
+    try {
+      const response = await api.get(`/roles/${roleId}/permissions`)
+      return {
+        message: response.data.message,
+        status: response.status,
+        result: response.data.result
+      };
+    } catch (error) {
+      return handleError(error, navigate); 
+    }
+  }
 };
 
 export default RoleService;

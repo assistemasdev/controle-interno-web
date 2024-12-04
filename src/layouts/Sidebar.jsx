@@ -12,8 +12,8 @@ const Sidebar = () => {
   const [menuItems, setMenuItems] = useState([]);
 
   const sidebarBackgroundColor = selectedOrgan ? selectedOrgan.color : '#343a40';
-useEffect(() => {
-
+  
+  useEffect(() => {
     if (selectedOrgan && selectedOrgan.id === 'admin') {
       setMenuItems([
         {

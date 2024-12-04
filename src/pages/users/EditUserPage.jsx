@@ -5,13 +5,21 @@ import InputField from '../../components/InputField';
 import Button from '../../components/Button';
 import { CircularProgress } from '@mui/material'; 
 import '../../assets/styles/custom-styles.css';
-import api from '../../services/api';
 import MyAlert from '../../components/MyAlert';
+import Select from 'react-select';  
 import UserService from '../../services/UserService';
+import PermissionService from '../../services/PermissionService';
+import RoleService from '../../services/RoleService';
 
 const EditUserPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [selectedPermissions, setSelectedPermissions] = useState([]); 
+  const [newsPermissions, setNewsPermissions] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [oldSelectedRoles, setOldSelectedRoles] = useState([]);
+  const [roles, setRoles] = useState([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -24,40 +32,146 @@ const EditUserPage = () => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const [message, setMessage] = useState();
+  const [message, setMessage] = useState(null);
   const [formErrors, setFormErrors] = useState({ username: '', email: '', name: '' });
   const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await UserService.getById(id, navigate);
-        const { status , message, result } = response; 
-
-        if (status == 200) {
-          const user = result;
-          setFormData({
-            name:user.name,
-            username:user.username,
-            email:user.email
-          });
-        }
-
-        if (status == 404) {
-          navigate('/usuarios', {state: { message: message }});
-        }
-      } catch (error) {
-        console.log(error)
-        setMessage({ type: 'success', text:'Erro ao carregar dados do usuário' });
-      } finally {
-        setLoading(false); 
-      }
-    };
-
-    if (id) {
-      fetchUser();
-    }
+    fetchUser();
   }, [id]);
+
+  useEffect(() => {
+
+
+    fetchRoles();
+  }, []);
+
+  useEffect(() => {
+
+
+    fetchPermissions();
+  }, []);
+
+  useEffect(() => {
+
+    fetchUserPermissions();
+  }, [id]);
+
+  const fetchUserPermissions = async () => {
+    try {
+      const response = await PermissionService.getPermissionUser(id, navigate);
+      const userPermissions = response.result;
+      
+      setSelectedPermissions(userPermissions.map(permission => permission.id));
+    } catch (error) {
+      console.error('Erro ao carregar permissões do usuário', error);
+    }
+  };
+
+
+  const fetchUser = async () => {
+    try {
+      const response = await UserService.getById(id, navigate);
+      const user = response.result;
+
+      setFormData({
+        name: user.name,
+        username: user.username,
+        email: user.email
+      });
+
+    } catch (error) {
+      setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pelo usuário' });
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRoles = async () => {
+    try {
+      const response = await RoleService.getRoles(navigate);
+      setRoles(response.result); 
+    } catch (error) {
+      console.error('Erro ao carregar roles', error);
+    }
+  };
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await PermissionService.getPermissions();
+      const formattedPermissions = response.result.map(permission => ({
+        value: permission.id,
+        label: permission.name
+      }));
+      setPermissions(formattedPermissions);  
+    } catch (error) {
+      console.error('Erro ao carregar permissões:', error);
+    }
+  };
+
+  const handlePermissionChange = (selectedOptions) => {
+    setSelectedPermissions(selectedOptions ? selectedOptions.map(option => option.value) : []);
+  };
+
+  const handleRoleChange = async (selectedOptions) => {
+    const safeSelectedOptions = selectedOptions || [];
+    const safeOldSelectedRoles = oldSelectedRoles || [];
+
+    const addedRoles = selectedOptions.filter(option => !oldSelectedRoles.includes(option.value));
+    
+    const removedRoles = safeOldSelectedRoles.filter(
+      (role) => !safeSelectedOptions.some((option) => option.value === role)
+    );  
+
+    const remainingRoles = safeSelectedOptions.filter(
+      (option) => !removedRoles.includes(option.value)
+    );
+
+    if (addedRoles.length > 0) {
+      const selectedRole = addedRoles[addedRoles.length - 1]; 
+      const response = await RoleService.showRolePermissions(selectedRole.value);
+      const permissionsFromRole = response.result || [];
+  
+      setSelectedPermissions((prevPermissions) => {
+        const updatedPermissions = [...prevPermissions];
+        permissionsFromRole.forEach((permission) => {
+          if (!updatedPermissions.includes(permission.id)) {
+            updatedPermissions.push(permission.id);  
+          }
+        });
+        return updatedPermissions;
+      });
+    }
+  
+    if (removedRoles.length > 0) {
+      const removedRole = removedRoles[0];
+      console.log(removedRole)
+      const response = await RoleService.showRolePermissions(removedRole); 
+      const permissionsFromRole = response.result || [];
+    
+      const remainingRoles = selectedOptions.filter(role => role.value !== removedRole);
+    
+      const remainingPermissions = [];
+      for (let role of remainingRoles) {
+        const roleResponse = await RoleService.showRolePermissions(role.value); 
+        const rolePermissions = roleResponse.result || [];
+        remainingPermissions.push(...rolePermissions);
+      }
+      console.log(permissionsFromRole, remainingPermissions)
+      setSelectedPermissions((prevPermissions) => {
+        return prevPermissions.filter((permissionId) => {
+          return !permissionsFromRole.some((permission) => {
+            return permission.id === permissionId && 
+              !remainingPermissions.some((p) => p.id === permission.id);
+          });
+        });
+      });
+    }
+  
+    setOldSelectedRoles(selectedOptions.map(option => option.value));  
+    setSelectedRoles(selectedOptions)
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,8 +179,18 @@ const EditUserPage = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      await UserService.update(id, formData, navigate);
-      setMessage({ type:'success', text: 'Usuário atualizado com sucesso!' });
+      const responseUser = await UserService.update(id, formData, navigate);
+      
+      const responsePermissions = await PermissionService.updateUserPermissions(id, {permissions: selectedPermissions }, navigate)
+
+      if (responseUser.status === 200 && responsePermissions.status === 200) {
+        setMessage({ type:'success', text: 'Usuário atualizado com sucesso!' });
+      }
+
+      if (responseUser.status === 200 && responsePermissions.status === 422) {
+        setMessage({ type:'warning', text: 'O usuário foi atualizado com sucesso, mas ocorreu um erro ao atualizar as permissões. É necessário garantir que o usuário tenha pelo menos uma permissão associada.' });
+      }
+
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const { errors } = error.response.data;
@@ -76,7 +200,7 @@ const EditUserPage = () => {
           name: errors?.name ? errors.name[0] : ''
         });
       } else {
-        setMessage({ type:'success', text: error.response?.data?.error || 'Erro ao editar o usuário' });
+        setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o usuário' });
       }
     }
   };
@@ -101,7 +225,12 @@ const EditUserPage = () => {
             </div>
           ) : (
             <>
+              <h5 className='text-dark font-weight-bold'>Dados do Usuário</h5>
+
+              <hr />
+
               <div className="form-row">
+
                 <div className="d-flex flex-column col-md-6">
                   <label htmlFor="name" className="form-label text-dark font-weight-bold">Nome:</label>
                   <InputField
@@ -139,6 +268,38 @@ const EditUserPage = () => {
                   />
                 </div>
               </div>
+                <h5 className='text-dark font-weight-bold mt-3'>Permissões do Usuário</h5>
+                
+                <hr />
+            
+                <div className="form-group">
+                  <label htmlFor="roles" className='text-dark font-weight-bold '>Cargos:</label>
+                  <Select
+                    id="roles"
+                    isMulti
+                    value={selectedRoles} 
+                    onChange={handleRoleChange}
+                    options={roles.map(role => ({ value: role.id, label: role.name }))}
+                    isClearable
+                    noOptionsMessage={() => "Nenhuma cargo encontrado"}
+                    placeholder="Selecione os cargos(opcional)"
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginLeft: '0px' }}>
+                  <label htmlFor="roles" className='text-dark font-weight-bold '>Permissões:</label>
+                  <Select
+                    isMulti
+                    name="permissions"
+                    options={permissions}  
+                    className="basic-multi-select"
+                    classNamePrefix="select"
+                    value={permissions.filter(permission => selectedPermissions.includes(permission.value))}
+                    onChange={handlePermissionChange}  
+                    noOptionsMessage={() => "Nenhuma permissão encontrada"}
+                    placeholder="Selecione as permissões"
+                  />
+                </div>
 
               <div className="mt-3 d-flex gap-2">
                 <Button type="submit" text="Atualizar Usuário" className="btn btn-blue-light fw-semibold" />
