@@ -54,7 +54,7 @@ const Sidebar = () => {
       <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
 
       {menuItems.map((item, index) => (
-        <>
+        <div key={index + 'A'}>
           <MenuItem
             key={index}
             name={item.name}
@@ -64,7 +64,7 @@ const Sidebar = () => {
             children={item.children}
           />
           <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
-        </>
+        </div>
       ))}
       <div className="text-center d-none d-md-inline my-3">
         <button className="rounded-circle border-0 py-1 px-2" onClick={() => setIsCollapsed(!isCollapsed)}>

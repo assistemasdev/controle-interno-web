@@ -15,16 +15,19 @@ const EditUserPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [selectedPermissions, setSelectedPermissions] = useState([]); 
-  const [newsPermissions, setNewsPermissions] = useState([]);
   const [permissions, setPermissions] = useState([]);
   const [selectedRoles, setSelectedRoles] = useState([]);
   const [oldSelectedRoles, setOldSelectedRoles] = useState([]);
   const [roles, setRoles] = useState([]);
-
+  const [message, setMessage] = useState(null);
+  const [messagePermissions, setMessagePermissions] = useState(null);
+  const [formErrors, setFormErrors] = useState({ username: '', email: '', name: '', permissions: '' });
+  const [loading, setLoading] = useState(true); 
   const [formData, setFormData] = useState({
     name: '',
     username: '',
-    email: ''
+    email: '',
+    permissions: ''
   });
 
   const handleChange = (e) => {
@@ -32,30 +35,24 @@ const EditUserPage = () => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const [message, setMessage] = useState(null);
-  const [formErrors, setFormErrors] = useState({ username: '', email: '', name: '' });
-  const [loading, setLoading] = useState(true); 
-
   useEffect(() => {
-    fetchUser();
-  }, [id]);
-
-  useEffect(() => {
-
-
-    fetchRoles();
-  }, []);
-
-  useEffect(() => {
-
-
-    fetchPermissions();
-  }, []);
-
-  useEffect(() => {
-
-    fetchUserPermissions();
-  }, [id]);
+    const fetchData = async () => {
+      try {
+        await fetchUser();
+  
+        await fetchRoles();
+  
+        await fetchPermissions();
+  
+        await fetchUserPermissions();
+  
+      } catch (error) {
+        console.error('Erro ao carregar os dados:', error);
+      }
+    };
+  
+    fetchData();
+  }, [id])
 
   const fetchUserPermissions = async () => {
     try {
@@ -124,10 +121,6 @@ const EditUserPage = () => {
       (role) => !safeSelectedOptions.some((option) => option.value === role)
     );  
 
-    const remainingRoles = safeSelectedOptions.filter(
-      (option) => !removedRoles.includes(option.value)
-    );
-
     if (addedRoles.length > 0) {
       const selectedRole = addedRoles[addedRoles.length - 1]; 
       const response = await RoleService.showRolePermissions(selectedRole.value);
@@ -146,7 +139,6 @@ const EditUserPage = () => {
   
     if (removedRoles.length > 0) {
       const removedRole = removedRoles[0];
-      console.log(removedRole)
       const response = await RoleService.showRolePermissions(removedRole); 
       const permissionsFromRole = response.result || [];
     
@@ -158,7 +150,7 @@ const EditUserPage = () => {
         const rolePermissions = roleResponse.result || [];
         remainingPermissions.push(...rolePermissions);
       }
-      console.log(permissionsFromRole, remainingPermissions)
+
       setSelectedPermissions((prevPermissions) => {
         return prevPermissions.filter((permissionId) => {
           return !permissionsFromRole.some((permission) => {
@@ -173,37 +165,57 @@ const EditUserPage = () => {
     setSelectedRoles(selectedOptions)
   };
 
-  const handleSubmit = async (e) => {
+  const handleUserSubmit = async (e) => {
     e.preventDefault();
-    setFormErrors({ username: '', email: '', name: '' });
-    setMessage({ type: '', text: '' });
+    setFormErrors({ username: '', email: '', name: '', permissions: '' });
+    setMessage(null);
 
     try {
-      const responseUser = await UserService.update(id, formData, navigate);
-      
-      const responsePermissions = await PermissionService.updateUserPermissions(id, {permissions: selectedPermissions }, navigate)
-
-      if (responseUser.status === 200 && responsePermissions.status === 200) {
-        setMessage({ type:'success', text: 'Usuário atualizado com sucesso!' });
+      const response = await UserService.update(id, formData, navigate);
+      if (response.status === 200) {
+        setMessage({ type:'success', text: response.message });
       }
 
-      if (responseUser.status === 200 && responsePermissions.status === 422) {
-        setMessage({ type:'warning', text: 'O usuário foi atualizado com sucesso, mas ocorreu um erro ao atualizar as permissões. É necessário garantir que o usuário tenha pelo menos uma permissão associada.' });
-      }
-
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.errors) {
-        const { errors } = error.response.data;
+      if (response.status === 422) {
+        const errors = response.data;
         setFormErrors({
           username: errors?.username ? errors.username[0] : '',
           email: errors?.email ? errors.email[0] : '',
           name: errors?.name ? errors.name[0] : ''
         });
-      } else {
-        setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o usuário' });
       }
+
+      if (response.status === 404) {
+        setMessage({ type:'error', text: response.message });
+      } 
+
+    } catch (error) {
+      setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o usuário' });
     }
   };
+
+  const handlePermissionSubmit = async (e) => {
+    e.preventDefault();
+    setFormErrors({ username: '', email: '', name: '' });
+    setMessagePermissions(null);
+
+    try {
+      const response = await PermissionService.updateUserPermissions(id, {permissions: selectedPermissions }, navigate)
+
+      if (response.status === 200) {
+        setMessagePermissions({ type:'success', text: response.message });
+        return;
+      }
+
+      if (response.status === 422) {
+        const errors = response.data;
+
+        setMessagePermissions({ type:'error', text: errors.permissions[0]  });
+      }
+    } catch (error) {
+      setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao atualizar permissões' });
+    }
+  }
 
   const handleBack = () => {
     navigate('/usuarios');
@@ -216,7 +228,7 @@ const EditUserPage = () => {
           Edição de Usuário
         </div>
 
-        <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
+        <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleUserSubmit}>
           {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
 
           {loading ? (
@@ -268,7 +280,25 @@ const EditUserPage = () => {
                   />
                 </div>
               </div>
-                <h5 className='text-dark font-weight-bold mt-3'>Permissões do Usuário</h5>
+                
+
+              <div className="mt-3 d-flex gap-2">
+                <Button type="submit" text="Atualizar Usuário" className="btn btn-blue-light fw-semibold" />
+                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
+              </div>
+            </>
+          )}
+        </form>
+        <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handlePermissionSubmit}>
+        {messagePermissions && <MyAlert severity={messagePermissions.type} message={messagePermissions.text} onClose={() => setMessagePermissions('')} />}
+
+          {loading ? (
+            <div className="d-flex justify-content-center mt-4">
+              <CircularProgress size={50} />
+            </div>
+          ) : (
+            <>
+              <h5 className='text-dark font-weight-bold mt-3'>Permissões do Usuário</h5>
                 
                 <hr />
             
@@ -300,11 +330,10 @@ const EditUserPage = () => {
                     placeholder="Selecione as permissões"
                   />
                 </div>
-
-              <div className="mt-3 d-flex gap-2">
-                <Button type="submit" text="Atualizar Usuário" className="btn btn-blue-light fw-semibold" />
-                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-              </div>
+                <div className="mt-3 d-flex gap-2">
+                  <Button type="submit" text="Atualizar Permissões" className="btn btn-blue-light fw-semibold" />
+                  <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
+                </div>
             </>
           )}
         </form>
