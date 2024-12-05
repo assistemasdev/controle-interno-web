@@ -97,11 +97,14 @@ const ApplicationSelection = () => {
                     className="mb-4"
                     onSlideChange={handleSlideChange}
                   >
-                    {applications.map((option, index) => (
-                      <SwiperSlide key={index}>
-                        <ApplicationCard option={option} />
-                      </SwiperSlide>
-                    ))}
+                    {applications
+                      .filter(option => option.active)  
+                      .map((option, index) => (
+                        <SwiperSlide key={index}>
+                          <ApplicationCard option={option} />
+                        </SwiperSlide>
+                      ))
+                    }
                   </Swiper>
                 ) : (
                   <div className="text-center py-4">

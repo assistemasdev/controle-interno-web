@@ -1,10 +1,10 @@
 import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
 
-const ApplicationService = {
-  async getAll(navigate) {
+const OrganizationService = {
+  async getByApplicationId(applicationId, navigate) {
     try {
-      const response = await api.get("/applications");
+      const response = await api.get(`/organizations/application/${applicationId}`);
       return {
         message: response.data.message,
         result: response.data.result,
@@ -17,7 +17,7 @@ const ApplicationService = {
 
   async create(data, navigate) {
     try {
-      const response = await api.post("/applications", data);
+      const response = await api.post("/organizations", data);
       return {
         message: response.data.message,
         result: response.data.result,
@@ -30,7 +30,7 @@ const ApplicationService = {
 
   async getById(id, navigate) {
     try {
-      const response = await api.get(`/applications/${id}`);
+      const response = await api.get(`/organizations/${id}`);
       return {
         message: response.data.message,
         result: response.data.result,
@@ -43,7 +43,7 @@ const ApplicationService = {
 
   async update(id, data, navigate) {
     try {
-      const response = await api.put(`/applications/${id}`, data);
+      const response = await api.put(`/organizations/${id}`, data);
       return {
         message: response.data.message,
         result: response.data.result,
@@ -56,7 +56,7 @@ const ApplicationService = {
 
   async delete(id, navigate) {
     try {
-      const response = await api.delete(`/applications/${id}`);
+      const response = await api.delete(`/organizations/${id}`);
       console.log(response)
       return {
         message: response.data.message,
@@ -69,4 +69,4 @@ const ApplicationService = {
   }
 };
 
-export default ApplicationService;
+export default OrganizationService;

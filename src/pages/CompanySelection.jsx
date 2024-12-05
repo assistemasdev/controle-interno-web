@@ -48,19 +48,21 @@ const CompanySelection = () => {
           }
 
           if (status == 200 && result) {
-            const formattedOrgans = result.map((organ) => ({
-              ...organ,
-              color: organ.color || "#cccccc",
-              name: organ.name || "Sem nome",
+            const formattedOrgans = result
+              .filter(organ => organ.active)  
+              .map((organ) => ({
+                ...organ,
+                color: organ.color || "#cccccc", 
+                name: organ.name || "Sem nome",   
             }));
-            console.log(formattedOrgans)
+
             const hasAdminRole = UserHasRole(['Super Admin', 'Admin'], userRoles);
-            console.log(hasAdminRole)
+            
             if (hasAdminRole) {
               const adminOrgan = {
                 id: "admin",
                 name: "Admin",
-                color: "#ff0000", 
+                color: "#4F4F4F", 
               };
               const organsWithAdmin = [...formattedOrgans, adminOrgan];
               setOptions(organsWithAdmin);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUsers, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome   } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { useSideBar } from '../hooks/useSideBar';
@@ -28,9 +28,31 @@ const Sidebar = () => {
               name: 'Página Inicial',
               to: '/usuarios/',
               requiredPermission: 'show all users', 
-              icon: faUsers
+              icon: faHome
             },
+            {
+              name: 'Cargos',
+              to: '/cargos/',
+              requiredPermission: 'read role',
+              icon: faUserTag
+            }
           ],
+        },
+        {
+          name: 'Aplicações',
+          icon: faDesktop,
+          to: '/applications',
+          href: "collapseApplications",
+          dropdown: "applications",
+          isCollapsed: isCollapsed,
+          children: [
+            {
+              name: 'Página Inicial',
+              to: '/aplicacoes/dashboard/',
+              requiredPermission: '',
+              icon: faHome
+            }
+          ]
         },
       ]);
     } else {

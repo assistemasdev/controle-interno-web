@@ -126,8 +126,8 @@ const UsersPage = () => {
           {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
 
             <div className="form-group col-md-6">
-              <label htmlFor="name" className="form-label text-dark font-weight-bold">Nome do usuário:</label>
               <InputField
+                label="Nome do usuário:"
                 type="text"
                 id="name"
                 value={name}
@@ -136,8 +136,8 @@ const UsersPage = () => {
               />
             </div>
             <div className="form-group col-md-6">
-              <label htmlFor="email" className="form-label text-dark font-weight-bold">E-mail do usuário:</label>
               <InputField
+                label="E-mail do usuário:"
                 type="text"
                 id="email"
                 value={email}
@@ -145,9 +145,9 @@ const UsersPage = () => {
                 placeholder="Digite o e-mail do usuário"
               />
             </div>
-          <div className="form-row mt-3 gap-2">
-            <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold" />
-            <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold" onClick={handleClearFilters} />
+          <div className="form-group gap-2">
+            <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
+            <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
           </div>
         </form>
 

@@ -40,7 +40,7 @@ const MenuItem = ({ name, to, icon, children, href, dropdown, isCollapsed }) => 
 
               return (
                 <div key={index} className="bg-white py-2 collapse-inner rounded">
-                  <Link className="collapse-item" to="/usuarios" >
+                  <Link className="collapse-item" to={child.to} >
                     <FontAwesomeIcon icon={child.icon} className="mr-3" />
                     {child.name}
                   </Link>
