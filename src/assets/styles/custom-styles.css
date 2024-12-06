@@ -53,6 +53,16 @@ hr {
     background-color: #333;
 }
 
+.input-group {
+    position: relative;
+}
+
+.input-group-text {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
 @media (max-width: 767px) {
     .open-sidebar{
         visibility: visible;

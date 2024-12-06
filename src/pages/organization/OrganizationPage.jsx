@@ -22,10 +22,10 @@ const OrganizationPage = () => {
     const location = useLocation();
 
     useEffect(() => {
-      setMessage(null);
-      if (location.state?.message) {
-        setMessage({type:location.state.type, message: location.state.message});
-      }
+        setMessage(null);
+        if (location.state?.message) {
+            setMessage({type:location.state.type, message: location.state.message});
+        }
     }, [location.state]); 
     
     const handleClearFilters = () => {
@@ -34,24 +34,24 @@ const OrganizationPage = () => {
 
     const fetchOrganizations = async () => {
         try {
-          setLoading(true);
-    
-          const response = await OrganizationService.getByApplicationId(applicationId,navigate);
-          const result = response.result
-    
-          const filteredOrganizations = result.map(organization => ({
-            id: organization.id,
-            name: organization.name,
-            color: organization.color,
-            active: organization.active == true ? 'Sim' : 'Não'
-          }));
-          
-          setOrganizations(filteredOrganizations);
+            setLoading(true);
+        
+            const response = await OrganizationService.getByApplicationId(applicationId,navigate);
+            const result = response.result
+        
+            const filteredOrganizations = result.map(organization => ({
+                id: organization.id,
+                name: organization.name,
+                color: organization.color,
+                active: organization.active == true ? 'Sim' : 'Não'
+            }));
+            
+            setOrganizations(filteredOrganizations);
         } catch (error) {
-          setError('Erro ao carregar organizações');
-          console.error(error);
+            setError('Erro ao carregar organizações');
+            console.error(error);
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
     };
     
@@ -66,13 +66,13 @@ const OrganizationPage = () => {
     const headers = ['id', 'Nome', 'Cor', 'Ativo'];
 
     const actions = [
-      {
-        icon: faEdit,
-        title: 'Editar Organização',
-        buttonClass: 'btn-primary',
-        permission: 'update organization',
-        onClick: handleEdit
-      },
+        {
+            icon: faEdit,
+            title: 'Editar Organização',
+            buttonClass: 'btn-primary',
+            permission: 'update organization',
+            onClick: handleEdit
+        },
     ];
     
     return (

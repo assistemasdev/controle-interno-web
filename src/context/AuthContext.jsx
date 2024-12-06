@@ -7,70 +7,40 @@ import { CircularProgress } from '@mui/material';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = JSON.parse(localStorage.getItem('user'));
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const storedUser = JSON.parse(localStorage.getItem('user'));
 
-    try {
-      if (token && storedUser) {
-        const decodedToken = jwtDecode(token);
-  
-        if (decodedToken.exp * 1000 < Date.now()) {
-          logout();
-          navigate('/login');
-        } else {
-          setIsAuthenticated(true);
-          setUser(storedUser);
+        try {
+            if (token && storedUser) {
+                const decodedToken = jwtDecode(token);
+
+                if (decodedToken.exp * 1000 < Date.now()) {
+                    // Handle expired token
+                } else {
+                    setIsAuthenticated(true);
+                    setUser(storedUser);
+                }
+            }
+        } catch (error) {
+            setIsAuthenticated(false);
+            setUser(null);
+        } finally {
+            setLoading(false);
         }
-      }
-    } catch (error) {
-      console.log('Erro ao decodificar o token:', error)
-      logout();
-      navigate('/login', { state: { message: 'Sua sessão expirou. Por favor, faça login novamente.' } });
-    }
+    }, []);
 
-    setLoading(false);
-  }, []);
-
-  const login = (token) => {
-    const decoded = jwtDecode(token);
-
-    const userData = {
-      id: decoded.user_id,
-      name: decoded.username,
-    };
-
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setIsAuthenticated(true);
-    setUser(userData);
-  };
-
-  const logout = async () => {
-    try {
-      await LoginService.logout();
-    } catch (error) {
-      console.error('Erro ao desconectar do servidor:', error);
-    } finally {
-      localStorage.clear();
-      setIsAuthenticated(false); 
-      setUser(null); 
-      document.documentElement.style.setProperty('--primary-color','#4da8ff');
-    }
-  };
-
-  if (loading) {
-    return <div style={{width:'100vw', height:'100vh', display:'flex', justifyContent:'center', alignItems:'center'}}><CircularProgress/></div>; 
-  }
-
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+    return (
+        loading ? (
+            <CircularProgress />
+        ) : (
+            <AuthContext.Provider value={{ isAuthenticated, user }}>
+                {children}
+            </AuthContext.Provider>
+        )
+    );
 };

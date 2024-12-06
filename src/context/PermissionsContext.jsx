@@ -5,73 +5,73 @@ import { CircularProgress } from '@mui/material';
 export const PermissionsContext = createContext();
 
 export const PermissionsProvider = ({ children }) => {
-  const [userRoles, setUserRoles] = useState([]); 
-  const [userPermissions, setUserPermissions] = useState([]);
-  const [loading, setLoading] = useState(true); 
-  
-  useEffect(() => {
-    const fetchRolesAndPermissions = () => {
-      setLoading(true);
-      
-      const storedRoles = localStorage.getItem('userRoles');
-      const storedPermissions = localStorage.getItem('userPermissions');
-      
-      try {
-        if (storedRoles) {
-          setUserRoles(JSON.parse(storedRoles));
-        } else {
-          setUserRoles([]);  
-        }
+    const [userRoles, setUserRoles] = useState([]); 
+    const [userPermissions, setUserPermissions] = useState([]);
+    const [loading, setLoading] = useState(true); 
 
-        if (storedPermissions) {
-          setUserPermissions(JSON.parse(storedPermissions));
-        } else {
-          setUserPermissions([]);  
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados do localStorage', error);
-      } finally {
-        setLoading(false);  
-      }
+    useEffect(() => {
+        const fetchRolesAndPermissions = () => {
+            setLoading(true);
+
+            const storedRoles = localStorage.getItem('userRoles');
+            const storedPermissions = localStorage.getItem('userPermissions');
+
+            try {
+                if (storedRoles) {
+                setUserRoles(JSON.parse(storedRoles));
+                } else {
+                setUserRoles([]);  
+                }
+
+                if (storedPermissions) {
+                setUserPermissions(JSON.parse(storedPermissions));
+                } else {
+                setUserPermissions([]);  
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados do localStorage', error);
+            } finally {
+                setLoading(false);  
+            }
+        };
+
+        fetchRolesAndPermissions();
+    }, []); 
+
+    const canAccess = (requiredPermission) => {
+        return hasPermission(userRoles, userPermissions, requiredPermission);
     };
 
-    fetchRolesAndPermissions();
-  }, []); 
+    const UserHasRole = (rolesName, rolesUser) => {
+        return hasRole(rolesName, rolesUser)
+    };
 
-  const canAccess = (requiredPermission) => {
-    return hasPermission(userRoles, userPermissions, requiredPermission);
-  };
+    const addRoles = (roles) => {
+        localStorage.setItem('userRoles', JSON.stringify(roles));
+        setUserRoles(roles);
+    };
 
-  const UserHasRole = (rolesName, rolesUser) => {
-    return hasRole(rolesName, rolesUser)
-  };
+    const addPermissions = (permissions) => {
+        localStorage.setItem('userPermissions', JSON.stringify(permissions));
+        setUserPermissions(permissions);
+    };
 
-  const addRoles = (roles) => {
-    localStorage.setItem('userRoles', JSON.stringify(roles));
-    setUserRoles(roles);
-  };
+    if (loading) {
+        return <div style={{width:'100vw', height:'100vh', display:'flex', justifyContent:'center', alignItems:'center'}}><CircularProgress/></div>; 
+    }
 
-  const addPermissions = (permissions) => {
-    localStorage.setItem('userPermissions', JSON.stringify(permissions));
-    setUserPermissions(permissions);
-  };
-
-  if (loading) {
-    return <div style={{width:'100vw', height:'100vh', display:'flex', justifyContent:'center', alignItems:'center'}}><CircularProgress/></div>; 
-  }
-
-  return (
-    <PermissionsContext.Provider
-      value={{
-        userRoles,
-        userPermissions,
-        canAccess,
-        addRoles,
-        addPermissions,
-        UserHasRole
-      }}
-    >
-      {children}
-    </PermissionsContext.Provider>
-  );
+    return (
+        <PermissionsContext.Provider
+            value={{
+                userRoles,
+                userPermissions,
+                canAccess,
+                addRoles,
+                addPermissions,
+                UserHasRole
+            }}
+        >
+            {children}
+        </PermissionsContext.Provider>
+    );
 };

@@ -21,10 +21,10 @@ const ApplicationPage = () => {
     const location = useLocation();
 
     useEffect(() => {
-      setMessage(null);
-      if (location.state?.message) {
+    setMessage(null);
+    if (location.state?.message) {
         setMessage({type:location.state.type, text: location.state.message});
-      }
+    }
     }, [location.state]); 
     
     const handleClearFilters = () => {
@@ -33,24 +33,24 @@ const ApplicationPage = () => {
 
     const fetchApplications = async () => {
         try {
-          setLoading(true);
+        setLoading(true);
     
-          const response = await ApplicationService.getAll(navigate);
-          const result = response.result
+        const response = await ApplicationService.getAll(navigate);
+        const result = response.result
     
-          const filteredApplications = result.map(application => ({
+        const filteredApplications = result.map(application => ({
             id: application.id,
             name: application.name,
             sessionCode: application.session_code,
             active: application.active == true ? 'Sim' : 'Não'
-          }));
-          
-          setApplications(filteredApplications);
+        }));
+        
+        setApplications(filteredApplications);
         } catch (error) {
-          setError('Erro ao carregar aplicações');
-          console.error(error);
+        setError('Erro ao carregar aplicações');
+        console.error(error);
         } finally {
-          setLoading(false);
+        setLoading(false);
         }
     };
     
@@ -63,28 +63,26 @@ const ApplicationPage = () => {
     };
 
     const handleViewOrgans = (application) => {
-      navigate(`/orgaos/${application.id}`);
+    navigate(`/orgaos/${application.id}`);
     }
-
-
 
     const headers = ['id', 'Nome', 'Código de Sessão', 'Ativo'];
 
     const actions = [
-      {
+    {
         icon: faEdit,
         title: 'Editar Aplicação',
         buttonClass: 'btn-primary',
         permission: 'update application',
         onClick: handleEdit
-      },
-      {
+    },
+    {
         icon: faBuilding, 
         title: 'Ver Órgãos da Aplicação',
         buttonClass: 'btn-info',  
         permission: 'view application organs', 
         onClick: handleViewOrgans,  
-      },
+    },
     ];
     
     return (
@@ -139,7 +137,6 @@ const ApplicationPage = () => {
 
             </div>
         </MainLayout>
-
     )
 }
 

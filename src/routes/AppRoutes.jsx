@@ -7,21 +7,21 @@ import { OrganProvider } from "../context/OrganContext";
 import { SideBarProvider } from "../context/SideBarContext";
 import { PermissionsProvider } from "../context/PermissionsContext";
 const AppRoutes = () => {
-  return (
-    <Router>
-      <AuthProvider>
-        <PermissionsProvider>
-          <ApplacationProvider>
-            <OrganProvider>
-              <SideBarProvider>
-                <AppRoutesContent />
-              </SideBarProvider>
-            </OrganProvider>
-          </ApplacationProvider>
-        </PermissionsProvider>
-      </AuthProvider>
-    </Router>
-  );
+    return (
+        <Router>
+            <AuthProvider>
+                <PermissionsProvider>
+                    <ApplacationProvider>
+                        <OrganProvider>
+                            <SideBarProvider>
+                                <AppRoutesContent />
+                            </SideBarProvider>
+                        </OrganProvider>
+                    </ApplacationProvider>
+                </PermissionsProvider>
+            </AuthProvider>
+        </Router>
+    );
 };
 
 export default AppRoutes;

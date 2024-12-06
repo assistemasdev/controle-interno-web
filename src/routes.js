@@ -8,13 +8,13 @@ import { OrganProvider } from "./context/OrganContext";
 const AppRoutes = () => {
   return (
     <Router>
-      <AuthProvider>
-        <ApplacationProvider>
-          <OrganProvider>
-            <AppRoutesContent />
-          </OrganProvider>
-        </ApplacationProvider>
-      </AuthProvider>
+        <AuthProvider>
+            <ApplacationProvider>
+                <OrganProvider>
+                    <AppRoutesContent />
+                </OrganProvider>
+            </ApplacationProvider>
+        </AuthProvider>
     </Router>
   );
 };

@@ -21,10 +21,10 @@ const RolePage = () => {
     const location = useLocation();
 
     useEffect(() => {
-      setMessage(null);
-      if (location.state?.message) {
-        setMessage({type:location.state.type, text: location.state.message});
-      }
+        setMessage(null);
+        if (location.state?.message) {
+            setMessage({type:location.state.type, text: location.state.message});
+        }
     }, [location.state]); 
     
     const handleClearFilters = () => {
@@ -33,22 +33,22 @@ const RolePage = () => {
 
     const fetchRoles = async () => {
         try {
-          setLoading(true);
-    
-          const response = await RoleService.getRoles(navigate);
-          const result = response.result
-    
-          const filteredRoles = result.map(role => ({
-            id: role.id,
-            name: role.name
-          }));
-          
-          setRoles(filteredRoles);
+            setLoading(true);
+        
+            const response = await RoleService.getRoles(navigate);
+            const result = response.result
+        
+                const filteredRoles = result.map(role => ({
+                    id: role.id,
+                    name: role.name
+            }));
+        
+            setRoles(filteredRoles);
         } catch (error) {
-          setError('Erro ao carregar aplicações');
-          console.error(error);
+            setError('Erro ao carregar aplicações');
+            console.error(error);
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
     };
     
@@ -63,13 +63,13 @@ const RolePage = () => {
     const headers = ['id', 'Nome'];
 
     const actions = [
-      {
-        icon: faEdit,
-        title: 'Editar Cargos',
-        buttonClass: 'btn-primary',
-        permission: 'update application',
-        onClick: handleEdit
-      }
+        {
+            icon: faEdit,
+            title: 'Editar Cargos',
+            buttonClass: 'btn-primary',
+            permission: 'update application',
+            onClick: handleEdit
+        }
     ];
     
     return (
@@ -121,7 +121,6 @@ const RolePage = () => {
                     ) : (
                     <DynamicTable headers={headers} data={roles} actions={actions} />
                 )}
-
             </div>
         </MainLayout>
 

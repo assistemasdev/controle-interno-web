@@ -6,11 +6,11 @@ import '../assets/styles/custom-styles.css';
 import LoginCard from '../components/login/LoginCard';
 
 const Login = () => {
-  return (
-    <div className="d-flex align-items-center justify-content-center vh-100 bg-pages-blue-light">
-      <LoginCard />
-    </div>
-  );
+    return (
+        <div className="d-flex align-items-center justify-content-center vh-100 bg-pages-blue-light">
+            <LoginCard />
+        </div>
+    );
 };
 
 export default Login;
