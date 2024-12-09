@@ -129,14 +129,14 @@ const EditOrganizationPage = () => {
     };
 
     const handleBack = () => {
-        navigate(`/orgaos/${applicationId}`);
+        navigate(`/tipos/`);
     };
 
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Aplicação
+                    Edição de Organização
                 </div>
 
                 <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
@@ -157,7 +157,7 @@ const EditOrganizationPage = () => {
                                         id="name"
                                         value={formData.name}
                                         onChange={handleChange}
-                                        placeholder="Digite o nome da aplicação"
+                                        placeholder="Digite o nome da organização"
                                         error={formErrors.name}
                                     />
                                 </div>

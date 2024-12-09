@@ -6,21 +6,20 @@ import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
-import SupplierService from "../../services/SupplierService";
+import CategoryService from "../../services/CategoryService";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash  } from '@fortawesome/free-solid-svg-icons';
-import { maskCpf, maskCnpj } from "../../utils/maskUtils";
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 
-const SuppliersPage = () => {
+const CategoryPage = () => {
     const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(true);
-    const [suppliers, setSuppliers] = useState([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [supplierToDelete, setSupplierToDelete] = useState(null);
+    const [categoryToDelete, setCategoryToDelete] = useState(null);
+    const [categories, setCategories] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -35,27 +34,21 @@ const SuppliersPage = () => {
         setName('');
     };
 
-    const fetchSuppliers = async () => {
+    const fetchCategories = async () => {
         try {
             setLoading(true);
         
-            const response = await SupplierService.getAll(navigate);
+            const response = await CategoryService.getAll(navigate);
             const result = response.result
         
-            const filteredSuppliers = result.map(supplier => {
-                const numericValue = supplier.cpf_cnpj.replace(/\D/g, '');
-            
-                return {
-                    id: supplier.id,
-                    alias: supplier.alias,
-                    name: supplier.name,
-                    cpf_cnpj: numericValue.length <= 11 ? maskCpf(numericValue) : maskCnpj(numericValue) 
-                };
-            });
-            
-            setSuppliers(filteredSuppliers);
+                const filteredCategories = result.map(role => ({
+                    id: role.id,
+                    name: role.name
+            }));
+        
+            setCategories(filteredCategories);
         } catch (error) {
-            setError('Erro ao carregar fornecedores');
+            setError('Erro ao carregar categorias');
             console.error(error);
         } finally {
             setLoading(false);
@@ -63,26 +56,26 @@ const SuppliersPage = () => {
     };
     
     useEffect(() => {
-        fetchSuppliers();
+        fetchCategories();
     }, []);
 
-    const handleEdit = (supplier) => {
-        navigate(`/fornecedores/editar/${supplier.id}`);
+    const handleEdit = (type) => {
+        navigate(`/categorias/editar/${type.id}`);
     };
 
-    const handleDelete = (supplier) => {
-        setSupplierToDelete(supplier);
+    const handleDelete = (type) => {
+        setCategoryToDelete(type);
         setDeleteModalOpen(true);
     };
 
     const confirmDelete = async () => {
         try {
             setLoading(true);
-            await SupplierService.delete(supplierToDelete.id);
-            setMessage({ type: 'success', text: 'Fornecedor excluído com sucesso!' });
-            fetchSuppliers();
+            await CategoryService.delete(categoryToDelete.id);
+            setMessage({ type: 'success', text: 'Categoria excluída com sucesso!' });
+            fetchCategories();
         } catch (error) {
-            setError('Erro ao excluir o fornecedor');
+            setError('Erro ao excluir o tipo');
             console.error(error);
         } finally {
             setDeleteModalOpen(false);
@@ -90,21 +83,21 @@ const SuppliersPage = () => {
         }
     };
 
-    const headers = ['id', 'Apelido', 'Nome', 'CPF/CPNPJ'];
+    const headers = ['id', 'Nome'];
 
     const actions = [
         {
             icon: faEdit,
-            title: 'Editar Fornecedor',
+            title: 'Editar Categoria',
             buttonClass: 'btn-primary',
-            permission: 'Atualizar fornecedores',
+            permission: 'Atualizar categorias de produto',
             onClick: handleEdit
         },
         {
             icon: faTrash,
-            title: 'Excluir Fornecedor',
+            title: 'Excluir Categoria',
             buttonClass: 'btn-danger',
-            permission: 'Excluir fornecedores',
+            permission: 'Excluir categorias de produto',
             onClick: handleDelete
         }
     ];
@@ -113,36 +106,36 @@ const SuppliersPage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Fornecedores
+                    Categorias
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
                         <InputField
-                            label='Nome do fornecedores:'
+                            label='Nome da Categoria:'
                             type="text"
                             id="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do fornecedor"
+                            placeholder="Digite o nome da categoria"
                         />
                     </div>
                     <div className="form-group gap-2">
                         <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
+                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
                 </form>
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Fornecedores
+                        Lista de Categorias
                     </div>
-                    {canAccess('Criar fornecedores') && (
+                    {canAccess('Criar categorias de produto') && (
                         <Button
-                        text="Novo Fornecedor"
+                        text="Nova Categoria"
                         className="btn btn-blue-light fw-semibold"
-                        link="/fornecedores/criar"
+                        link="/categorias/criar"
                         />
                     )}
                 </div>
@@ -156,18 +149,19 @@ const SuppliersPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={suppliers} actions={actions} />
+                    <DynamicTable headers={headers} data={categories} actions={actions} />
                 )}
 
+                <ConfirmationModal
+                    open={deleteModalOpen}
+                    onClose={() => setDeleteModalOpen(false)}
+                    onConfirm={confirmDelete}
+                    itemName={categoryToDelete ? categoryToDelete.name : ''}
+                />
             </div>
-            <ConfirmationModal
-                open={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                itemName={supplierToDelete ? supplierToDelete.name : ''}
-            />
         </MainLayout>
+
     )
 }
 
-export default SuppliersPage;
+export default CategoryPage;

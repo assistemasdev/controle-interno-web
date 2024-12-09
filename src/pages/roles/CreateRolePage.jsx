@@ -116,7 +116,7 @@ const CreateRolePage = () => {
                             id="name"
                             value={formData.name}
                             onChange={handleChange}
-                            placeholder="Digite o nome da aplicação"
+                            placeholder="Digite o nome do cargo"
                             error={formErrors.name} 
                         />
                     </div>

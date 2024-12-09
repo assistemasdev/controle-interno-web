@@ -30,6 +30,12 @@ import PerfilUserPage from "../pages/users/PerfilUserPage";
 import SuppliersPage from "../pages/suppliers/SuppliersPage";
 import CreateSupplierPage from "../pages/suppliers/CreateSupplierPage";
 import EditSupplierPage from "../pages/suppliers/EditSupplierPage";
+import TypePage from "../pages/types/TypePage";
+import CreateTypePage from "../pages/types/CreateTypePage";
+import EditTypePage from "../pages/types/EditTypePage";
+import CategoryPage from "../pages/categories/CategoryPage";
+import CreateCategoryPage from "../pages/categories/CreateCategoryPage";
+import EditCategoryPage from "../pages/categories/EditCategoryPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -121,6 +127,37 @@ const AppRoutesContent = () => {
         }
     ];
 
+    const typesRoutes = [
+        {
+            path: "/tipos",
+            element: <PrivateRoute element={TypePage} />,
+        },
+        {
+            path: "/tipos/criar",
+            element: <PrivateRoute element={CreateTypePage} />,
+        },
+        {
+            path: "/tipos/editar/:id",
+            element: <PrivateRoute element={EditTypePage}/>
+        }
+    ];
+
+    const categoriesRoutes = [
+        {
+            path: "/categorias",
+            element: <PrivateRoute element={CategoryPage} />,
+        },
+        {
+            path: "/categorias/criar",
+            element: <PrivateRoute element={CreateCategoryPage} />,
+        },
+        {
+            path: "/categorias/editar/:id",
+            element: <PrivateRoute element={EditCategoryPage}/>
+        }
+    ];
+
+
     const otherRoutes = [
         {
             path: "/dashboard",
@@ -157,6 +194,14 @@ const AppRoutesContent = () => {
                 ))}
 
                 {suppliersRoutes.map((route, index) => (
+                    <Route key={index} path={route.path} element={route.element} />
+                ))}
+
+                {typesRoutes.map((route, index) => (
+                    <Route key={index} path={route.path} element={route.element} />
+                ))}
+
+                {categoriesRoutes.map((route, index) => (
                     <Route key={index} path={route.path} element={route.element} />
                 ))}
                 </Routes>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck   } from '@fortawesome/free-solid-svg-icons';
+import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder  } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { useSideBar } from '../hooks/useSideBar';
@@ -87,6 +87,38 @@ const Sidebar = () => {
                         name: 'Página Inicial',
                         to: `/fornecedores/`,
                         requiredPermission: 'Listar fornecedores',
+                        icon: faHome
+                        }
+                    ]
+                },
+                {
+                    name: 'Tipos',
+                    icon: faTags ,
+                    to: '/types',
+                    href: "collapseTypes",
+                    dropdown: "types",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Página Inicial',
+                        to: `/tipos/`,
+                        requiredPermission: 'Listar tipos de produto',
+                        icon: faHome
+                        }
+                    ]
+                },
+                {
+                    name: 'Categorias',
+                    icon: faFolder,
+                    to: '/categories',
+                    href: "collapseCategories",
+                    dropdown: "categories",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Página Inicial',
+                        to: `/categorias/`,
+                        requiredPermission: 'Listar categorias de produto',
                         icon: faHome
                         }
                     ]
