@@ -71,6 +71,7 @@ const UsersPage = () => {
     };
 
     const handleEdit = (user) => {
+        console.log('oi',user)
         navigate(`/usuarios/editar/${user.id}`);
     };
 

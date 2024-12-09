@@ -26,6 +26,10 @@ import Login from "../pages/Login";
 import RolePage from "../pages/roles/RolesPage";
 import CreateRolePage from "../pages/roles/CreateRolePage";
 import EditRolePage from "../pages/roles/EditRolePage";
+import PerfilUserPage from "../pages/users/PerfilUserPage";
+import SuppliersPage from "../pages/suppliers/SuppliersPage";
+import CreateSupplierPage from "../pages/suppliers/CreateSupplierPage";
+import EditSupplierPage from "../pages/suppliers/EditSupplierPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -62,6 +66,10 @@ const AppRoutesContent = () => {
             path: "/usuarios/editar/:id",
             element: <PrivateRoute element={EditUserPage} />,
         },
+        {
+            path: "/usuarios/perfil/:id",
+            element: <PrivateRoute element={PerfilUserPage} />,
+        },
     ];
 
     const organizationRoutes = [
@@ -96,7 +104,22 @@ const AppRoutesContent = () => {
             path: "/cargos/editar/:roleId",
             element: <PrivateRoute element={EditRolePage}/>
         }
-    ]
+    ];
+
+    const suppliersRoutes = [
+        {
+            path: "/fornecedores",
+            element: <PrivateRoute element={SuppliersPage} />,
+        },
+        {
+            path: "/fornecedores/criar",
+            element: <PrivateRoute element={CreateSupplierPage} />,
+        },
+        {
+            path: "/fornecedores/editar/:id",
+            element: <PrivateRoute element={EditSupplierPage}/>
+        }
+    ];
 
     const otherRoutes = [
         {
@@ -130,6 +153,10 @@ const AppRoutesContent = () => {
                 ))}
 
                 {roleRoutes.map((route, index) => (
+                    <Route key={index} path={route.path} element={route.element} />
+                ))}
+
+                {suppliersRoutes.map((route, index) => (
                     <Route key={index} path={route.path} element={route.element} />
                 ))}
                 </Routes>

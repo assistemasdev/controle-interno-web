@@ -1,7 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { usePermissions } from '../hooks/usePermissions';
-
 const DynamicTable = ({ headers, data, actions }) => {
     const { canAccess } = usePermissions();
 
@@ -11,7 +10,7 @@ const DynamicTable = ({ headers, data, actions }) => {
                 <thead>
                     <tr>
                         {headers.map((header, index) => (
-                            <th scope="col" className="text-dark" key={index}>{header}</th>
+                        <th scope="col" className="text-dark" key={index}>{header}</th>
                         ))}
                         <th scope="col" className="text-dark">Ações</th>
                     </tr>
@@ -26,13 +25,14 @@ const DynamicTable = ({ headers, data, actions }) => {
                                 <td className="align-middle">
                                     {actions.map((action, idx) => (
                                         canAccess(action.permission) && (
-                                            <button
-                                                key={idx}
-                                                onClick={action.onClick}
-                                                className="btn btn-link"
-                                            >
-                                                <FontAwesomeIcon icon={action.icon} />
-                                            </button>
+                                        <button
+                                            key={idx}
+                                            className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
+                                            title={action.title}
+                                            onClick={() => action.onClick(item)}
+                                        >
+                                            <FontAwesomeIcon icon={action.icon} />
+                                        </button>
                                         )
                                     ))}
                                 </td>
@@ -40,9 +40,7 @@ const DynamicTable = ({ headers, data, actions }) => {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan={headers.length + 1} className="text-center">
-                                Nenhum dado encontrado.
-                            </td>
+                            <td colSpan={headers.length + 1} className="text-center">Não há dados disponíveis.</td>
                         </tr>
                     )}
                 </tbody>

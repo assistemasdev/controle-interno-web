@@ -1,0 +1,217 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import MainLayout from '../../layouts/MainLayout';
+import InputField from '../../components/InputField';
+import Button from '../../components/Button';
+import { CircularProgress } from '@mui/material'; 
+import '../../assets/styles/custom-styles.css';
+import MyAlert from '../../components/MyAlert';
+import UserService from '../../services/UserService';
+
+
+const PerfilUserPage = () => {
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const [message, setMessage] = useState(null);
+    const [formErrors, setFormErrors] = useState({ 
+        username: '', 
+        email: '', 
+        name: '', 
+        password: '',
+        password_confirmation: '', 
+    });
+    const [loading, setLoading] = useState(true); 
+    const [formData, setFormData] = useState({
+        name: '',
+        username: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+    });
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setFormData((prev) => ({ ...prev, [id]: value }));
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                await fetchUser();
+
+            } catch (error) {
+                console.error('Erro ao carregar os dados:', error);
+            }
+        };
+    
+        fetchData();
+    }, [id])
+
+
+    const fetchUser = async () => {
+        try {
+            const response = await UserService.getById(id, navigate);
+
+            if (response.status === 404) {
+                navigate('/dashboard', { state: { message: response.message }});
+            }
+
+            const user = response.result;
+
+            setFormData({
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                password: '',
+                password_confirmation: '',
+            });
+
+        } catch (error) {
+            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pelo usuário' });
+        console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setFormErrors({ username: '', email: '', name: '' });
+        setMessage(null);
+
+        const dataToSend = { ...formData };
+        if (formData.password == '' && formData.password_confirmation == '') {
+            delete dataToSend.password;
+            delete dataToSend.password_confirmation;
+        }
+
+        try {
+            const response = await UserService.update(id, dataToSend, navigate);
+            if (response.status === 200) {
+                setMessage({ type:'success', text: response.message });
+            }
+
+            if (response.status === 422) {
+                const errors = response.data;
+                setFormErrors({
+                username: errors?.username ? errors.username[0] : '',
+                email: errors?.email ? errors.email[0] : '',
+                name: errors?.name ? errors.name[0] : '',
+                password: errors?.password ? errors.password[0] : '',
+                password_confirmation: errors?.password_confirmation ? errors.password_confirmation[0] : ''
+                });
+            }
+
+            if (response.status === 404) {
+                setMessage({ type:'error', text: response.message });
+            } 
+
+        } catch (error) {
+            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o usuário' });
+        }
+    };
+
+
+    const handleBack = () => {
+        navigate('/dashboard');
+    };
+
+    return (
+        <MainLayout selectedCompany="ALUCOM">
+        <div className="container-fluid p-1">
+            <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
+                Perfil do Usuário
+            </div>
+
+            <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
+                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
+
+                {loading ? (
+                    <div className="d-flex justify-content-center mt-4">
+                        <CircularProgress size={50} />
+                    </div>
+                ) : (
+                    <>
+                        <h5 className='text-dark font-weight-bold'>Dados do Usuário</h5>
+
+                        <hr />
+
+                        <div className="form-row">
+
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Nome:"
+                                    type="text"
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="Digite o nome do usuário"
+                                    error={formErrors.name}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Usuário:"
+                                    type="text"
+                                    id="username"
+                                    value={formData.username}
+                                    onChange={handleChange}
+                                    placeholder="Digite o nome de usuário"
+                                    error={formErrors.username}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-12">
+                                <InputField
+                                    label="E-mail:"
+                                    type="email"
+                                    id="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="Digite seu e-mail"
+                                    error={formErrors.email}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Senha:"
+                                    id="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    type="password"
+                                    placeholder="Digite a nova senha"
+                                    error={formErrors.password}
+                                />
+                            </div>
+                            <div div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Confirmar Senha:"
+                                    id="password_confirmation"
+                                    value={formData.password_confirmation}
+                                    onChange={handleChange}
+                                    type="password"
+                                    placeholder="Confirme a senha"
+                                    error={formErrors.password_confirmation}
+                                />
+                            </div>
+
+                        </div>            
+                        <div className="mt-3 d-flex gap-2">
+                            <Button type="submit" text="Atualizar Usuário" className="btn btn-blue-light fw-semibold" />
+                            <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
+                        </div>
+                    </>
+                )}
+                </form>
+        </div>
+        </MainLayout>
+    );
+};
+
+export default PerfilUserPage;

@@ -77,7 +77,9 @@ const EditUserPage = () => {
 
     const fetchUser = async () => {
         try {
+            console.log(id)
             const response = await UserService.getById(id, navigate);
+            console.log(response)
             const user = response.result;
 
             setFormData({

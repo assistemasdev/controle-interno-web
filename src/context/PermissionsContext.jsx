@@ -18,15 +18,15 @@ export const PermissionsProvider = ({ children }) => {
 
             try {
                 if (storedRoles) {
-                setUserRoles(JSON.parse(storedRoles));
+                    setUserRoles(JSON.parse(storedRoles));
                 } else {
-                setUserRoles([]);  
+                    setUserRoles([]);  
                 }
 
                 if (storedPermissions) {
-                setUserPermissions(JSON.parse(storedPermissions));
+                    setUserPermissions(JSON.parse(storedPermissions));
                 } else {
-                setUserPermissions([]);  
+                    setUserPermissions([]);  
                 }
             } catch (error) {
                 console.error('Erro ao carregar dados do localStorage', error);

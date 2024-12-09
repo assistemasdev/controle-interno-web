@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome   } from '@fortawesome/free-solid-svg-icons';
+import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck   } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { useSideBar } from '../hooks/useSideBar';
 import MenuItem from '../components/MenuItem';
+import { useAuth } from '../hooks/useAuth';
 const Sidebar = () => {
     const { selectedOrgan } = useOrgan();
+    const { user } = useAuth();
     const { open } = useSideBar();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [menuItems, setMenuItems] = useState([]);
@@ -25,38 +27,71 @@ const Sidebar = () => {
                 isCollapsed: isCollapsed,
                 children: [
                     {
-                    name: 'Página Inicial',
-                    to: '/usuarios/',
-                    requiredPermission: 'show all users', 
-                    icon: faHome
+                        name: 'Página Inicial',
+                        to: '/usuarios/',
+                        requiredPermission: 'show all users', 
+                        icon: faHome
                     },
                     {
-                    name: 'Cargos',
-                    to: '/cargos/',
-                    requiredPermission: 'read role',
-                    icon: faUserTag
+                        name: 'Cargos',
+                        to: '/cargos/',
+                        requiredPermission: 'read role',
+                        icon: faUserTag
                     }
                 ],
                 },
                 {
-                name: 'Aplicações',
-                icon: faDesktop,
-                to: '/applications',
-                href: "collapseApplications",
-                dropdown: "applications",
-                isCollapsed: isCollapsed,
-                children: [
-                    {
-                    name: 'Página Inicial',
-                    to: '/aplicacoes/dashboard/',
-                    requiredPermission: '',
-                    icon: faHome
-                    }
-                ]
+                    name: 'Aplicações',
+                    icon: faDesktop,
+                    to: '/applications',
+                    href: "collapseApplications",
+                    dropdown: "applications",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Página Inicial',
+                        to: '/aplicacoes/dashboard/',
+                        requiredPermission: '',
+                        icon: faHome
+                        }
+                    ]
                 },
             ]);
         } else {
-        setMenuItems([]);
+            setMenuItems([
+                {
+                    name: 'Usuário',
+                    icon: faUser,
+                    to: '/user',
+                    href: "collapseUser",
+                    dropdown: "user",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Perfil',
+                        to: `/usuarios/perfil/${user.id}`,
+                        requiredPermission: '',
+                        icon: faHome
+                        }
+                    ]
+                },
+                {
+                    name: 'Fornecedores',
+                    icon: faTruck ,
+                    to: '/suppliers',
+                    href: "collapseSuppliers",
+                    dropdown: "suppliers",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Página Inicial',
+                        to: `/fornecedores/`,
+                        requiredPermission: 'Listar fornecedores',
+                        icon: faHome
+                        }
+                    ]
+                },
+            ]);
         }
     }, [selectedOrgan, isCollapsed]);
 
