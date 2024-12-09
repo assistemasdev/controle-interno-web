@@ -36,6 +36,9 @@ import EditTypePage from "../pages/types/EditTypePage";
 import CategoryPage from "../pages/categories/CategoryPage";
 import CreateCategoryPage from "../pages/categories/CreateCategoryPage";
 import EditCategoryPage from "../pages/categories/EditCategoryPage";
+import ConditionPage from "../pages/conditions/ConditionPage";
+import CreateConditionPage from "../pages/conditions/CreateConditionPage";
+import EditConditionPage from "../pages/conditions/EditConditionPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -157,6 +160,20 @@ const AppRoutesContent = () => {
         }
     ];
 
+    const conditionsRoutes = [
+        {
+            path: "/condicoes",
+            element: <PrivateRoute element={ConditionPage} />,
+        },
+        {
+            path: "/condicoes/criar",
+            element: <PrivateRoute element={CreateConditionPage} />,
+        },
+        {
+            path: "/condicoes/editar/:id",
+            element: <PrivateRoute element={EditConditionPage}/>
+        }
+    ];
 
     const otherRoutes = [
         {
@@ -202,6 +219,10 @@ const AppRoutesContent = () => {
                 ))}
 
                 {categoriesRoutes.map((route, index) => (
+                    <Route key={index} path={route.path} element={route.element} />
+                ))}
+
+                {conditionsRoutes.map((route, index) => (
                     <Route key={index} path={route.path} element={route.element} />
                 ))}
                 </Routes>

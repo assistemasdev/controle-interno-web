@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder  } from '@fortawesome/free-solid-svg-icons';
+import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder, faInfoCircle   } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { useSideBar } from '../hooks/useSideBar';
@@ -119,6 +119,22 @@ const Sidebar = () => {
                         name: 'Página Inicial',
                         to: `/categorias/`,
                         requiredPermission: 'Listar categorias de produto',
+                        icon: faHome
+                        }
+                    ]
+                },
+                {
+                    name: 'Condições',
+                    icon: faInfoCircle ,
+                    to: '/conditions',
+                    href: "collapseConditions",
+                    dropdown: "conditins",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Página Inicial',
+                        to: `/condicoes/`,
+                        requiredPermission: 'Listar condições de produto',
                         icon: faHome
                         }
                     ]
