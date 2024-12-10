@@ -19,7 +19,7 @@ const TypePage = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [typeToDelete, setTypeToDelete] = useState(null);
-    const [roles, setRoles] = useState([]);
+    const [types, setTypes] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -39,14 +39,17 @@ const TypePage = () => {
             setLoading(true);
         
             const response = await TypeService.getAll(navigate);
-            const result = response.result
-        
-                const filteredRoles = result.map(role => ({
+
+            if(response.status === 200) {
+                const result = response.result
+            
+                const filteredTypes = result.map(role => ({
                     id: role.id,
                     name: role.name
-            }));
-        
-            setRoles(filteredRoles);
+                }));
+            
+                setTypes(filteredTypes);
+            }
         } catch (error) {
             setError('Erro ao carregar tipos');
             console.error(error);
@@ -74,9 +77,19 @@ const TypePage = () => {
     const confirmDelete = async () => {
         try {
             setLoading(true);
-            await TypeService.delete(typeToDelete.id);
-            setMessage({ type: 'success', text: 'Tipo excluído com sucesso!' });
-            fetchTypes();
+            const response = await TypeService.delete(typeToDelete.id);
+
+            if (response.status === 200) {
+                setMessage({ type: 'success', text: response.message });
+                fetchTypes();
+                return;
+            }
+
+            if (response.status === 404 || response.status === 400) {
+                setMessage({ type: 'error', text: response.message });
+                return;
+            }
+
         } catch (error) {
             setError('Erro ao excluir o tipo');
             console.error(error);
@@ -159,7 +172,7 @@ const TypePage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={roles} actions={actions} />
+                    <DynamicTable headers={headers} data={types} actions={actions} />
                 )}
 
                 <ConfirmationModal

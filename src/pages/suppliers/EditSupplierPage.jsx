@@ -86,8 +86,15 @@ const EditSupplierPage = () => {
             }
 
             if (response.status === 404) {
-                setMessage({ type: 'error', text: response.message });
-
+                navigate(
+                    '/fornecedores/', 
+                    {
+                        state: { 
+                            type: 'error', 
+                            message: response.message 
+                        }
+                    }
+                );
             }
 
         } catch (error) {

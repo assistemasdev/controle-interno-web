@@ -28,12 +28,12 @@ const EditTypePage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-        try {
-            await fetchType();
-    
-        } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
-        }
+            try {
+                await fetchType();
+        
+            } catch (error) {
+                console.error('Erro ao carregar os dados:', error);
+            }
         };
     
         fetchData();
