@@ -41,9 +41,9 @@ const ConditionPage = () => {
             const response = await ConditionService.getAll(navigate);
             const result = response.result
         
-                const filteredCondition = result.map(role => ({
-                    id: role.id,
-                    name: role.name
+            const filteredCondition = result.map(role => ({
+                id: role.id,
+                name: role.name
             }));
         
             setConditions(filteredCondition);
@@ -71,9 +71,17 @@ const ConditionPage = () => {
     const confirmDelete = async () => {
         try {
             setLoading(true);
-            await ConditionService.delete(conditionToDelete.id);
-            setMessage({ type: 'success', text: 'Condição excluída com sucesso!' });
-            fetchCondition();
+            const response = await ConditionService.delete(conditionToDelete.id);
+
+            if (response.status === 200) {
+                setMessage({ type: 'success', text: response.message });
+                fetchCondition();
+                return
+            }
+
+            if (response.status === 400 || response.status === 404) {
+                setMessage({ type: 'error', text: response.message})
+            }
         } catch (error) {
             setError('Erro ao excluir a condição');
             console.error(error);
@@ -106,19 +114,19 @@ const ConditionPage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Categorias
+                    Condições
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
                         <InputField
-                            label='Nome da Categoria:'
+                            label='Nome da Condição:'
                             type="text"
                             id="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome da categoria"
+                            placeholder="Digite o nome da condição"
                         />
                     </div>
                     <div className="form-group gap-2">
@@ -129,7 +137,7 @@ const ConditionPage = () => {
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Categorias
+                        Lista de Condições
                     </div>
                     {canAccess('Criar condições de produtos') && (
                         <Button
