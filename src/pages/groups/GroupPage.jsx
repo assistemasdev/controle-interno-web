@@ -19,7 +19,7 @@ const GroupPage = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [groupToDelete, setGroupToDelete] = useState(null);
-    const [conditions, setConditions] = useState([]);
+    const [groups, setGroups] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -41,12 +41,12 @@ const GroupPage = () => {
             const response = await GroupService.getAll(navigate);
             const result = response.result
         
-                const filteredCondition = result.map(role => ({
-                    id: role.id,
-                    name: role.name
+            const filteredGroups = result.map(role => ({
+                id: role.id,
+                name: role.name
             }));
         
-            setConditions(filteredCondition);
+            setGroups(filteredGroups);
         } catch (error) {
             setError('Erro ao carregar grupos');
             console.error(error);
@@ -71,9 +71,17 @@ const GroupPage = () => {
     const confirmDelete = async () => {
         try {
             setLoading(true);
-            await GroupService.delete(groupToDelete.id);
-            setMessage({ type: 'success', text: 'Grupo excluído com sucesso!' });
-            fetchGroup();
+            const response = await GroupService.delete(groupToDelete.id);
+            if (response.status === 200) {
+                setMessage({ type: 'success', text: response.message });
+                fetchGroup();
+                return
+            }
+
+            if (response.status === 400 || response.status === 404) {
+                setMessage({ type: 'error', text: response.message });
+                return
+            }
         } catch (error) {
             setError('Erro ao excluir o grupo');
             console.error(error);
@@ -149,7 +157,7 @@ const GroupPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={conditions} actions={actions} />
+                    <DynamicTable headers={headers} data={groups} actions={actions} />
                 )}
 
                 <ConfirmationModal

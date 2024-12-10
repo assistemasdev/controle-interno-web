@@ -65,9 +65,6 @@ const GroupsTypePage = () => {
         setTypeToDelete(type);
         setDeleteModalOpen(true);
     };
-    const handleViewGroups = (type) => {
-        navigate(`/tipos/${type.id}/grupos`);
-    }
 
     const confirmDelete = async () => {
         try {

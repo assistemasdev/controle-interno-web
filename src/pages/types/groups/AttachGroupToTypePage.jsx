@@ -100,7 +100,7 @@ const AttachGroupToTypePage = () => {
         
             setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
         } catch (error) {
-        setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
         }
     };
 
