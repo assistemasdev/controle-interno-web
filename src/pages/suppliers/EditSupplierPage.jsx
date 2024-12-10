@@ -8,7 +8,10 @@ import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import SupplierService from '../../services/SupplierService';
 import { maskCep, maskCpfCnpj, removeMask } from '../../utils/maskUtils';
+import { usePermissions } from '../../hooks/usePermissions';
+
 const EditSupplierPage = () => {
+    const { canAccess } = usePermissions();
     const navigate = useNavigate();
     const { id } = useParams();
     const [message, setMessage] = useState(null);
@@ -61,22 +64,32 @@ const EditSupplierPage = () => {
             const response = await SupplierService.getById(id, navigate);
             const supplier = response.result;
 
-            setFormData({
-                alias: supplier.alias || '',
-                name: supplier.name || '',
-                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
-                zip: maskCep(supplier.zip || ''), 
-                street: supplier.street || '',
-                number: supplier.number || '',
-                details: supplier.details || '',
-                district: supplier.district || '',
-                city: supplier.city || '',
-                state: supplier.state || '',
-                country: supplier.country || '',
-                ddd: supplier.ddd || '',
-                phone: supplier.phone || '',
-                email: supplier.email || ''
-            });
+            if (response.status === 200) {
+                setFormData({
+                    alias: supplier.alias || '',
+                    name: supplier.name || '',
+                    cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
+                    zip: maskCep(supplier.zip || ''), 
+                    street: supplier.street || '',
+                    number: supplier.number || '',
+                    details: supplier.details || '',
+                    district: supplier.district || '',
+                    city: supplier.city || '',
+                    state: supplier.state || '',
+                    country: supplier.country || '',
+                    ddd: supplier.ddd || '',
+                    phone: supplier.phone || '',
+                    email: supplier.email || ''
+                });
+
+                return
+            }
+
+            if (response.status === 404) {
+                setMessage({ type: 'error', text: response.message });
+
+            }
+
         } catch (error) {
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo fornecedor' });
             console.error(error);
@@ -319,7 +332,9 @@ const EditSupplierPage = () => {
                             </div>
 
                             <div className="mt-3 d-flex gap-2">
-                                <Button type="submit" text="Atualizar Fornecedor" className="btn btn-blue-light fw-semibold" />
+                                {canAccess('Atualizar fornecedores') && (
+                                    <Button type="submit" text="Atualizar Fornecedor" className="btn btn-blue-light fw-semibold" />
+                                )}
                                 <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
                             </div>
                         </>

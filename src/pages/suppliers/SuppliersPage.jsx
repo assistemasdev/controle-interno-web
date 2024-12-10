@@ -78,9 +78,18 @@ const SuppliersPage = () => {
     const confirmDelete = async () => {
         try {
             setLoading(true);
-            await SupplierService.delete(supplierToDelete.id);
-            setMessage({ type: 'success', text: 'Fornecedor excluído com sucesso!' });
-            fetchSuppliers();
+            const response = await SupplierService.delete(supplierToDelete.id);
+
+            if (response.status === 200) {
+                setMessage({ type: 'success', text: response.message });
+                fetchSuppliers();
+                return
+            }
+
+            if(response.status == 404 || response.status == 400) {
+                setMessage({ type: 'error', text: response.message });
+                return
+            }
         } catch (error) {
             setError('Erro ao excluir o fornecedor');
             console.error(error);
