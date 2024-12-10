@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder, faInfoCircle   } from '@fortawesome/free-solid-svg-icons';
+import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup  } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { useSideBar } from '../hooks/useSideBar';
@@ -56,6 +56,39 @@ const Sidebar = () => {
                         }
                     ]
                 },
+                {
+                    name: 'Condições',
+                    icon: faInfoCircle ,
+                    to: '/conditions',
+                    href: "collapseConditions",
+                    dropdown: "conditins",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Página Inicial',
+                        to: `/condicoes/`,
+                        requiredPermission: 'Listar condições de produto',
+                        icon: faHome
+                        }
+                    ]
+                },
+                ,
+                {
+                    name: 'Categorias',
+                    icon: faFolder,
+                    to: '/categories',
+                    href: "collapseCategories",
+                    dropdown: "categories",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Página Inicial',
+                        to: `/categorias/`,
+                        requiredPermission: 'Listar categorias de produto',
+                        icon: faHome
+                        }
+                    ]
+                }
             ]);
         } else {
             setMenuItems([
@@ -108,37 +141,21 @@ const Sidebar = () => {
                     ]
                 },
                 {
-                    name: 'Categorias',
-                    icon: faFolder,
-                    to: '/categories',
-                    href: "collapseCategories",
-                    dropdown: "categories",
+                    name: 'Grupos',
+                    icon: faObjectGroup  ,
+                    to: '/groups',
+                    href: "collapseGroups",
+                    dropdown: "groups",
                     isCollapsed: isCollapsed,
                     children: [
                         {
                         name: 'Página Inicial',
-                        to: `/categorias/`,
-                        requiredPermission: 'Listar categorias de produto',
+                        to: `/grupos/`,
+                        requiredPermission: 'Listar grupos de produto',
                         icon: faHome
                         }
                     ]
-                },
-                {
-                    name: 'Condições',
-                    icon: faInfoCircle ,
-                    to: '/conditions',
-                    href: "collapseConditions",
-                    dropdown: "conditins",
-                    isCollapsed: isCollapsed,
-                    children: [
-                        {
-                        name: 'Página Inicial',
-                        to: `/condicoes/`,
-                        requiredPermission: 'Listar condições de produto',
-                        icon: faHome
-                        }
-                    ]
-                },
+                }
             ]);
         }
     }, [selectedOrgan, isCollapsed]);
@@ -171,6 +188,7 @@ const Sidebar = () => {
                 <hr className="sidebar-divider" style={{ backgroundColor: '#fff', height: '1px' }} />
                 </div>
             ))}
+
             <div className="text-center d-none d-md-inline my-3">
                 <button className="rounded-circle border-0 py-1 px-2" onClick={() => setIsCollapsed(!isCollapsed)}>
                 <FontAwesomeIcon icon={isCollapsed ? faChevronRight : faChevronDown} />

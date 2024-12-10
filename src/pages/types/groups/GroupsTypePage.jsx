@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
-import MainLayout from "../../layouts/MainLayout";
-import MyAlert from "../../components/MyAlert";
-import InputField from "../../components/InputField";
-import Button from "../../components/Button";
-import { usePermissions } from "../../hooks/usePermissions";
+import MainLayout from "../../../layouts/MainLayout";
+import MyAlert from "../../../components/MyAlert";
+import InputField from "../../../components/InputField";
+import Button from "../../../components/Button";
+import { usePermissions } from "../../../hooks/usePermissions";
 import { CircularProgress } from '@mui/material';
-import DynamicTable from "../../components/DynamicTable";
-import TypeService from "../../services/TypeService";
-import { useNavigate, useLocation } from "react-router-dom";
+import DynamicTable from "../../../components/DynamicTable";
+import TypeGroupsService from "../../../services/TypeGroupsService";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { faEdit, faTrash, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
-import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 
-const TypePage = () => {
+const GroupsTypePage = () => {
+    const { id } = useParams();
     const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
@@ -19,7 +20,7 @@ const TypePage = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [typeToDelete, setTypeToDelete] = useState(null);
-    const [roles, setRoles] = useState([]);
+    const [groupsOfTheTypes, setGroupsOfTheTypes] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -34,21 +35,21 @@ const TypePage = () => {
         setName('');
     };
 
-    const fetchTypes = async () => {
+    const fetchGroupsOfTheTypes = async () => {
         try {
             setLoading(true);
         
-            const response = await TypeService.getAll(navigate);
+            const response = await TypeGroupsService.showTypeGroups(id,navigate);
             const result = response.result
         
-                const filteredRoles = result.map(role => ({
+                const groupsOfTheTypes = result.map(role => ({
                     id: role.id,
                     name: role.name
             }));
         
-            setRoles(filteredRoles);
+            setGroupsOfTheTypes(groupsOfTheTypes);
         } catch (error) {
-            setError('Erro ao carregar tipos');
+            setError('Erro ao carregar grupos do tipo');
             console.error(error);
         } finally {
             setLoading(false);
@@ -56,12 +57,9 @@ const TypePage = () => {
     };
     
     useEffect(() => {
-        fetchTypes();
+        fetchGroupsOfTheTypes();
     }, []);
 
-    const handleEdit = (type) => {
-        navigate(`/tipos/editar/${type.id}`);
-    };
 
     const handleDelete = (type) => {
         setTypeToDelete(type);
@@ -74,9 +72,11 @@ const TypePage = () => {
     const confirmDelete = async () => {
         try {
             setLoading(true);
-            await TypeService.delete(typeToDelete.id);
-            setMessage({ type: 'success', text: 'Tipo excluído com sucesso!' });
-            fetchTypes();
+            const response = await TypeGroupsService.detachGroupFromType(id, { group_id:[typeToDelete.id]}, navigate);
+            if (response.status === 200) {
+                setMessage({ type: 'success', text: response.message });
+                fetchGroupsOfTheTypes();
+            }
         } catch (error) {
             setError('Erro ao excluir o tipo');
             console.error(error);
@@ -90,25 +90,11 @@ const TypePage = () => {
 
     const actions = [
         {
-            icon: faEdit,
-            title: 'Editar Cargos',
-            buttonClass: 'btn-primary',
-            permission: 'Atualizar tipos de produto',
-            onClick: handleEdit
-        },
-        {
             icon: faTrash,
-            title: 'Excluir Tipo',
+            title: 'Excluir Grupo',
             buttonClass: 'btn-danger',
-            permission: 'Excluir tipos de produto',
+            permission: 'Desassociar grupo de tipo de produto',
             onClick: handleDelete
-        },
-        {
-            icon: faLayerGroup, 
-            title: 'Ver Grupos do Tipo',
-            buttonClass: 'btn-info',
-            permission: 'Visualizar grupos do tipo',
-            onClick: handleViewGroups
         }
     ];
     
@@ -116,19 +102,19 @@ const TypePage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Tipos
+                    Grupos do tipo
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
                         <InputField
-                            label='Nome do Tipo:'
+                            label='Nome do Grupo:'
                             type="text"
                             id="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do tipo"
+                            placeholder="Digite o nome do grupo"
                         />
                     </div>
                     <div className="form-group gap-2">
@@ -139,13 +125,13 @@ const TypePage = () => {
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Tipos
+                        Lista dos Grupos do Tipo
                     </div>
-                    {canAccess('Criar tipos de produto') && (
+                    {canAccess('Associar grupo a tipo de produto') && (
                         <Button
-                        text="Novo Tipo"
+                        text="Associar grupo"
                         className="btn btn-blue-light fw-semibold"
-                        link="/tipos/criar"
+                        link={`/tipos/${id}/grupos/associar`}
                         />
                     )}
                 </div>
@@ -159,7 +145,7 @@ const TypePage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={roles} actions={actions} />
+                    <DynamicTable headers={headers} data={groupsOfTheTypes} actions={actions} />
                 )}
 
                 <ConfirmationModal
@@ -174,4 +160,4 @@ const TypePage = () => {
     )
 }
 
-export default TypePage;
+export default GroupsTypePage;
