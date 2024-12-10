@@ -41,9 +41,9 @@ const CategoryPage = () => {
             const response = await CategoryService.getAll(navigate);
             const result = response.result
         
-                const filteredCategories = result.map(role => ({
-                    id: role.id,
-                    name: role.name
+            const filteredCategories = result.map(role => ({
+                id: role.id,
+                name: role.name
             }));
         
             setCategories(filteredCategories);
@@ -59,23 +59,32 @@ const CategoryPage = () => {
         fetchCategories();
     }, []);
 
-    const handleEdit = (type) => {
-        navigate(`/categorias/editar/${type.id}`);
+    const handleEdit = (category) => {
+        navigate(`/categorias/editar/${category.id}`);
     };
 
-    const handleDelete = (type) => {
-        setCategoryToDelete(type);
+    const handleDelete = (category) => {
+        setCategoryToDelete(category);
         setDeleteModalOpen(true);
     };
 
     const confirmDelete = async () => {
         try {
             setLoading(true);
-            await CategoryService.delete(categoryToDelete.id);
-            setMessage({ type: 'success', text: 'Categoria excluída com sucesso!' });
-            fetchCategories();
+            const response = await CategoryService.delete(categoryToDelete.id);
+
+            if (response.status === 200) {
+                setMessage({ type: 'success', text: response.message });
+                fetchCategories();
+                return;
+            }
+
+            if (response.status === 400 || response.status || 404) {
+                setMessage({ type: 'success', text: response.message });
+                return;
+            }
         } catch (error) {
-            setError('Erro ao excluir o tipo');
+            setError('Erro ao excluir a categoria');
             console.error(error);
         } finally {
             setDeleteModalOpen(false);
