@@ -13,6 +13,7 @@ const CreateSupplierAddressPage = () => {
     const { id } = useParams();
     const [message, setMessage] = useState(null);
     const [formErrors, setFormErrors] = useState({});
+    const [loadingCep, setLoadingCep] = useState(false); 
     const [formData, setFormData] = useState({
         alias: '',
         zip: '',
@@ -25,13 +26,39 @@ const CreateSupplierAddressPage = () => {
         country: ''
     });
 
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
         const { id, value } = e.target;
 
+        const maskedValue = id === 'zip' ? maskCep(value) : value;
         setFormData((prev) => ({
             ...prev,
-            [id]: id === 'zip' ? maskCep(value) : value
+            [id]: maskedValue
         }));
+
+        if (id === 'zip' && removeMask(value).length === 8) {
+            setLoadingCep(true);
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${removeMask(value)}/json/`);
+                if (!response.ok) throw new Error('Erro ao buscar o CEP');
+                
+                const data = await response.json();
+                if (data.erro) throw new Error('CEP não encontrado');
+
+                setFormData((prev) => ({
+                    ...prev,
+                    street: data.logradouro || '',
+                    district: data.bairro || '',
+                    city: data.localidade || '',
+                    state: data.uf || '',
+                    country: 'Brasil'
+                }));
+                setMessage({ type: 'success', text: 'Endereço preenchido automaticamente!' });
+            } catch (error) {
+                setMessage({ type: 'error', text: error.message });
+            } finally {
+                setLoadingCep(false);
+            }
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -58,7 +85,7 @@ const CreateSupplierAddressPage = () => {
                     city: '',
                     state: '',
                     country: ''
-                })
+                });
             } else if (response.status === 422) {
                 const errors = response.data;
                 setFormErrors({
@@ -74,7 +101,7 @@ const CreateSupplierAddressPage = () => {
                 });
             }
         } catch (error) {
-            console.log(error)
+            console.log(error);
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao criar endereço' });
         }
     };
@@ -92,7 +119,6 @@ const CreateSupplierAddressPage = () => {
 
                 <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
-
                     <div className="form-row">
                         <div className="d-flex flex-column col-md-6">
                             <InputField
@@ -115,6 +141,7 @@ const CreateSupplierAddressPage = () => {
                                 placeholder="Digite o CEP"
                                 error={formErrors.zip}
                             />
+                            {loadingCep && <p>Carregando endereço...</p>}
                         </div>
                     </div>
                     <div className="form-row">

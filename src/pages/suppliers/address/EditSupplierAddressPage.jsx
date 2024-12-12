@@ -17,6 +17,7 @@ const EditSupplierAddressPage = () => {
     const [message, setMessage] = useState(null);
     const [formErrors, setFormErrors] = useState({});
     const [loading, setLoading] = useState(true);
+    const [loadingCep, setLoadingCep] = useState(false)
     const [formData, setFormData] = useState({
         alias: '',
         zip: '',
@@ -29,14 +30,41 @@ const EditSupplierAddressPage = () => {
         country: ''
     });
 
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
         const { id, value } = e.target;
-
+    
+        const maskedValue = id === 'zip' ? maskCep(value) : value;
         setFormData((prev) => ({
             ...prev,
-            [id]: id === 'zip' ? maskCep(value) : value
+            [id]: maskedValue
         }));
+    
+        if (id === 'zip' && removeMask(value).length === 8) {
+            setLoadingCep(true); 
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${removeMask(value)}/json/`);
+                if (!response.ok) throw new Error('Erro ao buscar o CEP');
+                
+                const data = await response.json();
+                if (data.erro) throw new Error('CEP não encontrado');
+    
+                setFormData((prev) => ({
+                    ...prev,
+                    street: data.logradouro || '',
+                    district: data.bairro || '',
+                    city: data.localidade || '',
+                    state: data.uf || '',
+                    country: 'Brasil' 
+                }));
+            } catch (error) {
+                setMessage({ type: 'error', text: error.message });
+            } finally {
+                setLoadingCep(false); 
+            }
+        }
     };
+    
+    
 
     useEffect(() => {
         const fetchData = async () => {
@@ -173,6 +201,11 @@ const EditSupplierAddressPage = () => {
                                         placeholder="Digite o CEP"
                                         error={formErrors.zip}
                                     />
+                                    {loadingCep && (
+                                        <div className="mt-2">
+                                            <CircularProgress size={20} /> Carregando endereço...
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="form-row">

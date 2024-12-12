@@ -12,6 +12,7 @@ import { maskCpfCnpj, maskCep, removeMask } from '../../utils/maskUtils';
 const CreateSupplierPage = () => {
     const navigate = useNavigate(); 
     const { canAccess } = usePermissions();
+    const [loadingCep, setLoadingCep] = useState(false);
     const [formData, setFormData] = useState({
         supplier: {
             alias: '',
@@ -54,6 +55,47 @@ const CreateSupplierPage = () => {
         }));
     };
 
+    const handleCepChange = async (e) => {
+        const value = maskCep(e.target.value);
+        const zip = removeMask(value);
+
+        setFormData((prev) => ({
+            ...prev,
+            address: {
+                ...prev.address,
+                zip: value
+            }
+        }));
+
+        if (zip.length === 8) {
+            setLoadingCep(true);
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${zip}/json/`);
+                if (!response.ok) throw new Error('Erro ao buscar o CEP');
+                
+                const data = await response.json();
+                if (data.erro) throw new Error('CEP não encontrado');
+
+                setFormData((prev) => ({
+                    ...prev,
+                    address: {
+                        ...prev.address,
+                        street: data.logradouro || '',
+                        district: data.bairro || '',
+                        city: data.localidade || '',
+                        state: data.uf || '',
+                        country: 'Brasil' 
+                    }
+                }));
+            } catch (error) {
+                setMessage({ type: 'error', text: error.message });
+            } finally {
+                setLoadingCep(false);
+            }
+        }
+    };
+
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setFormErrors({});
@@ -185,10 +227,11 @@ const CreateSupplierPage = () => {
                                 type="text"
                                 id="address.zip"
                                 value={formData.address.zip}
-                                onChange={handleChange}
+                                onChange={handleCepChange} 
                                 placeholder="Digite o CEP"
                                 error={formErrors['address.zip']} 
                             />
+                            {loadingCep && <p>Carregando endereço...</p>}
                         </div>
                     </div>
                     <div className="form-row">
