@@ -7,16 +7,23 @@ import { CircularProgress } from '@mui/material';
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import SupplierService from '../../services/SupplierService';
-import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
+import { maskCpfCnpj, maskCep } from '../../utils/maskUtils';
+import DynamicTable from '../../components/DynamicTable';
+import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
+import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { usePermissions } from '../../hooks/usePermissions';
 
-const EditSupplierPage = () => {
-    const { canAccess } = usePermissions();
+const SupplierDetailsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [message, setMessage] = useState(null);
     const [formErrors, setFormErrors] = useState({});
+    const [error, setError] = useState();
+    const { canAccess } = usePermissions();
+    const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [addressToDelete, setAddressToDelete] = useState(null);
     const [formData, setFormData] = useState({
         alias: '',
         name: '',
@@ -39,6 +46,7 @@ const EditSupplierPage = () => {
         const fetchData = async () => {
             try {
                 await fetchSupplier();
+                await fetchAddresses();
             } catch (error) {
                 console.error('Erro ao carregar os dados:', error);
             }
@@ -46,6 +54,105 @@ const EditSupplierPage = () => {
 
         fetchData();
     }, [id]);
+
+    const fetchAddresses = async () => {
+        try {
+            const response = await SupplierService.allSupplierAddress(id, navigate);
+            if (response.status === 200) {
+                 const filteredAddress = response.result.map(address => {                
+                    return {
+                        id: address.id,
+                        zip: maskCep(address.zip),
+                        street: address.street
+                    };
+                });
+                            
+                setAddresses(filteredAddress)
+                return
+            }
+
+            if (response.status === 404) {
+                navigate(
+                    '/fornecedores/', 
+                    {
+                        state: { 
+                            type: 'error', 
+                            message: response.message 
+                        }
+                    }
+                );
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelos endereços do fornecedor' });
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const handleEdit = (address) => {
+        navigate(`/fornecedores/editar/${id}/endereco/${address.id}`);
+    };
+
+    const handleDelete = (address) => {
+        setAddressToDelete(address);
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            setLoading(true);
+            const response = await SupplierService.deleteSupplierAddress(id,addressToDelete.id, navigate);
+
+            if (response.status === 200) {
+                setMessage({ type: 'success', text: response.message });
+                fetchSupplier();
+                fetchAddresses();
+                return
+            }
+
+            if(response.status == 404 || response.status == 400) {
+                setMessage({ type: 'error', text: response.message });
+                return
+            }
+        } catch (error) {
+            setError('Erro ao excluir o endereço');
+            console.error(error);
+        } finally {
+            setDeleteModalOpen(false);
+            setLoading(false);
+        }
+    };
+
+    const handleViewDetails = (address) => {
+        navigate(`/fornecedores/${id}/endereco/${address.id}/detalhes`);
+    };
+
+    const headers = ['id', 'CEP', 'Rua'];
+    
+    const actions = [
+        {
+            icon: faEdit,
+            title: 'Editar Endereço',
+            buttonClass: 'btn-primary',
+            permission: 'Atualizar endereço do fornecedor',
+            onClick: handleEdit
+        },
+        {
+            icon: faTrash,
+            title: 'Excluir Endereço',
+            buttonClass: 'btn-danger',
+            permission: 'Excluir endereço do fornecedor',
+            onClick: handleDelete
+        },
+        {
+            icon: faEye, 
+            title: 'Ver Detalhes',
+            buttonClass: 'btn-info',
+            permission: 'Ver endereços de fornecedores', 
+            onClick: handleViewDetails 
+        }
+    ];
 
     const fetchSupplier = async () => {
         try {
@@ -85,43 +192,6 @@ const EditSupplierPage = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({});
-        setMessage(null);
-
-        const sanitizedData = {
-            ...formData,
-            cpf_cnpj: removeMask(formData.cpf_cnpj)
-        };
-
-        try {
-            const response = await SupplierService.update(id, sanitizedData, navigate);
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-            }
-
-            if (response.status === 422) {
-                const errors = response.data;
-                setFormErrors({
-                    alias: errors?.alias?.[0] || '',
-                    name: errors?.name?.[0] || '',
-                    cpf_cnpj: errors?.cpf_cnpj?.[0] || '',
-                    ddd: errors?.ddd?.[0] || '',
-                    phone: errors?.phone?.[0] || '',
-                    email: errors?.email?.[0] || ''
-                });
-            }
-
-            if (response.status === 404) {
-                setMessage({ type: 'error', text: response.message });
-            }
-        } catch (error) {
-            console.error(error);
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao editar o fornecedor' });
-        }
-    };
-
     const handleBack = () => {
         navigate('/fornecedores/');
     };
@@ -130,10 +200,10 @@ const EditSupplierPage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Fornecedor
+                    Detalhes do Fornecedor
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
+                <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
 
                     {loading ? (
@@ -142,6 +212,10 @@ const EditSupplierPage = () => {
                         </div>
                     ) : (
                         <>
+                            <h5 className='text-dark font-weight-bold mt-3'>Dados do Fornecedor</h5>
+                            
+                            <hr />
+                        
                             <div className="form-row">
                                 <div className="d-flex flex-column col-md-6">
                                     <InputField
@@ -152,6 +226,7 @@ const EditSupplierPage = () => {
                                         onChange={handleChange}
                                         placeholder="Digite o apelido do fornecedor"
                                         error={formErrors.alias}
+                                        disabled={true}
                                     />
                                 </div>
                                 <div className="d-flex flex-column col-md-6">
@@ -163,6 +238,7 @@ const EditSupplierPage = () => {
                                         onChange={handleChange}
                                         placeholder="Digite o nome do fornecedor"
                                         error={formErrors.name}
+                                        disabled={true}
                                     />
                                 </div>
                             </div>
@@ -176,6 +252,7 @@ const EditSupplierPage = () => {
                                         onChange={handleChange}
                                         placeholder="Digite o CPF ou CNPJ"
                                         error={formErrors.cpf_cnpj}
+                                        disabled={true}
                                     />
                                 </div>
                                 <div className="d-flex flex-column col-md-2">
@@ -187,6 +264,7 @@ const EditSupplierPage = () => {
                                         onChange={handleChange}
                                         placeholder="Digite o DDD"
                                         error={formErrors.ddd}
+                                        disabled={true}
                                     />
                                 </div>
                                 <div className="d-flex flex-column col-md-4">
@@ -198,6 +276,7 @@ const EditSupplierPage = () => {
                                         onChange={handleChange}
                                         placeholder="Digite o telefone"
                                         error={formErrors.phone}
+                                        disabled={true}
                                     />
                                 </div>
                             </div>
@@ -211,22 +290,40 @@ const EditSupplierPage = () => {
                                         onChange={handleChange}
                                         placeholder="Digite o e-mail"
                                         error={formErrors.email}
+                                        disabled={true}
                                     />
                                 </div>
                             </div>
 
-                            <div className="mt-3 d-flex gap-2">
-                                {canAccess('Atualizar fornecedores') && (
-                                    <Button type="submit" text="Atualizar Fornecedor" className="btn btn-blue-light fw-semibold" />
+                            <div className='form-row d-flex justify-content-between align-items-center mt-1' style={{marginLeft:0, marginRight:0}}>
+                                <h5 className='text-dark font-weight-bold mt-3'>Endereços do Fornecedor</h5>
+                                {canAccess('Criar fornecedores') && (
+                                    <Button
+                                    text="Adicionar Endereço"
+                                    className="btn btn-blue-light fw-semibold"
+                                    link={`/fornecedores/${id}/endereco/adicionar`}
+                                    />
                                 )}
+                            </div>
+                            <hr />
+
+                            <DynamicTable headers={headers} data={addresses} actions={actions} />
+
+                            <div className="mt-3 d-flex gap-2">
                                 <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
                             </div>
                         </>
                     )}
-                </form>
+                </div>
             </div>
+            <ConfirmationModal
+                open={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                itemName={addressToDelete ? addressToDelete.street : ''}
+            />
         </MainLayout>
     );
 };
 
-export default EditSupplierPage;
+export default SupplierDetailsPage;

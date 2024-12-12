@@ -13,20 +13,25 @@ const CreateSupplierPage = () => {
     const navigate = useNavigate(); 
     const { canAccess } = usePermissions();
     const [formData, setFormData] = useState({
-        alias: '',
-        name: '',
-        cpf_cnpj: '',
-        zip: '',
-        street: '',
-        number: '',
-        details: '',
-        district: '',
-        city: '',
-        state: '',
-        country: '',
-        ddd: '',
-        phone: '',
-        email: ''
+        supplier: {
+            alias: '',
+            name: '',
+            cpf_cnpj: '',
+            ddd: '',
+            phone: '',
+            email: ''
+        },
+        address: {
+            alias: '',
+            zip: '',
+            street: '',
+            number: '',
+            details: '',
+            district: '',
+            city: '',
+            state: '',
+            country: ''
+        }
     });
 
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -34,14 +39,18 @@ const CreateSupplierPage = () => {
 
     const handleChange = (e) => {
         const { id, value } = e.target;
+        const [category, key] = id.split('.');
     
         setFormData((prev) => ({
             ...prev,
-            [id]: id === 'cpf_cnpj'
-                ? maskCpfCnpj(value)
-                : id === 'zip'
-                ? maskCep(value)
-                : value
+            [category]: {
+                ...prev[category],
+                [key]: key === 'cpf_cnpj'
+                    ? maskCpfCnpj(value)
+                    : key === 'zip'
+                    ? maskCep(value)
+                    : value
+            }
         }));
     };
 
@@ -51,9 +60,14 @@ const CreateSupplierPage = () => {
         setMessage({ type: '', text: '' });
     
         const sanitizedData = {
-            ...formData,
-            cpf_cnpj: removeMask(formData.cpf_cnpj),
-            zip: removeMask(formData.zip)
+            supplier: {
+                ...formData.supplier,
+                cpf_cnpj: removeMask(formData.supplier.cpf_cnpj),
+            },
+            address: {
+                ...formData.address,
+                zip: removeMask(formData.address.zip),
+            }
         };
     
         try {
@@ -63,40 +77,47 @@ const CreateSupplierPage = () => {
             if (status === 201) {
                 setMessage({ type: 'success', text: message });
                 setFormData({
-                    alias: '',
-                    name: '',
-                    cpf_cnpj: '',
-                    zip: '',
-                    street: '',
-                    number: '',
-                    details: '',
-                    district: '',
-                    city: '',
-                    state: '',
-                    country: '',
-                    ddd: '',
-                    phone: '',
-                    email: ''
+                    supplier: {
+                        alias: '',
+                        name: '',
+                        cpf_cnpj: '',
+                        ddd: '',
+                        phone: '',
+                        email: ''
+                    },
+                    address: {
+                        alias: '',
+                        zip: '',
+                        street: '',
+                        number: '',
+                        details: '',
+                        district: '',
+                        city: '',
+                        state: '',
+                        country: ''
+                    }
                 });
                 return;
             }
 
             if (status === 422 && data) {
+                console.log(data);
                 setFormErrors({
-                    alias: data.alias?.[0] || '',
-                    name: data.name?.[0] || '',
-                    cpf_cnpj: data.cpf_cnpj?.[0] || '',
-                    zip: data.zip?.[0] || '',
-                    street: data.street?.[0] || '',
-                    number: data.number?.[0] || '',
-                    details: data.details?.[0] || '',
-                    district: data.district?.[0] || '',
-                    city: data.city?.[0] || '',
-                    state: data.state?.[0] || '',
-                    country: data.country?.[0] || '',
-                    ddd: data.ddd?.[0] || '',
-                    phone: data.phone?.[0] || '',
-                    email: data.email?.[0] || ''
+                    'supplier.alias': data?.['supplier.alias']?.[0] || '',
+                    'supplier.name': data?.['supplier.name']?.[0] || '',
+                    'supplier.cpf_cnpj': data?.['supplier.cpf_cnpj']?.[0] || '',
+                    'address.alias': data?.['address.alias']?.[0] || '',
+                    'address.zip': data?.['address.zip']?.[0] || '',
+                    'address.street': data?.['address.street']?.[0] || '',
+                    'address.number': data?.['address.number']?.[0] || '',
+                    'address.details': data?.['address.details']?.[0] || '',
+                    'address.district': data?.['address.district']?.[0] || '',
+                    'address.city': data?.['address.city']?.[0] || '',
+                    'address.state': data?.['address.state']?.[0] || '',
+                    'address.country': data?.['address.country']?.[0] || '',
+                    'supplier.ddd': data?.['supplier.ddd']?.[0] || '',
+                    'supplier.phone': data?.['supplier.phone']?.[0] || '',
+                    'supplier.email': data?.['supplier.email']?.[0] || ''
                 });
                 return;
             }
@@ -126,22 +147,22 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="Apelido:"
                                 type="text"
-                                id="alias"
-                                value={formData.alias}
+                                id="supplier.alias"
+                                value={formData.supplier.alias}
                                 onChange={handleChange}
                                 placeholder="Digite o apelido do fornecedor"
-                                error={formErrors.alias} 
+                                error={formErrors['supplier.alias']} 
                             />
                         </div>
                         <div className="d-flex flex-column col-md-6">
                             <InputField
                                 label="Nome:"
                                 type="text"
-                                id="name"
-                                value={formData.name}
+                                id="supplier.name"
+                                value={formData.supplier.name}
                                 onChange={handleChange}
                                 placeholder="Digite o nome do fornecedor"
-                                error={formErrors.name} 
+                                error={formErrors['supplier.name']} 
                             />
                         </div>
                     </div>
@@ -150,11 +171,11 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="CPF/CNPJ:"
                                 type="text"
-                                id="cpf_cnpj"
-                                value={formData.cpf_cnpj}
+                                id="supplier.cpf_cnpj"
+                                value={formData.supplier.cpf_cnpj}
                                 onChange={handleChange}
                                 placeholder="Digite o CPF ou CNPJ"
-                                error={formErrors.cpf_cnpj} 
+                                error={formErrors['supplier.cpf_cnpj']} 
                             />
                         </div>
 
@@ -162,11 +183,11 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="CEP:"
                                 type="text"
-                                id="zip"
-                                value={formData.zip}
+                                id="address.zip"
+                                value={formData.address.zip}
                                 onChange={handleChange}
                                 placeholder="Digite o CEP"
-                                error={formErrors.zip} 
+                                error={formErrors['address.zip']} 
                             />
                         </div>
                     </div>
@@ -175,33 +196,46 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="Rua:"
                                 type="text"
-                                id="street"
-                                value={formData.street}
+                                id="address.street"
+                                value={formData.address.street}
                                 onChange={handleChange}
                                 placeholder="Digite a rua"
-                                error={formErrors.street} 
+                                error={formErrors['address.street']} 
                             />
                         </div>
                         <div className="d-flex flex-column col-md-3">
                             <InputField
                                 label="Número:"
                                 type="text"
-                                id="number"
-                                value={formData.number}
+                                id="address.number"
+                                value={formData.address.number}
                                 onChange={handleChange}
                                 placeholder="Digite o número"
-                                error={formErrors.number} 
+                                error={formErrors['address.number']} 
                             />
                         </div>
                         <div className="d-flex flex-column col-md-3">
                             <InputField
                                 label="Detalhes:"
                                 type="text"
-                                id="details"
-                                value={formData.details}
+                                id="address.details"
+                                value={formData.address.details}
                                 onChange={handleChange}
                                 placeholder="Digite detalhes adicionais"
-                                error={formErrors.details} 
+                                error={formErrors['address.details']} 
+                            />
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="d-flex flex-column col-md-12">
+                            <InputField
+                                label="Apelido do Endereço:"
+                                type="text"
+                                id="address.alias"
+                                value={formData.address.alias}
+                                onChange={handleChange}
+                                placeholder="Digite o apelido de endereço"
+                                error={formErrors['address.alias']} 
                             />
                         </div>
                     </div>
@@ -210,33 +244,33 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="Bairro:"
                                 type="text"
-                                id="district"
-                                value={formData.district}
+                                id="address.district"
+                                value={formData.address.district}
                                 onChange={handleChange}
                                 placeholder="Digite o bairro"
-                                error={formErrors.district} 
+                                error={formErrors['address.district']} 
                             />
                         </div>
                         <div className="d-flex flex-column col-md-4">
                             <InputField
                                 label="Cidade:"
                                 type="text"
-                                id="city"
-                                value={formData.city}
+                                id="address.city"
+                                value={formData.address.city}
                                 onChange={handleChange}
                                 placeholder="Digite a cidade"
-                                error={formErrors.city} 
+                                error={formErrors['address.city']} 
                             />
                         </div>
                         <div className="d-flex flex-column col-md-4">
                             <InputField
                                 label="Estado:"
                                 type="text"
-                                id="state"
-                                value={formData.state}
+                                id="address.state"
+                                value={formData.address.state}
                                 onChange={handleChange}
                                 placeholder="Digite o estado"
-                                error={formErrors.state} 
+                                error={formErrors['address.state']} 
                             />
                         </div>
                     </div>
@@ -245,33 +279,33 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="País:"
                                 type="text"
-                                id="country"
-                                value={formData.country}
+                                id="address.country"
+                                value={formData.address.country}
                                 onChange={handleChange}
                                 placeholder="Digite o país"
-                                error={formErrors.country} 
+                                error={formErrors['address.country']} 
                             />
                         </div>
                         <div className="d-flex flex-column col-md-2">
                             <InputField
                                 label="DDD:"
                                 type="text"
-                                id="ddd"
-                                value={formData.ddd}
+                                id="supplier.ddd"
+                                value={formData.supplier.ddd}
                                 onChange={handleChange}
                                 placeholder="Digite o DDD"
-                                error={formErrors.ddd} 
+                                error={formErrors['supplier.ddd']} 
                             />
                         </div>
                         <div className="d-flex flex-column col-md-4">
                             <InputField
                                 label="Telefone:"
                                 type="text"
-                                id="phone"
-                                value={formData.phone}
+                                id="supplier.phone"
+                                value={formData.supplier.phone}
                                 onChange={handleChange}
                                 placeholder="Digite o telefone"
-                                error={formErrors.phone} 
+                                error={formErrors['supplier.phone']} 
                             />
                         </div>
                     </div>
@@ -280,11 +314,11 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="E-mail:"
                                 type="email"
-                                id="email"
-                                value={formData.email}
+                                id="supplier.email"
+                                value={formData.supplier.email}
                                 onChange={handleChange}
                                 placeholder="Digite o e-mail"
-                                error={formErrors.email} 
+                                error={formErrors['supplier.email']} 
                             />
                         </div>
                     </div>

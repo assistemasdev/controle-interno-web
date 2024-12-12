@@ -8,7 +8,7 @@ import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
 import SupplierService from "../../services/SupplierService";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash  } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 
@@ -75,6 +75,10 @@ const SuppliersPage = () => {
         setDeleteModalOpen(true);
     };
 
+    const handleViewDetails = (supplier) => {
+        navigate(`/fornecedores/detalhes/${supplier.id}`);
+    };
+
     const confirmDelete = async () => {
         try {
             setLoading(true);
@@ -115,6 +119,12 @@ const SuppliersPage = () => {
             buttonClass: 'btn-danger',
             permission: 'Excluir fornecedores',
             onClick: handleDelete
+        },{
+            icon: faEye, 
+            title: 'Ver Detalhes',
+            buttonClass: 'btn-info',
+            permission: 'Ver fornecedores', 
+            onClick: handleViewDetails 
         }
     ];
     

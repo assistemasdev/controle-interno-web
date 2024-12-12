@@ -28,6 +28,68 @@ const SupplierService = {
         }
     },
 
+    async addSupplierAddress(id, data, navigate) {
+        try {
+            const response = await api.post(`/suppliers/${id}/addresses`, data);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+
+    async allSupplierAddress(id, navigate) {
+        try {
+            const response = await api.get(`/suppliers/${id}/addresses`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+
+    async showSupplierAddress(id, addressesId, navigate) {
+        try {
+            const response = await api.get(`/suppliers/${id}/addresses/${addressesId}`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async updateSupplierAddress(id, addressesId, data, navigate) {
+        try {
+            const response = await api.put(`/suppliers/${id}/addresses/${addressesId}`, data);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async deleteSupplierAddress(id, addressesId, navigate) {
+        try {
+            const response = await api.delete(`/suppliers/${id}/addresses/${addressesId}`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
     async getById(id, navigate) {
         try {
             const response = await api.get(`/suppliers/${id}`);

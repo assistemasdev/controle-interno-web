@@ -9,7 +9,8 @@ const InputField = ({
     onChange,
     placeholder,
     type = 'text',
-    error
+    error,
+    disabled = false
 }) => {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -29,6 +30,7 @@ const InputField = ({
                     value={value}
                     onChange={onChange}
                     placeholder={placeholder}
+                    disabled={disabled}
                 />
 
                 {type === 'password' && (

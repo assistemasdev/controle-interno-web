@@ -58,6 +58,10 @@ import CreateGroupPage from "../pages/groups/CreateGroupPage";
 import EditGroupPage from "../pages/groups/EditGroupPage";
 import GroupsTypePage from "../pages/types/groups/GroupsTypePage";
 import AttachGroupToTypePage from "../pages/types/groups/AttachGroupToTypePage";
+import SupplierDetailsPage from "../pages/suppliers/SupplierDetailsPage";
+import EditSupplierAddressPage from "../pages/suppliers/address/EditSupplierAddressPage";
+import SupplierAddressDetailsPage from "../pages/suppliers/address/SupplierAddressDetailsPage";
+import CreateSupplierAddressPage from "../pages/suppliers/address/CreateSupplierAddressPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -146,7 +150,24 @@ const AppRoutesContent = () => {
         {
             path: "/fornecedores/editar/:id",
             element: <PrivateRoute element={EditSupplierPage}/>
+        },
+        {
+            path: "/fornecedores/detalhes/:id",
+            element: <PrivateRoute element={SupplierDetailsPage}/>
+        },
+        {
+            path: "/fornecedores/editar/:id/endereco/:addressId",
+            element: <PrivateRoute element={EditSupplierAddressPage}/>
+        },
+        {
+            path: "/fornecedores/:id/endereco/:addressId/detalhes",
+            element: <PrivateRoute element={SupplierAddressDetailsPage}/>
+        },
+        {
+            path: "/fornecedores/:id/endereco/adicionar",
+            element: <PrivateRoute element={CreateSupplierAddressPage}/>
         }
+
     ];
 
     const typesRoutes = [

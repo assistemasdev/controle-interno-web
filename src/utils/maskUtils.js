@@ -39,5 +39,8 @@ export const maskPhone = (value) => {
 
 
 export const removeMask = (value) => {
-    return value.replace(/\D/g, ''); 
+    if (typeof value === 'string') {
+        return value.replace(/\D/g, '');
+    }
+    return value || ''; 
 };
