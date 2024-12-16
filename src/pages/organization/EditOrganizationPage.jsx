@@ -50,9 +50,8 @@ const EditOrganizationPage = () => {
 
     const fetchOrganization = async () => {
         try {
-        const response = await OrganizationService.getById(organizationId, navigate);
+            const response = await OrganizationService.getById(organizationId, navigate);
 
-        if (response.status === 200) {
             setOrganization(response.result);
 
             if (response.result.application_id != applicationId) {
@@ -69,18 +68,16 @@ const EditOrganizationPage = () => {
                 color: response.result.color,
                 active: response.result.active
             });
-        }
-
-        if (response.status === 404) {
-            navigate('/aplicacoes/dashboard', {
-            state: { 
-                type: 'error', 
-                message: response.message 
-            }
-            });
-        }
-
         } catch (error) {
+            if (error.status === 404) {
+                navigate('/aplicacoes/dashboard', {
+                state: { 
+                    type: 'error', 
+                    message: error.message 
+                }
+                });
+                return
+            }
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pela organização' });
             console.error(error);
         } finally {
@@ -94,42 +91,34 @@ const EditOrganizationPage = () => {
         setMessage(null);
 
         try {
-
-        if(organization.id != organizationId) {
-            navigate(`/orgaos/${applicationId}`, {
-            state: { 
-                type: 'error', 
-                message: 'A URL foi alterada ou não corresponde à organização da aplicação. Verifique e tente novamente.' 
+            if(organization.id != organizationId) {
+                navigate(`/orgaos/${applicationId}`, {
+                state: { 
+                    type: 'error', 
+                    message: 'A URL foi alterada ou não corresponde à organização da aplicação. Verifique e tente novamente.' 
+                }
+                });
             }
-            });
-        }
 
-        const response = await OrganizationService.update(organizationId, formData, navigate);
-        if (response.status === 200) {
+            const response = await OrganizationService.update(organizationId, formData, navigate);
             setMessage({ type:'success', text: response.message });
-        }
-
-        if (response.status === 422) {
-            const errors = response.data;
-            setFormErrors({
-            color: errors?.color ? errors.color[0] : '',
-            name: errors?.name ? errors.name[0] : '',
-            active: errors?.active ? errors.active[0] : ''
-            });
-        }
-
-        if (response.status === 404) {
-            setMessage({ type:'error', text: response.message });
-        } 
-
         } catch (error) {
-        console.log(error)
-        setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar a aplicação' });
+            if (error.status === 422) {
+                const errors = error.data;
+                setFormErrors({
+                color: errors?.color ? errors.color[0] : '',
+                name: errors?.name ? errors.name[0] : '',
+                active: errors?.active ? errors.active[0] : ''
+                });
+                return
+            }
+            console.log(error)
+            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar a aplicação' });
         }
     };
 
     const handleBack = () => {
-        navigate(`/tipos/`);
+        navigate(`/orgaos/${applicationId}`);
     };
 
     return (

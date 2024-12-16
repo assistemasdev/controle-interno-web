@@ -33,24 +33,24 @@ const ApplicationPage = () => {
 
     const fetchApplications = async () => {
         try {
-        setLoading(true);
-    
-        const response = await ApplicationService.getAll(navigate);
-        const result = response.result
-    
-        const filteredApplications = result.map(application => ({
-            id: application.id,
-            name: application.name,
-            sessionCode: application.session_code,
-            active: application.active == true ? 'Sim' : 'Não'
-        }));
+            setLoading(true);
         
-        setApplications(filteredApplications);
+            const response = await ApplicationService.getAll(navigate);
+            const result = response.result
+        
+            const filteredApplications = result.map(application => ({
+                id: application.id,
+                name: application.name,
+                sessionCode: application.session_code,
+                active: application.active == true ? 'Sim' : 'Não'
+            }));
+            
+            setApplications(filteredApplications);
         } catch (error) {
-        setError('Erro ao carregar aplicações');
-        console.error(error);
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar aplicações';
+            setError(errorMessage);
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     };
     

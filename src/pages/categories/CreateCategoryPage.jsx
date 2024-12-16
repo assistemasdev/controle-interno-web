@@ -33,27 +33,22 @@ const CreateCategoryPage = () => {
         setMessage({ type: '', text: '' });
     
         try {
-        const response = await CategoryService.create(formData, navigate);
-        const { status, data, message } = response; 
-    
-        if (status === 201) {
+            const response = await CategoryService.create(formData, navigate);
+            const {  message } = response; 
+        
             setMessage({ type: 'success', text: message });
             setFormData({
                 name: '',
             });
             return;
-        }
-    
-        if (status === 422 && data) {
-            setFormErrors({
-                name: data.name?.[0] || ''
-            });
-            return;
-        }
-    
-        setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
         } catch (error) {
-        setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            if (error.status === 422) {
+                setFormErrors({
+                    name: error.data.name?.[0] || ''
+                });
+                return;
+            }
+            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
         }
     };
 

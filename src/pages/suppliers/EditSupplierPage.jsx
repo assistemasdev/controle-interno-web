@@ -51,33 +51,28 @@ const EditSupplierPage = () => {
         try {
             const response = await SupplierService.getById(id, navigate);
             const supplier = response.result;
+            setFormData({
+                alias: supplier.alias || '',
+                name: supplier.name || '',
+                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
+                ddd: supplier.ddd || '',
+                phone: supplier.phone || '',
+                email: supplier.email || ''
+            });
 
-            if (response.status === 200) {
-                setFormData({
-                    alias: supplier.alias || '',
-                    name: supplier.name || '',
-                    cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
-                    ddd: supplier.ddd || '',
-                    phone: supplier.phone || '',
-                    email: supplier.email || ''
-                });
-
-                return
-            }
-
-            if (response.status === 404) {
+        } catch (error) {
+            if (error.status === 404) {
                 navigate(
                     '/fornecedores/', 
                     {
                         state: { 
                             type: 'error', 
-                            message: response.message 
+                            message: error.message 
                         }
                     }
                 );
             }
 
-        } catch (error) {
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo fornecedor' });
             console.error(error);
         } finally {
@@ -97,12 +92,11 @@ const EditSupplierPage = () => {
 
         try {
             const response = await SupplierService.update(id, sanitizedData, navigate);
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-            }
+            setMessage({ type: 'success', text: response.message });
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
 
-            if (response.status === 422) {
-                const errors = response.data;
                 setFormErrors({
                     alias: errors?.alias?.[0] || '',
                     name: errors?.name?.[0] || '',
@@ -111,13 +105,9 @@ const EditSupplierPage = () => {
                     phone: errors?.phone?.[0] || '',
                     email: errors?.email?.[0] || ''
                 });
-            }
 
-            if (response.status === 404) {
-                setMessage({ type: 'error', text: response.message });
+                return
             }
-        } catch (error) {
-            console.error(error);
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao editar o fornecedor' });
         }
     };

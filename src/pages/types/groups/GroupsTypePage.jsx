@@ -42,14 +42,15 @@ const GroupsTypePage = () => {
             const response = await TypeGroupsService.showTypeGroups(id,navigate);
             const result = response.result
         
-                const groupsOfTheTypes = result.map(role => ({
-                    id: role.id,
-                    name: role.name
+            const groupsOfTheTypes = result.map(role => ({
+                id: role.id,
+                name: role.name
             }));
         
             setGroupsOfTheTypes(groupsOfTheTypes);
         } catch (error) {
-            setError('Erro ao carregar grupos do tipo');
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar grupos do tipo';
+            setError(errorMessage);
             console.error(error);
         } finally {
             setLoading(false);
@@ -70,12 +71,11 @@ const GroupsTypePage = () => {
         try {
             setLoading(true);
             const response = await TypeGroupsService.detachGroupFromType(id, { group_id:[typeToDelete.id]}, navigate);
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-                fetchGroupsOfTheTypes();
-            }
+            setMessage({ type: 'success', text: response.message });
+            fetchGroupsOfTheTypes();
+            
         } catch (error) {
-            setError('Erro ao excluir o tipo');
+            setMessage({ type: 'error', text: error.message || 'error ao excluir grupo' });
             console.error(error);
         } finally {
             setDeleteModalOpen(false);

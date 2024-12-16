@@ -131,12 +131,10 @@ const EditSupplierAddressPage = () => {
 
         try {
             const response = await SupplierService.updateSupplierAddress(id, addressId, sanitizedData, navigate);
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-            }
-
-            if (response.status === 422) {
-                const errors = response.data;
+            setMessage({ type: 'success', text: response.message });
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
                 setFormErrors({
                     alias: errors?.alias?.[0] || '',
                     zip: errors?.zip?.[0] || '',
@@ -148,12 +146,8 @@ const EditSupplierAddressPage = () => {
                     state: errors?.state?.[0] || '',
                     country: errors?.country?.[0] || ''
                 });
+                return
             }
-
-            if (response.status === 404) {
-                setMessage({ type: 'error', text: response.message });
-            }
-        } catch (error) {
             console.error(error);
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao editar o endereço' });
         }
@@ -293,7 +287,7 @@ const EditSupplierAddressPage = () => {
                             </div>
 
                             <div className="mt-3 d-flex gap-2">
-                                {canAccess('Atualizar fornecedores') && (
+                                {canAccess('Atualizar endereço do fornecedor') && (
                                     <Button type="submit" text="Atualizar Endereço" className="btn btn-blue-light fw-semibold" />
                                 )}
                                 <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />

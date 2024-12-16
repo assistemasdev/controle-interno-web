@@ -114,58 +114,52 @@ const CreateSupplierPage = () => {
     
         try {
             const response = await SupplierService.create(sanitizedData, navigate);
-            const { status, data, message } = response;
+            const { message } = response;
 
-            if (status === 201) {
-                setMessage({ type: 'success', text: message });
-                setFormData({
-                    supplier: {
-                        alias: '',
-                        name: '',
-                        cpf_cnpj: '',
-                        ddd: '',
-                        phone: '',
-                        email: ''
-                    },
-                    address: {
-                        alias: '',
-                        zip: '',
-                        street: '',
-                        number: '',
-                        details: '',
-                        district: '',
-                        city: '',
-                        state: '',
-                        country: ''
-                    }
-                });
-                return;
-            }
-
-            if (status === 422 && data) {
-                console.log(data);
-                setFormErrors({
-                    'supplier.alias': data?.['supplier.alias']?.[0] || '',
-                    'supplier.name': data?.['supplier.name']?.[0] || '',
-                    'supplier.cpf_cnpj': data?.['supplier.cpf_cnpj']?.[0] || '',
-                    'address.alias': data?.['address.alias']?.[0] || '',
-                    'address.zip': data?.['address.zip']?.[0] || '',
-                    'address.street': data?.['address.street']?.[0] || '',
-                    'address.number': data?.['address.number']?.[0] || '',
-                    'address.details': data?.['address.details']?.[0] || '',
-                    'address.district': data?.['address.district']?.[0] || '',
-                    'address.city': data?.['address.city']?.[0] || '',
-                    'address.state': data?.['address.state']?.[0] || '',
-                    'address.country': data?.['address.country']?.[0] || '',
-                    'supplier.ddd': data?.['supplier.ddd']?.[0] || '',
-                    'supplier.phone': data?.['supplier.phone']?.[0] || '',
-                    'supplier.email': data?.['supplier.email']?.[0] || ''
-                });
-                return;
-            }
-
-            setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
+            setMessage({ type: 'success', text: message });
+            setFormData({
+                supplier: {
+                    alias: '',
+                    name: '',
+                    cpf_cnpj: '',
+                    ddd: '',
+                    phone: '',
+                    email: ''
+                },
+                address: {
+                    alias: '',
+                    zip: '',
+                    street: '',
+                    number: '',
+                    details: '',
+                    district: '',
+                    city: '',
+                    state: '',
+                    country: ''
+                }
+            });
+            return;
         } catch (error) {
+            if (error.status === 422 && error.data) {
+                setFormErrors({
+                    'supplier.alias': error.data?.['supplier.alias']?.[0] || '',
+                    'supplier.name': error.data?.['supplier.name']?.[0] || '',
+                    'supplier.cpf_cnpj': error.data?.['supplier.cpf_cnpj']?.[0] || '',
+                    'address.alias': error.data?.['address.alias']?.[0] || '',
+                    'address.zip': error.data?.['address.zip']?.[0] || '',
+                    'address.street': error.data?.['address.street']?.[0] || '',
+                    'address.number': error.data?.['address.number']?.[0] || '',
+                    'address.details': error.data?.['address.details']?.[0] || '',
+                    'address.district': error.data?.['address.district']?.[0] || '',
+                    'address.city': error.data?.['address.city']?.[0] || '',
+                    'address.state': error.data?.['address.state']?.[0] || '',
+                    'address.country': error.data?.['address.country']?.[0] || '',
+                    'supplier.ddd': error.data?.['supplier.ddd']?.[0] || '',
+                    'supplier.phone': error.data?.['supplier.phone']?.[0] || '',
+                    'supplier.email': error.data?.['supplier.email']?.[0] || ''
+                });
+                return;
+            }
             setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
         }
     };

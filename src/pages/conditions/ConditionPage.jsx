@@ -48,7 +48,8 @@ const ConditionPage = () => {
         
             setConditions(filteredCondition);
         } catch (error) {
-            setError('Erro ao carregar condições');
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar condições';
+            setError(errorMessage);
             console.error(error);
         } finally {
             setLoading(false);
@@ -73,17 +74,12 @@ const ConditionPage = () => {
             setLoading(true);
             const response = await ConditionService.delete(conditionToDelete.id);
 
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-                fetchCondition();
-                return
-            }
-
-            if (response.status === 400 || response.status === 404) {
-                setMessage({ type: 'error', text: response.message})
-            }
+            setMessage({ type: 'success', text: response.message });
+            fetchCondition();
+            return;
         } catch (error) {
-            setError('Erro ao excluir a condição');
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao excluir condição';
+            setError(errorMessage);
             console.error(error);
         } finally {
             setDeleteModalOpen(false);

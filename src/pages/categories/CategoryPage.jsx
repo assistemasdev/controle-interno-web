@@ -48,7 +48,8 @@ const CategoryPage = () => {
         
             setCategories(filteredCategories);
         } catch (error) {
-            setError('Erro ao carregar categorias');
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao excluir categoria';
+            setError(errorMessage);
             console.error(error);
         } finally {
             setLoading(false);
@@ -73,18 +74,12 @@ const CategoryPage = () => {
             setLoading(true);
             const response = await CategoryService.delete(categoryToDelete.id);
 
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-                fetchCategories();
-                return;
-            }
-
-            if (response.status === 400 || response.status || 404) {
-                setMessage({ type: 'success', text: response.message });
-                return;
-            }
+            setMessage({ type: 'success', text: response.message });
+            fetchCategories();
+            return;
         } catch (error) {
-            setError('Erro ao excluir a categoria');
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao excluir categoria';
+            setError(errorMessage);
             console.error(error);
         } finally {
             setDeleteModalOpen(false);

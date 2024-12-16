@@ -58,31 +58,29 @@ const SupplierDetailsPage = () => {
     const fetchAddresses = async () => {
         try {
             const response = await SupplierService.allSupplierAddress(id, navigate);
-            if (response.status === 200) {
-                 const filteredAddress = response.result.map(address => {                
-                    return {
-                        id: address.id,
-                        zip: maskCep(address.zip),
-                        street: address.street
-                    };
-                });
-                            
-                setAddresses(filteredAddress)
-                return
-            }
-
-            if (response.status === 404) {
+            const filteredAddress = response.result.map(address => {                
+                return {
+                    id: address.id,
+                    zip: maskCep(address.zip),
+                    street: address.street
+                };
+            });
+                        
+            setAddresses(filteredAddress)
+            return
+        } catch (error) {
+            if (error.status === 404) {
                 navigate(
                     '/fornecedores/', 
                     {
                         state: { 
                             type: 'error', 
-                            message: response.message 
+                            message: error.message 
                         }
                     }
                 );
+                return
             }
-        } catch (error) {
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelos endereços do fornecedor' });
             console.error(error);
         } finally {
@@ -100,30 +98,23 @@ const SupplierDetailsPage = () => {
     };
 
     const confirmDelete = async () => {
+        setLoading(true); 
         try {
-            setLoading(true);
-            const response = await SupplierService.deleteSupplierAddress(id,addressToDelete.id, navigate);
+            const response = await SupplierService.deleteSupplierAddress(id, addressToDelete.id, navigate);
 
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-                fetchSupplier();
-                fetchAddresses();
-                return
-            }
-
-            if(response.status == 404 || response.status == 400) {
-                setMessage({ type: 'error', text: response.message });
-                return
-            }
+            setMessage({ type: 'success', text: response.message });
+            await fetchSupplier();
+            await fetchAddresses();
+            return;
         } catch (error) {
-            setError('Erro ao excluir o endereço');
-            console.error(error);
+            const errorMessage = error.response?.data?.message || 'Erro ao excluir o endereço';
+            setError(errorMessage);
+            console.error("Erro capturado no confirmDelete:", error);
         } finally {
-            setDeleteModalOpen(false);
-            setLoading(false);
+            setDeleteModalOpen(false); 
+            setLoading(false); 
         }
     };
-
     const handleViewDetails = (address) => {
         navigate(`/fornecedores/${id}/endereco/${address.id}/detalhes`);
     };
@@ -159,32 +150,27 @@ const SupplierDetailsPage = () => {
             const response = await SupplierService.getById(id, navigate);
             const supplier = response.result;
 
-            if (response.status === 200) {
-                setFormData({
-                    alias: supplier.alias || '',
-                    name: supplier.name || '',
-                    cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
-                    ddd: supplier.ddd || '',
-                    phone: supplier.phone || '',
-                    email: supplier.email || ''
-                });
-
-                return
-            }
-
-            if (response.status === 404) {
+            setFormData({
+                alias: supplier.alias || '',
+                name: supplier.name || '',
+                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
+                ddd: supplier.ddd || '',
+                phone: supplier.phone || '',
+                email: supplier.email || ''
+            });            
+        } catch (error) {
+            if (error.status === 404) {
                 navigate(
                     '/fornecedores/', 
                     {
                         state: { 
                             type: 'error', 
-                            message: response.message 
+                            message: error.message 
                         }
                     }
                 );
             }
 
-        } catch (error) {
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo fornecedor' });
             console.error(error);
         } finally {
@@ -297,7 +283,7 @@ const SupplierDetailsPage = () => {
 
                             <div className='form-row d-flex justify-content-between align-items-center mt-1' style={{marginLeft:0, marginRight:0}}>
                                 <h5 className='text-dark font-weight-bold mt-3'>Endereços do Fornecedor</h5>
-                                {canAccess('Criar fornecedores') && (
+                                {canAccess('Adicionar endereço ao fornecedor') && (
                                     <Button
                                     text="Adicionar Endereço"
                                     className="btn btn-blue-light fw-semibold"

@@ -41,61 +41,55 @@ const EditGroupPage = () => {
 
 
     const fetchGroup = async () => {
+        setLoading(true);
         try {
-        const response = await GroupService.getById(id, navigate);
-
-        if (response.status === 200) {
+            const response = await GroupService.getById(id, navigate);
+    
             setFormData({
                 name: response.result.name,
             });
-        }
-
-        if (response.status === 404) {
-            navigate(
-                '/grupos/', 
-                {
+            return;
+            
+        } catch (error) {
+            if (error.status === 404) {
+                navigate('/grupos/', {
                     state: { 
                         type: 'error', 
-                        message: response.message 
-                    }
-                }
-            );
-        }
+                        message: error.message 
+                    },
+                });
+                return;
+            }
 
-        } catch (error) {
-            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pelo grupo' });
-            console.error(error);
+            setMessage({ type: 'error', text: error.message || 'Erro ao buscar pelo grupo' });
+            console.error("Erro capturado no fetchGroup:", error);
         } finally {
             setLoading(false);
         }
     };
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setFormErrors({  name: '', color: '', active: '' });
+        setFormErrors({ name: '', color: '', active: '' });
         setMessage(null);
 
         try {
             const response = await GroupService.update(id, formData, navigate);
 
-            if (response.status === 200) {
-                setMessage({ type:'success', text: response.message });
-            }
-
-            if (response.status === 422) {
-                const errors = response.data;
+            setMessage({ type: 'success', text: response.message });
+            return;
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
                 setFormErrors({
                     name: errors?.name ? errors.name[0] : '',
                 });
+                return;
             }
-
-            if (response.status === 404) {
-                setMessage({ type:'error', text: response.message });
-            } 
-
-        } catch (error) {
-            console.log(error)
-            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o grupo' });
+            
+            setMessage({ type: 'error', text: error.message || 'Erro ao editar o grupo' });
+            console.error("Erro capturado no handleSubmit:", error);
         }
     };
 

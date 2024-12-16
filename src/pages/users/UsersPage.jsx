@@ -36,23 +36,24 @@ const UsersPage = () => {
 
     const fetchUsers = async () => {
         try {
-        setLoading(true);
+            setLoading(true);
 
-        const response = await UserService.getAll(navigate);
-        const result = response.result
+            const response = await UserService.getAll(navigate);
+            const result = response.result
 
-        const filteredUsers = result.map(user => ({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-        }));
-        
-        setUsers(filteredUsers);
+            const filteredUsers = result.map(user => ({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            }));
+            
+            setUsers(filteredUsers);
         } catch (error) {
-        setError('Erro ao carregar usuários');
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar usuários';
+            setError(errorMessage);
         console.error(error);
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     };
 
@@ -71,7 +72,6 @@ const UsersPage = () => {
     };
 
     const handleEdit = (user) => {
-        console.log('oi',user)
         navigate(`/usuarios/editar/${user.id}`);
     };
 
@@ -82,9 +82,9 @@ const UsersPage = () => {
 
     const handleConfirmDelete = async (id) => {
         try {
-        await api.delete(`/users/${id}`);
-        setSuccessMessage('Usuário excluído com sucesso!');
-        setOpenDeleteModal(false);  
+            await api.delete(`/users/${id}`);
+            setSuccessMessage('Usuário excluído com sucesso!');
+            setOpenDeleteModal(false);  
         } catch (error) {
             console.log(error)
             setErrorMessage('Erro ao excluir o usuário');

@@ -55,8 +55,9 @@ const SuppliersPage = () => {
             
             setSuppliers(filteredSuppliers);
         } catch (error) {
-            setError('Erro ao carregar fornecedores');
-            console.error(error);
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar fornecedores';
+            setError(errorMessage);
+            console.error("Erro capturado no fetchSuppliers:", error);
         } finally {
             setLoading(false);
         }

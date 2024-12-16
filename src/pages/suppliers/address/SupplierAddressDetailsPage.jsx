@@ -42,36 +42,29 @@ const SupplierAddressDetailsPage = () => {
         try {
             const response = await SupplierService.showSupplierAddress(id, addressId, navigate);
             const address = response.result;
-
-            if (response.status === 200) {
-                setFormData({
-                    alias: address.alias || '',
-                    zip: maskCep(address.zip || ''),
-                    street: address.street || '',
-                    number: address.number || '',
-                    details: address.details || '',
-                    district: address.district || '',
-                    city: address.city || '',
-                    state: address.state || '',
-                    country: address.country || ''
-                });
-
-                return;
-            }
-
-            if (response.status === 404) {
+            setFormData({
+                alias: address.alias || '',
+                zip: maskCep(address.zip || ''),
+                street: address.street || '',
+                number: address.number || '',
+                details: address.details || '',
+                district: address.district || '',
+                city: address.city || '',
+                state: address.state || '',
+                country: address.country || ''
+            });            
+        } catch (error) {
+            if (error.status === 404) {
                 navigate(
                     '/fornecedores/',
                     {
                         state: {
                             type: 'error',
-                            message: response.message
+                            message: error.message
                         }
                     }
                 );
             }
-
-        } catch (error) {
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo endereço' });
             console.error(error);
         } finally {

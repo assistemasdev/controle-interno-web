@@ -49,6 +49,7 @@ const LoginCard = () => {
 
         try {
           const userRoles = await RoleService.getRolesUser(storedUser.id, navigate);
+          console.log(userRoles)
           addRoles(userRoles?.result || []);
         } catch (error) {
           console.error('Erro ao buscar cargos do usuário', error)

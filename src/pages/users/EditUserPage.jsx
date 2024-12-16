@@ -70,6 +70,7 @@ const EditUserPage = () => {
             
             setSelectedPermissions(userPermissions.map(permission => permission.id));
         } catch (error) {
+            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar permissões do usuário' });
             console.error('Erro ao carregar permissões do usuário', error);
         }
     };
@@ -77,9 +78,7 @@ const EditUserPage = () => {
 
     const fetchUser = async () => {
         try {
-            console.log(id)
             const response = await UserService.getById(id, navigate);
-            console.log(response)
             const user = response.result;
 
             setFormData({
@@ -92,7 +91,7 @@ const EditUserPage = () => {
 
         } catch (error) {
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pelo usuário' });
-        console.error(error);
+            console.error(error);
         } finally {
             setLoading(false);
         }
@@ -103,6 +102,7 @@ const EditUserPage = () => {
             const response = await RoleService.getRoles(navigate);
             setRoles(response.result); 
         } catch (error) {
+            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar cargos' });
             console.error('Erro ao carregar roles', error);
         }
     };
@@ -116,6 +116,7 @@ const EditUserPage = () => {
             }));
             setPermissions(formattedPermissions);  
         } catch (error) {
+            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar permissões' });
             console.error('Erro ao carregar permissões:', error);
         }
     };
@@ -191,12 +192,10 @@ const EditUserPage = () => {
 
         try {
             const response = await UserService.update(id, dataToSend, navigate);
-            if (response.status === 200) {
-                setMessage({ type:'success', text: response.message });
-            }
-
-            if (response.status === 422) {
-                const errors = response.data;
+            setMessage({ type:'success', text: response.message });
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
                 setFormErrors({
                 username: errors?.username ? errors.username[0] : '',
                 email: errors?.email ? errors.email[0] : '',
@@ -204,13 +203,8 @@ const EditUserPage = () => {
                 password: errors?.password ? errors.password[0] : '',
                 password_confirmation: errors?.password_confirmation ? errors.password_confirmation[0] : ''
                 });
+                return
             }
-
-            if (response.status === 404) {
-                setMessage({ type:'error', text: response.message });
-            } 
-
-        } catch (error) {
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o usuário' });
         }
     };
@@ -223,17 +217,15 @@ const EditUserPage = () => {
         try {
             const response = await PermissionService.updateUserPermissions(id, {permissions: selectedPermissions }, navigate)
 
-            if (response.status === 200) {
-                setMessagePermissions({ type:'success', text: response.message });
-                return;
-            }
-
-            if (response.status === 422) {
-                const errors = response.data;
+            setMessagePermissions({ type:'success', text: response.message });
+            return;
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
 
                 setMessagePermissions({ type:'error', text: errors.permissions[0]  });
+                return
             }
-        } catch (error) {
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao atualizar permissões' });
         }
     }

@@ -42,27 +42,24 @@ const EditConditionPage = () => {
 
     const fetchCategory = async () => {
         try {
-        const response = await ConditionService.getById(id, navigate);
+            const response = await ConditionService.getById(id, navigate);
 
-        if (response.status === 200) {
             setFormData({
                 name: response.result.name,
             });
-        }
-
-        if (response.status === 404) {
-            navigate(
-                '/condicoes/', 
-                {
-                    state: { 
-                        type: 'error', 
-                        message: response.message 
-                    }
-                }
-            );
-        }
-
         } catch (error) {
+            if (error.status === 404) {
+                navigate(
+                    '/condicoes/', 
+                    {
+                        state: { 
+                            type: 'error', 
+                            message: error.message 
+                        }
+                    }
+                );
+            }
+    
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pela condição' });
             console.error(error);
         } finally {
@@ -78,23 +75,15 @@ const EditConditionPage = () => {
         try {
             const response = await ConditionService.update(id, formData, navigate);
 
-            if (response.status === 200) {
-                setMessage({ type:'success', text: response.message });
-            }
-
-            if (response.status === 422) {
-                const errors = response.data;
+            setMessage({ type:'success', text: response.message });
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
                 setFormErrors({
                     name: errors?.name ? errors.name[0] : '',
                 });
+                return
             }
-
-            if (response.status === 404) {
-                setMessage({ type:'error', text: response.message });
-            } 
-
-        } catch (error) {
-            console.log(error)
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar a condição' });
         }
     };

@@ -7,10 +7,12 @@ import '../../../assets/styles/custom-styles.css';
 import MyAlert from '../../../components/MyAlert';
 import SupplierService from '../../../services/SupplierService';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
+import { usePermissions } from '../../../hooks/usePermissions';
 
 const CreateSupplierAddressPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
+    const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
     const [formErrors, setFormErrors] = useState({});
     const [loadingCep, setLoadingCep] = useState(false); 
@@ -73,21 +75,21 @@ const CreateSupplierAddressPage = () => {
 
         try {
             const response = await SupplierService.addSupplierAddress(id, sanitizedData, navigate);
-            if (response.status === 201) {
-                setMessage({ type: 'success', text: response.message });
-                setFormData({
-                    alias: '',
-                    zip: '',
-                    street: '',
-                    number: '',
-                    details: '',
-                    district: '',
-                    city: '',
-                    state: '',
-                    country: ''
-                });
-            } else if (response.status === 422) {
-                const errors = response.data;
+            setMessage({ type: 'success', text: response.message });
+            setFormData({
+                alias: '',
+                zip: '',
+                street: '',
+                number: '',
+                details: '',
+                district: '',
+                city: '',
+                state: '',
+                country: ''
+            });
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
                 setFormErrors({
                     alias: errors?.alias?.[0] || '',
                     zip: errors?.zip?.[0] || '',
@@ -99,8 +101,8 @@ const CreateSupplierAddressPage = () => {
                     state: errors?.state?.[0] || '',
                     country: errors?.country?.[0] || ''
                 });
+                return
             }
-        } catch (error) {
             console.log(error);
             setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao criar endereço' });
         }
@@ -229,7 +231,9 @@ const CreateSupplierAddressPage = () => {
                     </div>
 
                     <div className="mt-3 d-flex gap-2">
-                        <Button type="submit" text="Cadastrar Endereço" className="btn btn-blue-light fw-semibold" />
+                        {canAccess('Adicionar endereço ao fornecedor') && (
+                            <Button type="submit" text="Cadastrar Endereço" className="btn btn-blue-light fw-semibold" />
+                        )}
                         <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
                     </div>
                 </form>

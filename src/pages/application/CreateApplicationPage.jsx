@@ -34,27 +34,23 @@ const CreateApplicationPage = () => {
 
         try {
             const response = await ApplicationService.create(formData, navigate);
-            const { status, data, message } = response; 
+            const { message } = response; 
 
-            if (status === 201) {
-                setMessage({ type: 'success', text: message });
-                setFormData({
-                    name: '',
-                    session_code: '',
-                });
-                return;
-            }
-
-            if (status === 422 && data) {
-                setFormErrors({
-                    session_code: data.session_code?.[0] || '',
-                    name: data.name?.[0] || ''
-                });
-                return;
-            }
-
-            setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
+            setMessage({ type: 'success', text: message });
+            setFormData({
+                name: '',
+                session_code: '',
+            });
+            return;
         } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data
+                setFormErrors({
+                    session_code: errors.session_code?.[0] || '',
+                    name: errors.name?.[0] || ''
+                });
+                return;
+            }
             setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
         }
     };

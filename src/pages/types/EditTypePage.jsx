@@ -78,24 +78,16 @@ const EditTypePage = () => {
         try {
             const response = await TypeService.update(id, formData, navigate);
 
-            if (response.status === 200) {
-                setMessage({ type:'success', text: response.message });
-            }
-
-            if (response.status === 422) {
-                const errors = response.data;
+            setMessage({ type:'success', text: response.message });
+        } catch (error) {
+            console.log(error)
+            if (error.status === 422) {
+                const errors = error.data;
                 setFormErrors({
                     name: errors?.name ? errors.name[0] : '',
                 });
             }
-
-            if (response.status === 404) {
-                setMessage({ type:'error', text: response.message });
-            } 
-
-        } catch (error) {
-            console.log(error)
-            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar a aplicação' });
+            setMessage({ type:'error', text: error.message || 'Erro ao editar a aplicação' });
         }
     };
 

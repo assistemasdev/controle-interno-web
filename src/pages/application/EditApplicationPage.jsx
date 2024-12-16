@@ -52,8 +52,8 @@ const EditApplicationPage = () => {
         });
 
         } catch (error) {
-        setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pela aplicação' });
-        console.error(error);
+            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pela aplicação' });
+            console.error(error);
         } finally {
         setLoading(false);
         }
@@ -65,27 +65,21 @@ const EditApplicationPage = () => {
         setMessage(null);
 
         try {
-        const response = await ApplicationService.update(id, formData, navigate);
-        if (response.status === 200) {
+            const response = await ApplicationService.update(id, formData, navigate);
             setMessage({ type:'success', text: response.message });
-        }
-
-        if (response.status === 422) {
-            const errors = response.data;
-            setFormErrors({
-            session_code: errors?.session_code ? errors.session_code[0] : '',
-            name: errors?.name ? errors.name[0] : '',
-            active: errors?.active ? errors.active[0] : ''
-            });
-        }
-
-        if (response.status === 404) {
-            setMessage({ type:'error', text: response.message });
-        } 
-
         } catch (error) {
-        console.log(error)
-        setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar a aplicação' });
+            if (error.status === 422) {
+                const errors = error.data;
+                setFormErrors({
+                session_code: errors?.session_code ? errors.session_code[0] : '',
+                name: errors?.name ? errors.name[0] : '',
+                active: errors?.active ? errors.active[0] : ''
+                });
+                return
+            }
+
+            console.log(error)
+            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar a aplicação' });
         }
     };
 

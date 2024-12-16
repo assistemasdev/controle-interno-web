@@ -40,18 +40,17 @@ const TypePage = () => {
         
             const response = await TypeService.getAll(navigate);
 
-            if(response.status === 200) {
-                const result = response.result
-            
-                const filteredTypes = result.map(role => ({
-                    id: role.id,
-                    name: role.name
-                }));
-            
-                setTypes(filteredTypes);
-            }
+            const result = response.result
+        
+            const filteredTypes = result.map(role => ({
+                id: role.id,
+                name: role.name
+            }));
+        
+            setTypes(filteredTypes);
         } catch (error) {
-            setError('Erro ao carregar tipos');
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar tipos';
+            setError(errorMessage);
             console.error(error);
         } finally {
             setLoading(false);
@@ -79,19 +78,11 @@ const TypePage = () => {
             setLoading(true);
             const response = await TypeService.delete(typeToDelete.id);
 
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-                fetchTypes();
-                return;
-            }
-
-            if (response.status === 404 || response.status === 400) {
-                setMessage({ type: 'error', text: response.message });
-                return;
-            }
-
+            setMessage({ type: 'success', text: response.message });
+            fetchTypes();
+            return;
         } catch (error) {
-            setError('Erro ao excluir o tipo');
+            setMessage({ type: 'error', text: error.message || 'error ao excluir tipo' });
             console.error(error);
         } finally {
             setDeleteModalOpen(false);

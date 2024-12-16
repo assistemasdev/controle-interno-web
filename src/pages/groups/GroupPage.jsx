@@ -37,24 +37,22 @@ const GroupPage = () => {
     const fetchGroup = async () => {
         try {
             setLoading(true);
-        
+            
             const response = await GroupService.getAll(navigate);
-            const result = response.result
-        
-            const filteredGroups = result.map(role => ({
+            const filteredGroups = response.result.map(role => ({
                 id: role.id,
-                name: role.name
+                name: role.name,
             }));
-        
+            
             setGroups(filteredGroups);
         } catch (error) {
-            setError('Erro ao carregar grupos');
-            console.error(error);
+            setError(error.message || 'Erro ao carregar grupos');
+            console.error("Erro capturado no fetchGroup:", error);
         } finally {
             setLoading(false);
         }
     };
-    
+
     useEffect(() => {
         fetchGroup();
     }, []);

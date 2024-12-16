@@ -28,12 +28,12 @@ const EditCategoryPage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-        try {
-            await fetchCategory();
-    
-        } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
-        }
+            try {
+                await fetchCategory();
+        
+            } catch (error) {
+                console.error('Erro ao carregar os dados:', error);
+            }
         };
     
         fetchData();
@@ -42,27 +42,24 @@ const EditCategoryPage = () => {
 
     const fetchCategory = async () => {
         try {
-        const response = await CategoryService.getById(id, navigate);
+            const response = await CategoryService.getById(id, navigate);
 
-        if (response.status === 200) {
             setFormData({
                 name: response.result.name,
             });
-        }
-
-        if (response.status === 404) {
-            navigate(
-                '/categorias/', 
-                {
-                    state: { 
-                        type: 'error', 
-                        message: response.message 
-                    }
-                }
-            );
-        }
-
         } catch (error) {
+            if (error.status === 404) {
+                navigate(
+                    '/categorias/', 
+                    {
+                        state: { 
+                            type: 'error', 
+                            message: error.message 
+                        }
+                    }
+                );
+            }
+    
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pela categoria' });
             console.error(error);
         } finally {
@@ -78,22 +75,15 @@ const EditCategoryPage = () => {
         try {
             const response = await CategoryService.update(id, formData, navigate);
 
-            if (response.status === 200) {
-                setMessage({ type:'success', text: response.message });
-            }
-
-            if (response.status === 422) {
-                const errors = response.data;
+            setMessage({ type:'success', text: response.message });
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
                 setFormErrors({
                     name: errors?.name ? errors.name[0] : '',
                 });
+                return
             }
-
-            if (response.status === 404) {
-                setMessage({ type:'error', text: response.message });
-            } 
-
-        } catch (error) {
             console.log(error)
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar a categoria' });
         }

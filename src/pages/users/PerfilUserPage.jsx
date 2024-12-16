@@ -52,10 +52,6 @@ const PerfilUserPage = () => {
         try {
             const response = await UserService.getById(id, navigate);
 
-            if (response.status === 404) {
-                navigate('/dashboard', { state: { message: response.message }});
-            }
-
             const user = response.result;
 
             setFormData({
@@ -65,8 +61,11 @@ const PerfilUserPage = () => {
                 password: '',
                 password_confirmation: '',
             });
-
         } catch (error) {
+            if (error.status === 404) {
+                navigate('/dashboard', { state: { message: error.message }});
+            }
+
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pelo usuário' });
         console.error(error);
         } finally {
@@ -88,12 +87,12 @@ const PerfilUserPage = () => {
 
         try {
             const response = await UserService.update(id, dataToSend, navigate);
-            if (response.status === 200) {
-                setMessage({ type:'success', text: response.message });
-            }
+            setMessage({ type:'success', text: response.message });
 
-            if (response.status === 422) {
-                const errors = response.data;
+        } catch (error) {
+            if (error.status === 422) {
+                const errors = error.data;
+                
                 setFormErrors({
                 username: errors?.username ? errors.username[0] : '',
                 email: errors?.email ? errors.email[0] : '',
@@ -101,13 +100,10 @@ const PerfilUserPage = () => {
                 password: errors?.password ? errors.password[0] : '',
                 password_confirmation: errors?.password_confirmation ? errors.password_confirmation[0] : ''
                 });
+
+                return
             }
 
-            if (response.status === 404) {
-                setMessage({ type:'error', text: response.message });
-            } 
-
-        } catch (error) {
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o usuário' });
         }
     };

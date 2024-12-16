@@ -35,32 +35,31 @@ const CreateUserPage = () => {
         try {
         const response = await UserService.create(formData, navigate);
         console.log(response)
-        const { status, data, message } = response; 
+        const { message } = response; 
     
-        if (status === 201) {
-            setMessage({ type: 'success', text: message });
-            setFormData({
+        setMessage({ type: 'success', text: message });
+        setFormData({
             name: '',
             username: '',
             email: '',
             password: '',
             passwordConfirmation: ''
-            });
-            return;
-        }
+        });
+        return;
     
-        if (status === 422 && data) {
-            setFormErrors({
-            email: data.email?.[0] || '',
-            username: data.username?.[0] || '',
-            name: data.name?.[0] || '',
-            password: data.password?.[0] || ''
-            });
-            return;
-        }
-    
-        setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
+
         } catch (error) {
+            
+            if (error.status === 422 ) {
+                const errors = error.data;
+                setFormErrors({
+                email: errors.email?.[0] || '',
+                username: errors.username?.[0] || '',
+                name: errors.name?.[0] || '',
+                password: errors.password?.[0] || ''
+                });
+                return;
+            }
         setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
         }
     };
