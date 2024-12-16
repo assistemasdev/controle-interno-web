@@ -28,6 +28,19 @@ const OrganizationService = {
         }
     },
 
+    async getAll(navigate) {
+        try {
+        const response = await api.get(`/organizations/`);
+        return {
+            message: response.data.message,
+            result: response.data.result,
+            status: response.status
+        };
+        } catch (error) {
+        return handleError(error, navigate); 
+        }
+    },
+
     async getById(id, navigate) {
         try {
         const response = await api.get(`/organizations/${id}`);
@@ -41,6 +54,31 @@ const OrganizationService = {
         }
     },
 
+    async allOrganizationAddresses(id, navigate) {
+        try {
+            const response = await api.get(`/organizations/${id}/addresses`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+
+    async allOrganizationLocation(id, idAddress, navigate) {
+        try {
+            const response = await api.get(`/organizations/${id}/addresses/${idAddress}/locations`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
     async update(id, data, navigate) {
         try {
         const response = await api.put(`/organizations/${id}`, data);

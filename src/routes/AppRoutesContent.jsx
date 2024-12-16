@@ -62,6 +62,13 @@ import SupplierDetailsPage from "../pages/suppliers/SupplierDetailsPage";
 import EditSupplierAddressPage from "../pages/suppliers/address/EditSupplierAddressPage";
 import SupplierAddressDetailsPage from "../pages/suppliers/address/SupplierAddressDetailsPage";
 import CreateSupplierAddressPage from "../pages/suppliers/address/CreateSupplierAddressPage";
+import UnitPage from "../pages/units/UnitPage";
+import CreateUnitPage from "../pages/units/CreateUnitPage";
+import EditUnitPage from "../pages/units/EditUnitPage";
+import UnitsRelatedPage from "../pages/units/unitsRelated/UnitsRelatedPage";
+import AttachUnitsRelatedPage from "../pages/units/unitsRelated/AttachUnitsRelatedPage";
+import ProductsPage from "../pages/products/ProductPage";
+import CreateProductPage from "../pages/products/CreateProductPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -238,6 +245,45 @@ const AppRoutesContent = () => {
         }
     ];
 
+    const unitsRoutes = [
+        {
+            path: "/unidades",
+            element: <PrivateRoute element={UnitPage} />,
+        },
+        {
+            path: "/unidades/criar",
+            element: <PrivateRoute element={CreateUnitPage} />,
+        },
+        {
+            path: "/unidades/editar/:id",
+            element: <PrivateRoute element={EditUnitPage}/>
+        },
+        {
+            path: "/unidades/:id/relacionadas",
+            element: <PrivateRoute element={UnitsRelatedPage}/>
+        },
+        {
+            path: "/unidades/:id/relacionadas/criar",
+            element: <PrivateRoute element={AttachUnitsRelatedPage}/>
+        },
+
+    ];
+
+    const productsRoutes = [
+        {
+            path: "/produtos",
+            element: <PrivateRoute element={ProductsPage} />,
+        },
+        {
+            path: "/produtos/criar",
+            element: <PrivateRoute element={CreateProductPage} />,
+        },
+        {
+            path: "/categorias/editar/:id",
+            element: <PrivateRoute element={EditCategoryPage}/>
+        }
+    ];
+
     const otherRoutes = [
         {
             path: "/dashboard",
@@ -292,6 +338,15 @@ const AppRoutesContent = () => {
                 {groupsRoutes.map((route, index) => (
                     <Route key={index} path={route.path} element={route.element} />
                 ))}
+
+                {unitsRoutes.map((route, index) => (
+                    <Route key={index} path={route.path} element={route.element} />
+                ))}
+
+                {productsRoutes.map((route, index) => (
+                    <Route key={index} path={route.path} element={route.element} />
+                ))}
+                
                 </Routes>
             </CSSTransition>
         </TransitionGroup>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup  } from '@fortawesome/free-solid-svg-icons';
+import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox  } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { useSideBar } from '../hooks/useSideBar';
@@ -109,6 +109,22 @@ const Sidebar = () => {
                     ]
                 },
                 {
+                    name: 'Produtos',
+                    icon: faBox,
+                    to: '/product',
+                    href: "collapseProduct",
+                    dropdown: "product",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                            name: 'Página Inicial',
+                            to: `/produtos/`,
+                            requiredPermission: 'Listar produtos',
+                            icon: faHome
+                        }
+                    ]
+                },
+                {
                     name: 'Fornecedores',
                     icon: faTruck ,
                     to: '/suppliers',
@@ -152,6 +168,22 @@ const Sidebar = () => {
                         name: 'Página Inicial',
                         to: `/grupos/`,
                         requiredPermission: 'Listar grupos de produto',
+                        icon: faHome
+                        }
+                    ]
+                },
+                {
+                    name: 'Unidades',
+                    icon: faRuler  ,
+                    to: '/units',
+                    href: "collapseUnits",
+                    dropdown: "units",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                        name: 'Página Inicial',
+                        to: `/unidades/`,
+                        requiredPermission: 'Listar unidades de medida',
                         icon: faHome
                         }
                     ]

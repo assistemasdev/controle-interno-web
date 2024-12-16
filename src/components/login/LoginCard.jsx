@@ -64,19 +64,18 @@ const LoginCard = () => {
         navigate('/aplicacoes')
       };
 
-      if (status == 422 && data) {
-        setFormErrors({
-          username: data?.username ? data.username[0] : '',
-          password: data?.password ? data.password[0] : '',
-        });
-      }
 
-      if (status == 400) {
-        setErrorMessage(message);
-      }
+
     } catch (error) {
         console.log(error)
-        setErrorMessage(error.response?.data?.error || 'Erro ao realizar o login');
+        if (error.status == 422) {
+          setFormErrors({
+            username: error.data?.username ? error.data.username[0] : '',
+            password: error.data?.password ? error.data.password[0] : '',
+          });
+          return
+        }
+        setErrorMessage(error.data?.error || 'Erro ao realizar o login');
     }
   };
 

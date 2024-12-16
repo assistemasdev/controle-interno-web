@@ -111,39 +111,28 @@ const EditRolePage = () => {
         setMessage(null);
 
         try {
-        const response = await RoleService.update(roleId, formData, navigate);
-        if (response.status === 200) {
-            setMessage({ type:'success', text: response.message });
-            return;
-        }
-        if (response.status === 200 && selectedPermissions.length > 0) {
-            const responsePermissions = await RoleService.updateRolePermissions(roleId, {permissions: selectedPermissions}, navigate)
-                if (responsePermissions.status === 200) {
+            const response = await RoleService.update(roleId, formData, navigate);
+            if (response.status === 200) {
                 setMessage({ type:'success', text: response.message });
                 return;
             }
-
-            if (responsePermissions.status !== 200) {
-                setMessage({ type:'success', text: 'Cargo foi editado com sucesso, mas houve um erro ao editar suas permissões' });
-                return;
+            if (response.status === 200 && selectedPermissions.length > 0) {
+                const responsePermissions = await RoleService.updateRolePermissions(roleId, {permissions: selectedPermissions}, navigate)
+                if (responsePermissions.status === 200) {
+                    setMessage({ type:'success', text: response.message });
+                    return;
+                }
             }
-        }
-
-        if (response.status === 422) {
-            const errors = response.data;
-            setFormErrors({
-                name: errors?.name ? errors.name[0] : '',
-            });
-            return;
-        }
-
-        if (response.status === 404) {
-            setMessage({ type:'error', text: response.message });
-            return;
-        } 
 
         } catch (error) {
             console.log(error)
+            if (error.status === 422) {
+                const errors = error.data;
+                setFormErrors({
+                    name: errors?.name ? errors.name[0] : '',
+                });
+                return;
+            }
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o cargo' });
         }
     };
