@@ -8,7 +8,7 @@ import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
 import OrganizationService from "../../services/OrganizationService";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { faEdit, faBuilding  } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faEye  } from '@fortawesome/free-solid-svg-icons';
 
 const OrganizationPage = () => {
     const { canAccess } = usePermissions();
@@ -63,6 +63,10 @@ const OrganizationPage = () => {
         navigate(`/orgaos/editar/${applicationId}/${organization.id}`);
     };
 
+    const handleDetails = (organization) => {
+        navigate(`/orgaos/detalhes/${applicationId}/${organization.id}`);
+    }
+
     const headers = ['id', 'Nome', 'Cor', 'Ativo'];
 
     const actions = [
@@ -70,9 +74,16 @@ const OrganizationPage = () => {
             icon: faEdit,
             title: 'Editar Organização',
             buttonClass: 'btn-primary',
-            permission: 'update organization',
+            permission: 'Atualizar organizações',
             onClick: handleEdit
         },
+        {
+            icon: faEye,
+            title: 'Ver Detalhes',
+            buttonClass: 'btn-info',
+            permission: 'Ver organizações',
+            onClick: handleDetails
+        }
     ];
     
     return (

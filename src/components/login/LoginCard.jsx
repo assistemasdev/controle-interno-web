@@ -75,7 +75,7 @@ const LoginCard = () => {
           });
           return
         }
-        setErrorMessage(error.data?.error || 'Erro ao realizar o login');
+        setErrorMessage(error.message || 'Erro ao realizar o login');
     }
   };
 

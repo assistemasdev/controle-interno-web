@@ -69,6 +69,16 @@ import UnitsRelatedPage from "../pages/units/unitsRelated/UnitsRelatedPage";
 import AttachUnitsRelatedPage from "../pages/units/unitsRelated/AttachUnitsRelatedPage";
 import ProductsPage from "../pages/products/ProductPage";
 import CreateProductPage from "../pages/products/CreateProductPage";
+import OrganizationDetailsPage from "../pages/organization/OrganizationDetailsPage";
+import CreateOrganizationAddressPage from "../pages/organization/address/CreateOrganizationAddressPage";
+import EditOrganizationAddressPage from "../pages/organization/address/EditOrganizationAddressPage";
+import OrganizationAddressDetailsPage from "../pages/organization/address/OrganizationAddressDetailsPage";
+import CreateOrganizationContactPage from "../pages/organization/contact/CreateOrganizationContactPage";
+import EditOrganizationContactPage from "../pages/organization/contact/EditOrganizationContactPage";
+import LocationOrganizationPage from "../pages/organization/locations/LocationOrganizationPage";
+import CreateOrganizationLocationPage from "../pages/organization/locations/CreateOrganizationLocationPage";
+import EditOrganizationLocationPage from "../pages/organization/locations/EditOrganizationLocationPage";
+import DetailsOrganizationLocationPage from "../pages/organization/locations/DetailsOrganizationLocationPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -128,7 +138,48 @@ const AppRoutesContent = () => {
             path: "/orgaos/editar/:applicationId/:organizationId",
             element: <PrivateRoute element={EditOrganizationPage} />,
         },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId",
+            element: <PrivateRoute element={OrganizationDetailsPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/adicionar",
+            element: <PrivateRoute element={CreateOrganizationAddressPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/editar/:addressId",
+            element: <PrivateRoute element={EditOrganizationAddressPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/detalhes/:addressId",
+            element: <PrivateRoute element={OrganizationAddressDetailsPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/contatos/adicionar/",
+            element: <PrivateRoute element={CreateOrganizationContactPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/contatos/editar/:contactId",
+            element: <PrivateRoute element={EditOrganizationContactPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes",
+            element: <PrivateRoute element={LocationOrganizationPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes/adicionar",
+            element: <PrivateRoute element={CreateOrganizationLocationPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes/editar/:locationId",
+            element: <PrivateRoute element={EditOrganizationLocationPage} />,
+        },
+        {
+            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes/detalhes/:locationId",
+            element: <PrivateRoute element={DetailsOrganizationLocationPage} />,
+        }
     ];
+    
 
     const roleRoutes = [
         {
