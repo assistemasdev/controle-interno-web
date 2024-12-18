@@ -52,16 +52,57 @@ const SupplierDetailsPage = () => {
         fetchData();
     }, [id]);
     
-    const fetchData = async () => {
+
+    const fetchData = async (page = 1) => {
+        setLoading(true);
+        setMessage(null);
         try {
-            await fetchSupplier();
-            await fetchAddresses();
-            await fetchContacts();
+            const [organizationResponse, addressesResponse, contactsResponse] = await Promise.all([
+                SupplierService.getById(id, navigate),
+                SupplierService.paginatedSupplierAddress(id, {page, perPage:itemsPerPage}, navigate),
+                SupplierService.paginatedSupplierContact(id, {page, perPage:itemsPerPage}, navigate)
+            ]);
+
+            const supplier = organizationResponse.result;
+
+            setFormData({
+                alias: supplier.alias || '',
+                name: supplier.name || '',
+                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || '')
+            });       
+
+            const filteredAddress = addressesResponse.result.data.map(address => {                
+                return {
+                    id: address.id,
+                    zip: maskCep(address.zip),
+                    street: address.street
+                };
+            });
+                        
+            setAddresses(filteredAddress)
+            setTotalPagesAddress(addressesResponse.result.last_page);
+            setCurrentPageAddress(addressesResponse.result.current_page);
+
+            const filteredContacts = contactsResponse.result.data.map(contact => {                
+                return {
+                    id: contact.id,
+                    name: `${contact.name || ''} ${contact.surname || ''}`,
+                    number: `${contact.ddd || ''} ${contact.phone || ''}`,
+                };
+            });
+                        
+            setContacts(filteredContacts)
+            setTotalPagesContact(contactsResponse.result.last_page);
+            setCurrentPageContact(contactsResponse.result.current_page);
+
         } catch (error) {
             console.error('Erro ao carregar os dados:', error);
+            setMessage({ type: 'error', text: 'Erro ao carregar os dados do fornecedor' });
+        } finally {
+            setLoading(false);
         }
     };
-
+    
     const fetchAddresses = async (page = 1) => {
         setLoading(true);
         try {
@@ -157,9 +198,9 @@ const SupplierDetailsPage = () => {
         try {
             await SupplierService.deleteSupplierContact(id, contactToDelete.id, navigate);
             setMessage({ type: 'success', text: 'Contato excluído com sucesso' });
-            await fetchData();
+            await fetchContacts();
         } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
+            setMessage({ type: 'error', text: 'Erro ao excluir o contato' });
         } finally {
             setDeleteModalOpenContacts(false);
             setLoading(false);
@@ -173,7 +214,6 @@ const SupplierDetailsPage = () => {
             const response = await SupplierService.deleteSupplierAddress(id, addressToDelete.id, navigate);
 
             setMessage({ type: 'success', text: response.message });
-            await fetchSupplier();
             await fetchAddresses();
             return;
         } catch (error) {
