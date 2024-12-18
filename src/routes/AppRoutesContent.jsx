@@ -79,6 +79,8 @@ import LocationOrganizationPage from "../pages/organization/locations/LocationOr
 import CreateOrganizationLocationPage from "../pages/organization/locations/CreateOrganizationLocationPage";
 import EditOrganizationLocationPage from "../pages/organization/locations/EditOrganizationLocationPage";
 import DetailsOrganizationLocationPage from "../pages/organization/locations/DetailsOrganizationLocationPage";
+import CreateSupplierContactPage from "../pages/suppliers/contact/CreateSupplierContactPage";
+import EditSupplierContactPage from "../pages/suppliers/contact/EditSupplierContactPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -224,6 +226,14 @@ const AppRoutesContent = () => {
         {
             path: "/fornecedores/:id/endereco/adicionar",
             element: <PrivateRoute element={CreateSupplierAddressPage}/>
+        },
+        {
+            path: "/fornecedores/:id/contato/adicionar",
+            element: <PrivateRoute element={CreateSupplierContactPage}/>
+        },
+        {
+            path: "/fornecedores/:supplierId/contato/editar/:contactId",
+            element: <PrivateRoute element={EditSupplierContactPage}/>
         }
 
     ];

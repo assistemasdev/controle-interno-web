@@ -79,9 +79,71 @@ const SupplierService = {
             return handleError(error, navigate)
         }
     },
+
+    async addSupplierContact(id, data, navigate) {
+        try {
+            const response = await api.post(`/suppliers/${id}/contacts`, data);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+
+    async paginatedSupplierContact(id, data, navigate) {
+        try {
+            const response = await api.get(`/suppliers/${id}/contacts/pages`, {params: {page: data.page, perPage: data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
     async showSupplierAddress(id, addressesId, navigate) {
         try {
             const response = await api.get(`/suppliers/${id}/addresses/${addressesId}`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async showSupplierContact(id, contactId, navigate) {
+        try {
+            const response = await api.get(`/suppliers/${id}/contacts/${contactId}`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async updateSupplierContact(id, contactId, data, navigate) {
+        try {
+            const response = await api.put(`/suppliers/${id}/contacts/${contactId}`, data);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async deleteSupplierContact(id, contactId, navigate) {
+        try {
+            const response = await api.delete(`/suppliers/${id}/contacts/${contactId}`);
             return {
                 message: response.data.message,
                 result: response.data.result,

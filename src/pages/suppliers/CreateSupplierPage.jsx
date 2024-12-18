@@ -18,9 +18,6 @@ const CreateSupplierPage = () => {
             alias: '',
             name: '',
             cpf_cnpj: '',
-            ddd: '',
-            phone: '',
-            email: ''
         },
         address: {
             alias: '',
@@ -31,7 +28,20 @@ const CreateSupplierPage = () => {
             district: '',
             city: '',
             state: '',
-            country: ''
+            country: '',
+            ddd: '',
+            phone: '',
+            email: ''
+        },
+        contact: {
+            name: '',
+            surname: '',
+            role: '',
+            ddd: '',
+            phone: '',
+            cell_ddd: '',
+            cell: '',
+            email: ''
         }
     });
 
@@ -41,7 +51,7 @@ const CreateSupplierPage = () => {
     const handleChange = (e) => {
         const { id, value } = e.target;
         const [category, key] = id.split('.');
-    
+        console.log(category, key)
         setFormData((prev) => ({
             ...prev,
             [category]: {
@@ -109,6 +119,9 @@ const CreateSupplierPage = () => {
             address: {
                 ...formData.address,
                 zip: removeMask(formData.address.zip),
+            },
+            contact: {
+                ...formData.contact
             }
         };
     
@@ -122,9 +135,6 @@ const CreateSupplierPage = () => {
                     alias: '',
                     name: '',
                     cpf_cnpj: '',
-                    ddd: '',
-                    phone: '',
-                    email: ''
                 },
                 address: {
                     alias: '',
@@ -135,7 +145,20 @@ const CreateSupplierPage = () => {
                     district: '',
                     city: '',
                     state: '',
-                    country: ''
+                    country: '',
+                    ddd: '',
+                    phone: '',
+                    email: ''
+                },
+                contact: {
+                    name: '',
+                    surname: '',
+                    role: '',
+                    ddd: '',
+                    phone: '',
+                    cell_ddd: '',
+                    cell: '',
+                    email: ''
                 }
             });
             return;
@@ -154,9 +177,17 @@ const CreateSupplierPage = () => {
                     'address.city': error.data?.['address.city']?.[0] || '',
                     'address.state': error.data?.['address.state']?.[0] || '',
                     'address.country': error.data?.['address.country']?.[0] || '',
-                    'supplier.ddd': error.data?.['supplier.ddd']?.[0] || '',
-                    'supplier.phone': error.data?.['supplier.phone']?.[0] || '',
-                    'supplier.email': error.data?.['supplier.email']?.[0] || ''
+                    'address.ddd': error.data?.['address.ddd']?.[0] || '',
+                    'address.phone': error.data?.['address.phone']?.[0] || '',
+                    'address.email': error.data?.['address.email']?.[0] || '',
+                    'contact.name': error.data?.['contact.name']?.[0] || '',
+                    'contact.surname': error.data?.['contact.surname']?.[0] || '',
+                    'contact.role': error.data?.['contact.role']?.[0] || '',
+                    'contact.ddd': error.data?.['contact.ddd']?.[0] || '',
+                    'contact.phone': error.data?.['contact.phone']?.[0] || '',
+                    'contact.cell_ddd': error.data?.['contact.cell_ddd']?.[0] || '',
+                    'contact.cell': error.data?.['contact.cell']?.[0] || '',
+                    'contact.email': error.data?.['contact.email']?.[0] || ''
                 });
                 return;
             }
@@ -327,22 +358,22 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="DDD:"
                                 type="text"
-                                id="supplier.ddd"
-                                value={formData.supplier.ddd}
+                                id="address.ddd"
+                                value={formData.address.ddd}
                                 onChange={handleChange}
                                 placeholder="Digite o DDD"
-                                error={formErrors['supplier.ddd']} 
+                                error={formErrors['address.ddd']} 
                             />
                         </div>
                         <div className="d-flex flex-column col-md-4">
                             <InputField
                                 label="Telefone:"
                                 type="text"
-                                id="supplier.phone"
-                                value={formData.supplier.phone}
+                                id="address.phone"
+                                value={formData.address.phone}
                                 onChange={handleChange}
                                 placeholder="Digite o telefone"
-                                error={formErrors['supplier.phone']} 
+                                error={formErrors['address.phone']} 
                             />
                         </div>
                     </div>
@@ -351,11 +382,108 @@ const CreateSupplierPage = () => {
                             <InputField
                                 label="E-mail:"
                                 type="email"
-                                id="supplier.email"
-                                value={formData.supplier.email}
+                                id="address.email"
+                                value={formData.address.email}
                                 onChange={handleChange}
                                 placeholder="Digite o e-mail"
-                                error={formErrors['supplier.email']} 
+                                error={formErrors['address.email']} 
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="d-flex flex-column col-md-4">
+                            <InputField
+                                label="Nome do Contato:"
+                                type="text"
+                                id="contact.name"
+                                value={formData.contact.name}
+                                onChange={handleChange}
+                                placeholder="Digite o nome do contato"
+                                error={formErrors['contact.name']}
+                            />
+                        </div>
+                        <div className="d-flex flex-column col-md-4">
+                            <InputField
+                                label="Sobrenome do Contato:"
+                                type="text"
+                                id="contact.surname"
+                                value={formData.contact.surname}
+                                onChange={handleChange}
+                                placeholder="Digite o sobrenome"
+                                error={formErrors['contact.surname']}
+                            />
+                        </div>
+                        <div className="d-flex flex-column col-md-4">
+                            <InputField
+                                label="Cargo:"
+                                type="text"
+                                id="contact.role"
+                                value={formData.contact.role}
+                                onChange={handleChange}
+                                placeholder="Digite o cargo"
+                                error={formErrors['contact.role']}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="d-flex flex-column col-md-2">
+                            <InputField
+                                label="DDD (Telefone):"
+                                type="text"
+                                id="contact.ddd"
+                                value={formData.contact.ddd}
+                                onChange={handleChange}
+                                placeholder="DDD"
+                                error={formErrors['contact.ddd']}
+                            />
+                        </div>
+                        <div className="d-flex flex-column col-md-4">
+                            <InputField
+                                label="Telefone:"
+                                type="text"
+                                id="contact.phone"
+                                value={formData.contact.phone}
+                                onChange={handleChange}
+                                placeholder="Digite o telefone"
+                                error={formErrors['contact.phone']}
+                            />
+                        </div>
+                        <div className="d-flex flex-column col-md-2">
+                            <InputField
+                                label="DDD (Celular):"
+                                type="text"
+                                id="contact.cell_ddd"
+                                value={formData.contact.cell_ddd}
+                                onChange={handleChange}
+                                placeholder="DDD"
+                                error={formErrors['contact.cell_ddd']}
+                            />
+                        </div>
+                        <div className="d-flex flex-column col-md-4">
+                            <InputField
+                                label="Celular:"
+                                type="text"
+                                id="contact.cell"
+                                value={formData.contact.cell}
+                                onChange={handleChange}
+                                placeholder="Digite o celular"
+                                error={formErrors['contact.cell']}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="d-flex flex-column col-md-6">
+                            <InputField
+                                label="E-mail:"
+                                type="email"
+                                id="contact.email"
+                                value={formData.contact.email}
+                                onChange={handleChange}
+                                placeholder="Digite o e-mail"
+                                error={formErrors['contact.email']}
                             />
                         </div>
                     </div>

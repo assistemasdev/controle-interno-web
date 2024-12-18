@@ -21,9 +21,6 @@ const EditSupplierPage = () => {
         alias: '',
         name: '',
         cpf_cnpj: '',
-        ddd: '',
-        phone: '',
-        email: ''
     });
 
     const handleChange = (e) => {
@@ -55,9 +52,6 @@ const EditSupplierPage = () => {
                 alias: supplier.alias || '',
                 name: supplier.name || '',
                 cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
-                ddd: supplier.ddd || '',
-                phone: supplier.phone || '',
-                email: supplier.email || ''
             });
 
         } catch (error) {
@@ -101,9 +95,6 @@ const EditSupplierPage = () => {
                     alias: errors?.alias?.[0] || '',
                     name: errors?.name?.[0] || '',
                     cpf_cnpj: errors?.cpf_cnpj?.[0] || '',
-                    ddd: errors?.ddd?.[0] || '',
-                    phone: errors?.phone?.[0] || '',
-                    email: errors?.email?.[0] || ''
                 });
 
                 return
@@ -133,7 +124,7 @@ const EditSupplierPage = () => {
                     ) : (
                         <>
                             <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
+                                <div className="d-flex flex-column col-md-4">
                                     <InputField
                                         label="Apelido:"
                                         type="text"
@@ -144,7 +135,7 @@ const EditSupplierPage = () => {
                                         error={formErrors.alias}
                                     />
                                 </div>
-                                <div className="d-flex flex-column col-md-6">
+                                <div className="d-flex flex-column col-md-4">
                                     <InputField
                                         label="Nome:"
                                         type="text"
@@ -155,9 +146,7 @@ const EditSupplierPage = () => {
                                         error={formErrors.name}
                                     />
                                 </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
+                                <div className="d-flex flex-column col-md-4">
                                     <InputField
                                         label="CPF/CNPJ:"
                                         type="text"
@@ -166,41 +155,6 @@ const EditSupplierPage = () => {
                                         onChange={handleChange}
                                         placeholder="Digite o CPF ou CNPJ"
                                         error={formErrors.cpf_cnpj}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-2">
-                                    <InputField
-                                        label="DDD:"
-                                        type="text"
-                                        id="ddd"
-                                        value={formData.ddd}
-                                        onChange={handleChange}
-                                        placeholder="Digite o DDD"
-                                        error={formErrors.ddd}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Telefone:"
-                                        type="text"
-                                        id="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        placeholder="Digite o telefone"
-                                        error={formErrors.phone}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="E-mail:"
-                                        type="email"
-                                        id="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        placeholder="Digite o e-mail"
-                                        error={formErrors.email}
                                     />
                                 </div>
                             </div>

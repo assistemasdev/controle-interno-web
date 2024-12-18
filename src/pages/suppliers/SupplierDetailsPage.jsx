@@ -22,20 +22,22 @@ const SupplierDetailsPage = () => {
     const [error, setError] = useState();
     const { canAccess } = usePermissions();
     const [addresses, setAddresses] = useState([]);
+    const [contacts, setContacts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [addressToDelete, setAddressToDelete] = useState(null);
     const [formData, setFormData] = useState({
         alias: '',
         name: '',
-        cpf_cnpj: '',
-        ddd: '',
-        phone: '',
-        email: ''
+        cpf_cnpj: ''
     });
     const [currentPageAddress, setCurrentPageAddress] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPagesAddress, setTotalPagesAddress] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [currentPageContact, setCurrentPageContact] = useState(PAGINATION.DEFAULT_PAGE);
+    const [totalPagesContact, setTotalPagesContact] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
+    const [contactToDelete, setContactToDelete] = useState(null);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -47,19 +49,21 @@ const SupplierDetailsPage = () => {
     };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchSupplier();
-                await fetchAddresses();
-            } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
-            }
-        };
-
         fetchData();
     }, [id]);
+    
+    const fetchData = async () => {
+        try {
+            await fetchSupplier();
+            await fetchAddresses();
+            await fetchContacts();
+        } catch (error) {
+            console.error('Erro ao carregar os dados:', error);
+        }
+    };
 
     const fetchAddresses = async (page = 1) => {
+        setLoading(true);
         try {
             const response = await SupplierService.paginatedSupplierAddress(id, {page, perPage: itemsPerPage}, navigate);
             const filteredAddress = response.result.data.map(address => {                
@@ -94,14 +98,74 @@ const SupplierDetailsPage = () => {
         }
     }
 
+    const fetchContacts = async (page = 1) => {
+        setLoading(true);
+        try {
+            const response = await SupplierService.paginatedSupplierContact(id, {page, perPage: itemsPerPage}, navigate);
+            const filteredContacts = response.result.data.map(contact => {                
+                return {
+                    id: contact.id,
+                    name: `${contact.name || ''} ${contact.surname || ''}`,
+                    number: `${contact.ddd || ''} ${contact.phone || ''}`,
+                };
+            });
+                        
+            setContacts(filteredContacts)
+            setTotalPagesContact(response.result.last_page);
+            setCurrentPageContact(response.result.current_page);
+            return
+        } catch (error) {
+            if (error.status === 404) {
+                navigate(
+                    '/fornecedores/', 
+                    {
+                        state: { 
+                            type: 'error', 
+                            message: error.message 
+                        }
+                    }
+                );
+                return
+            }
+            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelos contatos do fornecedor' });
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const handleEdit = (address) => {
         navigate(`/fornecedores/editar/${id}/endereco/${address.id}`);
+    };
+
+    const handleEditContact = (contact) => {
+        navigate(`/fornecedores/${id}/contato/editar/${contact.id}`);
+    };
+
+    const handleDeleteContact = (contact) => {
+        setContactToDelete(contact);
+        setDeleteModalOpenContacts(true);
     };
 
     const handleDelete = (address) => {
         setAddressToDelete(address);
         setDeleteModalOpen(true);
     };
+
+    const confirmDeleteContacts = async () => {
+        setLoading(true);
+        try {
+            await SupplierService.deleteSupplierContact(id, contactToDelete.id, navigate);
+            setMessage({ type: 'success', text: 'Contato excluído com sucesso' });
+            await fetchData();
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
+        } finally {
+            setDeleteModalOpenContacts(false);
+            setLoading(false);
+        }
+    };
+
 
     const confirmDelete = async () => {
         setLoading(true); 
@@ -151,6 +215,25 @@ const SupplierDetailsPage = () => {
         }
     ];
 
+    const headersContacts = ['ID', 'Responsável', 'Contato'];
+    
+    const actionsContacts = [
+        {
+            icon: faEdit,
+            title: 'Editar Contato',
+            buttonClass: 'btn-primary',
+            permission: 'Atualizar contato de organizações',
+            onClick: handleEditContact,
+        },
+        {
+            icon: faTrash,
+            title: 'Excluir Endereço',
+            buttonClass: 'btn-danger',
+            permission: 'Excluir endereço da organização',
+            onClick: handleDeleteContact,
+        }
+    ];
+
     const fetchSupplier = async () => {
         try {
             const response = await SupplierService.getById(id, navigate);
@@ -159,10 +242,7 @@ const SupplierDetailsPage = () => {
             setFormData({
                 alias: supplier.alias || '',
                 name: supplier.name || '',
-                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
-                ddd: supplier.ddd || '',
-                phone: supplier.phone || '',
-                email: supplier.email || ''
+                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || '')
             });            
         } catch (error) {
             if (error.status === 404) {
@@ -209,7 +289,7 @@ const SupplierDetailsPage = () => {
                             <hr />
                         
                             <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
+                                <div className="d-flex flex-column col-md-4">
                                     <InputField
                                         label="Apelido:"
                                         type="text"
@@ -221,7 +301,7 @@ const SupplierDetailsPage = () => {
                                         disabled={true}
                                     />
                                 </div>
-                                <div className="d-flex flex-column col-md-6">
+                                <div className="d-flex flex-column col-md-4">
                                     <InputField
                                         label="Nome:"
                                         type="text"
@@ -233,9 +313,7 @@ const SupplierDetailsPage = () => {
                                         disabled={true}
                                     />
                                 </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
+                                <div className="d-flex flex-column col-md-4">
                                     <InputField
                                         label="CPF/CNPJ:"
                                         type="text"
@@ -244,44 +322,6 @@ const SupplierDetailsPage = () => {
                                         onChange={handleChange}
                                         placeholder="Digite o CPF ou CNPJ"
                                         error={formErrors.cpf_cnpj}
-                                        disabled={true}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-2">
-                                    <InputField
-                                        label="DDD:"
-                                        type="text"
-                                        id="ddd"
-                                        value={formData.ddd}
-                                        onChange={handleChange}
-                                        placeholder="Digite o DDD"
-                                        error={formErrors.ddd}
-                                        disabled={true}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Telefone:"
-                                        type="text"
-                                        id="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        placeholder="Digite o telefone"
-                                        error={formErrors.phone}
-                                        disabled={true}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="E-mail:"
-                                        type="email"
-                                        id="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        placeholder="Digite o e-mail"
-                                        error={formErrors.email}
                                         disabled={true}
                                     />
                                 </div>
@@ -308,6 +348,28 @@ const SupplierDetailsPage = () => {
                                 onPageChange={fetchAddresses}
                             />
 
+                            <div className='form-row d-flex justify-content-between align-items-center mt-1' style={{marginLeft:0, marginRight:0}}>
+                                <h5 className='text-dark font-weight-bold mt-3'>Contatos do Fornecedor</h5>
+                                {canAccess('Adicionar endereço ao fornecedor') && (
+                                    <Button
+                                    text="Adicionar Contato"
+                                    className="btn btn-blue-light fw-semibold"
+                                    link={`/fornecedores/${id}/contato/adicionar`}
+                                    />
+                                )}
+                            </div>
+                            <hr />
+
+                            <DynamicTable 
+                                headers={headersContacts} 
+                                data={contacts} 
+                                actions={actionsContacts} 
+                                currentPage={currentPageContact}
+                                totalPages={totalPagesContact}
+                                onPageChange={fetchAddresses}
+                            />
+
+
                             <div className="mt-3 d-flex gap-2">
                                 <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
                             </div>
@@ -320,6 +382,12 @@ const SupplierDetailsPage = () => {
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
                 itemName={addressToDelete ? addressToDelete.street : ''}
+            />
+            <ConfirmationModal
+                open={deleteModalOpenContacts}
+                onClose={() => setDeleteModalOpenContacts(false)}
+                onConfirm={confirmDeleteContacts}
+                itemName={contactToDelete ? `${contactToDelete.name ? contactToDelete.name : ''} ${contactToDelete.surname? contactToDelete.surname : '' }` : ''}
             />
         </MainLayout>
     );
