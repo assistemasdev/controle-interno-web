@@ -10,6 +10,7 @@ import CategoryService from "../../services/CategoryService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../constants/pagination";
 
 const CategoryPage = () => {
     const { canAccess } = usePermissions();
@@ -22,6 +23,9 @@ const CategoryPage = () => {
     const [categories, setCategories] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -34,19 +38,21 @@ const CategoryPage = () => {
         setName('');
     };
 
-    const fetchCategories = async () => {
+    const fetchCategories = async (page = 1) => {
         try {
             setLoading(true);
         
-            const response = await CategoryService.getAll(navigate);
+            const response = await CategoryService.getPaginated({page, perPage: itemsPerPage} ,navigate);
             const result = response.result
         
-            const filteredCategories = result.map(role => ({
+            const filteredCategories = result.data.map(role => ({
                 id: role.id,
                 name: role.name
             }));
         
             setCategories(filteredCategories);
+            setTotalPages(result.last_page);
+            setCurrentPage(result.current_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao excluir categoria';
             setError(errorMessage);
@@ -153,7 +159,14 @@ const CategoryPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={categories} actions={actions} />
+                    <DynamicTable 
+                        headers={headers} 
+                        data={categories} 
+                        actions={actions} 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchCategories}
+                    />
                 )}
 
                 <ConfirmationModal

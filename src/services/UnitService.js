@@ -15,6 +15,32 @@ const UnitService = {
         }
     },
 
+    async getPaginated (data,navigate) {
+        try {
+            const response = await api.get("/units/pages", {params: {page:data.page, perPage: data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
+
+    async paginateOutputUnits (id, data,navigate) {
+        try {
+            const response = await api.get(`/units/${id}/units/pages`, {params: {page:data.page, perPage: data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
+
     async create(data, navigate) {
         try {
             const response = await api.post("/units", data);

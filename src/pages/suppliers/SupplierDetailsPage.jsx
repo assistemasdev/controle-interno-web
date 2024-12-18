@@ -12,6 +12,7 @@ import DynamicTable from '../../components/DynamicTable';
 import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { usePermissions } from '../../hooks/usePermissions';
+import { PAGINATION } from '../../constants/pagination';
 
 const SupplierDetailsPage = () => {
     const navigate = useNavigate();
@@ -32,6 +33,9 @@ const SupplierDetailsPage = () => {
         phone: '',
         email: ''
     });
+    const [currentPageAddress, setCurrentPageAddress] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPagesAddress, setTotalPagesAddress] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -55,10 +59,10 @@ const SupplierDetailsPage = () => {
         fetchData();
     }, [id]);
 
-    const fetchAddresses = async () => {
+    const fetchAddresses = async (page = 1) => {
         try {
-            const response = await SupplierService.allSupplierAddress(id, navigate);
-            const filteredAddress = response.result.map(address => {                
+            const response = await SupplierService.paginatedSupplierAddress(id, {page, perPage: itemsPerPage}, navigate);
+            const filteredAddress = response.result.data.map(address => {                
                 return {
                     id: address.id,
                     zip: maskCep(address.zip),
@@ -67,6 +71,8 @@ const SupplierDetailsPage = () => {
             });
                         
             setAddresses(filteredAddress)
+            setTotalPagesAddress(response.result.last_page);
+            setCurrentPageAddress(response.result.current_page);
             return
         } catch (error) {
             if (error.status === 404) {
@@ -293,7 +299,14 @@ const SupplierDetailsPage = () => {
                             </div>
                             <hr />
 
-                            <DynamicTable headers={headers} data={addresses} actions={actions} />
+                            <DynamicTable 
+                                headers={headers} 
+                                data={addresses} 
+                                actions={actions} 
+                                currentPage={currentPageAddress}
+                                totalPages={totalPagesAddress}
+                                onPageChange={fetchAddresses}
+                            />
 
                             <div className="mt-3 d-flex gap-2">
                                 <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />

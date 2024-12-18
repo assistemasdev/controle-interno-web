@@ -10,7 +10,7 @@ import ConditionService from "../../services/ConditionService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
-
+import { PAGINATION } from "../../constants/pagination";
 const ConditionPage = () => {
     const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
@@ -22,6 +22,9 @@ const ConditionPage = () => {
     const [conditions, setConditions] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -34,19 +37,21 @@ const ConditionPage = () => {
         setName('');
     };
 
-    const fetchCondition = async () => {
+    const fetchCondition = async (page = 1) => {
         try {
             setLoading(true);
         
-            const response = await ConditionService.getAll(navigate);
+            const response = await ConditionService.getPaginated({ page, perPage: itemsPerPage }, navigate);
             const result = response.result
         
-            const filteredCondition = result.map(role => ({
+            const filteredCondition = result.data.map(role => ({
                 id: role.id,
                 name: role.name
             }));
         
             setConditions(filteredCondition);
+            setTotalPages(result.last_page);
+            setCurrentPage(result.current_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar condições';
             setError(errorMessage);
@@ -153,7 +158,14 @@ const ConditionPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={conditions} actions={actions} />
+                    <DynamicTable 
+                        headers={headers} 
+                        data={conditions} 
+                        actions={actions} 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchCondition}
+                    />
                 )}
 
                 <ConfirmationModal

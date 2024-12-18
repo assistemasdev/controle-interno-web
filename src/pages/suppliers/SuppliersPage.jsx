@@ -11,6 +11,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../constants/pagination";
 
 const SuppliersPage = () => {
     const { canAccess } = usePermissions();
@@ -23,6 +24,9 @@ const SuppliersPage = () => {
     const [supplierToDelete, setSupplierToDelete] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -35,14 +39,14 @@ const SuppliersPage = () => {
         setName('');
     };
 
-    const fetchSuppliers = async () => {
+    const fetchSuppliers = async (page = 1) => {
         try {
             setLoading(true);
         
-            const response = await SupplierService.getAll(navigate);
+            const response = await SupplierService.getPaginated({page, perPage: itemsPerPage}, navigate);
             const result = response.result
-        
-            const filteredSuppliers = result.map(supplier => {
+
+            const filteredSuppliers = result.data.map(supplier => {
                 const numericValue = supplier.cpf_cnpj.replace(/\D/g, '');
             
                 return {
@@ -54,6 +58,8 @@ const SuppliersPage = () => {
             });
             
             setSuppliers(filteredSuppliers);
+            setTotalPages(result.last_page);
+            setCurrentPage(result.current_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar fornecedores';
             setError(errorMessage);
@@ -176,7 +182,14 @@ const SuppliersPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={suppliers} actions={actions} />
+                    <DynamicTable 
+                        headers={headers} 
+                        data={suppliers} 
+                        actions={actions} 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchSuppliers}
+                    />
                 )}
 
             </div>

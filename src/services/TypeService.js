@@ -14,6 +14,19 @@ const TypeService = {
             return handleError(error, navigate); 
         }
     },
+    async getPaginated (data,navigate) {
+        try {
+            const response = await api.get("/products/types/pages", {params: {page:data.page, perPage: data.perPage}});
+            console.log(response)
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
 
     async create(data, navigate) {
         try {

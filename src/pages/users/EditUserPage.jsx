@@ -46,22 +46,47 @@ const EditUserPage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-        try {
-            await fetchUser();
+            setLoading(true); 
+            setMessage(null);
     
-            await fetchRoles();
+            try {
+                // Executa todas as requisições em paralelo
+                const [userResponse, rolesResponse, permissionsResponse, userPermissionsResponse] = await Promise.all([
+                    UserService.getById(id, navigate),              
+                    RoleService.getRoles(navigate),                
+                    PermissionService.getPermissions(),             
+                    PermissionService.getPermissionUser(id, navigate) 
+                ]);
     
-            await fetchPermissions();
+                const user = userResponse.result;
+                setFormData({
+                    name: user.name,
+                    username: user.username,
+                    email: user.email,
+                    password: '',
+                    password_confirmation: '',
+                });
     
-            await fetchUserPermissions();
+                setRoles(rolesResponse.result);
     
-        } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
-        }
+                const formattedPermissions = permissionsResponse.result.map(permission => ({
+                    value: permission.id,
+                    label: permission.name,
+                }));
+                setPermissions(formattedPermissions);
+    
+                const userPermissions = userPermissionsResponse.result;
+                setSelectedPermissions(userPermissions.map(permission => permission.id));
+            } catch (error) {
+                console.error('Erro ao carregar os dados:', error);
+                setMessage({ type: 'error', text: 'Erro ao carregar dados do usuário.' });
+            } finally {
+                setLoading(false); 
+            }
         };
     
         fetchData();
-    }, [id])
+    }, [id]);
 
     const fetchUserPermissions = async () => {
         try {

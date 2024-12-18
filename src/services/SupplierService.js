@@ -15,6 +15,19 @@ const SupplierService = {
         }
     },
 
+    async getPaginated (data,navigate) {
+        try {
+            const response = await api.get("/suppliers/pages", {params: {page:data.page, perPage: data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
+
     async create(data, navigate) {
         try {
             const response = await api.post("/suppliers", data);
@@ -54,6 +67,18 @@ const SupplierService = {
         }
     },
 
+    async paginatedSupplierAddress(id, data, navigate) {
+        try {
+            const response = await api.get(`/suppliers/${id}/addresses/pages`, {params: {page: data.page, perPage: data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
     async showSupplierAddress(id, addressesId, navigate) {
         try {
             const response = await api.get(`/suppliers/${id}/addresses/${addressesId}`);

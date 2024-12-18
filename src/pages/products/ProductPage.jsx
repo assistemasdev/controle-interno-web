@@ -11,6 +11,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../constants/pagination";
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
@@ -23,6 +24,9 @@ const ProductsPage = () => {
     const [productToDelete, setProductToDelete] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -35,12 +39,12 @@ const ProductsPage = () => {
         setName('');
     };
 
-    const fetchProducts = async () => {
+    const fetchProducts = async (page = 1) => {
         try {
             setLoading(true);
         
-            const response = await ProductService.getAll(navigate);
-            const result = response.result
+            const response = await ProductService.getPaginated({page, perPage: itemsPerPage}, navigate);
+            const result = response.result.data
         
             const filteredProducts = result.map(product => {            
                 return {
@@ -173,7 +177,14 @@ const ProductsPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={products} actions={actions} />
+                    <DynamicTable 
+                        headers={headers} 
+                        data={products} 
+                        actions={actions} 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchProducts}
+                    />
                 )}
 
             </div>

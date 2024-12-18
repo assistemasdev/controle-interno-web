@@ -9,7 +9,7 @@ import DynamicTable from "../../components/DynamicTable";
 import OrganizationService from "../../services/OrganizationService";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { faEdit, faEye  } from '@fortawesome/free-solid-svg-icons';
-
+import { PAGINATION } from "../../constants/pagination";
 const OrganizationPage = () => {
     const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
@@ -20,6 +20,9 @@ const OrganizationPage = () => {
     const [organizations, setOrganizations] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -32,7 +35,7 @@ const OrganizationPage = () => {
         setName('');
     };
 
-    const fetchOrganizations = async () => {
+    const fetchOrganizations = async (page = 1) => {
         try {
             setLoading(true);
         

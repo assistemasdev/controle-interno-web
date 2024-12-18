@@ -13,6 +13,7 @@ import { CircularProgress } from '@mui/material';
 import UserService from '../../services/UserService';
 import { useLocation } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
+import { PAGINATION } from '../../constants/pagination';
 
 const UsersPage = () => {
     const navigate = useNavigate();
@@ -27,6 +28,9 @@ const UsersPage = () => {
     const [openDeleteModal, setOpenDeleteModal] = useState(false);  
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -34,20 +38,22 @@ const UsersPage = () => {
         }
     }, [location.state]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = 1) => {
         try {
             setLoading(true);
 
-            const response = await UserService.getAll(navigate);
+            const response = await UserService.getPaginated({ page, perPage: itemsPerPage },navigate);
             const result = response.result
 
-            const filteredUsers = result.map(user => ({
+            const filteredUsers = result.data.map(user => ({
                 id: user.id,
                 name: user.name,
                 email: user.email,
             }));
             
             setUsers(filteredUsers);
+            setTotalPages(result.last_page);
+            setCurrentPage(result.current_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar usuários';
             setError(errorMessage);
@@ -175,7 +181,14 @@ const UsersPage = () => {
                     <MyAlert notTime={true} severity="error" message={error} />
                 </div>
                 ) : (
-                <DynamicTable headers={headers} data={users} actions={actions} />
+                <DynamicTable 
+                    headers={headers} 
+                    data={users} 
+                    actions={actions} 
+                    currentPage={currentPage} 
+                    totalPages={totalPages}
+                    onPageChange={fetchUsers} 
+                />
                 )}
                 
                 <ConfirmationModal

@@ -9,6 +9,7 @@ import DynamicTable from "../../components/DynamicTable";
 import ApplicationService from "../../services/ApplicationService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faBuilding  } from '@fortawesome/free-solid-svg-icons';
+import { PAGINATION } from "../../constants/pagination";
 
 const ApplicationPage = () => {
     const { canAccess } = usePermissions();
@@ -19,6 +20,10 @@ const ApplicationPage = () => {
     const [applications, setApplications] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+
 
     useEffect(() => {
     setMessage(null);
@@ -31,14 +36,14 @@ const ApplicationPage = () => {
         setName('');
     };
 
-    const fetchApplications = async () => {
+    const fetchApplications = async (page = 1) => {
         try {
             setLoading(true);
         
-            const response = await ApplicationService.getAll(navigate);
+            const response = await ApplicationService.getPaginated({ page, perPage: itemsPerPage },navigate);
             const result = response.result
         
-            const filteredApplications = result.map(application => ({
+            const filteredApplications = result.data.map(application => ({
                 id: application.id,
                 name: application.name,
                 sessionCode: application.session_code,
@@ -46,6 +51,8 @@ const ApplicationPage = () => {
             }));
             
             setApplications(filteredApplications);
+            setTotalPages(result.last_page);
+            setCurrentPage(result.current_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar aplicações';
             setError(errorMessage);
@@ -132,7 +139,14 @@ const ApplicationPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={applications} actions={actions} />
+                    <DynamicTable 
+                        headers={headers} 
+                        data={applications} 
+                        actions={actions} 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchApplications}
+                    />
                 )}
 
             </div>

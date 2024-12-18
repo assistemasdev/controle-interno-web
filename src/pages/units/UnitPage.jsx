@@ -10,6 +10,7 @@ import UnitService from "../../services/UnitService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faLink } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../constants/pagination";
 
 const UnitPage = () => {
     const { canAccess } = usePermissions();
@@ -22,6 +23,9 @@ const UnitPage = () => {
     const [types, setUnits] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -34,21 +38,23 @@ const UnitPage = () => {
         setName('');
     };
 
-    const fetchUnits = async () => {
+    const fetchUnits = async (page = 1) => {
         try {
             setLoading(true);
         
-            const response = await UnitService.getAll(navigate);
+            const response = await UnitService.getPaginated({page, perPage: itemsPerPage}, navigate);
 
             const result = response.result
         
-            const filteredUnits = result.map(unit => ({
+            const filteredUnits = result.data.map(unit => ({
                 id: unit.id,
                 name: unit.name,
                 abbreviation: unit.abbreviation
             }));
         
             setUnits(filteredUnits);
+            setCurrentPage(result.currentPage);
+            setTotalPages(result.last_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar unidades';
             setError(errorMessage);
@@ -164,7 +170,14 @@ const UnitPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={types} actions={actions} />
+                    <DynamicTable 
+                        headers={headers} 
+                        data={types} 
+                        actions={actions} 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchUnits}
+                    />
                 )}
 
                 <ConfirmationModal

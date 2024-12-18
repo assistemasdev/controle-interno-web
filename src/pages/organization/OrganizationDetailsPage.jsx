@@ -32,71 +32,48 @@ const OrganizationDetailsPage = () => {
     });
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchOrganization();
-                await fetchAddresses();
-                await fetchContacts();
-            } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
-            }
-        };
-
         fetchData();
     }, [organizationId]);
 
+    const fetchData = async () => {
+        setLoading(true);
+        setMessage(null);
 
-    const fetchAddresses = async () => {
         try {
-            const response = await OrganizationService.allOrganizationAddresses(organizationId, navigate);
-            const filteredAddress = response.result.map(address => ({
-                id: address.id,
-                zip: address.zip,
-                street: address.street,
-            }));
+            const [organizationResponse, addressesResponse, contactsResponse] = await Promise.all([
+                OrganizationService.getById(organizationId, navigate),
+                OrganizationService.allOrganizationAddresses(organizationId, navigate),
+                OrganizationService.allOrganizationContacts(organizationId, navigate)
+            ]);
 
-            setAddresses(filteredAddress);
-        } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao buscar os endereços' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchContacts = async () => {
-        try {
-            const response = await OrganizationService.allOrganizationContacts(organizationId, navigate);
-            const filteredContacts = response.result.map(contact => ({
-                id: contact.id,
-                name: `${contact.name || ''} ${contact.surname || ''}`,
-                number: `${contact.ddd || ''} ${contact.phone || ''}`,
-            }));
-
-            setContacts(filteredContacts);
-        } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao buscar os endereços' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchOrganization = async () => {
-        try {
-            const response = await OrganizationService.getById(organizationId, navigate);
-            const organization = response.result;
-
+            const organization = organizationResponse.result;
             setFormData({
                 name: organization.name || '',
                 color: organization.color || '',
                 active: organization.active ? 'Ativo' : 'Desativado' || '',
             });
+
+            const filteredAddresses = addressesResponse.result.map(address => ({
+                id: address.id,
+                zip: address.zip,
+                street: address.street,
+            }));
+            setAddresses(filteredAddresses);
+
+            const filteredContacts = contactsResponse.result.map(contact => ({
+                id: contact.id,
+                name: `${contact.name || ''} ${contact.surname || ''}`,
+                number: `${contact.ddd || ''} ${contact.phone || ''}`,
+            }));
+            setContacts(filteredContacts);
         } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao buscar os detalhes da organização' });
+            console.error('Erro ao carregar os dados:', error);
+            setMessage({ type: 'error', text: 'Erro ao carregar os dados da organização' });
         } finally {
             setLoading(false);
         }
     };
-
+    
     const handleDelete = (address) => {
         setAddressToDelete(address);
         setDeleteModalOpen(true);
@@ -112,7 +89,7 @@ const OrganizationDetailsPage = () => {
         try {
             await OrganizationService.deleteOrganizationAddress(organizationId, addressToDelete.id, navigate);
             setMessage({ type: 'success', text: 'Endereço excluído com sucesso' });
-            await fetchAddresses();
+            await fetchData();
         } catch (error) {
             setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
         } finally {
@@ -126,7 +103,7 @@ const OrganizationDetailsPage = () => {
         try {
             await OrganizationService.deleteOrganizationContact(organizationId, contactToDelete.id, navigate);
             setMessage({ type: 'success', text: 'Contato excluído com sucesso' });
-            await fetchContacts();
+            await fetchData();
         } catch (error) {
             setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
         } finally {

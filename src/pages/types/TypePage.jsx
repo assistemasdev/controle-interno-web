@@ -10,6 +10,7 @@ import TypeService from "../../services/TypeService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../constants/pagination";
 
 const TypePage = () => {
     const { canAccess } = usePermissions();
@@ -22,6 +23,9 @@ const TypePage = () => {
     const [types, setTypes] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -34,20 +38,20 @@ const TypePage = () => {
         setName('');
     };
 
-    const fetchTypes = async () => {
+    const fetchTypes = async (page = 1) => {
         try {
             setLoading(true);
-        
-            const response = await TypeService.getAll(navigate);
-
-            const result = response.result
-        
-            const filteredTypes = result.map(role => ({
-                id: role.id,
-                name: role.name
+            const response = await TypeService.getPaginated({ page, perPage: itemsPerPage }, navigate);
+            
+            const result = response.result;
+            const paginatedTypes = result.data.map(type => ({
+                id: type.id,
+                name: type.name,
             }));
-        
-            setTypes(filteredTypes);
+            
+            setTypes(paginatedTypes);
+            setTotalPages(result.last_page);
+            setCurrentPage(result.current_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar tipos';
             setError(errorMessage);
@@ -59,7 +63,7 @@ const TypePage = () => {
     
     useEffect(() => {
         fetchTypes();
-    }, []);
+    }, [itemsPerPage]);
 
     const handleEdit = (type) => {
         navigate(`/tipos/editar/${type.id}`);
@@ -163,8 +167,15 @@ const TypePage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={types} actions={actions} />
-                )}
+                        <DynamicTable 
+                            headers={headers} 
+                            data={types} 
+                            actions={actions} 
+                            currentPage={currentPage} 
+                            totalPages={totalPages}
+                            onPageChange={fetchTypes} 
+                        />
+                    )}
 
                 <ConfirmationModal
                     open={deleteModalOpen}

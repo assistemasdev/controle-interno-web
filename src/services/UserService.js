@@ -15,6 +15,19 @@ const UserService = {
         }
     },
 
+    async getPaginated (data,navigate) {
+        try {
+            const response = await api.get("/users/pages", {params: {page:data.page, perPage: data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
+
     async getById(id, navigate) {
         try {
             const response = await api.get(`/users/${id}`);

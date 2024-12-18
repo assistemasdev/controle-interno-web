@@ -10,6 +10,7 @@ import GroupService from "../../services/GroupService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../constants/pagination";
 
 const GroupPage = () => {
     const { canAccess } = usePermissions();
@@ -22,6 +23,9 @@ const GroupPage = () => {
     const [groups, setGroups] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -34,17 +38,19 @@ const GroupPage = () => {
         setName('');
     };
 
-    const fetchGroup = async () => {
+    const fetchGroup = async (page = 1) => {
         try {
             setLoading(true);
             
-            const response = await GroupService.getAll(navigate);
-            const filteredGroups = response.result.map(role => ({
+            const response = await GroupService.getPaginated({page, perPage: itemsPerPage},navigate);
+            const filteredGroups = response.result.data.map(role => ({
                 id: role.id,
                 name: role.name,
             }));
             
             setGroups(filteredGroups);
+            setCurrentPage(response.result.current_page);
+            setTotalPages(response.result.last_page);
         } catch (error) {
             setError(error.message || 'Erro ao carregar grupos');
             console.error("Erro capturado no fetchGroup:", error);
@@ -155,7 +161,14 @@ const GroupPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={groups} actions={actions} />
+                    <DynamicTable 
+                        headers={headers} 
+                        data={groups} 
+                        actions={actions} 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchGroup}
+                    />
                 )}
 
                 <ConfirmationModal
