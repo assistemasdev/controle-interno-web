@@ -214,7 +214,79 @@ const SupplierService = {
         } catch (error) {
             return handleError(error, navigate)
         }
-    }
+    },
+    async allSupplierLocation(id, idAddress, navigate) {
+        try {
+            const response = await api.get(`/suppliers/${id}/addresses/${idAddress}/locations`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async paginatedSupplierLocation(id, idAddress, data, navigate) {
+        try {
+            const response = await api.get(`/suppliers/${id}/addresses/${idAddress}/locations/pages`, {params: {page: data.page, perPage:data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async createSupplierLocation(id, idAddress, data, navigate) {
+        try {
+            const response = await api.post(`/suppliers/${id}/addresses/${idAddress}/locations`, data);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async showSupplierLocation(id, idAddress, idLocation, navigate) {
+        try {
+            const response = await api.get(`/suppliers/${id}/addresses/${idAddress}/locations/${idLocation}`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+    async updateSupplierLocation(id, idAddress, idLocation, data, navigate) {
+        try {
+            const response = await api.put(`/suppliers/${id}/addresses/${idAddress}/locations/${idLocation}`, data);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },    
+    async deleteSupplierLocation(id, idAddress, idLocation, navigate) {
+        try {
+            const response = await api.delete(`/suppliers/${id}/addresses/${idAddress}/locations/${idLocation}`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
 };
 
 export default SupplierService;

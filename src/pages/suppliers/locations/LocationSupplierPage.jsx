@@ -6,13 +6,13 @@ import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
 import { CircularProgress } from "@mui/material";
 import DynamicTable from "../../../components/DynamicTable";
-import CustomerService from "../../../services/CustomerService";
+import SupplierService from "../../../services/SupplierService";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 
-const LocationCustomerPage = () => {
+const LocationSupplierPage = () => {
     const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
@@ -43,7 +43,7 @@ const LocationCustomerPage = () => {
         try {
             setLoading(true);
 
-            const response = await CustomerService.paginatedCustomerLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
+            const response = await SupplierService.paginatedSupplierLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
             const result = response.result;
 
             const formattedLocations = result.data.map((loc) => ({
@@ -69,11 +69,11 @@ const LocationCustomerPage = () => {
     }, []);
 
     const handleEdit = (location) => {
-        navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes/editar/${location.id}`);
+        navigate(`/fornecedores/detalhes/${id}/enderecos/${addressId}/localizacoes/editar/${location.id}`);
     };
 
     const handleDetails = (location) => {
-        navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes/detalhes/${location.id}`);
+        navigate(`/fornecedores/detalhes/${id}/enderecos/${addressId}/localizacoes/detalhes/${location.id}`);
     };
 
     const handleDelete = (location) => {
@@ -83,7 +83,7 @@ const LocationCustomerPage = () => {
 
     const confirmDelete = async () => {
         try {
-            await CustomerService.deleteCustomerLocation(
+            await SupplierService.deleteSupplierLocation(
                 id,
                 addressId,
                 locationToDelete.id
@@ -112,7 +112,7 @@ const LocationCustomerPage = () => {
             icon: faEye,
             title: "Ver Detalhes",
             buttonClass: "btn-info",
-            permission: "Ver endereços de clientes",
+            permission: "Ver endereços de fornecedores",
             onClick: handleDetails,
         },
         {
@@ -128,7 +128,7 @@ const LocationCustomerPage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Localizações do Cliente
+                    Localizações do Fornecedor
                 </div>
 
                 <form
@@ -177,7 +177,7 @@ const LocationCustomerPage = () => {
                         <Button
                             text="Nova Localização"
                             className="btn btn-blue-light fw-semibold"
-                            link={`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes/adicionar`}
+                            link={`/fornecedores/detalhes/${id}/enderecos/${addressId}/localizacoes/adicionar`}
                         />
                     )}
                 </div>
@@ -213,4 +213,4 @@ const LocationCustomerPage = () => {
     );
 };
 
-export default LocationCustomerPage;
+export default LocationSupplierPage;

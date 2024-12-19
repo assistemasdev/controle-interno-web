@@ -263,9 +263,9 @@ const CustomerService = {
             return handleError(error, navigate)
         }
     },    
-    async deleteOrganizationLocation(id, idAddress, idLocation, navigate) {
+    async deleteCustomerLocation(id, idAddress, idLocation, navigate) {
         try {
-            const response = await api.delete(`/organizations/${id}/addresses/${idAddress}/locations/${idLocation}`);
+            const response = await api.delete(`/customers/${id}/addresses/${idAddress}/locations/${idLocation}`);
             return {
                 message: response.data.message,
                 result: response.data.result,

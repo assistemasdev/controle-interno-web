@@ -9,7 +9,7 @@ import MyAlert from '../../components/MyAlert';
 import SupplierService from '../../services/SupplierService';
 import { maskCpfCnpj, maskCep } from '../../utils/maskUtils';
 import DynamicTable from '../../components/DynamicTable';
-import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faMapMarkerAlt  } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
@@ -193,6 +193,10 @@ const SupplierDetailsPage = () => {
         setDeleteModalOpen(true);
     };
 
+    const handleViewLocations = (address) => {
+        navigate(`/fornecedores/detalhes/${id}/enderecos/${address.id}/localizacoes`);
+    };
+
     const confirmDeleteContacts = async () => {
         setLoading(true);
         try {
@@ -252,7 +256,14 @@ const SupplierDetailsPage = () => {
             buttonClass: 'btn-info',
             permission: 'Ver endereços de fornecedores', 
             onClick: handleViewDetails 
-        }
+        },
+        {
+            icon: faMapMarkerAlt, 
+            title: 'Ver Localizações',
+            buttonClass: 'btn-warning',
+            permission: 'Listar localizações de clientes', 
+            onClick: handleViewLocations, 
+        },
     ];
 
     const headersContacts = ['ID', 'Responsável', 'Contato'];

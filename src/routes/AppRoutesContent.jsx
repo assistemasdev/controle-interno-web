@@ -94,6 +94,10 @@ import LocationCustomerPage from "../pages/costumer/locations/LocationCustomerPa
 import CreateCustomerLocationPage from "../pages/costumer/locations/CreateCustomerLocationPage";
 import EditCustomerLocationPage from "../pages/costumer/locations/EditCustomerLocationPage";
 import DetailsCustomerLocationPage from "../pages/costumer/locations/DetailsOrganizationLocationPage";
+import LocationSupplierPage from "../pages/suppliers/locations/LocationSupplierPage";
+import CreateSupplierLocationPage from "../pages/suppliers/locations/CreateSupplierLocationPage";
+import EditSupplierLocationPage from "../pages/suppliers/locations/EditCustomerLocationPage";
+import DetailsSupplierLocationPage from "../pages/suppliers/locations/DetailsSupplierLocationPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -247,7 +251,24 @@ const AppRoutesContent = () => {
         {
             path: "/fornecedores/:supplierId/contato/editar/:contactId",
             element: <PrivateRoute element={EditSupplierContactPage}/>
-        }
+        },
+        ,
+        {
+            path: "/fornecedores/detalhes/:id/enderecos/:addressId/localizacoes",
+            element: <PrivateRoute element={LocationSupplierPage} />,
+        },
+        {
+            path: "/fornecedores/detalhes/:id/enderecos/:addressId/localizacoes/adicionar",
+            element: <PrivateRoute element={CreateSupplierLocationPage} />,
+        },
+        {
+            path: "/fornecedores/detalhes/:id/enderecos/:addressId/localizacoes/editar/:locationId",
+            element: <PrivateRoute element={EditSupplierLocationPage} />,
+        },
+        {
+            path: "/fornecedores/detalhes/:id/enderecos/:addressId/localizacoes/detalhes/:locationId",
+            element: <PrivateRoute element={DetailsSupplierLocationPage} />,
+        },
 
     ];
 
