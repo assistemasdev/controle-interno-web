@@ -32,6 +32,9 @@ const UsersPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [usersFilters,setUsersFilters] = useState([]);
+    const [selectedUsers, setSelectedUsers] = useState([]);
+    const [textFilter, setTextFilter] = useState([]);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -39,11 +42,11 @@ const UsersPage = () => {
         }
     }, [location.state]);
 
-    const fetchUsers = async (page = 1) => {
+    const fetchUsers = async (ids, text ,page = 1) => {
         try {
             setLoading(true);
 
-            const response = await UserService.getPaginated({ page, perPage: itemsPerPage },navigate);
+            const response = await UserService.getPaginated({ name:text, ids, page, perPage: itemsPerPage },navigate);
             const result = response.result
 
             const filteredUsers = result.data.map(user => ({
@@ -70,12 +73,64 @@ const UsersPage = () => {
 
     const handleFilter = (e) => {
         e.preventDefault();
-        console.log('Filtros aplicados', { name, email });
+        fetchUsers(
+            selectedUsers.filter((user) => user.textFilter == false).map(user => (user.value)),
+            selectedUsers.filter((user) => user.textFilter == true).map(user => (user.value))
+        );
     };
 
-    const handleClearFilters = () => {
-        setName('');
-        setEmail('');
+    const handleChangeFilter = (selectedOptions) => {
+        setSelectedUsers(selectedOptions);
+        setTextFilter();
+    }
+
+    const handleInputChange = (value) => {
+        try {
+            setTextFilter(value);
+            fetchUserAutocomplete(value);
+        } catch (error) {
+            console.log(error)
+            setErrorMessage('Erro ao pesquisar pelo o usuário');
+        }
+    }
+
+    const handleBlur = () => {
+        if (textFilter && !selectedUsers.some(user => user.label === textFilter)) {
+            setSelectedUsers([
+                ...selectedUsers,
+                { textFilter: true,value: textFilter, label: textFilter }, 
+            ]);
+        }
+        setTextFilter(''); 
+    };
+    
+    const fetchUserAutocomplete = async (user) => {
+        try {
+            if(user.length > 0) {
+                const response = await UserService.autocomplete({user}, navigate);
+                const filteredUsers = response.result.map((user) => ({
+                    textFilter: false,
+                    value: user.id,
+                    label: user.name
+                }));
+
+                setUsersFilters(filteredUsers)
+            }
+
+            if(user.length == 0) {
+                setUsersFilters([])
+            }
+        } catch (error) {
+            console.log(error)
+            setErrorMessage('Erro ao pesquisar pelo o usuário');
+        }    
+    }
+
+    const handleClearFilters = (e) => {
+        e.preventDefault();
+        setSelectedUsers([]);
+        setTextFilter('');
+        setUsersFilters([]);
     };
 
     const handleEdit = (user) => {
@@ -126,31 +181,34 @@ const UsersPage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                Usuários
+                    Usuários
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilter}>
-                {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
-                {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
+                    {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
+                    {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
 
-                    <div className="form-group col-md-12">
-                        <label htmlFor="address_id" className='text-dark font-weight-bold mt-1'>Busca:</label>
-                            <Select
-                                name="address_id"
-                                options={[]} 
-                                className={`basic-multi-select`}
-                                classNamePrefix="select"
-                                value={1}
-                                onChange={() => console.log('oi')}
-                                noOptionsMessage={() => "Nenhum usuário encontrado"}
-                                placeholder="Filtre os usuários"
-                            />
+                        <div className="form-group col-md-12">
+                            <label htmlFor="address_id" className='text-dark font-weight-bold mt-1'>Busca:</label>
+                                <Select
+                                    isMulti
+                                    name="address_id"
+                                    options={usersFilters} 
+                                    className={`basic-multi-select`}
+                                    classNamePrefix="select"
+                                    value={selectedUsers}
+                                    onInputChange={handleInputChange}
+                                    onChange={handleChangeFilter}
+                                    onBlur={handleBlur}
+                                    noOptionsMessage={() => "Nenhum usuário encontrado"}
+                                    placeholder="Filtre os usuários"
+                                />
+                        </div>
+
+                    <div className="form-group gap-2">
+                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
+                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
-
-                <div className="form-group gap-2">
-                    <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                    <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                </div>
                 </form>
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">

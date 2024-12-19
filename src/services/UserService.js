@@ -17,7 +17,7 @@ const UserService = {
 
     async getPaginated (data,navigate) {
         try {
-            const response = await api.get("/users/pages", {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get("/users/search", {params: {id: data.ids, name:data.name, page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -79,6 +79,19 @@ const UserService = {
             return handleError(error, navigate); 
         }
     },
+
+    async autocomplete(data, navigate) {
+        try {
+            const response = await api.get("/users/autocomplete", {params: {name: data.user}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    }
 };
 
 export default UserService;
