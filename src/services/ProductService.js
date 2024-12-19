@@ -17,7 +17,7 @@ const ProductService = {
 
     async getPaginated (data,navigate) {
         try {
-            const response = await api.get("/products/pages", {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get("/products/search", {params: {page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,

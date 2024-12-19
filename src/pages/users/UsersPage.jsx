@@ -35,7 +35,7 @@ const UsersPage = () => {
     const [usersFilters,setUsersFilters] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [textFilter, setTextFilter] = useState([]);
-
+    const [inputValue, setInputValue] = useState();
     useEffect(() => {
         if (location.state?.message) {
         setErrorMessage(location.state.message);
@@ -84,7 +84,7 @@ const UsersPage = () => {
         setTextFilter();
     }
 
-    const handleInputChange = (value) => {
+    const handleInputChange = (value, { action }) => {
         try {
             setTextFilter(value);
             fetchUserAutocomplete(value);
@@ -142,6 +142,20 @@ const UsersPage = () => {
         setOpenDeleteModal(true);  
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && textFilter) {
+            if (!selectedUsers.some(user => user.label === textFilter)) {
+                setSelectedUsers([
+                    ...selectedUsers,
+                    { textFilter: true, value: textFilter, label: textFilter }, 
+                ]);
+            }
+            setTextFilter(''); 
+            setInputValue('');
+            e.preventDefault();
+        }
+    };
+    
     const handleConfirmDelete = async (id) => {
         try {
             await api.delete(`/users/${id}`);
@@ -196,10 +210,12 @@ const UsersPage = () => {
                                     options={usersFilters} 
                                     className={`basic-multi-select`}
                                     classNamePrefix="select"
+                                    inputValue={inputValue}
                                     value={selectedUsers}
                                     onInputChange={handleInputChange}
                                     onChange={handleChangeFilter}
                                     onBlur={handleBlur}
+                                    onKeyDown={handleKeyDown}
                                     noOptionsMessage={() => "Nenhum usuário encontrado"}
                                     placeholder="Filtre os usuários"
                                 />
