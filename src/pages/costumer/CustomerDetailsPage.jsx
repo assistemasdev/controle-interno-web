@@ -145,7 +145,7 @@ const CustomerDetailsPage = () => {
             icon: faMapMarkerAlt, 
             title: 'Ver Localizações',
             buttonClass: 'btn-warning',
-            permission: 'Listar endereços de organizações', 
+            permission: 'Listar localizações de clientes', 
             onClick: handleViewLocations, 
         },
     ];

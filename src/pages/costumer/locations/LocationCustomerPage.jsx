@@ -10,6 +10,7 @@ import CustomerService from "../../../services/CustomerService";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../../constants/pagination";
 
 const LocationCustomerPage = () => {
     const { canAccess } = usePermissions();
@@ -23,6 +24,9 @@ const LocationCustomerPage = () => {
     const location = useLocation();
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [locationToDelete, setLocationToDelete] = useState(null);
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -35,14 +39,14 @@ const LocationCustomerPage = () => {
         setName('');
     };
 
-    const fetchLocations = async () => {
+    const fetchLocations = async (page = 1) => {
         try {
             setLoading(true);
 
-            const response = await CustomerService.allCustomerLocation(id, addressId, navigate);
+            const response = await CustomerService.paginatedCustomerLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
             const result = response.result;
 
-            const formattedLocations = result.map((loc) => ({
+            const formattedLocations = result.data.map((loc) => ({
                 id: loc.id,
                 area: loc.area,
                 section: loc.section,
@@ -50,6 +54,8 @@ const LocationCustomerPage = () => {
             }));
 
             setLocations(formattedLocations);
+            setTotalPages(result.last_page);
+            setCurrentPage(result.current_page);
         } catch (error) {
             setError("Erro ao carregar localizações");
             console.error(error);
@@ -185,7 +191,14 @@ const LocationCustomerPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                 ) : (
-                    <DynamicTable headers={headers} data={locations} actions={actions} />
+                    <DynamicTable 
+                        headers={headers} 
+                        data={locations} 
+                        actions={actions}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchLocations}
+                    />
                 )}
             </div>
 
