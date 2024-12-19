@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox  } from '@fortawesome/free-solid-svg-icons';
+import { faUsers,faUserFriends, faUserTag , faChevronDown, faChevronRight, faDesktop, faHome, faUser, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox  } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { useSideBar } from '../hooks/useSideBar';
 import MenuItem from '../components/MenuItem';
 import { useAuth } from '../hooks/useAuth';
+
 const Sidebar = () => {
     const { selectedOrgan } = useOrgan();
     const { user } = useAuth();
@@ -120,6 +121,22 @@ const Sidebar = () => {
                             name: 'Página Inicial',
                             to: `/produtos/`,
                             requiredPermission: 'Listar produtos',
+                            icon: faHome
+                        }
+                    ]
+                },
+                {
+                    name: 'Clientes',
+                    icon: faUsers,
+                    to: '/customer',
+                    href: "collapseCostumer",
+                    dropdown: "costumer",
+                    isCollapsed: isCollapsed,
+                    children: [
+                        {
+                            name: 'Página Inicial',
+                            to: `/clientes/`,
+                            requiredPermission: 'Listar clientes',
                             icon: faHome
                         }
                     ]

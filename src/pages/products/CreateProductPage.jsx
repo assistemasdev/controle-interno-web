@@ -135,77 +135,6 @@ const CreateProductPage = () => {
         }
     };
 
-    const fetchOrganizations = async () => {
-        try {
-            const response = await OrganizationService.getAll(navigate);
-            const organizationsFormated = response.result.map(organization => ({value: organization.id, label: organization.name}))
-            setOrganizations(
-                organizationsFormated
-            );
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar organizações';
-            setMessage({type:'error', text:errorMessage});
-            console.error("Erro capturado no fetchOrganizations:", error);
-        }
-    }
-
-    const fetchCategory = async () => {
-        try {
-            const response = await CategoryService.getAll(navigate);
-            const categoryFormated = response.result.map(category => ({value: category.id, label: category.name}))
-            setCategories(
-                categoryFormated
-            );
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar categorias';
-            setMessage({type:'error', text:errorMessage});
-            console.error("Erro capturado no fetchCategories:", error);
-        }
-    }
-
-    const fetchCondition = async () => {
-        try {
-            const response = await ConditionService.getAll(navigate);
-            const conditionsFormated = response.result.map(condition => ({value: condition.id, label: condition.name}))
-            setConditions(
-                conditionsFormated
-            );
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar condições';
-            setMessage({type:'error', text:errorMessage});
-            console.error("Erro capturado no fetchConditions:", error);
-        }
-    }
-
-
-    const fetchSuppliers = async () => {
-        try {
-            const response = await SupplierService.getAll(navigate);
-            const suppliersFormated = response.result.map(supplier => ({value: supplier.id, label: supplier.name}))
-            setSuppliers(
-                suppliersFormated
-            );
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar fornecedores';
-            setMessage({type:'error', text:errorMessage});
-            console.error("Erro capturado no fetchSuppliers:", error);
-        }
-    }
-
-    const fetchGroups = async () => {
-        try {
-            const response = await GroupService.getAll(navigate);
-            const groupsFormated = response.result.map(group => ({value: group.id, label: group.name}))
-            setGroups(
-                groupsFormated
-            );
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar grupos';
-            setMessage({type:'error', text:errorMessage});
-            console.error("Erro capturado no fetchGroups:", error);
-        }
-    }
-
     const fetchAddresses = async (organizationId) => {
         try {
             const response = await OrganizationService.allOrganizationAddresses(organizationId, navigate);
@@ -234,20 +163,6 @@ const CreateProductPage = () => {
         }
     };
 
-    const fetchTypes = async () => {
-        try {
-            const response = await TypeService.getAll(navigate);
-            const typesFormated = response.result.map(type => ({value: type.id, label: type.name}))
-            setTypes(
-                typesFormated
-            );
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar tipos';
-            setMessage({type:'error', text:errorMessage});
-            console.error("Erro capturado no fetchTypes:", error);
-        }
-    }
-    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setFormErrors({});

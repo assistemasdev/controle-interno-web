@@ -81,6 +81,19 @@ import EditOrganizationLocationPage from "../pages/organization/locations/EditOr
 import DetailsOrganizationLocationPage from "../pages/organization/locations/DetailsOrganizationLocationPage";
 import CreateSupplierContactPage from "../pages/suppliers/contact/CreateSupplierContactPage";
 import EditSupplierContactPage from "../pages/suppliers/contact/EditSupplierContactPage";
+import CostumerPage from "../pages/costumer/CostumerPage";
+import CreateCustomerPage from "../pages/costumer/CreateCostumerPage";
+import EditCustomerPage from "../pages/costumer/EditCustomerPage";
+import CustomerDetailsPage from "../pages/costumer/CustomerDetailsPage";
+import CostumerAddressDetailsPage from "../pages/costumer/address/CostumerAddressDetailsPage";
+import EditCustomerAddressPage from "../pages/costumer/address/EditCustomerAddressPage";
+import EditCustomerContactPage from "../pages/costumer/contact/EditCustomerContactPage";
+import CreateCustomerContactPage from "../pages/costumer/contact/CreateCustomerContactPage";
+import CreateCustomerAddressPage from "../pages/costumer/address/CreateCustomerAddressPage";
+import LocationCustomerPage from "../pages/costumer/locations/LocationCustomerPage";
+import CreateCustomerLocationPage from "../pages/costumer/locations/CreateCustomerLocationPage";
+import EditCustomerLocationPage from "../pages/costumer/locations/EditCustomerLocationPage";
+import DetailsCustomerLocationPage from "../pages/costumer/locations/DetailsOrganizationLocationPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -356,6 +369,64 @@ const AppRoutesContent = () => {
         },
     ];
 
+    const costumersRoutes = [
+        {
+            path: "/clientes",
+            element: <PrivateRoute element={CostumerPage} />,
+        },
+        {
+            path: "/clientes/criar",
+            element: <PrivateRoute element={CreateCustomerPage} />,
+        },
+        {
+            path: "/clientes/editar/:id",
+            element: <PrivateRoute element={EditCustomerPage}/>
+        },
+        {
+            path: "/clientes/detalhes/:id",
+            element: <PrivateRoute element={CustomerDetailsPage}/>
+        },
+        {
+            path: "/clientes/:id/endereco/editar/:addressId",
+            element: <PrivateRoute element={EditCustomerAddressPage}/>
+        },
+        {
+            path: "/clientes/:id/endereco/:addressId/detalhes",
+            element: <PrivateRoute element={CostumerAddressDetailsPage}/>
+        },
+        {
+            path: "/clientes/:id/endereco/adicionar",
+            element: <PrivateRoute element={CreateCustomerAddressPage}/>
+        },
+        {
+            path: "/clientes/:id/contato/adicionar",
+            element: <PrivateRoute element={CreateCustomerContactPage}/>
+        },
+        {
+            path: "/clientes/:id/contato/editar/:contactId",
+            element: <PrivateRoute element={EditCustomerContactPage}/>
+        },
+        {
+            path: "/clientes/detalhes/:id/enderecos/:addressId/localizacoes",
+            element: <PrivateRoute element={LocationCustomerPage} />,
+        },
+        {
+            path: "/clientes/detalhes/:id/enderecos/:addressId/localizacoes/adicionar",
+            element: <PrivateRoute element={CreateCustomerLocationPage} />,
+        },
+        {
+            path: "/clientes/detalhes/:id/enderecos/:addressId/localizacoes/editar/:locationId",
+            element: <PrivateRoute element={EditCustomerLocationPage} />,
+        },
+        {
+            path: "/clientes/detalhes/:id/enderecos/:addressId/localizacoes/detalhes/:locationId",
+            element: <PrivateRoute element={DetailsCustomerLocationPage} />,
+        },
+
+
+    ];
+
+
     return (
         <TransitionGroup component={null}>
             <CSSTransition key={location.key} classNames="page-transition" timeout={500}>
@@ -405,6 +476,10 @@ const AppRoutesContent = () => {
                 ))}
 
                 {productsRoutes.map((route, index) => (
+                    <Route key={index} path={route.path} element={route.element} />
+                ))}
+
+                {costumersRoutes.map((route, index) => (
                     <Route key={index} path={route.path} element={route.element} />
                 ))}
                 

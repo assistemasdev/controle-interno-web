@@ -14,6 +14,7 @@ import UserService from '../../services/UserService';
 import { useLocation } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
+import Select from 'react-select';  
 
 const UsersPage = () => {
     const navigate = useNavigate();
@@ -132,26 +133,20 @@ const UsersPage = () => {
                 {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
                 {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
 
-                    <div className="form-group col-md-6">
-                    <InputField
-                        label="Nome do usuário:"
-                        type="text"
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Digite o nome do usuário"
-                    />
+                    <div className="form-group col-md-12">
+                        <label htmlFor="address_id" className='text-dark font-weight-bold mt-1'>Busca:</label>
+                            <Select
+                                name="address_id"
+                                options={[]} 
+                                className={`basic-multi-select`}
+                                classNamePrefix="select"
+                                value={1}
+                                onChange={() => console.log('oi')}
+                                noOptionsMessage={() => "Nenhum usuário encontrado"}
+                                placeholder="Filtre os usuários"
+                            />
                     </div>
-                    <div className="form-group col-md-6">
-                    <InputField
-                        label="E-mail do usuário:"
-                        type="text"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Digite o e-mail do usuário"
-                    />
-                    </div>
+
                 <div className="form-group gap-2">
                     <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
                     <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
