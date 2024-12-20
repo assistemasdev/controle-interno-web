@@ -12,6 +12,7 @@ import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import Select from 'react-select';  
+import { removeDuplicatesWithPriority } from "../../utils/arrayUtils";
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
@@ -126,22 +127,19 @@ const ProductsPage = () => {
         try {
             if(number.length > 0) {
                 const response = await ProductService.autocomplete({number}, navigate);
-                const filteredProducts = [
-                    { numberFilter: true, value: number, label: number },
-                    ...response.result.map((product) => ({
-                        numberFilter: false,
-                        value: product.id,
-                        label: product.number,
-                    })),
-                ].reduce((acc, product) => {
-                    const existingProduct = acc.find((item) => item.label === product.label);
-                    
-                    if (!existingProduct || product.numberFilter === false) {
-                        return acc.filter((item) => item.label != product.label).concat(product);
-                    }
-                
-                    return acc;
-                }, []);
+                const filteredProducts = removeDuplicatesWithPriority(
+                    [
+                        { numberFilter: true, value: number, label: number },
+                        ...response.result.map((product) => ({
+                            numberFilter: false,
+                            value: product.id,
+                            label: product.number,
+                        })),
+                    ],
+                    'label',
+                    'numberFilter'
+                )
+
                 setProductsOptions(filteredProducts);
             }
 
