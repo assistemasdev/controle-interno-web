@@ -1,10 +1,10 @@
 import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
 
-const ProductService = {
+const StatusService = {
     async getAll(navigate) {
         try {
-            const response = await api.get("/products");
+            const response = await api.get("/products/status");
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -14,23 +14,10 @@ const ProductService = {
             return handleError(error, navigate); 
         }
     },
-
     async getPaginated (data,navigate) {
         try {
-            const response = await api.get("/products/search", {params: {id:data.ids,number:data.number,page:data.page, perPage: data.perPage}});
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async autocomplete (data,navigate) {
-        try {
-            const response = await api.get("/products/autocomplete", {params: {number:data.number,page:data.page, perPage: data.perPage}});
+            const response = await api.get("/products/status/pages", {params: {page:data.page, perPage: data.perPage}});
+            console.log(response)
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -43,7 +30,7 @@ const ProductService = {
 
     async create(data, navigate) {
         try {
-            const response = await api.post("/products", data);
+            const response = await api.post("/products/status", data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -56,20 +43,7 @@ const ProductService = {
 
     async getById(id, navigate) {
         try {
-            const response = await api.get(`/products/${id}`);
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async getProductGroupsById(id, navigate) {
-        try {
-            const response = await api.get(`/products/${id}/groups`);
+            const response = await api.get(`/products/status/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -82,7 +56,7 @@ const ProductService = {
 
     async update(id, data, navigate) {
         try {
-            const response = await api.put(`/products/${id}`, data);
+            const response = await api.put(`/products/status/${id}`, data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -95,7 +69,7 @@ const ProductService = {
 
     async delete(id, navigate) {
         try {
-            const response = await api.delete(`/products/${id}`);
+            const response = await api.delete(`/products/status/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -107,4 +81,4 @@ const ProductService = {
     }
 };
 
-export default ProductService;
+export default StatusService;

@@ -92,14 +92,12 @@ const AttachGroupToTypePage = () => {
                 setObserver(true);
                 return;
             }
-        
-            if (status === 422 && data) {
-                setMessage({ type: 'error', text: data.group_id[0] });
+            
+        } catch (error) {
+            if (error.status === 422 && error.data) {
+                setMessage({ type: 'error', text: error.data.groups[0] });
                 return;
             }
-        
-            setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
-        } catch (error) {
             setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
         }
     };

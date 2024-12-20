@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import MyAlert from "../../components/MyAlert";
-import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
 import ProductService from "../../services/ProductService";
+import StatusService from "../../services/StatusService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
@@ -18,11 +18,11 @@ const ProductsPage = () => {
     const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
-    const [name, setName] = useState('');
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
+    const [statusOptions, setStatusOptions] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
     const [inputNumberValue, setInputNumberValue] = useState();
@@ -39,38 +39,42 @@ const ProductsPage = () => {
             setMessage({type:location.state.type, text: location.state.message});
         }
     }, [location.state]); 
-    
-    const handleClearFilters = () => {
-        setName('');
-    };
 
-    const fetchProducts = async (ids, number,page = 1) => {
+    const fetchData = async (ids, number, page = 1) => {
         try {
             setLoading(true);
-        
-            const response = await ProductService.getPaginated({number, ids, page, perPage: itemsPerPage}, navigate);
-            const result = response.result.data
-        
+            const [statusResponse, productsResponse] = await Promise.all([
+                StatusService.getAll(),
+                ProductService.getPaginated({number, ids, page, perPage: itemsPerPage}, navigate)
+            ]);
+
+            const statusMap = Object.fromEntries(
+                statusResponse.result.map(status => [status.id, status.name])
+            );
+            setStatusOptions(statusMap);
+
+            const result = productsResponse.result.data;
             const filteredProducts = result.map(product => {            
                 return {
                     id: product.id,
                     name: product.name,
                     number: product.number,
+                    status: statusMap[product.status_id] || 'N/A'
                 };
             });
-            
+
             setProducts(filteredProducts);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar produtos';
             setError(errorMessage);
-            console.error("Erro capturado no fetchProducts:", error);
+            console.error("Erro capturado no fetchData:", error);
         } finally {
             setLoading(false);
         }
     };
-    
+
     useEffect(() => {
-        fetchProducts();
+        fetchData();
     }, []);
 
     const handleEdit = (product) => {
@@ -117,7 +121,7 @@ const ProductsPage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-        fetchProducts(
+        fetchData(
             selectedProducts.filter((product) => product.numberFilter == false).map(product => (product.value)),
             selectedProducts.filter((product) => product.numberFilter == true).map(product => (product.value))
         )
@@ -152,6 +156,12 @@ const ProductsPage = () => {
         }    
     }
 
+    const handleClearFilters = (e) => {
+        e.preventDefault();
+        setSelectedProducts('');
+        setNumberFilter('');
+    }
+
     const confirmDelete = async () => {
         try {
             setLoading(true);
@@ -159,16 +169,15 @@ const ProductsPage = () => {
 
             if (response.status === 200) {
                 setMessage({ type: 'success', text: response.message });
-                fetchProducts();
-                return
-            }
-
-            if(response.status == 404 || response.status == 400) {
-                setMessage({ type: 'error', text: response.message });
+                fetchData();
                 return
             }
         } catch (error) {
-            setError('Erro ao excluir o fornecedor');
+            if(error.status == 404 || error.status == 400) {
+                setMessage({ type: 'error', text: error.message });
+                return
+            }
+            setError('Erro ao excluir o produto');
             console.error(error);
         } finally {
             setDeleteModalOpen(false);
@@ -176,7 +185,7 @@ const ProductsPage = () => {
         }
     };
 
-    const headers = ['id', 'Nome', 'Número'];
+    const headers = ['id', 'Nome', 'Número', 'Status'];
 
     const actions = [
         {
@@ -188,7 +197,7 @@ const ProductsPage = () => {
         },
         {
             icon: faTrash,
-            title: 'Excluir Fornecedor',
+            title: 'Excluir Produtos',
             buttonClass: 'btn-danger',
             permission: 'Excluir produtos',
             onClick: handleDelete
@@ -261,7 +270,7 @@ const ProductsPage = () => {
                         actions={actions} 
                         currentPage={currentPage}
                         totalPages={totalPages}
-                        onPageChange={fetchProducts}
+                        onPageChange={fetchData}
                     />
                 )}
 

@@ -98,6 +98,8 @@ import LocationSupplierPage from "../pages/suppliers/locations/LocationSupplierP
 import CreateSupplierLocationPage from "../pages/suppliers/locations/CreateSupplierLocationPage";
 import EditSupplierLocationPage from "../pages/suppliers/locations/EditCustomerLocationPage";
 import DetailsSupplierLocationPage from "../pages/suppliers/locations/DetailsSupplierLocationPage";
+import EditProductPage from "../pages/products/EditProductPage";
+import DetailsProductPage from "../pages/products/DetailsProductPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -374,8 +376,12 @@ const AppRoutesContent = () => {
             element: <PrivateRoute element={CreateProductPage} />,
         },
         {
-            path: "/categorias/editar/:id",
-            element: <PrivateRoute element={EditCategoryPage}/>
+            path: "/produtos/editar/:id",
+            element: <PrivateRoute element={EditProductPage}/>
+        },
+        {
+            path: "/produtos/detalhes/:id",
+            element: <PrivateRoute element={DetailsProductPage}/>
         }
     ];
 

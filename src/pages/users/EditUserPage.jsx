@@ -50,7 +50,6 @@ const EditUserPage = () => {
             setMessage(null);
     
             try {
-                // Executa todas as requisições em paralelo
                 const [userResponse, rolesResponse, permissionsResponse, userPermissionsResponse] = await Promise.all([
                     UserService.getById(id, navigate),              
                     RoleService.getRoles(navigate),                
