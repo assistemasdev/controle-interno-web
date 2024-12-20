@@ -14,7 +14,7 @@ import { useLocation } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
 import Select from 'react-select';  
-
+import { removeDuplicatesWithPriority } from '../../utils/arrayUtils';
 const UsersPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -73,11 +73,10 @@ const UsersPage = () => {
 
     const handleFilter = (e) => {
         e.preventDefault();
-        console.log(selectedUser)
-        // fetchUsers(
-        //     selectedUsers.filter((user) => user.textFilter == false).map(user => (user.value)),
-        //     selectedUsers.filter((user) => user.textFilter == true).map(user => (user.value))
-        // );
+        fetchUsers(
+            selectedUsers.filter((user) => user.textFilter == false).map(user => (user.value)),
+            selectedUsers.filter((user) => user.textFilter == true).map(user => (user.value))
+        );
     };
 
     const handleChangeFilter = (selectedOptions) => {
@@ -94,7 +93,6 @@ const UsersPage = () => {
 
             if (action === 'input-change') {
                 setTextFilter(value);
-                setUsersFilters([{textFilter:true, value: value, label: value}])
                 setInputValue(value)
                 fetchUserAutocomplete(value);
             }
@@ -119,19 +117,20 @@ const UsersPage = () => {
         try {
             if(user.length > 0) {
                 const response = await UserService.autocomplete({user}, navigate);
-                const filteredUsers = response.result.map((user) => ({
-                    textFilter: false,
-                    value: user.id,
-                    label: user.name
-                }));
+                const filteredUsers = removeDuplicatesWithPriority(
+                    [
+                        {textFilter:true, value: user, label: user},
+                        ...response.result.map((user) => ({
+                            textFilter: false,
+                            value: user.id,
+                            label: user.name
+                        }))
+                    ],
+                    'label',
+                    'textFilter'
+                );
 
-                setUsersFilters((prev) => {
-                    const uniqueFilteredUsers = filteredUsers.filter(
-                        (user) => !prev.some((option) => option.label == user.label)
-                    )
-
-                    return [...prev, ...uniqueFilteredUsers];
-                })
+                setUsersFilters(filteredUsers)
             }
 
             if(user.length == 0) {
