@@ -3,7 +3,6 @@ import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import DynamicTable from '../../components/DynamicTable';
 import Button from '../../components/Button';
-import InputField from '../../components/InputField';
 import ConfirmationModal from '../../components/modals/ConfirmationModal'; 
 import '../../assets/styles/custom-styles.css';
 import api from '../../services/api';
@@ -34,7 +33,7 @@ const UsersPage = () => {
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const [usersFilters,setUsersFilters] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [textFilter, setTextFilter] = useState([]);
+    const [textFilter, setTextFilter] = useState('');
     const [inputValue, setInputValue] = useState();
     useEffect(() => {
         if (location.state?.message) {
@@ -82,12 +81,21 @@ const UsersPage = () => {
     const handleChangeFilter = (selectedOptions) => {
         setSelectedUsers(selectedOptions);
         setTextFilter();
+        setInputValue('');
     }
 
     const handleInputChange = (value, { action }) => {
         try {
-            setTextFilter(value);
-            fetchUserAutocomplete(value);
+            if(textFilter && textFilter.length == 0) {
+                setUsersFilters([]);
+            }
+
+            if (action === 'input-change') {
+                setTextFilter(value);
+                setUsersFilters([{textFilter:true, value: value, label: value}])
+                setInputValue(value)
+                fetchUserAutocomplete(value);
+            }
         } catch (error) {
             console.log(error)
             setErrorMessage('Erro ao pesquisar pelo o usuário');
@@ -102,6 +110,7 @@ const UsersPage = () => {
             ]);
         }
         setTextFilter(''); 
+        setInputValue('');
     };
     
     const fetchUserAutocomplete = async (user) => {
@@ -114,7 +123,13 @@ const UsersPage = () => {
                     label: user.name
                 }));
 
-                setUsersFilters(filteredUsers)
+                setUsersFilters((prev) => {
+                    const uniqueFilteredUsers = filteredUsers.filter(
+                        (user) => !prev.some((option) => option.label === user.label)
+                    )
+
+                    return [...prev, ...uniqueFilteredUsers];
+                })
             }
 
             if(user.length == 0) {
@@ -140,20 +155,6 @@ const UsersPage = () => {
     const handleDelete = (user) => {
         setSelectedUser(user);  
         setOpenDeleteModal(true);  
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && textFilter) {
-            if (!selectedUsers.some(user => user.label === textFilter)) {
-                setSelectedUsers([
-                    ...selectedUsers,
-                    { textFilter: true, value: textFilter, label: textFilter }, 
-                ]);
-            }
-            setTextFilter(''); 
-            setInputValue('');
-            e.preventDefault();
-        }
     };
     
     const handleConfirmDelete = async (id) => {
@@ -203,10 +204,10 @@ const UsersPage = () => {
                     {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
 
                         <div className="form-group col-md-12">
-                            <label htmlFor="address_id" className='text-dark font-weight-bold mt-1'>Busca:</label>
+                            <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
                                 <Select
                                     isMulti
-                                    name="address_id"
+                                    name="name"
                                     options={usersFilters} 
                                     className={`basic-multi-select`}
                                     classNamePrefix="select"
@@ -215,9 +216,8 @@ const UsersPage = () => {
                                     onInputChange={handleInputChange}
                                     onChange={handleChangeFilter}
                                     onBlur={handleBlur}
-                                    onKeyDown={handleKeyDown}
                                     noOptionsMessage={() => "Nenhum usuário encontrado"}
-                                    placeholder="Filtre os usuários"
+                                    placeholder="Filtre os usuários pelo nome"
                                 />
                         </div>
 

@@ -83,7 +83,7 @@ const AttachGroupToTypePage = () => {
         setMessage({ type: '', text: '' });
     
         try {
-            const response = await TypeGroupsService.attachGroupToType(id, { group_id: selectedGroups }, navigate);
+            const response = await TypeGroupsService.attachGroupToType(id, { groups: selectedGroups }, navigate);
             const { status, data, message } = response; 
         
             if (status === 200) {
