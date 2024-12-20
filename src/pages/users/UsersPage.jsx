@@ -35,6 +35,7 @@ const UsersPage = () => {
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [textFilter, setTextFilter] = useState('');
     const [inputValue, setInputValue] = useState();
+
     useEffect(() => {
         if (location.state?.message) {
         setErrorMessage(location.state.message);
@@ -72,10 +73,11 @@ const UsersPage = () => {
 
     const handleFilter = (e) => {
         e.preventDefault();
-        fetchUsers(
-            selectedUsers.filter((user) => user.textFilter == false).map(user => (user.value)),
-            selectedUsers.filter((user) => user.textFilter == true).map(user => (user.value))
-        );
+        console.log(selectedUser)
+        // fetchUsers(
+        //     selectedUsers.filter((user) => user.textFilter == false).map(user => (user.value)),
+        //     selectedUsers.filter((user) => user.textFilter == true).map(user => (user.value))
+        // );
     };
 
     const handleChangeFilter = (selectedOptions) => {
@@ -125,7 +127,7 @@ const UsersPage = () => {
 
                 setUsersFilters((prev) => {
                     const uniqueFilteredUsers = filteredUsers.filter(
-                        (user) => !prev.some((option) => option.label === user.label)
+                        (user) => !prev.some((option) => option.label == user.label)
                     )
 
                     return [...prev, ...uniqueFilteredUsers];

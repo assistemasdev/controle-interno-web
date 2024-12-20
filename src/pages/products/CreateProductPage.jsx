@@ -216,7 +216,7 @@ const CreateProductPage = () => {
     };
 
     const handleBack = () => {
-        navigate(`/tipos/`);  
+        navigate(`/produtos/`);  
     };
 
     return (

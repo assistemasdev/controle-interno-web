@@ -17,7 +17,20 @@ const ProductService = {
 
     async getPaginated (data,navigate) {
         try {
-            const response = await api.get("/products/search", {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get("/products/search", {params: {id:data.ids,number:data.number,page:data.page, perPage: data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
+
+    async autocomplete (data,navigate) {
+        try {
+            const response = await api.get("/products/autocomplete", {params: {number:data.number,page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,

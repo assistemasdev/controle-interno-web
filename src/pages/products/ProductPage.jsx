@@ -9,9 +9,9 @@ import DynamicTable from "../../components/DynamicTable";
 import ProductService from "../../services/ProductService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
-import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
+import Select from 'react-select';  
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
@@ -24,9 +24,13 @@ const ProductsPage = () => {
     const [productToDelete, setProductToDelete] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [inputNumberValue, setInputNumberValue] = useState();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [numberFilter, setNumberFilter] = useState([]);
+    const [productsOptions, setProductsOptions] = useState([]);
 
     useEffect(() => {
         setMessage(null);
@@ -39,11 +43,11 @@ const ProductsPage = () => {
         setName('');
     };
 
-    const fetchProducts = async (page = 1) => {
+    const fetchProducts = async (ids, number,page = 1) => {
         try {
             setLoading(true);
         
-            const response = await ProductService.getPaginated({page, perPage: itemsPerPage}, navigate);
+            const response = await ProductService.getPaginated({number, ids, page, perPage: itemsPerPage}, navigate);
             const result = response.result.data
         
             const filteredProducts = result.map(product => {            
@@ -80,6 +84,75 @@ const ProductsPage = () => {
     const handleViewDetails = (product) => {
         navigate(`/produtos/detalhes/${product.id}`);
     };
+
+    const handleChangeNumber = (selectedOptions) => {
+        setSelectedProducts(selectedOptions);
+        setNumberFilter('');
+        setInputNumberValue('');
+    }
+
+    const handleOnBlurNumber = () => {
+        if (numberFilter && !selectedProducts.some(user => user.label === numberFilter)) {
+            setProductsOptions([
+                ...selectedProducts,
+                { numberFilter: true,value: numberFilter, label: numberFilter }, 
+            ]);
+        }
+        setNumberFilter(''); 
+        setInputNumberValue('');
+    }
+
+    const handleInputNumberChange = (value, { action }) => {
+        if(numberFilter && numberFilter.length == 0) {
+            setProductsOptions([]);
+        }
+
+        if(action === 'input-change') {
+            setNumberFilter(value)
+            setInputNumberValue(value)
+            fetchProductNumberAutocomplete(value)
+        }
+    }
+
+    const handleFilterSubmit = (e) => {
+        e.preventDefault();
+        fetchProducts(
+            selectedProducts.filter((product) => product.numberFilter == false).map(product => (product.value)),
+            selectedProducts.filter((product) => product.numberFilter == true).map(product => (product.value))
+        )
+    }
+
+    const fetchProductNumberAutocomplete = async (number) => {
+        try {
+            if(number.length > 0) {
+                const response = await ProductService.autocomplete({number}, navigate);
+                const filteredProducts = [
+                    { numberFilter: true, value: number, label: number },
+                    ...response.result.map((product) => ({
+                        numberFilter: false,
+                        value: product.id,
+                        label: product.number,
+                    })),
+                ].reduce((acc, product) => {
+                    const existingProduct = acc.find((item) => item.label === product.label);
+                    
+                    if (!existingProduct || product.numberFilter === false) {
+                        return acc.filter((item) => item.label != product.label).concat(product);
+                    }
+                
+                    return acc;
+                }, []);
+                setProductsOptions(filteredProducts);
+            }
+
+            if(number.length == 0) {
+                setProductsOptions([])
+            }
+        } catch (error) {
+            console.log(error)
+            setMessage({type: 'error', text:'Erro ao pesquisar pelo o usuário'});
+        }    
+    }
 
     const confirmDelete = async () => {
         try {
@@ -137,17 +210,24 @@ const ProductsPage = () => {
                     Produtos
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome do produto:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do produto"
-                        />
+                        <label htmlFor="number" className='text-dark font-weight-bold mt-1'>Número:</label>
+                            <Select
+                                isMulti
+                                name="number"
+                                options={productsOptions} 
+                                className={`basic-multi-select`}
+                                classNamePrefix="select"
+                                inputValue={inputNumberValue}
+                                value={selectedProducts}
+                                onInputChange={handleInputNumberChange}
+                                onChange={handleChangeNumber}
+                                onBlur={handleOnBlurNumber}
+                                noOptionsMessage={() => "Nenhum número encontrado"}
+                                placeholder="Filtre os produtos pelo número"
+                            />
                     </div>
                     <div className="form-group gap-2">
                         <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
