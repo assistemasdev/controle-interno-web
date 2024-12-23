@@ -8,6 +8,7 @@ import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import ConditionService from '../../services/ConditionService';
 import { usePermissions } from '../../hooks/usePermissions';
+import Form from '../../components/Form';
 
 const EditConditionPage = () => {
     const navigate = useNavigate();
@@ -19,12 +20,6 @@ const EditConditionPage = () => {
     const [formData, setFormData] = useState({
         name: ''
     });
-
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -67,8 +62,7 @@ const EditConditionPage = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (formData) => {
         setFormErrors({  name: '', color: '', active: '' });
         setMessage(null);
 
@@ -99,39 +93,45 @@ const EditConditionPage = () => {
                     Edição de Condição
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
-
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="form-row">
-
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label='Nome:'
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome da condição"
-                                        error={formErrors.name}
+                {loading ? (
+                    <div className="d-flex justify-content-center mt-4">
+                        <CircularProgress size={50} />
+                    </div>
+                ) : (
+                    <Form
+                        onSubmit={handleSubmit}
+                        initialFormData={formData}
+                        textSubmit="Atualizar"
+                        textLoadingSubmit="Atualizando..."
+                        handleBack={handleBack}
+                    >
+                        {({ formData, handleChange }) => (
+                            <>
+                                {message && (
+                                    <MyAlert
+                                        severity={message.type}
+                                        message={message.text}
+                                        onClose={() => setMessage(null)}
                                     />
-                                </div>
-                            </div>
-
-                            <div className="mt-3 d-flex gap-2">
-                                { canAccess('Atualizar condições de produtos') && (
-                                    <Button type="submit" text="Atualizar Tipo" className="btn btn-blue-light fw-semibold" />
                                 )}
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
-                </form>
+
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-12">
+                                        <InputField
+                                            label='Nome:'
+                                            type="text"
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            placeholder="Digite o nome da condição"
+                                            error={formErrors?.name}
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </Form>
+                )}
             </div>
         </MainLayout>
     );

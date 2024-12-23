@@ -118,6 +118,7 @@ const UsersPage = () => {
             await api.delete(`/users/${id}`);
             setSuccessMessage('Usuário excluído com sucesso!');
             setOpenDeleteModal(false);  
+            fetchUsers();
         } catch (error) {
             console.log(error)
             setErrorMessage('Erro ao excluir o usuário');

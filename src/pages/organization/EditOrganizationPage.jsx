@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
-import Button from '../../components/Button';
 import { CircularProgress } from '@mui/material'; 
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import OrganizationService from '../../services/OrganizationService';
 import InputSelect from '../../components/InputSelect';
 import colorToHex from '../../utils/colorToHex';
-
+import Form from '../../components/Form';
 const EditOrganizationPage = () => {
     const navigate = useNavigate();
     const { applicationId, organizationId } = useParams();
@@ -85,8 +84,7 @@ const EditOrganizationPage = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setFormErrors({  name: '', color: '', active: '' });
         setMessage(null);
 
@@ -128,65 +126,79 @@ const EditOrganizationPage = () => {
                     Edição de Organização
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
+                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
 
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="form-row">
-
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label='Nome:'
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome da organização"
-                                        error={formErrors.name}
-                                    />
+                {loading ? (
+                    <div className="d-flex justify-content-center mt-4">
+                        <CircularProgress size={50} />
+                    </div>
+                ) : (
+                    <Form
+                        onSubmit={handleSubmit}
+                        initialFormData={{ 
+                            name: '', 
+                            color: '', 
+                            active: '' 
+                        }}
+                        textSubmit="Atualizar"
+                        textLoadingSubmit="Atualizando..."
+                        handleBack={handleBack}
+                    >
+                        {({}) => (
+                            <>
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label="Nome:"
+                                            type="text"
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            placeholder="Digite o nome da organização"
+                                            error={formErrors.name}
+                                        />
+                                    </div>
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label="Cor:"
+                                            type="color"
+                                            id="color"
+                                            value={formData.color}
+                                            onChange={(e) => {
+                                                const { id, value } = e.target;
+                                                handleChange({
+                                                    target: {
+                                                        id,
+                                                        value: colorToHex(value),
+                                                    },
+                                                });
+                                            }}
+                                            placeholder="Digite a cor da organização"
+                                            error={formErrors.color}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label='Cor:'
-                                        type="color"
-                                        id="color"
-                                        value={formData.color}
-                                        onChange={handleChange}
-                                        placeholder="Digite a cor da organização"
-                                        error={formErrors.color}
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputSelect
-                                        label="Ativo"
-                                        id="active"
-                                        value={formData.active}
-                                        onChange={handleChange}
-                                        placeholder="Selecione o status"
-                                        options={[
-                                        { label: 'Ativo', value: 1 },
-                                        { label: 'Inativo', value: 0 }
-                                        ]}
-                                        error={formErrors.active}
-                                    />
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-12">
+                                        <InputSelect
+                                            label="Ativo"
+                                            id="active"
+                                            value={formData.active}
+                                            onChange={handleChange}
+                                            placeholder="Selecione o status"
+                                            options={[
+                                                { label: 'Ativo', value: 1 },
+                                                { label: 'Inativo', value: 0 },
+                                            ]}
+                                            error={formErrors.active}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="mt-3 d-flex gap-2">
-                                <Button type="submit" text="Atualizar Organização" className="btn btn-blue-light fw-semibold" />
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
-                </form>
+                            </>
+                        )}
+                    </Form>
+                )}
             </div>
         </MainLayout>
     );

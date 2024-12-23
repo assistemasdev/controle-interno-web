@@ -7,7 +7,7 @@ import { CircularProgress } from '@mui/material';
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import UserService from '../../services/UserService';
-
+import Form from '../../components/Form';
 
 const PerfilUserPage = () => {
     const navigate = useNavigate();
@@ -74,13 +74,12 @@ const PerfilUserPage = () => {
     };
 
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setFormErrors({ username: '', email: '', name: '' });
         setMessage(null);
 
         const dataToSend = { ...formData };
-        if (formData.password == '' && formData.password_confirmation == '') {
+        if (formData.password === '' && formData.password_confirmation === '') {
             delete dataToSend.password;
             delete dataToSend.password_confirmation;
         }
@@ -101,7 +100,7 @@ const PerfilUserPage = () => {
                 password_confirmation: errors?.password_confirmation ? errors.password_confirmation[0] : ''
                 });
 
-                return
+                return;
             }
 
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar o usuário' });
@@ -120,91 +119,95 @@ const PerfilUserPage = () => {
                 Perfil do Usuário
             </div>
 
-            <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
-
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                ) : (
-                    <>
-                        <h5 className='text-dark font-weight-bold'>Dados do Usuário</h5>
-
-                        <hr />
-
-                        <div className="form-row">
-
-                            <div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Nome:"
-                                    type="text"
-                                    id="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    placeholder="Digite o nome do usuário"
-                                    error={formErrors.name}
+            {loading ? (
+                <div className="d-flex justify-content-center mt-4">
+                    <CircularProgress size={50} />
+                </div>
+            ) : (
+                <Form
+                    onSubmit={handleSubmit}
+                    textSubmit="Atualizar Usuário"
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {({ handleChange }) => (
+                        <>
+                            {message && (
+                                <MyAlert 
+                                    severity={message.type} 
+                                    message={message.text} 
+                                    onClose={() => setMessage(null)} 
                                 />
-                            </div>
-                            <div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Usuário:"
-                                    type="text"
-                                    id="username"
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                    placeholder="Digite o nome de usuário"
-                                    error={formErrors.username}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-12">
-                                <InputField
-                                    label="E-mail:"
-                                    type="email"
-                                    id="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="Digite seu e-mail"
-                                    error={formErrors.email}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Senha:"
-                                    id="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    type="password"
-                                    placeholder="Digite a nova senha"
-                                    error={formErrors.password}
-                                />
-                            </div>
-                            <div div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Confirmar Senha:"
-                                    id="password_confirmation"
-                                    value={formData.password_confirmation}
-                                    onChange={handleChange}
-                                    type="password"
-                                    placeholder="Confirme a senha"
-                                    error={formErrors.password_confirmation}
-                                />
+                            )}
+                            <h5 className='text-dark font-weight-bold'>Dados do Usuário</h5>
+                            <hr />
+                            <div className="form-row">
+                                <div className="d-flex flex-column col-md-6">
+                                    <InputField
+                                        label="Nome:"
+                                        type="text"
+                                        id="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        placeholder="Digite o nome do usuário"
+                                        error={formErrors.name}
+                                    />
+                                </div>
+                                <div className="d-flex flex-column col-md-6">
+                                    <InputField
+                                        label="Usuário:"
+                                        type="text"
+                                        id="username"
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                        placeholder="Digite o nome de usuário"
+                                        error={formErrors.username}
+                                    />
+                                </div>
                             </div>
 
-                        </div>            
-                        <div className="mt-3 d-flex gap-2">
-                            <Button type="submit" text="Atualizar Usuário" className="btn btn-blue-light fw-semibold" />
-                            <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                        </div>
-                    </>
-                )}
-                </form>
+                            <div className="form-row">
+                                <div className="d-flex flex-column col-md-12">
+                                    <InputField
+                                        label="E-mail:"
+                                        type="email"
+                                        id="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        placeholder="Digite seu e-mail"
+                                        error={formErrors.email}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div div className="d-flex flex-column col-md-6">
+                                    <InputField
+                                        label="Senha:"
+                                        id="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        type="password"
+                                        placeholder="Digite a nova senha"
+                                        error={formErrors.password}
+                                    />
+                                </div>
+                                <div div className="d-flex flex-column col-md-6">
+                                    <InputField
+                                        label="Confirmar Senha:"
+                                        id="password_confirmation"
+                                        value={formData.password_confirmation}
+                                        onChange={handleChange}
+                                        type="password"
+                                        placeholder="Confirme a senha"
+                                        error={formErrors.password_confirmation}
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </Form>
+            )}
         </div>
         </MainLayout>
     );

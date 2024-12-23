@@ -7,6 +7,7 @@ import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import { usePermissions } from '../../hooks/usePermissions';
 import ConditionService from '../../services/ConditionService';
+import Form from '../../components/Form';
 
 const CreateConditionPage = () => {
     const navigate = useNavigate(); 
@@ -21,14 +22,7 @@ const CreateConditionPage = () => {
         name: '',
     }); 
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
-    
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (formData) => {
         setFormErrors({});
         setMessage({ type: '', text: '' });
     
@@ -64,31 +58,33 @@ const CreateConditionPage = () => {
                     Cadastro de Condição
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={{ name: '' }}
+                    textSubmit="Cadastrar Condição"
+                    textLoadingSubmit="Cadastrando..."
+                    handleBack={handleBack}
+                >
+                    {({ formData, handleChange }) => (
+                        <>
+                            {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
 
-
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-12">
-                            <InputField
-                                label="Condições:"
-                                type="text"
-                                id="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Digite o nome da condição"
-                                error={formErrors.name} 
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-3 form-row gap-2">
-                        {canAccess('Criar condição de produtos') && (
-                            <Button type="submit" text="Cadastrar Condição" className="btn btn-blue-light fw-semibold" />
-                        )}
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                    </div>
-                </form>
+                            <div className="form-row">
+                                <div className="d-flex flex-column col-md-12">
+                                    <InputField
+                                        label="Condições:"
+                                        type="text"
+                                        id="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        placeholder="Digite o nome da condição"
+                                        error={formErrors?.name} 
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </Form>
             </div>
         </MainLayout>
     );

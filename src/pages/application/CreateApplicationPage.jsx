@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField'; 
 import Button from '../../components/Button'; 
@@ -7,28 +7,18 @@ import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import { usePermissions } from '../../hooks/usePermissions';
 import ApplicationService from '../../services/ApplicationService';
+import Form from '../../components/Form'; // Importando o novo componente Form
 
 const CreateApplicationPage = () => {
     const navigate = useNavigate(); 
     const { canAccess } = usePermissions();
-    const [formData, setFormData] = useState({
+    const [message, setMessage] = React.useState({ type: '', text: '' });
+    const [formErrors, setFormErrors] = React.useState({
         name: '',
         session_code: '',
     });
 
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({    
-        name: '',
-        session_code: '',
-    }); 
-
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (formData) => {
         setFormErrors({});
         setMessage({ type: '', text: '' });
 
@@ -37,14 +27,10 @@ const CreateApplicationPage = () => {
             const { message } = response; 
 
             setMessage({ type: 'success', text: message });
-            setFormData({
-                name: '',
-                session_code: '',
-            });
             return;
         } catch (error) {
             if (error.status === 422) {
-                const errors = error.data
+                const errors = error.data;
                 setFormErrors({
                     session_code: errors.session_code?.[0] || '',
                     name: errors.name?.[0] || ''
@@ -66,41 +52,53 @@ const CreateApplicationPage = () => {
                     Cadastro de Aplicações
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={{
+                        name: '',
+                        session_code: '',
+                    }}
+                    textSubmit="Cadastrar Aplicação"
+                    textLoadingSubmit="Cadastrando..."
+                    handleBack={handleBack}
+                >
+                    {({ formData, handleChange }) => (
+                        <>
+                            {message.text && (
+                                <MyAlert
+                                    severity={message.type}
+                                    message={message.text}
+                                    onClose={() => setMessage({ type: '', text: '' })}
+                                />
+                            )}
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                            label="Nome:"
-                            type="text"
-                            id="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Digite o nome da aplicação"
-                            error={formErrors.name} 
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                            label="Código de Sessão:"
-                            type="text"
-                            id="session_code"
-                            value={formData.session_code}
-                            onChange={handleChange}
-                            placeholder="Digite a código da sessão"
-                            error={formErrors.session_code} 
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-3 form-row gap-2">
-                        {canAccess('create applications') && (
-                            <Button type="submit" text="Cadastrar Aplicação" className="btn btn-blue-light fw-semibold" />
-                        )}
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                    </div>
-                </form>
+                            <div className="form-row">
+                                <div className="d-flex flex-column col-md-6">
+                                    <InputField
+                                        label="Nome:"
+                                        type="text"
+                                        id="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        placeholder="Digite o nome da aplicação"
+                                        error={formErrors.name}
+                                    />
+                                </div>
+                                <div className="d-flex flex-column col-md-6">
+                                    <InputField
+                                        label="Código de Sessão:"
+                                        type="text"
+                                        id="session_code"
+                                        value={formData.session_code}
+                                        onChange={handleChange}
+                                        placeholder="Digite o código da sessão"
+                                        error={formErrors.session_code}
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </Form>
             </div>
         </MainLayout>
     );
