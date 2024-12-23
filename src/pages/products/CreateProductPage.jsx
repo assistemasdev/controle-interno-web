@@ -47,6 +47,8 @@ const CreateProductPage = () => {
         },
         groups: []
     });
+    const [isSubmitting, setIsSubmitting] = useState(false); 
+
 
     const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -134,6 +136,8 @@ const CreateProductPage = () => {
             } 
 
             setMessage({ type: "error", text: error.message || "Erro ao cadastrar o produto" });
+        } finally {
+            setIsSubmitting(false); 
         }
     }, 1000);
 
@@ -212,10 +216,12 @@ const CreateProductPage = () => {
         }
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setFormErrors({});
         setMessage({ type: '', text: '' });
+        setIsSubmitting(true);
         debouncedSubmit(formData);
     };
 
@@ -539,9 +545,9 @@ const CreateProductPage = () => {
                                 {canAccess("Criar produtos") && (
                                     <Button
                                         type="submit"
-                                        text={isPending ? "Cadastrando..." : "Cadastrar Produto"}
-                                        className={`btn btn-blue-light fw-semibold ${isPending ? "disabled" : ""}`}
-                                        disabled={isPending} 
+                                        text={isSubmitting || isPending ? "Cadastrando..." : "Cadastrar Produto"}
+                                        className={`btn btn-blue-light fw-semibold ${isSubmitting || isPending ? "disabled" : ""}`}
+                                        disabled={isSubmitting || isPending} // Desativa o botão enquanto está pendente
                                     />
                                 )}
                                 <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
