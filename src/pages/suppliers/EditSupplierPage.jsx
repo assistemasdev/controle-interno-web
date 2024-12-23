@@ -9,12 +9,13 @@ import MyAlert from '../../components/MyAlert';
 import SupplierService from '../../services/SupplierService';
 import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
 import { usePermissions } from '../../hooks/usePermissions';
+import Form from '../../components/Form';
 
 const EditSupplierPage = () => {
     const { canAccess } = usePermissions();
     const navigate = useNavigate();
     const { id } = useParams();
-    const [message, setMessage] = useState(null);
+    const [message, setMessage] = useState({ type: '', text: '' });
     const [formErrors, setFormErrors] = useState({});
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
@@ -74,11 +75,7 @@ const EditSupplierPage = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({});
-        setMessage(null);
-
+    const handleSubmit = async (formData) => {
         const sanitizedData = {
             ...formData,
             cpf_cnpj: removeMask(formData.cpf_cnpj)
@@ -113,61 +110,61 @@ const EditSupplierPage = () => {
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
                     Edição de Fornecedor
                 </div>
-
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
-
                     {loading ? (
                         <div className="d-flex justify-content-center mt-4">
                             <CircularProgress size={50} />
                         </div>
                     ) : (
-                        <>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Apelido:"
-                                        type="text"
-                                        id="alias"
-                                        value={formData.alias}
-                                        onChange={handleChange}
-                                        placeholder="Digite o apelido do fornecedor"
-                                        error={formErrors.alias}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Nome:"
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome do fornecedor"
-                                        error={formErrors.name}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="CPF/CNPJ:"
-                                        type="text"
-                                        id="cpf_cnpj"
-                                        value={formData.cpf_cnpj}
-                                        onChange={handleChange}
-                                        placeholder="Digite o CPF ou CNPJ"
-                                        error={formErrors.cpf_cnpj}
-                                    />
-                                </div>
-                            </div>
+                        <Form
+                            onSubmit={handleSubmit}
+                            initialFormData={formData}
+                            textSubmit="Atualizar"
+                            textLoadingSubmit="Atualizando..."
+                            handleBack={handleBack}
+                        >
+                            {({ formData }) => (
+                                <>
+                                    {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
 
-                            <div className="mt-3 d-flex gap-2">
-                                {canAccess('Atualizar fornecedores') && (
-                                    <Button type="submit" text="Atualizar Fornecedor" className="btn btn-blue-light fw-semibold" />
-                                )}
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
+                                    <div className="form-row">
+                                        <div className="d-flex flex-column col-md-4">
+                                            <InputField
+                                                label="Apelido:"
+                                                type="text"
+                                                id="alias"
+                                                value={formData.alias}
+                                                onChange={handleChange}
+                                                placeholder="Digite o apelido do fornecedor"
+                                                error={formErrors.alias}
+                                            />
+                                        </div>
+                                        <div className="d-flex flex-column col-md-4">
+                                            <InputField
+                                                label="Nome:"
+                                                type="text"
+                                                id="name"
+                                                value={formData.name}
+                                                onChange={handleChange}
+                                                placeholder="Digite o nome do fornecedor"
+                                                error={formErrors.name}
+                                            />
+                                        </div>
+                                        <div className="d-flex flex-column col-md-4">
+                                            <InputField
+                                                label="CPF/CNPJ:"
+                                                type="text"
+                                                id="cpf_cnpj"
+                                                value={formData.cpf_cnpj}
+                                                onChange={handleChange}
+                                                placeholder="Digite o CPF ou CNPJ"
+                                                error={formErrors.cpf_cnpj}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </Form>
                     )}
-                </form>
             </div>
         </MainLayout>
     );

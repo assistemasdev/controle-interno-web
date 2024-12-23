@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
-import Button from '../../components/Button';
+import Form from '../../components/Form';
 import { CircularProgress } from '@mui/material'; 
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
@@ -20,12 +20,6 @@ const EditUnitPage = () => {
         name: '',
         abbreviation: ''
     });
-
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -66,8 +60,7 @@ const EditUnitPage = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (formData) => {
         setFormErrors({ name: '', abbreviation: '' });
         setMessage(null);
 
@@ -83,7 +76,7 @@ const EditUnitPage = () => {
                     name: errors?.name ? errors.name[0] : '',
                     abbreviation: errors?.abbreviation ? errors.abbreviation[0] : ''
                 });
-                return
+                return;
             }
             setMessage({ type:'error', text: error.message || 'Erro ao editar a unidade' });
         }
@@ -100,49 +93,50 @@ const EditUnitPage = () => {
                     Edição de Unidade
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
+                {loading ? (
+                    <div className="d-flex justify-content-center mt-4">
+                        <CircularProgress size={50} />
+                    </div>
+                ) : (
+                    <Form
+                        onSubmit={handleSubmit}
+                        initialFormData={formData}
+                        textSubmit="Atualizar Unidade"
+                        textLoadingSubmit="Atualizando..."
+                        handleBack={handleBack}
+                    >
+                        {({ formData, handleChange }) => (
+                            <>
+                                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
 
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label='Nome:'
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome da unidade"
-                                        error={formErrors.name}
-                                    />
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label='Nome:'
+                                            type="text"
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            placeholder="Digite o nome da unidade"
+                                            error={formErrors.name}
+                                        />
+                                    </div>
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label='Abreviação:'
+                                            type="text"
+                                            id="abbreviation"
+                                            value={formData.abbreviation}
+                                            onChange={handleChange}
+                                            placeholder="Digite a abreviação da unidade"
+                                            error={formErrors.abbreviation}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label='Abreviação:'
-                                        type="text"
-                                        id="abbreviation"
-                                        value={formData.abbreviation}
-                                        onChange={handleChange}
-                                        placeholder="Digite a abreviação da unidade"
-                                        error={formErrors.abbreviation}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mt-3 d-flex gap-2">
-                                { canAccess('Atualizar unidades de medida') && (
-                                    <Button type="submit" text="Atualizar Unidade" className="btn btn-blue-light fw-semibold" />
-                                )}
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
-                </form>
+                            </>
+                        )}
+                    </Form>
+                )}
             </div>
         </MainLayout>
     );

@@ -20,7 +20,6 @@ const Form = ({
         await onSubmit(data);
     }, debounceTime);
     useEffect(() => {
-        console.log(initialFormData)
         setFormData(initialFormData);
     }, [initialFormData]);
 

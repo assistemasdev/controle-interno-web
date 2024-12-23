@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
 import Button from '../../components/Button';
+import Form from '../../components/Form';
 import { CircularProgress } from '@mui/material'; 
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
@@ -14,78 +15,67 @@ const EditTypePage = () => {
     const { id } = useParams();
     const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({ name: '', color: '' });
-    const [loading, setLoading] = useState(true); 
-    const [formData, setFormData] = useState({
+    const [formErrors, setFormErrors] = useState({});
+    const [loading, setLoading] = useState(true);
+
+    const [initialFormData, setInitialFormData] = useState({
         name: ''
     });
-
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 await fetchType();
-        
             } catch (error) {
                 console.error('Erro ao carregar os dados:', error);
             }
         };
-    
-        fetchData();
-    }, [id])
 
+        fetchData();
+    }, [id]);
 
     const fetchType = async () => {
         try {
             const response = await TypeService.getById(id, navigate);
 
-            setFormData({
+            setInitialFormData({
                 name: response.result.name,
             });
-        
         } catch (error) {
             if (error.status === 404) {
                 navigate(
-                    '/tipos/', 
+                    '/tipos/',
                     {
-                        state: { 
-                            type: 'error', 
-                            message: error.message 
+                        state: {
+                            type: 'error',
+                            message: error.message
                         }
                     }
                 );
             }
-    
-            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pelo tipo' });
+
+            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo tipo' });
             console.error(error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({  name: '', color: '', active: '' });
+    const handleSubmit = async (formData) => {
+        setFormErrors({});
         setMessage(null);
 
         try {
             const response = await TypeService.update(id, formData, navigate);
-
-            setMessage({ type:'success', text: response.message });
+            setMessage({ type: 'success', text: response.message });
         } catch (error) {
-            console.log(error)
             if (error.status === 422) {
                 const errors = error.data;
                 setFormErrors({
                     name: errors?.name ? errors.name[0] : '',
                 });
             }
-            setMessage({ type:'error', text: error.message || 'Erro ao editar a aplicação' });
+            setMessage({ type: 'error', text: error.message || 'Erro ao editar a aplicação' });
         }
     };
 
@@ -100,39 +90,40 @@ const EditTypePage = () => {
                     Edição de Tipo
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
+                {loading ? (
+                    <div className="d-flex justify-content-center mt-4">
+                        <CircularProgress size={50} />
+                    </div>
+                ) : (
+                    <Form
+                        initialFormData={initialFormData}
+                        onSubmit={handleSubmit}
+                        className="p-3 mt-2 rounded shadow-sm mb-2"
+                        textSubmit="Atualizar Tipo"
+                        textLoadingSubmit="Atualizando..."
+                        handleBack={handleBack}
+                    >
+                        {({ formData, handleChange }) => (
+                            <>
+                                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
 
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="form-row">
-
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label='Nome:'
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome do tipo"
-                                        error={formErrors.name}
-                                    />
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-12">
+                                        <InputField
+                                            label="Nome:"
+                                            type="text"
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            placeholder="Digite o nome do tipo"
+                                            error={formErrors.name}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="mt-3 d-flex gap-2">
-                                { canAccess('Atualizar tipos de produto') && (
-                                    <Button type="submit" text="Atualizar Tipo" className="btn btn-blue-light fw-semibold" />
-                                )}
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
-                </form>
+                            </>
+                        )}
+                    </Form>
+                )}
             </div>
         </MainLayout>
     );

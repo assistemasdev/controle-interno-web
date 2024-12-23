@@ -2,43 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
-import Button from '../../components/Button';
-import { CircularProgress } from '@mui/material'; 
+import Form from '../../components/Form';
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import GroupService from '../../services/GroupService';
-import { usePermissions } from '../../hooks/usePermissions';
+import { CircularProgress } from '@mui/material';
 
 const EditGroupPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({ name: '', color: '' });
+    const [formErrors, setFormErrors] = useState({ name: '' });
     const [loading, setLoading] = useState(true); 
     const [formData, setFormData] = useState({
         name: ''
     });
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
-
     useEffect(() => {
         const fetchData = async () => {
-        try {
-            await fetchGroup();
-    
-        } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
-        }
+            try {
+                await fetchGroup();
+            } catch (error) {
+                console.error('Erro ao carregar os dados:', error);
+            }
         };
     
         fetchData();
-    }, [id])
-
+    }, [id]);
 
     const fetchGroup = async () => {
         setLoading(true);
@@ -69,14 +59,9 @@ const EditGroupPage = () => {
     };
     
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({ name: '', color: '', active: '' });
-        setMessage(null);
-
+    const handleSubmit = async (formData) => {
         try {
             const response = await GroupService.update(id, formData, navigate);
-
             setMessage({ type: 'success', text: response.message });
             return;
         } catch (error) {
@@ -104,39 +89,39 @@ const EditGroupPage = () => {
                     Edição de Grupo
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
+                {loading ? (
+                    <div className="d-flex justify-content-center mt-4">
+                        <CircularProgress size={50} />
+                    </div>
+                ) : (
+                    <Form
+                        onSubmit={handleSubmit}
+                        initialFormData={formData}
+                        textSubmit="Atualizar Grupo"
+                        textLoadingSubmit="Atualizando..."
+                        handleBack={handleBack}
+                    >
+                        {({ formData, handleChange }) => (
+                            <>
+                                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
 
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="form-row">
-
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label='Nome:'
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome do grupo"
-                                        error={formErrors.name}
-                                    />
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-12">
+                                        <InputField
+                                            label='Nome:'
+                                            type="text"
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            placeholder="Digite o nome do grupo"
+                                            error={formErrors.name}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="mt-3 d-flex gap-2">
-                                { canAccess('Atualizar grupos de produto') && (
-                                    <Button type="submit" text="Atualizar Grupo" className="btn btn-blue-light fw-semibold" />
-                                )}
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
-                </form>
+                            </>
+                        )}
+                    </Form>
+                )}
             </div>
         </MainLayout>
     );

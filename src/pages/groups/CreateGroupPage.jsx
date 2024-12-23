@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField'; 
 import Button from '../../components/Button'; 
+import Form from '../../components/Form';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
 import MyAlert from '../../components/MyAlert';
@@ -12,23 +13,14 @@ const CreateGroupPage = () => {
     const navigate = useNavigate(); 
     const { canAccess } = usePermissions();
 
-    const [formData, setFormData] = useState({
-        name: '',
-    });
-
     const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({    
+    const [formErrors, setFormErrors] = useState({});
+
+    const initialFormData = {
         name: '',
-    }); 
-
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-
-        setFormData((prev) => ({ ...prev, [id]: value }));
     };
-    
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+
+    const handleSubmit = async (formData) => {
         setFormErrors({});
         setMessage({ type: '', text: '' });
     
@@ -37,10 +29,6 @@ const CreateGroupPage = () => {
             const { message } = response; 
     
             setMessage({ type: 'success', text: message });
-            setFormData({
-                name: '',
-            });
-            return;
         } catch (error) {    
             if (error.data && error.status === 422) {
                 setFormErrors({
@@ -63,31 +51,34 @@ const CreateGroupPage = () => {
                     Cadastro de Grupo
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
+                <Form
+                    initialFormData={initialFormData}
+                    onSubmit={handleSubmit}
+                    className="p-3 mt-2 rounded shadow-sm mb-2"
+                    textSubmit="Cadastrar Grupo"
+                    textLoadingSubmit="Cadastrando..."
+                    handleBack={handleBack}
+                >
+                    {({ formData, handleChange }) => (
+                        <>
+                            {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
 
-
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-12">
-                            <InputField
-                                label="Grupos:"
-                                type="text"
-                                id="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Digite o nome do grupo"
-                                error={formErrors.name} 
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-3 form-row gap-2">
-                        {canAccess('Criar grupos de produto') && (
-                            <Button type="submit" text="Cadastrar Grupo" className="btn btn-blue-light fw-semibold" />
-                        )}
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                    </div>
-                </form>
+                            <div className="form-row">
+                                <div className="d-flex flex-column col-md-12">
+                                    <InputField
+                                        label="Grupos:"
+                                        type="text"
+                                        id="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        placeholder="Digite o nome do grupo"
+                                        error={formErrors.name} 
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </Form>
             </div>
         </MainLayout>
     );

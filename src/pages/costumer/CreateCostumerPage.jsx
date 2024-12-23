@@ -8,10 +8,10 @@ import MyAlert from '../../components/MyAlert';
 import { usePermissions } from '../../hooks/usePermissions';
 import CustomerService from '../../services/CustomerService';
 import { maskCpfCnpj, maskCep, removeMask } from '../../utils/maskUtils';
+import Form from '../../components/Form';
 
 const CreateCustomerPage = () => {
     const navigate = useNavigate();
-    const { canAccess } = usePermissions();
     const [loadingCep, setLoadingCep] = useState(false);
     const [formData, setFormData] = useState({
         customer: {
@@ -107,11 +107,7 @@ const CreateCustomerPage = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
-
+    const handleSubmit = async (formData) => {
         const sanitizedData = {
             customer: {
                 ...formData.customer,
@@ -160,257 +156,293 @@ const CreateCustomerPage = () => {
                     Cadastro de Clientes
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
+                <Form
+                    onSubmit={() => handleSubmit(formData)}
+                    initialFormData={{
+                        customer: {
+                            alias: '',
+                            name: '',
+                            cpf_cnpj: ''
+                        },
+                        address: {
+                            alias: '',
+                            zip: '',
+                            street: '',
+                            number: '',
+                            details: '',
+                            district: '',
+                            city: '',
+                            state: '',
+                            country: ''
+                        },
+                        location: {
+                            area: '',
+                            section: '',
+                            spot: '',
+                            details: ''
+                        },
+                        contact: {
+                            name: '',
+                            surname: '',
+                            role: '',
+                            ddd: '',
+                            phone: '',
+                            cell_ddd: '',
+                            cell: '',
+                            email: ''
+                        }
+                    }}
+                    textSubmit="Cadastrar Cliente"
+                    textLoadingSubmit="Cadastrando..."
+                    handleBack={handleBack}
+                >
+                    {() => (
+                        <>
+                        {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Nome Fantasia:"
-                                id="customer.alias"
-                                value={formData.customer.alias}
-                                onChange={handleChange}
-                                placeholder="Digite o nome fantasia"
-                                error={formErrors['customer.alias']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Nome Fantasia:"
+                                    id="customer.alias"
+                                    value={formData.customer.alias}
+                                    onChange={handleChange}
+                                    placeholder="Digite o nome fantasia"
+                                    error={formErrors['customer.alias']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Nome:"
+                                    id="customer.name"
+                                    value={formData.customer.name}
+                                    onChange={handleChange}
+                                    placeholder="Digite o nome do cliente"
+                                    error={formErrors['customer.name']}
+                                />
+                            </div>
                         </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Nome:"
-                                id="customer.name"
-                                value={formData.customer.name}
-                                onChange={handleChange}
-                                placeholder="Digite o nome do cliente"
-                                error={formErrors['customer.name']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-12">
+                                <InputField
+                                    label="CPF/CNPJ:"
+                                    id="customer.cpf_cnpj"
+                                    value={formData.customer.cpf_cnpj}
+                                    onChange={handleChange}
+                                    placeholder="Digite o CPF ou CNPJ"
+                                    error={formErrors['customer.cpf_cnpj']}
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-12">
-                            <InputField
-                                label="CPF/CNPJ:"
-                                id="customer.cpf_cnpj"
-                                value={formData.customer.cpf_cnpj}
-                                onChange={handleChange}
-                                placeholder="Digite o CPF ou CNPJ"
-                                error={formErrors['customer.cpf_cnpj']}
-                            />
-                        </div>
-                    </div>
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="CEP:"
-                                id="address.zip"
-                                value={formData.address.zip}
-                                onChange={handleCepChange}
-                                placeholder="Digite o CEP"
-                                error={formErrors['address.zip']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="CEP:"
+                                    id="address.zip"
+                                    value={formData.address.zip}
+                                    onChange={handleCepChange}
+                                    placeholder="Digite o CEP"
+                                    error={formErrors['address.zip']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Rua:"
+                                    id="address.street"
+                                    value={formData.address.street}
+                                    onChange={handleChange}
+                                    placeholder="Digite a rua"
+                                    error={formErrors['address.street']}
+                                />
+                            </div>
                         </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Rua:"
-                                id="address.street"
-                                value={formData.address.street}
-                                onChange={handleChange}
-                                placeholder="Digite a rua"
-                                error={formErrors['address.street']}
-                            />
-                        </div>
-                    </div>
 
-                    
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-12">
-                            <InputField
-                                label="Apelido do Endereço:"
-                                id="address.alias"
-                                value={formData.address.alias}
-                                onChange={handleChange}
-                                placeholder="Digite o apelido do endereço"
-                                error={formErrors['address.alias']}
-                            />
+                        
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-12">
+                                <InputField
+                                    label="Apelido do Endereço:"
+                                    id="address.alias"
+                                    value={formData.address.alias}
+                                    onChange={handleChange}
+                                    placeholder="Digite o apelido do endereço"
+                                    error={formErrors['address.alias']}
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Número:"
-                                id="address.number"
-                                value={formData.address.number}
-                                onChange={handleChange}
-                                placeholder="Digite o número"
-                                error={formErrors['address.number']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Número:"
+                                    id="address.number"
+                                    value={formData.address.number}
+                                    onChange={handleChange}
+                                    placeholder="Digite o número"
+                                    error={formErrors['address.number']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Bairro:"
+                                    id="address.district"
+                                    value={formData.address.district}
+                                    onChange={handleChange}
+                                    placeholder="Digite o bairro"
+                                    error={formErrors['address.district']}
+                                />
+                            </div>
                         </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Bairro:"
-                                id="address.district"
-                                value={formData.address.district}
-                                onChange={handleChange}
-                                placeholder="Digite o bairro"
-                                error={formErrors['address.district']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Cidade:"
+                                    id="address.city"
+                                    value={formData.address.city}
+                                    onChange={handleChange}
+                                    placeholder="Digite a cidade"
+                                    error={formErrors['address.city']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Estado:"
+                                    id="address.state"
+                                    value={formData.address.state}
+                                    onChange={handleChange}
+                                    placeholder="Digite o estado"
+                                    error={formErrors['address.state']}
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Cidade:"
-                                id="address.city"
-                                value={formData.address.city}
-                                onChange={handleChange}
-                                placeholder="Digite a cidade"
-                                error={formErrors['address.city']}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Estado:"
-                                id="address.state"
-                                value={formData.address.state}
-                                onChange={handleChange}
-                                placeholder="Digite o estado"
-                                error={formErrors['address.state']}
-                            />
-                        </div>
-                    </div>
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Área:"
-                                id="location.area"
-                                value={formData.location.area}
-                                onChange={handleChange}
-                                placeholder="Digite a área"
-                                error={formErrors['location.area']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Área:"
+                                    id="location.area"
+                                    value={formData.location.area}
+                                    onChange={handleChange}
+                                    placeholder="Digite a área"
+                                    error={formErrors['location.area']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Seção:"
+                                    id="location.section"
+                                    value={formData.location.section}
+                                    onChange={handleChange}
+                                    placeholder="Digite a seção"
+                                    error={formErrors['location.section']}
+                                />
+                            </div>
                         </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Seção:"
-                                id="location.section"
-                                value={formData.location.section}
-                                onChange={handleChange}
-                                placeholder="Digite a seção"
-                                error={formErrors['location.section']}
-                            />
-                        </div>
-                    </div>
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="detalhes:"
-                                id="location.details"
-                                value={formData.location.details}
-                                onChange={handleChange}
-                                placeholder="Digite os detalhes"
-                                error={formErrors['location.details']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="detalhes:"
+                                    id="location.details"
+                                    value={formData.location.details}
+                                    onChange={handleChange}
+                                    placeholder="Digite os detalhes"
+                                    error={formErrors['location.details']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Ponto:"
+                                    id="location.spot"
+                                    value={formData.location.spot}
+                                    onChange={handleChange}
+                                    placeholder="Digite o ponto"
+                                    error={formErrors['location.spot']}
+                                />
+                            </div>
                         </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Ponto:"
-                                id="location.spot"
-                                value={formData.location.spot}
-                                onChange={handleChange}
-                                placeholder="Digite o ponto"
-                                error={formErrors['location.spot']}
-                            />
-                        </div>
-                    </div>
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Nome do Contato:"
-                                id="contact.name"
-                                value={formData.contact.name}
-                                onChange={handleChange}
-                                placeholder="Digite o nome do contato"
-                                error={formErrors['contact.name']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Nome do Contato:"
+                                    id="contact.name"
+                                    value={formData.contact.name}
+                                    onChange={handleChange}
+                                    placeholder="Digite o nome do contato"
+                                    error={formErrors['contact.name']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Sobrenome do Contato:"
+                                    id="contact.surname"
+                                    value={formData.contact.surname}
+                                    onChange={handleChange}
+                                    placeholder="Digite o sobrenome do contato"
+                                    error={formErrors['contact.surname']}
+                                />
+                            </div>
                         </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Sobrenome do Contato:"
-                                id="contact.surname"
-                                value={formData.contact.surname}
-                                onChange={handleChange}
-                                placeholder="Digite o sobrenome do contato"
-                                error={formErrors['contact.surname']}
-                            />
-                        </div>
-                    </div>
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="DDD:"
-                                id="contact.ddd"
-                                value={formData.contact.ddd}
-                                onChange={handleChange}
-                                placeholder="Digite o ddd"
-                                error={formErrors['contact.ddd']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="DDD:"
+                                    id="contact.ddd"
+                                    value={formData.contact.ddd}
+                                    onChange={handleChange}
+                                    placeholder="Digite o ddd"
+                                    error={formErrors['contact.ddd']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Telefone:"
+                                    id="contact.phone"
+                                    value={formData.contact.phone}
+                                    onChange={handleChange}
+                                    placeholder="Digite o telefone"
+                                    error={formErrors['contact.phone']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-12">
+                                <InputField
+                                    label="E-mail:"
+                                    id="contact.email"
+                                    value={formData.contact.email}
+                                    onChange={handleChange}
+                                    placeholder="Digite o e-mail"
+                                    error={formErrors['contact.email']}
+                                />
+                            </div>
                         </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Telefone:"
-                                id="contact.phone"
-                                value={formData.contact.phone}
-                                onChange={handleChange}
-                                placeholder="Digite o telefone"
-                                error={formErrors['contact.phone']}
-                            />
+                        <div className="form-row">
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="DDD(CELULAR):"
+                                    id="contact.cell_ddd"
+                                    value={formData.contact.cell_ddd}
+                                    onChange={handleChange}
+                                    placeholder="Digite o ddd"
+                                    error={formErrors['contact.cell_ddd']}
+                                />
+                            </div>
+                            <div className="d-flex flex-column col-md-6">
+                                <InputField
+                                    label="Celular:"
+                                    id="contact.cell"
+                                    value={formData.contact.cell}
+                                    onChange={handleChange}
+                                    placeholder="Digite o telefone"
+                                    error={formErrors['contact.cell']}
+                                />
+                            </div>
                         </div>
-                        <div className="d-flex flex-column col-md-12">
-                            <InputField
-                                label="E-mail:"
-                                id="contact.email"
-                                value={formData.contact.email}
-                                onChange={handleChange}
-                                placeholder="Digite o e-mail"
-                                error={formErrors['contact.email']}
-                            />
-                        </div>
-                    </div>
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="DDD(CELULAR):"
-                                id="contact.cell_ddd"
-                                value={formData.contact.cell_ddd}
-                                onChange={handleChange}
-                                placeholder="Digite o ddd"
-                                error={formErrors['contact.cell_ddd']}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Celular:"
-                                id="contact.cell"
-                                value={formData.contact.cell}
-                                onChange={handleChange}
-                                placeholder="Digite o telefone"
-                                error={formErrors['contact.cell']}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-3 form-row gap-2">
-                        {canAccess('Criar clientes') && (
-                            <Button type="submit" text="Cadastrar Cliente" className="btn btn-blue-light fw-semibold" />
-                        )}
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                    </div>
-                </form>
+                    </>
+                    )}
+                </Form>
             </div>
         </MainLayout>
     );
