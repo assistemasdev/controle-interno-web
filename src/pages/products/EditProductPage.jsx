@@ -16,6 +16,7 @@ import GroupService from '../../services/GroupService';
 import Select from 'react-select';  
 import { CircularProgress } from '@mui/material'; 
 import useDebounce from '../../hooks/useDebounce';
+import Form from '../../components/Form';
 
 const EditProductPage = () => {
     const navigate = useNavigate(); 
@@ -129,24 +130,6 @@ const EditProductPage = () => {
         fetchData();
     }, [id, navigate]);
 
-    const { debouncedFn: debouncedSubmit, isPending } = useDebounce(async () => {
-        try {
-            const response = await ProductService.update(id, formData, navigate);
-            const { message } = response;
-
-            setMessage({ type: 'success', text: message });
-        } catch (error) {
-            if (error.status === 422 && error.data) {
-                setFormErrors(error.data);
-                return;
-            }
-
-            setMessage({ type: 'error', text: error.message || 'Erro ao atualizar o produto' });
-        } finally {
-            setIsSubmitting(false)
-        }
-    }, 1000);
-
     const handleChange = (e) => {
         const { id, value } = e.target;
         const [category, key] = id.split('.');
@@ -205,12 +188,22 @@ const EditProductPage = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
-        setIsSubmitting(true)
-        debouncedSubmit(formData)
+    const handleSubmit = async () => {
+        try {
+            const response = await ProductService.update(id, formData, navigate);
+            const { message } = response;
+
+            setMessage({ type: 'success', text: message });
+        } catch (error) {
+            if (error.status === 422 && error.data) {
+                setFormErrors(error.data);
+                return;
+            }
+
+            setMessage({ type: 'error', text: error.message || 'Erro ao atualizar o produto' });
+        } finally {
+            setIsSubmitting(false)
+        }
     };
 
     const handleBack = () => {
@@ -228,309 +221,307 @@ const EditProductPage = () => {
                         <CircularProgress size={50} />
                     </div>
                 ) : (
-                    <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                        {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
+                    <Form
+                        onSubmit={() => handleSubmit(formData)} 
+                        textSubmit="Editar"
+                        textLoadingSubmit="Editando..."
+                        handleBack={handleBack}
+                    >
+                        {() => (
+                            <>
+                            
+                                {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
 
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Nome:"
-                                    type="text"
-                                    id="product.name"
-                                    value={formData.product.name}
-                                    onChange={handleChange}
-                                    placeholder="Digite o nome do produto"
-                                    error={formErrors['product.name']}
-                                />
-                            </div>
-                            <div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Número:"
-                                    type="number"
-                                    id="product.number"
-                                    value={formData.product.number}
-                                    onChange={handleChange}
-                                    placeholder="Digite o número do produto"
-                                    error={formErrors['product.number']}
-                                />
-                            </div>
-                        </div>
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Número de Série:"
-                                    type="text"
-                                    id="product.serial_number"
-                                    value={formData.product.serial_number}
-                                    onChange={handleChange}
-                                    placeholder="Digite o número de série"
-                                    error={formErrors['product.serial_number']}
-                                />
-                            </div>
-                            <div className="d-flex flex-column col-md-6">
-                                <label htmlFor="current_organization_id" className="text-dark font-weight-bold mt-1">Organização Atual:</label>
-                                <Select
-                                    name="current_organization_id"
-                                    options={organizations}
-                                    classNamePrefix="select"
-                                    value={organizations.find(org => org.value === formData.product.current_organization_id) || null}
-                                    onChange={handleOrganizationChange}
-                                    noOptionsMessage={() => "Nenhuma organização encontrada"}
-                                    placeholder="Selecione a organização"
-                                />
-                                {formErrors['product.current_organization_id'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['product.current_organization_id']}
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label="Nome:"
+                                            type="text"
+                                            id="product.name"
+                                            value={formData.product.name}
+                                            onChange={handleChange}
+                                            placeholder="Digite o nome do produto"
+                                            error={formErrors['product.name']}
+                                        />
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label="Número:"
+                                            type="number"
+                                            id="product.number"
+                                            value={formData.product.number}
+                                            onChange={handleChange}
+                                            placeholder="Digite o número do produto"
+                                            error={formErrors['product.number']}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label="Número de Série:"
+                                            type="text"
+                                            id="product.serial_number"
+                                            value={formData.product.serial_number}
+                                            onChange={handleChange}
+                                            placeholder="Digite o número de série"
+                                            error={formErrors['product.serial_number']}
+                                        />
+                                    </div>
+                                    <div className="d-flex flex-column col-md-6">
+                                        <label htmlFor="current_organization_id" className="text-dark font-weight-bold mt-1">Organização Atual:</label>
+                                        <Select
+                                            name="current_organization_id"
+                                            options={organizations}
+                                            classNamePrefix="select"
+                                            value={organizations.find(org => org.value === formData.product.current_organization_id) || null}
+                                            onChange={handleOrganizationChange}
+                                            noOptionsMessage={() => "Nenhuma organização encontrada"}
+                                            placeholder="Selecione a organização"
+                                        />
+                                        {formErrors['product.current_organization_id'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['product.current_organization_id']}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-6">
-                                <label htmlFor="owner_organization_id" className="text-dark font-weight-bold mt-1">Organização Proprietária:</label>
-                                <Select
-                                    name="owner_organization_id"
-                                    options={organizations}
-                                    classNamePrefix="select"
-                                    value={organizations.find(org => org.value === formData.product.owner_organization_id) || null}
-                                    onChange={(selectedOption) =>
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            product: {
-                                                ...prev.product,
-                                                owner_organization_id: selectedOption ? selectedOption.value : ''
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-6">
+                                        <label htmlFor="owner_organization_id" className="text-dark font-weight-bold mt-1">Organização Proprietária:</label>
+                                        <Select
+                                            name="owner_organization_id"
+                                            options={organizations}
+                                            classNamePrefix="select"
+                                            value={organizations.find(org => org.value === formData.product.owner_organization_id) || null}
+                                            onChange={(selectedOption) =>
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    product: {
+                                                        ...prev.product,
+                                                        owner_organization_id: selectedOption ? selectedOption.value : ''
+                                                    }
+                                                }))
                                             }
-                                        }))
-                                    }
-                                    noOptionsMessage={() => "Nenhuma organização encontrada"}
-                                    placeholder="Selecione a organização"
-                                />
-                                {formErrors['product.owner_organization_id'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['product.owner_organization_id']}
+                                            noOptionsMessage={() => "Nenhuma organização encontrada"}
+                                            placeholder="Selecione a organização"
+                                        />
+                                        {formErrors['product.owner_organization_id'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['product.owner_organization_id']}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                            <div className="d-flex flex-column col-md-6">
-                                <label htmlFor="supplier_id" className="text-dark font-weight-bold mt-1">Fornecedor:</label>
-                                <Select
-                                    name="supplier_id"
-                                    options={suppliers}
-                                    classNamePrefix="select"
-                                    value={suppliers.find(supplier => supplier.value === formData.product.supplier_id) || null}
-                                    onChange={(selectedOption) =>
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            product: {
-                                                ...prev.product,
-                                                supplier_id: selectedOption ? selectedOption.value : ''
+                                    <div className="d-flex flex-column col-md-6">
+                                        <label htmlFor="supplier_id" className="text-dark font-weight-bold mt-1">Fornecedor:</label>
+                                        <Select
+                                            name="supplier_id"
+                                            options={suppliers}
+                                            classNamePrefix="select"
+                                            value={suppliers.find(supplier => supplier.value === formData.product.supplier_id) || null}
+                                            onChange={(selectedOption) =>
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    product: {
+                                                        ...prev.product,
+                                                        supplier_id: selectedOption ? selectedOption.value : ''
+                                                    }
+                                                }))
                                             }
-                                        }))
-                                    }
-                                    noOptionsMessage={() => "Nenhum fornecedor encontrado"}
-                                    placeholder="Selecione o fornecedor"
-                                />
-                                {formErrors['product.supplier_id'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['product.supplier_id']}
+                                            noOptionsMessage={() => "Nenhum fornecedor encontrado"}
+                                            placeholder="Selecione o fornecedor"
+                                        />
+                                        {formErrors['product.supplier_id'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['product.supplier_id']}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
 
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-6">
-                                <label htmlFor="address_id" className="text-dark font-weight-bold mt-1">Endereço:</label>
-                                <Select
-                                    name="address_id"
-                                    options={addresses}
-                                    classNamePrefix="select"
-                                    value={addresses.find(address => address.value === formData.product.address_id) || null}
-                                    onChange={(selectedOption) =>
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            product: {
-                                                ...prev.product,
-                                                address_id: selectedOption ? selectedOption.value : ''
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-6">
+                                        <label htmlFor="address_id" className="text-dark font-weight-bold mt-1">Endereço:</label>
+                                        <Select
+                                            name="address_id"
+                                            options={addresses}
+                                            classNamePrefix="select"
+                                            value={addresses.find(address => address.value === formData.product.address_id) || null}
+                                            onChange={(selectedOption) =>
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    product: {
+                                                        ...prev.product,
+                                                        address_id: selectedOption ? selectedOption.value : ''
+                                                    }
+                                                }))
                                             }
-                                        }))
-                                    }
-                                    noOptionsMessage={() => "Nenhum endereço encontrado"}
-                                    placeholder="Selecione o endereço"
-                                />
-                                {formErrors['product.address_id'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['product.address_id']}
+                                            noOptionsMessage={() => "Nenhum endereço encontrado"}
+                                            placeholder="Selecione o endereço"
+                                        />
+                                        {formErrors['product.address_id'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['product.address_id']}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                            <div className="d-flex flex-column col-md-6">
-                                <label htmlFor="location_id" className="text-dark font-weight-bold mt-1">Localização:</label>
-                                <Select
-                                    name="location_id"
-                                    options={locations}
-                                    classNamePrefix="select"
-                                    value={locations.find(location => location.value === formData.product.location_id) || null}
-                                    onChange={(selectedOption) =>
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            product: {
-                                                ...prev.product,
-                                                location_id: selectedOption ? selectedOption.value : ''
+                                    <div className="d-flex flex-column col-md-6">
+                                        <label htmlFor="location_id" className="text-dark font-weight-bold mt-1">Localização:</label>
+                                        <Select
+                                            name="location_id"
+                                            options={locations}
+                                            classNamePrefix="select"
+                                            value={locations.find(location => location.value === formData.product.location_id) || null}
+                                            onChange={(selectedOption) =>
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    product: {
+                                                        ...prev.product,
+                                                        location_id: selectedOption ? selectedOption.value : ''
+                                                    }
+                                                }))
                                             }
-                                        }))
-                                    }
-                                    noOptionsMessage={() => "Nenhuma localização encontrada"}
-                                    placeholder="Selecione a localização"
-                                />
-                                {formErrors['product.location_id'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['product.location_id']}
+                                            noOptionsMessage={() => "Nenhuma localização encontrada"}
+                                            placeholder="Selecione a localização"
+                                        />
+                                        {formErrors['product.location_id'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['product.location_id']}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
 
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Data de Compra:"
-                                    type="date"
-                                    id="product.purchase_date"
-                                    value={formData.product.purchase_date}
-                                    onChange={handleChange}
-                                    error={formErrors['product.purchase_date']}
-                                />
-                            </div>
-                            <div className="d-flex flex-column col-md-6">
-                                <InputField
-                                    label="Data de Garantia:"
-                                    type="date"
-                                    id="product.warranty_date"
-                                    value={formData.product.warranty_date}
-                                    onChange={handleChange}
-                                    error={formErrors['product.warranty_date']}
-                                />
-                            </div>
-                        </div>
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label="Data de Compra:"
+                                            type="date"
+                                            id="product.purchase_date"
+                                            value={formData.product.purchase_date}
+                                            onChange={handleChange}
+                                            error={formErrors['product.purchase_date']}
+                                        />
+                                    </div>
+                                    <div className="d-flex flex-column col-md-6">
+                                        <InputField
+                                            label="Data de Garantia:"
+                                            type="date"
+                                            id="product.warranty_date"
+                                            value={formData.product.warranty_date}
+                                            onChange={handleChange}
+                                            error={formErrors['product.warranty_date']}
+                                        />
+                                    </div>
+                                </div>
 
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-4">
-                                <label htmlFor="condition_id" className="text-dark font-weight-bold mt-1">Condição:</label>
-                                <Select
-                                    name="condition_id"
-                                    options={conditions}
-                                    classNamePrefix="select"
-                                    value={conditions.find(condition => condition.value === formData.product.condition_id) || null}
-                                    onChange={(selectedOption) =>
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            product: {
-                                                ...prev.product,
-                                                condition_id: selectedOption ? selectedOption.value : ''
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-4">
+                                        <label htmlFor="condition_id" className="text-dark font-weight-bold mt-1">Condição:</label>
+                                        <Select
+                                            name="condition_id"
+                                            options={conditions}
+                                            classNamePrefix="select"
+                                            value={conditions.find(condition => condition.value === formData.product.condition_id) || null}
+                                            onChange={(selectedOption) =>
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    product: {
+                                                        ...prev.product,
+                                                        condition_id: selectedOption ? selectedOption.value : ''
+                                                    }
+                                                }))
                                             }
-                                        }))
-                                    }
-                                    noOptionsMessage={() => "Nenhuma condição encontrada"}
-                                    placeholder="Selecione a condição"
-                                />
-                                {formErrors['product.condition_id'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['product.condition_id']}
+                                            noOptionsMessage={() => "Nenhuma condição encontrada"}
+                                            placeholder="Selecione a condição"
+                                        />
+                                        {formErrors['product.condition_id'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['product.condition_id']}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                            <div className="d-flex flex-column col-md-4">
-                                <label htmlFor="type_id" className="text-dark font-weight-bold mt-1">Tipo:</label>
-                                <Select
-                                    name="type_id"
-                                    options={types}
-                                    classNamePrefix="select"
-                                    value={types.find(type => type.value === formData.product.type_id) || null}
-                                    onChange={(selectedOption) =>
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            product: {
-                                                ...prev.product,
-                                                type_id: selectedOption ? selectedOption.value : ''
+                                    <div className="d-flex flex-column col-md-4">
+                                        <label htmlFor="type_id" className="text-dark font-weight-bold mt-1">Tipo:</label>
+                                        <Select
+                                            name="type_id"
+                                            options={types}
+                                            classNamePrefix="select"
+                                            value={types.find(type => type.value === formData.product.type_id) || null}
+                                            onChange={(selectedOption) =>
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    product: {
+                                                        ...prev.product,
+                                                        type_id: selectedOption ? selectedOption.value : ''
+                                                    }
+                                                }))
                                             }
-                                        }))
-                                    }
-                                    noOptionsMessage={() => "Nenhum tipo encontrado"}
-                                    placeholder="Selecione o tipo"
-                                />
-                                {formErrors['product.type_id'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['product.type_id']}
+                                            noOptionsMessage={() => "Nenhum tipo encontrado"}
+                                            placeholder="Selecione o tipo"
+                                        />
+                                        {formErrors['product.type_id'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['product.type_id']}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                            <div className="d-flex flex-column col-md-4">
-                                <label htmlFor="type_id" className="text-dark font-weight-bold mt-1">Categoria:</label>
-                                <Select
-                                    name="category_id"
-                                    options={categories}
-                                    classNamePrefix="select"
-                                    value={categories.find(category => category.value === formData.product.category_id) || null}
-                                    onChange={(selectedOption) =>
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            product: {
-                                                ...prev.product,
-                                                category_id: selectedOption ? selectedOption.value : ''
+                                    <div className="d-flex flex-column col-md-4">
+                                        <label htmlFor="type_id" className="text-dark font-weight-bold mt-1">Categoria:</label>
+                                        <Select
+                                            name="category_id"
+                                            options={categories}
+                                            classNamePrefix="select"
+                                            value={categories.find(category => category.value === formData.product.category_id) || null}
+                                            onChange={(selectedOption) =>
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    product: {
+                                                        ...prev.product,
+                                                        category_id: selectedOption ? selectedOption.value : ''
+                                                    }
+                                                }))
                                             }
-                                        }))
-                                    }
-                                    noOptionsMessage={() => "Nenhuma categoria encontrado"}
-                                    placeholder="Selecione a categoria"
-                                />
-                                {formErrors['product.category_id'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['product.category_id']}
+                                            noOptionsMessage={() => "Nenhuma categoria encontrado"}
+                                            placeholder="Selecione a categoria"
+                                        />
+                                        {formErrors['product.category_id'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['product.category_id']}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
 
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-12">
-                                <label htmlFor="groups" className="text-dark font-weight-bold mt-1">Grupos:</label>
-                                <Select
-                                    isMulti
-                                    name="groups"
-                                    options={groups}
-                                    classNamePrefix="select"
-                                    value={groups.filter(group => formData.groups.includes(group.value))} 
-                                    onChange={(selectedOptions) =>
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            groups: selectedOptions ? selectedOptions.map(option => option.value) : []
-                                        }))
-                                    }
-                                    noOptionsMessage={() => "Nenhum grupo encontrado"}
-                                    placeholder="Selecione os grupos"
-                                />
-                                {formErrors['groups'] && (
-                                    <div className="invalid-feedback d-block">
-                                        {formErrors['groups']}
+                                <div className="form-row">
+                                    <div className="d-flex flex-column col-md-12">
+                                        <label htmlFor="groups" className="text-dark font-weight-bold mt-1">Grupos:</label>
+                                        <Select
+                                            isMulti
+                                            name="groups"
+                                            options={groups}
+                                            classNamePrefix="select"
+                                            value={groups.filter(group => formData.groups.includes(group.value))} 
+                                            onChange={(selectedOptions) =>
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    groups: selectedOptions ? selectedOptions.map(option => option.value) : []
+                                                }))
+                                            }
+                                            noOptionsMessage={() => "Nenhum grupo encontrado"}
+                                            placeholder="Selecione os grupos"
+                                        />
+                                        {formErrors['groups'] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors['groups']}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="mt-3 form-row gap-2">
-                            {canAccess('Editar produtos') && (
-                                <Button 
-                                    type="submit" 
-                                    text={isSubmitting || isPending ? "Editando..." : "Editar Produto"} 
-                                    className={`btn btn-blue-light fw-semibold ${isSubmitting || isPending ? "disabled" : ""}`}
-                                    disabled={isSubmitting || isPending}
-                                />
-                            )}
-                            <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                        </div>
-                    </form>
+                                </div>
+                            </>
+                        )}
+                    </Form>
                 )}
             </div>
         </MainLayout>
