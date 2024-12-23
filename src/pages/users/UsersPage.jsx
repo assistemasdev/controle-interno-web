@@ -117,6 +117,7 @@ const UsersPage = () => {
         try {
             if(user.length > 0) {
                 const response = await UserService.autocomplete({user}, navigate);
+                console.log(response)
                 const filteredUsers = removeDuplicatesWithPriority(
                     [
                         {textFilter:true, value: user, label: user},

@@ -11,8 +11,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
-import Select from 'react-select';  
 import { removeDuplicatesWithPriority } from "../../utils/arrayUtils";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
@@ -25,13 +25,11 @@ const ProductsPage = () => {
     const [statusOptions, setStatusOptions] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
-    const [inputNumberValue, setInputNumberValue] = useState();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [numberFilter, setNumberFilter] = useState([]);
-    const [productsOptions, setProductsOptions] = useState([]);
 
     useEffect(() => {
         setMessage(null);
@@ -90,34 +88,6 @@ const ProductsPage = () => {
         navigate(`/produtos/detalhes/${product.id}`);
     };
 
-    const handleChangeNumber = (selectedOptions) => {
-        setSelectedProducts(selectedOptions);
-        setNumberFilter('');
-        setInputNumberValue('');
-    }
-
-    const handleOnBlurNumber = () => {
-        if (numberFilter && !selectedProducts.some(user => user.label === numberFilter)) {
-            setProductsOptions([
-                ...selectedProducts,
-                { numberFilter: true,value: numberFilter, label: numberFilter }, 
-            ]);
-        }
-        setNumberFilter(''); 
-        setInputNumberValue('');
-    }
-
-    const handleInputNumberChange = (value, { action }) => {
-        if(numberFilter && numberFilter.length == 0) {
-            setProductsOptions([]);
-        }
-
-        if(action === 'input-change') {
-            setNumberFilter(value)
-            setInputNumberValue(value)
-            fetchProductNumberAutocomplete(value)
-        }
-    }
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
@@ -129,37 +99,25 @@ const ProductsPage = () => {
 
     const fetchProductNumberAutocomplete = async (number) => {
         try {
-            if(number.length > 0) {
-                const response = await ProductService.autocomplete({number}, navigate);
-                const filteredProducts = removeDuplicatesWithPriority(
-                    [
-                        { numberFilter: true, value: number, label: number },
-                        ...response.result.map((product) => ({
-                            numberFilter: false,
-                            value: product.id,
-                            label: product.number,
-                        })),
-                    ],
-                    'label',
-                    'numberFilter'
-                )
+            const response = await ProductService.autocomplete({number}, navigate);
+            const filteredProducts = removeDuplicatesWithPriority(
+                [
+                    { numberFilter: true, value: number, label: number },
+                    ...response.result.map((product) => ({
+                        numberFilter: false,
+                        value: product.id,
+                        label: product.number,
+                    })),
+                ],
+                'label',
+                'numberFilter'
+            )
 
-                setProductsOptions(filteredProducts);
-            }
-
-            if(number.length == 0) {
-                setProductsOptions([])
-            }
+            return filteredProducts;
         } catch (error) {
             console.log(error)
             setMessage({type: 'error', text:'Erro ao pesquisar pelo o usuário'});
         }    
-    }
-
-    const handleClearFilters = (e) => {
-        e.preventDefault();
-        setSelectedProducts('');
-        setNumberFilter('');
     }
 
     const confirmDelete = async () => {
@@ -185,7 +143,7 @@ const ProductsPage = () => {
         }
     };
 
-    const headers = ['id', 'Nome', 'Número', 'Status'];
+    const headers = ['Id', 'Nome', 'Número', 'Status'];
 
     const actions = [
         {
@@ -221,24 +179,16 @@ const ProductsPage = () => {
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
                         <label htmlFor="number" className='text-dark font-weight-bold mt-1'>Número:</label>
-                            <Select
-                                isMulti
-                                name="number"
-                                options={productsOptions} 
-                                className={`basic-multi-select`}
-                                classNamePrefix="select"
-                                inputValue={inputNumberValue}
-                                value={selectedProducts}
-                                onInputChange={handleInputNumberChange}
-                                onChange={handleChangeNumber}
-                                onBlur={handleOnBlurNumber}
-                                noOptionsMessage={() => "Nenhum número encontrado"}
-                                placeholder="Filtre os produtos pelo número"
-                            />
+                        <AutoCompleteFilter
+                            fetchOptions={fetchProductNumberAutocomplete}
+                            onChange={(selected) => setSelectedProducts(selected)}
+                            onBlurColumn='numberFilter' 
+                            placeholder="Filtre os produtos pelo número"
+                            isMulti={true}
+                        />
                     </div>
                     <div className="form-group gap-2">
                         <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
                 </form>
 
