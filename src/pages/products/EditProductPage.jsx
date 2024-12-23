@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField'; 
 import Button from '../../components/Button'; 
@@ -15,6 +15,7 @@ import TypeService from '../../services/TypeService';
 import GroupService from '../../services/GroupService'; 
 import Select from 'react-select';  
 import { CircularProgress } from '@mui/material'; 
+import useDebounce from '../../hooks/useDebounce';
 
 const EditProductPage = () => {
     const navigate = useNavigate(); 
@@ -33,6 +34,7 @@ const EditProductPage = () => {
     const [groups, setGroups] = useState([]);
     const [suppliers, setSuppliers] = useState([])
     const [productGroups, setProductGroups] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false); 
 
     const [formData, setFormData] = useState({
         product: {
@@ -127,6 +129,24 @@ const EditProductPage = () => {
         fetchData();
     }, [id, navigate]);
 
+    const { debouncedFn: debouncedSubmit, isPending } = useDebounce(async () => {
+        try {
+            const response = await ProductService.update(id, formData, navigate);
+            const { message } = response;
+
+            setMessage({ type: 'success', text: message });
+        } catch (error) {
+            if (error.status === 422 && error.data) {
+                setFormErrors(error.data);
+                return;
+            }
+
+            setMessage({ type: 'error', text: error.message || 'Erro ao atualizar o produto' });
+        } finally {
+            setIsSubmitting(false)
+        }
+    }, 1000);
+
     const handleChange = (e) => {
         const { id, value } = e.target;
         const [category, key] = id.split('.');
@@ -189,20 +209,8 @@ const EditProductPage = () => {
         e.preventDefault();
         setFormErrors({});
         setMessage({ type: '', text: '' });
-        console.log(formData)
-        try {
-            const response = await ProductService.update(id, formData, navigate);
-            const { message } = response;
-
-            setMessage({ type: 'success', text: message });
-        } catch (error) {
-            if (error.status === 422 && error.data) {
-                setFormErrors(error.data);
-                return;
-            }
-
-            setMessage({ type: 'error', text: error.message || 'Erro ao atualizar o produto' });
-        }
+        setIsSubmitting(true)
+        debouncedSubmit(formData)
     };
 
     const handleBack = () => {
@@ -513,7 +521,12 @@ const EditProductPage = () => {
 
                         <div className="mt-3 form-row gap-2">
                             {canAccess('Editar produtos') && (
-                                <Button type="submit" text="Atualizar Produto" className="btn btn-blue-light fw-semibold" />
+                                <Button 
+                                    type="submit" 
+                                    text={isSubmitting || isPending ? "Editando..." : "Editar Produto"} 
+                                    className={`btn btn-blue-light fw-semibold ${isSubmitting || isPending ? "disabled" : ""}`}
+                                    disabled={isSubmitting || isPending}
+                                />
                             )}
                             <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
                         </div>
