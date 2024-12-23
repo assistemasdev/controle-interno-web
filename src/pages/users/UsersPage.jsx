@@ -161,13 +161,13 @@ const UsersPage = () => {
 
                         <div className="form-group col-md-12">
                             <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
-                                <AutoCompleteFilter
-                                    isMulti={true}
-                                    fetchOptions={fetchUserAutocomplete}
-                                    onChange={(selected) => setSelectedUsers(selected)}
-                                    onBlurColumn='textFilter'
-                                    placeholder="Filtre os usuários pelo nome"
-                                />
+                            <AutoCompleteFilter
+                                isMulti={true}
+                                fetchOptions={fetchUserAutocomplete}
+                                onChange={(selected) => setSelectedUsers(selected)}
+                                onBlurColumn='textFilter'
+                                placeholder="Filtre os usuários pelo nome"
+                            />
                         </div>
 
                     <div className="form-group gap-2">

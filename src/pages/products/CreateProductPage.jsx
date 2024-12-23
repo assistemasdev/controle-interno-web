@@ -15,6 +15,7 @@ import TypeService from '../../services/TypeService';
 import GroupService from '../../services/GroupService'; 
 import Select from 'react-select';  
 import { CircularProgress } from '@mui/material'; 
+import useDebounce from '../../hooks/useDebounce';
 
 const CreateProductPage = () => {
     const navigate = useNavigate(); 
@@ -87,6 +88,54 @@ const CreateProductPage = () => {
         };
         fetchData();
     }, [navigate]);
+
+    const { debouncedFn: debouncedSubmit, isPending } = useDebounce(async (formData) => {
+        try {
+            const response = await ProductService.create(formData, navigate);
+            const { message } = response;
+
+            setMessage({ type: "success", text: message });
+            setFormData({
+                product: {
+                    name: "",
+                    number: "",
+                    serial_number: "",
+                    current_organization_id: "",
+                    owner_organization_id: "",
+                    supplier_id: "",
+                    purchase_date: "",
+                    warranty_date: "",
+                    condition_id: "",
+                    category_id: "",
+                    address_id: "",
+                    location_id: ""
+                },
+                groups: []
+            });
+        } catch (error) {
+            if (error?.status === 422 && error?.data) {
+                setFormErrors({
+                    'product.name': error.data['product.name']?.[0] || '',
+                    'product.number': error.data['product.number']?.[0] || '',
+                    'product.serial_number': error.data['product.serial_number']?.[0] || '',
+                    'product.current_organization_id': error.data['product.current_organization_id']?.[0] || '',
+                    'product.owner_organization_id': error.data['product.owner_organization_id']?.[0] || '',
+                    'product.supplier_id': error.data['product.supplier_id']?.[0] || '',
+                    'product.purchase_date': error.data['product.purchase_date']?.[0] || '',
+                    'product.warranty_date': error.data['product.warranty_date']?.[0] || '',
+                    'product.condition_id': error.data['product.condition_id']?.[0] || '',
+                    'product.category_id': error.data['product.category_id']?.[0] || '',
+                    'product.address_id': error.data['product.address_id']?.[0] || '',
+                    'product.location_id': error.data['product.location_id']?.[0] || '',
+                    'groups': error.data['groups']?.[0] || '',
+
+                });
+                return;
+            } 
+
+            setMessage({ type: "error", text: error.message || "Erro ao cadastrar o produto" });
+        }
+    }, 1000);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -167,52 +216,7 @@ const CreateProductPage = () => {
         e.preventDefault();
         setFormErrors({});
         setMessage({ type: '', text: '' });
-    
-        try {
-            const response = await ProductService.create(formData, navigate);
-            const { message } = response; 
-        
-            setMessage({ type: 'success', text: message });
-            setFormData({
-                product: {
-                    name: '',
-                    number: '',
-                    serial_number: '',
-                    current_organization_id: '',
-                    owner_organization_id: '',
-                    supplier_id: '',
-                    purchase_date: '',
-                    warranty_date: '',
-                    condition_id: '',
-                    category_id: '',
-                    address_id: '',
-                    location_id: ''
-                }
-            });
-            return;
-        } catch (error) {
-            if (error.status === 422 && error.data) {
-                setFormErrors({
-                    'product.name': error.data['product.name']?.[0] || '',
-                    'product.number': error.data['product.number']?.[0] || '',
-                    'product.serial_number': error.data['product.serial_number']?.[0] || '',
-                    'product.current_organization_id': error.data['product.current_organization_id']?.[0] || '',
-                    'product.owner_organization_id': error.data['product.owner_organization_id']?.[0] || '',
-                    'product.supplier_id': error.data['product.supplier_id']?.[0] || '',
-                    'product.purchase_date': error.data['product.purchase_date']?.[0] || '',
-                    'product.warranty_date': error.data['product.warranty_date']?.[0] || '',
-                    'product.condition_id': error.data['product.condition_id']?.[0] || '',
-                    'product.category_id': error.data['product.category_id']?.[0] || '',
-                    'product.address_id': error.data['product.address_id']?.[0] || '',
-                    'product.location_id': error.data['product.location_id']?.[0] || '',
-                    'groups': error.data['groups']?.[0] || '',
-
-                });
-                return;
-            }
-
-            setMessage({ type: 'error', text: error.message || 'Erro ao cadastrar o produto' });
-        }
+        debouncedSubmit(formData);
     };
 
     const handleBack = () => {
@@ -532,8 +536,13 @@ const CreateProductPage = () => {
                             </div>
 
                             <div className="mt-3 form-row gap-2">
-                                {canAccess('Criar produtos') && (
-                                    <Button type="submit" text="Cadastrar Produto" className="btn btn-blue-light fw-semibold" />
+                                {canAccess("Criar produtos") && (
+                                    <Button
+                                        type="submit"
+                                        text={isPending ? "Cadastrando..." : "Cadastrar Produto"}
+                                        className={`btn btn-blue-light fw-semibold ${isPending ? "disabled" : ""}`}
+                                        disabled={isPending} 
+                                    />
                                 )}
                                 <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
                             </div>

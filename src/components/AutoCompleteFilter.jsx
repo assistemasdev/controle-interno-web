@@ -15,12 +15,12 @@ const AutoCompleteFilter = ({
     const [options, setOptions] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [selectedValue, setSelectedValue] = useState([]);
-    const debouncedFetchOptions = useDebounce(fetchOptions, 500);
+    const { debouncedFn  } = useDebounce(fetchOptions, 500);
 
     const handleInputChange = (value) => {
         setInputValue(value);
         if (value) {    
-            debouncedFetchOptions(value).then((results) => setOptions(results)); 
+            debouncedFn(value).then((results) => setOptions(results)); 
         } else {
             setOptions([]);
         }

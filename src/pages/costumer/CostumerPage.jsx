@@ -12,6 +12,9 @@ import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import { removeDuplicatesWithPriority } from "../../utils/arrayUtils";
+import { values } from "lodash";
 
 const CostumerPage = () => {
     const { canAccess } = usePermissions();
@@ -24,6 +27,7 @@ const CostumerPage = () => {
     const [customerToDelete, setCustomerToDelete] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [selectedCustomers, setSelectedCustomers] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
@@ -86,6 +90,28 @@ const CostumerPage = () => {
         navigate(`/clientes/detalhes/${customer.id}`);
     };
 
+    const fetchCustomerAutocomplete = async (name) => {
+        try {
+            const response = await CustomerService.autocomplete({name}, navigate);
+            const filteredCustomers = removeDuplicatesWithPriority(
+                [
+                    {textFilter:true, label: name, value: name},
+                    ...response.result.map((option) => ({
+                        label: option.name,
+                        value: option.id
+                    }))
+                ],
+                'label',
+                'textFilter'
+            )
+    
+            return filteredCustomers;
+        } catch (error) {
+            console.log(error)
+            setMessage({type: 'error', text:'Erro ao pesquisar pelo o cliente'});
+        }    
+    };
+
     const confirmDelete = async () => {
         try {
             setLoading(true);
@@ -145,13 +171,13 @@ const CostumerPage = () => {
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome do cliente:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do cliente"
+                        <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
+                        <AutoCompleteFilter
+                            isMulti={true}
+                            fetchOptions={fetchCustomerAutocomplete}
+                            onChange={(selected) => setSelectedCustomers(selected)}
+                            onBlurColumn='textFilter'
+                            placeholder="Filtre os usuários pelo nome"
                         />
                     </div>
                     <div className="form-group gap-2">

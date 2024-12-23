@@ -215,6 +215,18 @@ const CustomerService = {
             return handleError(error, navigate)
         }
     },
+    async autocomplete (data,navigate) {
+        try {
+            const response = await api.get("/customers/autocomplete", {params: {name:data.name,page:data.page, perPage: data.perPage}});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
     async paginatedCustomerLocation(id, idAddress, data, navigate) {
         try {
             const response = await api.get(`/customers/${id}/addresses/${idAddress}/locations/pages`, {params: {page: data.page, perPage:data.perPage}});
