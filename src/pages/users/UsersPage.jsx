@@ -15,6 +15,8 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
 import Select from 'react-select';  
 import { removeDuplicatesWithPriority } from '../../utils/arrayUtils';
+import AutoCompleteFilter from '../../components/AutoCompleteFilter';
+
 const UsersPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -79,76 +81,28 @@ const UsersPage = () => {
         );
     };
 
-    const handleChangeFilter = (selectedOptions) => {
-        setSelectedUsers(selectedOptions);
-        setTextFilter();
-        setInputValue('');
-    }
-
-    const handleInputChange = (value, { action }) => {
-        try {
-            if(textFilter && textFilter.length == 0) {
-                setUsersFilters([]);
-            }
-
-            if (action === 'input-change') {
-                setTextFilter(value);
-                setInputValue(value)
-                fetchUserAutocomplete(value);
-            }
-        } catch (error) {
-            console.log(error)
-            setErrorMessage('Erro ao pesquisar pelo o usuário');
-        }
-    }
-
-    const handleBlur = () => {
-        if (textFilter && !selectedUsers.some(user => user.label === textFilter)) {
-            setSelectedUsers([
-                ...selectedUsers,
-                { textFilter: true,value: textFilter, label: textFilter }, 
-            ]);
-        }
-        setTextFilter(''); 
-        setInputValue('');
-    };
-    
     const fetchUserAutocomplete = async (user) => {
         try {
-            if(user.length > 0) {
-                const response = await UserService.autocomplete({user}, navigate);
-                console.log(response)
-                const filteredUsers = removeDuplicatesWithPriority(
-                    [
-                        {textFilter:true, value: user, label: user},
-                        ...response.result.map((user) => ({
-                            textFilter: false,
-                            value: user.id,
-                            label: user.name
-                        }))
-                    ],
-                    'label',
-                    'textFilter'
-                );
+            const response = await UserService.autocomplete({user}, navigate);
+            const filteredUsers = removeDuplicatesWithPriority(
+                [
+                    {textFilter:true, value: user, label: user},
+                    ...response.result.map((user) => ({
+                        textFilter: false,
+                        value: user.id,
+                        label: user.name
+                    }))
+                ],
+                'label',
+                'textFilter'
+            );
 
-                setUsersFilters(filteredUsers)
-            }
-
-            if(user.length == 0) {
-                setUsersFilters([])
-            }
+            return filteredUsers
         } catch (error) {
             console.log(error)
             setErrorMessage('Erro ao pesquisar pelo o usuário');
         }    
     }
-
-    const handleClearFilters = (e) => {
-        e.preventDefault();
-        setSelectedUsers([]);
-        setTextFilter('');
-        setUsersFilters([]);
-    };
 
     const handleEdit = (user) => {
         navigate(`/usuarios/editar/${user.id}`);
@@ -207,25 +161,17 @@ const UsersPage = () => {
 
                         <div className="form-group col-md-12">
                             <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
-                                <Select
-                                    isMulti
-                                    name="name"
-                                    options={usersFilters} 
-                                    className={`basic-multi-select`}
-                                    classNamePrefix="select"
-                                    inputValue={inputValue}
-                                    value={selectedUsers}
-                                    onInputChange={handleInputChange}
-                                    onChange={handleChangeFilter}
-                                    onBlur={handleBlur}
-                                    noOptionsMessage={() => "Nenhum usuário encontrado"}
+                                <AutoCompleteFilter
+                                    isMulti={true}
+                                    fetchOptions={fetchUserAutocomplete}
+                                    onChange={(selected) => setSelectedUsers(selected)}
+                                    onBlurColumn='textFilter'
                                     placeholder="Filtre os usuários pelo nome"
                                 />
                         </div>
 
                     <div className="form-group gap-2">
                         <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
                 </form>
 
