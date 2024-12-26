@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
-import Button from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
-import { usePermissions } from '../../hooks/usePermissions';
 import ProductService from '../../services/ProductService';
 import OrganizationService from '../../services/OrganizationService';
 import SupplierService from '../../services/SupplierService';
@@ -49,6 +47,8 @@ const CreateProductPage = () => {
         groups: []
     })
 
+    const memoizedInitialData = useMemo(() => formData, [formData]);
+    
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -206,6 +206,7 @@ const CreateProductPage = () => {
                     </div>
                 ) : (
                     <Form
+                        initialFormData={memoizedInitialData}
                         onSubmit={() => handleSubmit(formData)} 
                         textSubmit="Cadastrar"
                         textLoadingSubmit="Cadastrando..."

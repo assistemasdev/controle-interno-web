@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
@@ -17,6 +17,8 @@ const EditGroupPage = () => {
     const [formData, setFormData] = useState({
         name: ''
     });
+
+    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -96,8 +98,8 @@ const EditGroupPage = () => {
                 ) : (
                     <Form
                         onSubmit={handleSubmit}
-                        initialFormData={formData}
-                        textSubmit="Atualizar Grupo"
+                        initialFormData={memoizedInitialData}
+                        textSubmit="Atualizar"
                         textLoadingSubmit="Atualizando..."
                         handleBack={handleBack}
                     >

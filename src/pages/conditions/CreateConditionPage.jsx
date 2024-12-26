@@ -1,22 +1,14 @@
 import React, { useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField'; 
-import Button from '../../components/Button'; 
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
 import MyAlert from '../../components/MyAlert';
-import { usePermissions } from '../../hooks/usePermissions';
 import ConditionService from '../../services/ConditionService';
 import Form from '../../components/Form';
 
 const CreateConditionPage = () => {
     const navigate = useNavigate(); 
-    const { canAccess } = usePermissions();
-
-    const [formData, setFormData] = useState({
-        name: '',
-    });
-
     const [message, setMessage] = useState({ type: '', text: '' });
     const [formErrors, setFormErrors] = useState({    
         name: '',
@@ -31,9 +23,6 @@ const CreateConditionPage = () => {
             const {  message } = response; 
     
             setMessage({ type: 'success', text: message });
-            setFormData({
-                name: '',
-            });
             return;
     
         } catch (error) {

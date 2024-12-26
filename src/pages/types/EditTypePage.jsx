@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
-import Button from '../../components/Button';
 import Form from '../../components/Form';
 import { CircularProgress } from '@mui/material'; 
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import TypeService from '../../services/TypeService';
-import { usePermissions } from '../../hooks/usePermissions';
 
 const EditTypePage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
     const [formErrors, setFormErrors] = useState({});
     const [loading, setLoading] = useState(true);
@@ -21,6 +18,8 @@ const EditTypePage = () => {
     const [initialFormData, setInitialFormData] = useState({
         name: ''
     });
+
+    const memoizedInitialData = useMemo(() => initialFormData, [initialFormData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -96,7 +95,7 @@ const EditTypePage = () => {
                     </div>
                 ) : (
                     <Form
-                        initialFormData={initialFormData}
+                        initialFormData={memoizedInitialData}
                         onSubmit={handleSubmit}
                         className="p-3 mt-2 rounded shadow-sm mb-2"
                         textSubmit="Atualizar Tipo"

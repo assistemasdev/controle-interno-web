@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo  } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
@@ -29,10 +29,7 @@ const PerfilUserPage = () => {
         password_confirmation: '',
     });
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
+    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -125,6 +122,7 @@ const PerfilUserPage = () => {
                 </div>
             ) : (
                 <Form
+                    initialFormData={memoizedInitialData}
                     onSubmit={handleSubmit}
                     textSubmit="Atualizar Usuário"
                     textLoadingSubmit="Atualizando..."

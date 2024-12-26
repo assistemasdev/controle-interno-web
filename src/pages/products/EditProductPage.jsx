@@ -1,11 +1,9 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField'; 
-import Button from '../../components/Button'; 
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
 import MyAlert from '../../components/MyAlert';
-import { usePermissions } from '../../hooks/usePermissions';
 import ProductService from '../../services/ProductService';
 import OrganizationService from '../../services/OrganizationService';
 import SupplierService from '../../services/SupplierService';
@@ -15,17 +13,14 @@ import TypeService from '../../services/TypeService';
 import GroupService from '../../services/GroupService'; 
 import Select from 'react-select';  
 import { CircularProgress } from '@mui/material'; 
-import useDebounce from '../../hooks/useDebounce';
 import Form from '../../components/Form';
 
 const EditProductPage = () => {
     const navigate = useNavigate(); 
     const { id } = useParams();
-    const { canAccess } = usePermissions();
     const [loading, setLoading] = useState(true); 
     const [message, setMessage] = useState({ type: '', text: '' });
     const [formErrors, setFormErrors] = useState({}); 
-
     const [organizations, setOrganizations] = useState([]);
     const [types, setTypes] = useState([]);
     const [conditions, setConditions] = useState([]);
@@ -54,6 +49,8 @@ const EditProductPage = () => {
         },
         groups: []
     });
+
+    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -222,6 +219,7 @@ const EditProductPage = () => {
                     </div>
                 ) : (
                     <Form
+                        initialFormData={memoizedInitialData}
                         onSubmit={() => handleSubmit(formData)} 
                         textSubmit="Editar"
                         textLoadingSubmit="Editando..."

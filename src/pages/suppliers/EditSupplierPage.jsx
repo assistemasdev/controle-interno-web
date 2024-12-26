@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
-import Button from '../../components/Button';
 import { CircularProgress } from '@mui/material';
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import SupplierService from '../../services/SupplierService';
 import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
-import { usePermissions } from '../../hooks/usePermissions';
 import Form from '../../components/Form';
 
 const EditSupplierPage = () => {
-    const { canAccess } = usePermissions();
     const navigate = useNavigate();
     const { id } = useParams();
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -23,6 +20,8 @@ const EditSupplierPage = () => {
         name: '',
         cpf_cnpj: '',
     });
+
+    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -117,7 +116,7 @@ const EditSupplierPage = () => {
                     ) : (
                         <Form
                             onSubmit={handleSubmit}
-                            initialFormData={formData}
+                            initialFormData={memoizedInitialData}
                             textSubmit="Atualizar"
                             textLoadingSubmit="Atualizando..."
                             handleBack={handleBack}

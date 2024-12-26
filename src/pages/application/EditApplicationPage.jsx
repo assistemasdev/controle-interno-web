@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
@@ -21,6 +21,8 @@ const EditApplicationPage = () => {
         session_code: '',
         active: ''
     });
+
+    const memoizedInitialData = useMemo(() => initialFormData, [initialFormData]);
 
     useEffect(() => {
         const fetchApplicationData = async () => {
@@ -85,8 +87,8 @@ const EditApplicationPage = () => {
                 ) : (
                     <Form
                         onSubmit={handleSubmit}
-                        initialFormData={initialFormData}
-                        textSubmit="Atualizar Aplicação"
+                        initialFormData={memoizedInitialData}
+                        textSubmit="Atualizar"
                         textLoadingSubmit="Atualizando..."
                         handleBack={handleBack}
                     >

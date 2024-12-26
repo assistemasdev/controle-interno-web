@@ -19,6 +19,7 @@ const Form = ({
     const { debouncedFn: debouncedSubmit, isPending } = useDebounce(async (data) => {
         await onSubmit(data);
     }, debounceTime);
+    
     useEffect(() => {
         setFormData(initialFormData);
     }, [initialFormData]);

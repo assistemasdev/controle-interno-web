@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -16,6 +16,7 @@ const EditCustomerPage = () => {
         customer: { alias: '', name: '', cpf_cnpj: '' }
     });
 
+    const memoizedInitialData = useMemo(() => formData, [formData]);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [formErrors, setFormErrors] = useState({});
 
@@ -96,7 +97,7 @@ const EditCustomerPage = () => {
                 ): (
                     <Form
                         onSubmit={handleSubmit}
-                        initialFormData={formData}
+                        initialFormData={memoizedInitialData}
                         textSubmit="Atualizar"
                         textLoadingSubmit="Atualizando..."
                         handleBack={handleBack}

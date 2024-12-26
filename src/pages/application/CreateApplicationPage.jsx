@@ -1,17 +1,15 @@
 import React from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField'; 
-import Button from '../../components/Button'; 
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
 import MyAlert from '../../components/MyAlert';
 import { usePermissions } from '../../hooks/usePermissions';
 import ApplicationService from '../../services/ApplicationService';
-import Form from '../../components/Form'; // Importando o novo componente Form
+import Form from '../../components/Form'; 
 
 const CreateApplicationPage = () => {
     const navigate = useNavigate(); 
-    const { canAccess } = usePermissions();
     const [message, setMessage] = React.useState({ type: '', text: '' });
     const [formErrors, setFormErrors] = React.useState({
         name: '',

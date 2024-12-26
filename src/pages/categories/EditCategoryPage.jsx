@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
@@ -18,6 +18,8 @@ const EditCategoryPage = () => {
         name: ''
     });
 
+    const memoizedInitialData = useMemo(() => formData, [formData]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -35,7 +37,6 @@ const EditCategoryPage = () => {
     const fetchCategory = async () => {
         try {
             const response = await CategoryService.getById(id, navigate);
-            console.log(response)
             setFormData({
                 name: response.result.name,
             });
@@ -98,7 +99,7 @@ const EditCategoryPage = () => {
                 ) : (
                     <Form
                         onSubmit={handleSubmit}
-                        initialFormData={formData}
+                        initialFormData={memoizedInitialData}
                         textSubmit="Atualizar"
                         textLoadingSubmit="Atualizando..."
                         handleBack={handleBack}

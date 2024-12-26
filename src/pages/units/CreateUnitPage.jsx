@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField'; 
 import Form from '../../components/Form'; 
 import '../../assets/styles/custom-styles.css'; 
 import MyAlert from '../../components/MyAlert';
-import { usePermissions } from '../../hooks/usePermissions';
 import UnitService from '../../services/UnitService';
 import { useNavigate } from 'react-router-dom';
 
 const CreateUnitPage = () => {
     const navigate = useNavigate(); 
-    const { canAccess } = usePermissions();
 
     const [message, setMessage] = useState({ type: '', text: '' });
     const [formErrors, setFormErrors] = useState({    
@@ -22,6 +20,8 @@ const CreateUnitPage = () => {
         name: '',
         abbreviation: ''
     };
+
+    const memoizedInitialData = useMemo(() => initialFormData, [initialFormData]);
 
     const handleSubmit = async (formData) => {
         setFormErrors({});
@@ -59,7 +59,7 @@ const CreateUnitPage = () => {
 
                 <Form
                     onSubmit={handleSubmit}
-                    initialFormData={initialFormData}
+                    initialFormData={memoizedInitialData}
                     textSubmit="Cadastrar Unidade"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}

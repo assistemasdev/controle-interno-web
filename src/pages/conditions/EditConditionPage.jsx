@@ -1,25 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
-import Button from '../../components/Button';
 import { CircularProgress } from '@mui/material'; 
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
 import ConditionService from '../../services/ConditionService';
-import { usePermissions } from '../../hooks/usePermissions';
 import Form from '../../components/Form';
 
 const EditConditionPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
     const [formErrors, setFormErrors] = useState({ name: '', color: '' });
     const [loading, setLoading] = useState(true); 
     const [formData, setFormData] = useState({
         name: ''
     });
+
+    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -100,7 +99,7 @@ const EditConditionPage = () => {
                 ) : (
                     <Form
                         onSubmit={handleSubmit}
-                        initialFormData={formData}
+                        initialFormData={memoizedInitialData}
                         textSubmit="Atualizar"
                         textLoadingSubmit="Atualizando..."
                         handleBack={handleBack}

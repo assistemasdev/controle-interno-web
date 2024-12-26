@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import InputField from '../../components/InputField';
-import Button from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
-import { usePermissions } from '../../hooks/usePermissions';
 import CustomerService from '../../services/CustomerService';
 import { maskCpfCnpj, maskCep, removeMask } from '../../utils/maskUtils';
 import Form from '../../components/Form';
@@ -47,6 +45,8 @@ const CreateCustomerPage = () => {
             email: ''
         }
     });
+
+    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     const [message, setMessage] = useState({ type: '', text: '' });
     const [formErrors, setFormErrors] = useState({});
@@ -158,40 +158,7 @@ const CreateCustomerPage = () => {
 
                 <Form
                     onSubmit={() => handleSubmit(formData)}
-                    initialFormData={{
-                        customer: {
-                            alias: '',
-                            name: '',
-                            cpf_cnpj: ''
-                        },
-                        address: {
-                            alias: '',
-                            zip: '',
-                            street: '',
-                            number: '',
-                            details: '',
-                            district: '',
-                            city: '',
-                            state: '',
-                            country: ''
-                        },
-                        location: {
-                            area: '',
-                            section: '',
-                            spot: '',
-                            details: ''
-                        },
-                        contact: {
-                            name: '',
-                            surname: '',
-                            role: '',
-                            ddd: '',
-                            phone: '',
-                            cell_ddd: '',
-                            cell: '',
-                            email: ''
-                        }
-                    }}
+                    initialFormData={memoizedInitialData}
                     textSubmit="Cadastrar Cliente"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
