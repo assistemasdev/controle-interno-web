@@ -14,7 +14,6 @@ import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import { removeDuplicatesWithPriority } from "../../utils/arrayUtils";
-import { values } from "lodash";
 
 const CostumerPage = () => {
     const { canAccess } = usePermissions();
@@ -43,11 +42,11 @@ const CostumerPage = () => {
         setName('');
     };
 
-    const fetchCustomers = async (page = 1) => {
+    const fetchCustomers = async (id,name,page = 1) => {
         try {
             setLoading(true);
         
-            const response = await CustomerService.getPaginated({page, perPage: itemsPerPage}, navigate);
+            const response = await CustomerService.getAll({id, name, page, perPage: itemsPerPage}, navigate);
             const result = response.result
 
             const filteredCustomers = result.data.map(supplier => {
@@ -76,6 +75,15 @@ const CostumerPage = () => {
     useEffect(() => {
         fetchCustomers();
     }, []);
+
+    const handleFilterSubmit = (e) => {
+        e.preventDefault();
+        console.log(selectedCustomers)
+        fetchCustomers(
+            selectedCustomers.filter((option) => option.textFilter == false).map((item) => (item.value)),
+            selectedCustomers.filter((option) => option.textFilter == true).map((item) => (item.value)),
+        )
+    }
 
     const handleEdit = (customer) => {
         navigate(`/clientes/editar/${customer.id}`);
@@ -168,7 +176,7 @@ const CostumerPage = () => {
                     Clientes
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
                         <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>

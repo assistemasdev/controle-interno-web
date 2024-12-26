@@ -1,23 +1,19 @@
 import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
+import qs from 'qs';
+import { buildDynamicFilters } from "../utils/filterUtils";
 
 const ProductService = {
-    async getAll(navigate) {
+    async getAll(data, navigate) {
         try {
-            const response = await api.get("/products");
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
+            const query = qs.stringify({
+                filters: buildDynamicFilters(data),
+                page: data.page,
+                perPage: data.perPage,
+            }, { encode: false });
+            
+            const response = await api.get(`/products/?${query}`);
 
-    async getPaginated (data,navigate) {
-        try {
-            const response = await api.get("/products/search", {params: {id:data.ids,number:data.number,page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,

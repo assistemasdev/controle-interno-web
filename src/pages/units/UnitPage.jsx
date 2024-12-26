@@ -42,7 +42,7 @@ const UnitPage = () => {
         try {
             setLoading(true);
         
-            const response = await UnitService.getPaginated({page, perPage: itemsPerPage}, navigate);
+            const response = await UnitService.getAll({page, perPage: itemsPerPage}, navigate);
 
             const result = response.result
         

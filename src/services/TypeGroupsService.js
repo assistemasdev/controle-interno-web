@@ -4,7 +4,7 @@ import handleError from "../utils/errorHandler";
 const TypeGroupsService = {
     async showTypeGroups(id,navigate) {
         try {
-            const response = await api.get(`/products/types/${id}/groups`);
+            const response = await api.get(`/types/${id}/groups`);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -16,7 +16,7 @@ const TypeGroupsService = {
     },
     async attachGroupToType(id, data, navigate) {
         try {
-            const response = await api.post(`/products/types/${id}/groups`, data);
+            const response = await api.post(`/types/${id}/groups`, data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -29,7 +29,7 @@ const TypeGroupsService = {
     async detachGroupFromType(id, data, navigate) {
         try {
             console.log(data)
-            const response = await api.put(`/products/types/${id}/groups`, data);
+            const response = await api.put(`/types/${id}/groups`, data);
             return {
                 message: response.data.message,
                 result: response.data.result,

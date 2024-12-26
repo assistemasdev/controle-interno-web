@@ -41,7 +41,7 @@ const TypePage = () => {
     const fetchTypes = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await TypeService.getPaginated({ page, perPage: itemsPerPage }, navigate);
+            const response = await TypeService.getAll({ page, perPage: itemsPerPage }, navigate);
             
             const result = response.result;
             const paginatedTypes = result.data.map(type => ({

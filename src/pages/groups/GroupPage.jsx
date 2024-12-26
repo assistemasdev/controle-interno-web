@@ -42,7 +42,7 @@ const GroupPage = () => {
         try {
             setLoading(true);
             
-            const response = await GroupService.getPaginated({page, perPage: itemsPerPage},navigate);
+            const response = await GroupService.getAll({page, perPage: itemsPerPage},navigate);
             const filteredGroups = response.result.data.map(role => ({
                 id: role.id,
                 name: role.name,

@@ -42,7 +42,7 @@ const CategoryPage = () => {
         try {
             setLoading(true);
         
-            const response = await CategoryService.getPaginated({page, perPage: itemsPerPage} ,navigate);
+            const response = await CategoryService.getAll({page, perPage: itemsPerPage} ,navigate);
             const result = response.result
         
             const filteredCategories = result.data.map(role => ({

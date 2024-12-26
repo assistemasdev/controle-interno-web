@@ -13,7 +13,6 @@ import UserService from '../../services/UserService';
 import { useLocation } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
-import Select from 'react-select';  
 import { removeDuplicatesWithPriority } from '../../utils/arrayUtils';
 import AutoCompleteFilter from '../../components/AutoCompleteFilter';
 
@@ -21,8 +20,6 @@ const UsersPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { canAccess } = usePermissions();
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -33,10 +30,7 @@ const UsersPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [usersFilters,setUsersFilters] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [textFilter, setTextFilter] = useState('');
-    const [inputValue, setInputValue] = useState();
 
     useEffect(() => {
         if (location.state?.message) {
@@ -44,11 +38,11 @@ const UsersPage = () => {
         }
     }, [location.state]);
 
-    const fetchUsers = async (ids, text ,page = 1) => {
+    const fetchUsers = async (id, name, page = 1) => {
         try {
             setLoading(true);
 
-            const response = await UserService.getPaginated({ name:text, ids, page, perPage: itemsPerPage },navigate);
+            const response = await UserService.getAll({ id, name, page, perPage: itemsPerPage },navigate);
             const result = response.result
 
             const filteredUsers = result.data.map(user => ({

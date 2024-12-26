@@ -1,10 +1,29 @@
 import api from "./api";
 import handleError from "../utils/errorHandler"; 
-
+import qs from 'qs';
+import { buildDynamicFilters } from "../utils/filterUtils";
 const CustomerService = {
-    async getPaginated (data,navigate) {
+    async getAll (data,navigate) {
+        const query = qs.stringify({
+            filters: buildDynamicFilters(data),
+            page:data.page, 
+            perPage: data.perPage
+        })
         try {
-            const response = await api.get("/customers/pages", {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get(`/customers/?${query}`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
+
+    async autocomplete(data, navigate) {
+        try {
+            const response = await api.get("/customers/autocomplete", {params: {name: data.user}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -54,9 +73,9 @@ const CustomerService = {
         }
     },
 
-    async paginatedCustomerAddress(id, data, navigate) {
+    async getAllCustomerAddress(id, data, navigate) {
         try {
-            const response = await api.get(`/customers/${id}/addresses/pages`, {params: {page: data.page, perPage: data.perPage}});
+            const response = await api.get(`/customers/${id}/addresses/`, {params: {page: data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -80,9 +99,9 @@ const CustomerService = {
         }
     },
 
-    async paginatedCustomerContact(id, data, navigate) {
+    async getAllCustomerContact(id, data, navigate) {
         try {
-            const response = await api.get(`/customers/${id}/contacts/pages`, {params: {page: data.page, perPage: data.perPage}});
+            const response = await api.get(`/customers/${id}/contacts/`, {params: {page: data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -227,9 +246,9 @@ const CustomerService = {
             return handleError(error, navigate); 
         }
     },
-    async paginatedCustomerLocation(id, idAddress, data, navigate) {
+    async getAllCustomerLocation(id, idAddress, data, navigate) {
         try {
-            const response = await api.get(`/customers/${id}/addresses/${idAddress}/locations/pages`, {params: {page: data.page, perPage:data.perPage}});
+            const response = await api.get(`/customers/${id}/addresses/${idAddress}/locations/`, {params: {page: data.page, perPage:data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,

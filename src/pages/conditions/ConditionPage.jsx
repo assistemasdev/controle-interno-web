@@ -41,7 +41,7 @@ const ConditionPage = () => {
         try {
             setLoading(true);
         
-            const response = await ConditionService.getPaginated({ page, perPage: itemsPerPage }, navigate);
+            const response = await ConditionService.getAll({ page, perPage: itemsPerPage }, navigate);
             const result = response.result
         
             const filteredCondition = result.data.map(role => ({

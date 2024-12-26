@@ -56,7 +56,7 @@ const EditUserPage = () => {
                 ]);
     
                 const user = userResponse.result;
-                console.log(user)
+                
                 setFormData({
                     name: user.name,
                     username: user.username,
@@ -65,9 +65,9 @@ const EditUserPage = () => {
                     password_confirmation: '',
                 });
     
-                setRoles(rolesResponse.result);
+                setRoles(rolesResponse.result.data);
     
-                const formattedPermissions = permissionsResponse.result.map(permission => ({
+                const formattedPermissions = permissionsResponse.result.data.map(permission => ({
                     value: permission.id,
                     label: permission.name,
                 }));

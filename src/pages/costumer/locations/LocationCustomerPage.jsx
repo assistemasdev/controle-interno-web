@@ -43,10 +43,10 @@ const LocationCustomerPage = () => {
         try {
             setLoading(true);
 
-            const response = await CustomerService.paginatedCustomerLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
+            const response = await CustomerService.getAllCustomerLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
             const result = response.result;
 
-            const formattedLocations = result.data.map((loc) => ({
+            const formattedLocations = result.map((loc) => ({
                 id: loc.id,
                 area: loc.area,
                 section: loc.section,

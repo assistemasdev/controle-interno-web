@@ -36,7 +36,7 @@ const AttachGroupToTypePage = () => {
             setLoading(true);
     
             const response = await GroupService.getAll(navigate);
-            const result = response.result;
+            const result = response.result.data;
             const filteredGroups = result
                 .filter(group => !groupsOfTheTypes.some(g => g.id === group.id))
                 .map(group => ({

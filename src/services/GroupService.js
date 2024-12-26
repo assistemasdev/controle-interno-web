@@ -2,22 +2,9 @@ import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
 
 const GroupService = {
-    async getAll(navigate) {
+    async getAll (data,navigate) {
         try {
-            const response = await api.get("/products/groups");
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async getPaginated (data,navigate) {
-        try {
-            const response = await api.get("/products/groups/pages", {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get("/groups/", {params: {page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -30,7 +17,7 @@ const GroupService = {
 
     async create(data, navigate) {
         try {
-            const response = await api.post("/products/groups", data);
+            const response = await api.post("/groups", data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -43,7 +30,7 @@ const GroupService = {
 
     async getById(id, navigate) {
         try {
-            const response = await api.get(`/products/groups/${id}`);
+            const response = await api.get(`/groups/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -56,7 +43,7 @@ const GroupService = {
 
     async update(id, data, navigate) {
         try {
-            const response = await api.put(`/products/groups/${id}`, data);
+            const response = await api.put(`/groups/${id}`, data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -69,7 +56,7 @@ const GroupService = {
 
     async delete(id, navigate) {
         try {
-            const response = await api.delete(`/products/groups/${id}`);
+            const response = await api.delete(`/groups/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,

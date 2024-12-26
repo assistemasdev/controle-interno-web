@@ -2,22 +2,9 @@ import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
 
 const TypeService = {
-    async getAll(navigate) {
+    async getAll (data,navigate) {
         try {
-            const response = await api.get("/products/types");
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-    async getPaginated (data,navigate) {
-        try {
-            const response = await api.get("/products/types/pages", {params: {page:data.page, perPage: data.perPage}});
-            console.log(response)
+            const response = await api.get("/types/", {params: {page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -30,7 +17,7 @@ const TypeService = {
 
     async create(data, navigate) {
         try {
-            const response = await api.post("/products/types", data);
+            const response = await api.post("/types", data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -43,7 +30,7 @@ const TypeService = {
 
     async getById(id, navigate) {
         try {
-            const response = await api.get(`/products/types/${id}`);
+            const response = await api.get(`/types/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -56,7 +43,7 @@ const TypeService = {
 
     async update(id, data, navigate) {
         try {
-            const response = await api.put(`/products/types/${id}`, data);
+            const response = await api.put(`/types/${id}`, data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -69,7 +56,7 @@ const TypeService = {
 
     async delete(id, navigate) {
         try {
-            const response = await api.delete(`/products/types/${id}`);
+            const response = await api.delete(`/types/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,

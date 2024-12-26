@@ -59,8 +59,8 @@ const SupplierDetailsPage = () => {
         try {
             const [organizationResponse, addressesResponse, contactsResponse] = await Promise.all([
                 SupplierService.getById(id, navigate),
-                SupplierService.paginatedSupplierAddress(id, {page, perPage:itemsPerPage}, navigate),
-                SupplierService.paginatedSupplierContact(id, {page, perPage:itemsPerPage}, navigate)
+                SupplierService.getAllSupplierAddress(id, {page, perPage:itemsPerPage}, navigate),
+                SupplierService.getAllSupplierContact(id, {page, perPage:itemsPerPage}, navigate)
             ]);
 
             const supplier = organizationResponse.result;
@@ -71,7 +71,7 @@ const SupplierDetailsPage = () => {
                 cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || '')
             });       
 
-            const filteredAddress = addressesResponse.result.data.map(address => {                
+            const filteredAddress = addressesResponse.result.map(address => {                
                 return {
                     id: address.id,
                     zip: maskCep(address.zip),
@@ -83,7 +83,7 @@ const SupplierDetailsPage = () => {
             setTotalPagesAddress(addressesResponse.result.last_page);
             setCurrentPageAddress(addressesResponse.result.current_page);
 
-            const filteredContacts = contactsResponse.result.data.map(contact => {                
+            const filteredContacts = contactsResponse.result.map(contact => {                
                 return {
                     id: contact.id,
                     name: `${contact.name || ''} ${contact.surname || ''}`,
@@ -106,8 +106,8 @@ const SupplierDetailsPage = () => {
     const fetchAddresses = async (page = 1) => {
         setLoading(true);
         try {
-            const response = await SupplierService.paginatedSupplierAddress(id, {page, perPage: itemsPerPage}, navigate);
-            const filteredAddress = response.result.data.map(address => {                
+            const response = await SupplierService.getAllSupplierAddress(id, {page, perPage: itemsPerPage}, navigate);
+            const filteredAddress = response.result.map(address => {                
                 return {
                     id: address.id,
                     zip: maskCep(address.zip),
@@ -142,8 +142,8 @@ const SupplierDetailsPage = () => {
     const fetchContacts = async (page = 1) => {
         setLoading(true);
         try {
-            const response = await SupplierService.paginatedSupplierContact(id, {page, perPage: itemsPerPage}, navigate);
-            const filteredContacts = response.result.data.map(contact => {                
+            const response = await SupplierService.getAllSupplierContact(id, {page, perPage: itemsPerPage}, navigate);
+            const filteredContacts = response.result.map(contact => {                
                 return {
                     id: contact.id,
                     name: `${contact.name || ''} ${contact.surname || ''}`,

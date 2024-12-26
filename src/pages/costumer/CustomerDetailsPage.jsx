@@ -41,24 +41,23 @@ const CustomerDetailsPage = () => {
         try {
             const [customerResponse, addressesResponse, contactsResponse] = await Promise.all([
                 CustomerService.getById(id, navigate),
-                CustomerService.paginatedCustomerAddress(id, { page, perPage: PAGINATION.DEFAULT_PER_PAGE }, navigate),
-                CustomerService.paginatedCustomerContact(id, { page, perPage: PAGINATION.DEFAULT_PER_PAGE }, navigate)
+                CustomerService.getAllCustomerAddress(id, { page, perPage: PAGINATION.DEFAULT_PER_PAGE }, navigate),
+                CustomerService.getAllCustomerContact(id, { page, perPage: PAGINATION.DEFAULT_PER_PAGE }, navigate)
             ]);
-
             const customer = customerResponse.result;
             setFormData({
                 alias: customer.alias || '',
                 name: customer.name || '',
                 cpf_cnpj: maskCpfCnpj(customer.cpf_cnpj || '')
             });
-
-            setAddresses(addressesResponse.result.data.map(address => ({
+            setAddresses(addressesResponse.result.map(address => ({
                 id: address.id,
                 zip: maskCep(address.zip),
                 street: address.street
             })));
 
-            setContacts(contactsResponse.result.data.map(contact => ({
+            
+            setContacts(contactsResponse.result.map(contact => ({
                 id: contact.id,
                 name: `${contact.name || ''} ${contact.surname || ''}`,
                 number: `${contact.ddd || ''} ${contact.phone || ''}`

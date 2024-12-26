@@ -43,7 +43,7 @@ const SuppliersPage = () => {
         try {
             setLoading(true);
         
-            const response = await SupplierService.getPaginated({page, perPage: itemsPerPage}, navigate);
+            const response = await SupplierService.getAll({page, perPage: itemsPerPage}, navigate);
             const result = response.result
 
             const filteredSuppliers = result.data.map(supplier => {

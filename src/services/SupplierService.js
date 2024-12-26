@@ -2,22 +2,9 @@ import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
 
 const SupplierService = {
-    async getAll(navigate) {
+    async getAll (data,navigate) {
         try {
-            const response = await api.get("/suppliers");
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async getPaginated (data,navigate) {
-        try {
-            const response = await api.get("/suppliers/pages", {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get("/suppliers/", {params: {page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -67,9 +54,9 @@ const SupplierService = {
         }
     },
 
-    async paginatedSupplierAddress(id, data, navigate) {
+    async getAllSupplierAddress(id, data, navigate) {
         try {
-            const response = await api.get(`/suppliers/${id}/addresses/pages`, {params: {page: data.page, perPage: data.perPage}});
+            const response = await api.get(`/suppliers/${id}/addresses/`, {params: {page: data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -93,9 +80,9 @@ const SupplierService = {
         }
     },
 
-    async paginatedSupplierContact(id, data, navigate) {
+    async getAllSupplierContact(id, data, navigate) {
         try {
-            const response = await api.get(`/suppliers/${id}/contacts/pages`, {params: {page: data.page, perPage: data.perPage}});
+            const response = await api.get(`/suppliers/${id}/contacts/`, {params: {page: data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -227,9 +214,9 @@ const SupplierService = {
             return handleError(error, navigate)
         }
     },
-    async paginatedSupplierLocation(id, idAddress, data, navigate) {
+    async getAllSupplierLocation(id, idAddress, data, navigate) {
         try {
-            const response = await api.get(`/suppliers/${id}/addresses/${idAddress}/locations/pages`, {params: {page: data.page, perPage:data.perPage}});
+            const response = await api.get(`/suppliers/${id}/addresses/${idAddress}/locations/`, {params: {page: data.page, perPage:data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,

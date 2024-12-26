@@ -43,10 +43,10 @@ const LocationSupplierPage = () => {
         try {
             setLoading(true);
 
-            const response = await SupplierService.paginatedSupplierLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
+            const response = await SupplierService.getAllSupplierLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
             const result = response.result;
 
-            const formattedLocations = result.data.map((loc) => ({
+            const formattedLocations = result.map((loc) => ({
                 id: loc.id,
                 area: loc.area,
                 section: loc.section,

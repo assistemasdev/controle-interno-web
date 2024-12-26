@@ -29,12 +29,11 @@ const ApplicationSelection = () => {
         const fetchApplications = async () => {
         try {
             const response = await ApplicationService.getAll(navigate);
-            const { result } = response
-            if (result.length > 0) {
-            setApplications(result);
-            setSelectedApplication(result[0]);
+            if (response) {
+                setApplications(response.result.data);
+                setSelectedApplication(response.result.data[0]);
             } else {
-            setError("Nenhuma aplicação disponível.");
+                setError("Nenhuma aplicação disponível.");
             }
         } catch (error) {
             setError("Erro ao carregar as aplicações.");

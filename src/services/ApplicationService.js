@@ -5,6 +5,7 @@ const ApplicationService = {
     async getAll(navigate) {
         try {
             const response = await api.get("/applications");
+            console.log(response)
             return {
                 message: response.data.message,
                 result: response.data.result,

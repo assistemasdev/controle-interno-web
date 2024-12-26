@@ -42,11 +42,11 @@ const UnitsRelatedPage = () => {
         try {
             setLoading(true);
         
-            const response = await UnitService.paginateOutputUnits(id,{page, perPage: itemsPerPage} ,navigate);
+            const response = await UnitService.getAllOutputUnits(id,{page, perPage: itemsPerPage} ,navigate);
 
             const result = response.result
         
-            const filteredUnits = result.data.map(unit => ({
+            const filteredUnits = result.map(unit => ({
                 id: unit.id,
                 name: unit.name,
                 abbreviation: unit.abbreviation

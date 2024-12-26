@@ -40,7 +40,7 @@ const ApplicationPage = () => {
         try {
             setLoading(true);
         
-            const response = await ApplicationService.getPaginated({ page, perPage: itemsPerPage },navigate);
+            const response = await ApplicationService.getAll({ page, perPage: itemsPerPage },navigate);
             const result = response.result
         
             const filteredApplications = result.data.map(application => ({

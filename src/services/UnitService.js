@@ -2,9 +2,9 @@ import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
 
 const UnitService = {
-    async getAll(navigate) {
+    async getAll (data,navigate) {
         try {
-            const response = await api.get("/units");
+            const response = await api.get("/units/", {params: {page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -15,22 +15,9 @@ const UnitService = {
         }
     },
 
-    async getPaginated (data,navigate) {
+    async getAllOutputUnits (id, data,navigate) {
         try {
-            const response = await api.get("/units/pages", {params: {page:data.page, perPage: data.perPage}});
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async paginateOutputUnits (id, data,navigate) {
-        try {
-            const response = await api.get(`/units/${id}/units/pages`, {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get(`/units/${id}/units/`, {params: {page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,

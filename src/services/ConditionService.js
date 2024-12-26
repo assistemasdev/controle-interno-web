@@ -2,22 +2,9 @@ import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
 
 const ConditionService = {
-    async getAll(navigate) {
+    async getAll (data,navigate) {
         try {
-            const response = await api.get("/products/conditions");
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async getPaginated (data,navigate) {
-        try {
-            const response = await api.get("/products/conditions/pages", {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get("/conditions/", {params: {page:data.page, perPage: data.perPage}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -30,7 +17,7 @@ const ConditionService = {
 
     async create(data, navigate) {
         try {
-            const response = await api.post("/products/conditions", data);
+            const response = await api.post("/conditions", data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -43,7 +30,7 @@ const ConditionService = {
 
     async getById(id, navigate) {
         try {
-            const response = await api.get(`/products/conditions/${id}`);
+            const response = await api.get(`/conditions/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -56,7 +43,7 @@ const ConditionService = {
 
     async update(id, data, navigate) {
         try {
-            const response = await api.put(`/products/conditions/${id}`, data);
+            const response = await api.put(`/conditions/${id}`, data);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -69,7 +56,7 @@ const ConditionService = {
 
     async delete(id, navigate) {
         try {
-            const response = await api.delete(`/products/conditions/${id}`);
+            const response = await api.delete(`/conditions/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,

@@ -29,7 +29,6 @@ const ProductsPage = () => {
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const [selectedProducts, setSelectedProducts] = useState([]);
-    const [numberFilter, setNumberFilter] = useState([]);
 
     useEffect(() => {
         setMessage(null);
@@ -38,16 +37,16 @@ const ProductsPage = () => {
         }
     }, [location.state]); 
 
-    const fetchData = async (ids, number, page = 1) => {
+    const fetchData = async (id, number, page = 1) => {
         try {
             setLoading(true);
             const [statusResponse, productsResponse] = await Promise.all([
                 StatusService.getAll(),
-                ProductService.getPaginated({number, ids, page, perPage: itemsPerPage}, navigate)
+                ProductService.getAll({number, id, page, perPage: itemsPerPage}, navigate)
             ]);
 
             const statusMap = Object.fromEntries(
-                statusResponse.result.map(status => [status.id, status.name])
+                statusResponse.result.data.map(status => [status.id, status.name])
             );
             setStatusOptions(statusMap);
 
