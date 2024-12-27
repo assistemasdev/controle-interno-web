@@ -77,7 +77,9 @@ const UserService = {
 
     async autocomplete(data, navigate) {
         try {
-            const response = await api.get("/users/autocomplete", {params: {name: data.user}});
+            const column = Object.keys(data)[0]
+            const value = Object.values(data)[0]
+            const response = await api.get("/users/autocomplete", {params: {[column]:value}});
             return {
                 message: response.data.message,
                 result: response.data.result,

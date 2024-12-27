@@ -168,18 +168,6 @@ const CostumerPage = () => {
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-6">
-                        <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
-                        <AutoCompleteFilter
-                            value={selectedCustomers.filter((option) => option.column === 'name')}
-                            service={CustomerService}
-                            columnDataBase='name'
-                            isMulti={true}
-                            onChange={(newSelected) => handleChangeCustomers(newSelected, "name")}
-                            onBlurColumn='textFilter'
-                            placeholder="Filtre os usuários pelo nome"
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
                         <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Número:</label>
                         <AutoCompleteFilter
                             value={selectedCustomers.filter((option) => option.column === 'id')}
@@ -189,6 +177,18 @@ const CostumerPage = () => {
                             onChange={(newSelected) => handleChangeCustomers(newSelected, "id")}
                             onBlurColumn='numberFilter'
                             placeholder="Filtre os usuários pelo número"
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
+                        <AutoCompleteFilter
+                            value={selectedCustomers.filter((option) => option.column === 'name')}
+                            service={CustomerService}
+                            columnDataBase='name'
+                            isMulti={true}
+                            onChange={(newSelected) => handleChangeCustomers(newSelected, "name")}
+                            onBlurColumn='textFilter'
+                            placeholder="Filtre os usuários pelo nome"
                         />
                     </div>
                     <div className="form-group gap-2">

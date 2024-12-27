@@ -4,7 +4,6 @@ import qs from 'qs';
 import { buildDynamicFilters } from "../utils/filterUtils";
 const CustomerService = {
     async getAll (data,navigate) {
-        console.log(data)
         const query = qs.stringify({
             filters: buildDynamicFilters(data),
             page:data.page, 

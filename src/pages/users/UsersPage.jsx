@@ -13,7 +13,6 @@ import UserService from '../../services/UserService';
 import { useLocation } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
-import { removeDuplicatesWithPriority } from '../../utils/arrayUtils';
 import AutoCompleteFilter from '../../components/AutoCompleteFilter';
 
 const UsersPage = () => {
@@ -75,29 +74,6 @@ const UsersPage = () => {
         );
     };
 
-    const fetchUserAutocomplete = async (user) => {
-        try {
-            const response = await UserService.autocomplete({user}, navigate);
-            const filteredUsers = removeDuplicatesWithPriority(
-                [
-                    {textFilter:true, value: user, label: user},
-                    ...response.result.map((user) => ({
-                        textFilter: false,
-                        value: user.id,
-                        label: user.name
-                    }))
-                ],
-                'label',
-                'textFilter'
-            );
-
-            return filteredUsers
-        } catch (error) {
-            console.log(error)
-            setErrorMessage('Erro ao pesquisar pelo o usuário');
-        }    
-    }
-
     const handleEdit = (user) => {
         navigate(`/usuarios/editar/${user.id}`);
     };
@@ -157,8 +133,10 @@ const UsersPage = () => {
                         <div className="form-group col-md-12">
                             <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
                             <AutoCompleteFilter
+                                service={UserService}
+                                value={selectedUsers}
+                                columnDataBase='name'
                                 isMulti={true}
-                                fetchOptions={fetchUserAutocomplete}
                                 onChange={(selected) => setSelectedUsers(selected)}
                                 onBlurColumn='textFilter'
                                 placeholder="Filtre os usuários pelo nome"

@@ -96,29 +96,6 @@ const ProductsPage = () => {
         )
     }
 
-    const fetchProductNumberAutocomplete = async (number) => {
-        try {
-            const response = await ProductService.autocomplete({number}, navigate);
-            const filteredProducts = removeDuplicatesWithPriority(
-                [
-                    { numberFilter: true, value: number, label: number },
-                    ...response.result.map((product) => ({
-                        numberFilter: false,
-                        value: product.id,
-                        label: product.number,
-                    })),
-                ],
-                'label',
-                'numberFilter'
-            )
-
-            return filteredProducts;
-        } catch (error) {
-            console.log(error)
-            setMessage({type: 'error', text:'Erro ao pesquisar pelo o usuário'});
-        }    
-    }
-
     const confirmDelete = async () => {
         try {
             setLoading(true);
@@ -179,7 +156,9 @@ const ProductsPage = () => {
                     <div className="form-group col-md-12">
                         <label htmlFor="number" className='text-dark font-weight-bold mt-1'>Número:</label>
                         <AutoCompleteFilter
-                            fetchOptions={fetchProductNumberAutocomplete}
+                            service={ProductService}
+                            columnDataBase='number'
+                            value={selectedProducts}
                             onChange={(selected) => setSelectedProducts(selected)}
                             onBlurColumn='numberFilter' 
                             placeholder="Filtre os produtos pelo número"
