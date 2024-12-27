@@ -40,7 +40,7 @@ const AttachUnitsRelatedPage = () => {
     const fetchUnits = async () => {
         try {
             const response = await UnitService.getAll(navigate);
-            const formattedUnits = response.result.map(unit => ({
+            const formattedUnits = response.result.data.map(unit => ({
                 value: unit.id,
                 label: unit.name
             }));

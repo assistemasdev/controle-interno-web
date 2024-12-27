@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import MyAlert from "../../components/MyAlert";
-import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import { CircularProgress } from '@mui/material';
@@ -12,6 +11,7 @@ import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 
 const SuppliersPage = () => {
     const { canAccess } = usePermissions();
@@ -24,6 +24,7 @@ const SuppliersPage = () => {
     const [supplierToDelete, setSupplierToDelete] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [selectedSuppliers, setSelectedSuppliers] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
@@ -145,13 +146,15 @@ const SuppliersPage = () => {
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome do fornecedores:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do fornecedor"
+                        <label htmlFor="text" className='text-dark font-weight-bold mt-1'>Nome:</label>
+                        <AutoCompleteFilter
+                            service={SupplierService}
+                            columnDataBase='name'
+                            value={selectedSuppliers}
+                            onChange={(selected) => setSelectedSuppliers(selected)}
+                            onBlurColumn='textFilter' 
+                            placeholder="Filtre os fornecedores pelo nome"
+                            isMulti={true}
                         />
                     </div>
                     <div className="form-group gap-2">
