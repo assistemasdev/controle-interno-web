@@ -4,26 +4,15 @@ import qs from 'qs';
 import { buildDynamicFilters } from "../utils/filterUtils";
 const CustomerService = {
     async getAll (data,navigate) {
+        console.log(data)
         const query = qs.stringify({
             filters: buildDynamicFilters(data),
             page:data.page, 
             perPage: data.perPage
-        })
+        }, {encode: false})
+        console.log(query)
         try {
             const response = await api.get(`/customers/?${query}`);
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async autocomplete(data, navigate) {
-        try {
-            const response = await api.get("/customers/autocomplete", {params: {name: data.user}});
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -235,8 +224,10 @@ const CustomerService = {
         }
     },
     async autocomplete (data,navigate) {
+        const column = Object.keys(data)[0]
+        const value = Object.values(data)[0]
         try {
-            const response = await api.get("/customers/autocomplete", {params: {name:data.name,page:data.page, perPage: data.perPage}});
+            const response = await api.get("/customers/autocomplete", {params: {[column]:value}});
             return {
                 message: response.data.message,
                 result: response.data.result,

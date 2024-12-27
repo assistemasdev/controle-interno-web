@@ -74,15 +74,15 @@ const EditProductPage = () => {
                     TypeService.getAll(navigate),
                     GroupService.getAll(navigate),
                     ProductService.getById(id, navigate),
-                    ProductService.getProductGroupsById(id, navigate)
+                    ProductService.getProductGroupsById(id, navigate),
                 ]);
 
-                setOrganizations(organizationsResponse.result.map(org => ({ value: org.id, label: org.name })));
-                setSuppliers(suppliersResponse.result.map(supplier => ({ value: supplier.id, label: supplier.name })));
-                setConditions(conditionsResponse.result.map(condition => ({ value: condition.id, label: condition.name })));
-                setCategories(categoriesResponse.result.map(category => ({ value: category.id, label: category.name })));
-                setTypes(typesResponse.result.map(type => ({ value: type.id, label: type.name })));
-                setGroups(groupsResponse.result.map(group => ({ value: group.id, label: group.name })));
+                setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
+                setSuppliers(suppliersResponse.result.data.map(supplier => ({ value: supplier.id, label: supplier.name })));
+                setConditions(conditionsResponse.result.data.map(condition => ({ value: condition.id, label: condition.name })));
+                setCategories(categoriesResponse.result.data.map(category => ({ value: category.id, label: category.name })));
+                setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
+                setGroups(groupsResponse.result.data.map(group => ({ value: group.id, label: group.name })));
                 setProductGroups(productGroupsResponse.result.map(productGroup => ({value: productGroup.id, label: productGroup.name})));
                 
                 const product = productResponse.result;

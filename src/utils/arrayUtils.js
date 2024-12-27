@@ -9,7 +9,8 @@
 export function removeDuplicatesWithPriority(items, uniqueKey, priorityKey) {
     return items.reduce((acc, item) => {
         const existingItem = acc.find((i) => i[uniqueKey] === item[uniqueKey]);
-        if (!existingItem || !item[priorityKey]) {
+        if (!existingItem || item[priorityKey]) {
+            console.log(item)
             return acc.filter((i) => i[uniqueKey] != item[uniqueKey]).concat(item);
         }
         return acc;

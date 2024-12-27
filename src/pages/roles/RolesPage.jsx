@@ -36,11 +36,10 @@ const RolePage = () => {
             setLoading(true);
         
             const response = await RoleService.getRoles(navigate);
-            const result = response.result
-        
-                const filteredRoles = result.map(role => ({
-                    id: role.id,
-                    name: role.name
+            const result = response.result.data
+            const filteredRoles = result.map(role => ({
+                id: role.id,
+                name: role.name
             }));
         
             setRoles(filteredRoles);

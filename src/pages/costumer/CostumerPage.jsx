@@ -13,7 +13,6 @@ import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
-import { removeDuplicatesWithPriority } from "../../utils/arrayUtils";
 
 const CostumerPage = () => {
     const { canAccess } = usePermissions();
@@ -38,15 +37,14 @@ const CostumerPage = () => {
         }
     }, [location.state]); 
     
-    const handleClearFilters = () => {
-        setName('');
+    const handleClearFilters = (e) => {
+        window.location.reload()
     };
 
-    const fetchCustomers = async (id,name,page = 1) => {
+    const fetchCustomers = async (id,name, idLike,page = 1) => {
         try {
             setLoading(true);
-        
-            const response = await CustomerService.getAll({id, name, page, perPage: itemsPerPage}, navigate);
+            const response = await CustomerService.getAll({id, name, idLike, page, perPage: itemsPerPage}, navigate);
             const result = response.result
 
             const filteredCustomers = result.data.map(supplier => {
@@ -78,12 +76,25 @@ const CostumerPage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-        console.log(selectedCustomers)
         fetchCustomers(
-            selectedCustomers.filter((option) => option.textFilter == false).map((item) => (item.value)),
-            selectedCustomers.filter((option) => option.textFilter == true).map((item) => (item.value)),
+            selectedCustomers.filter((option) => option.textFilter == false || (option.column === 'id' && option.numberFilter == false)).map((item) => (item.value)),
+            selectedCustomers.filter((option) => option.textFilter == true && option.column === 'name').map((item) => (item.value)),
+            selectedCustomers.filter((option) => option.numberFilter == true && option.column === 'id').map((item) => (item.value)),
         )
     }
+
+    const handleChangeCustomers = (newSelected, column) => {
+        setSelectedCustomers((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+    
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+    
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
+    };
 
     const handleEdit = (customer) => {
         navigate(`/clientes/editar/${customer.id}`);
@@ -96,28 +107,6 @@ const CostumerPage = () => {
 
     const handleViewDetails = (customer) => {
         navigate(`/clientes/detalhes/${customer.id}`);
-    };
-
-    const fetchCustomerAutocomplete = async (name) => {
-        try {
-            const response = await CustomerService.autocomplete({name}, navigate);
-            const filteredCustomers = removeDuplicatesWithPriority(
-                [
-                    {textFilter:true, label: name, value: name},
-                    ...response.result.map((option) => ({
-                        label: option.name,
-                        value: option.id
-                    }))
-                ],
-                'label',
-                'textFilter'
-            )
-    
-            return filteredCustomers;
-        } catch (error) {
-            console.log(error)
-            setMessage({type: 'error', text:'Erro ao pesquisar pelo o cliente'});
-        }    
     };
 
     const confirmDelete = async () => {
@@ -178,14 +167,28 @@ const CostumerPage = () => {
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
-                    <div className="form-group col-md-12">
+                    <div className="form-group col-md-6">
                         <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
                         <AutoCompleteFilter
+                            value={selectedCustomers.filter((option) => option.column === 'name')}
+                            service={CustomerService}
+                            columnDataBase='name'
                             isMulti={true}
-                            fetchOptions={fetchCustomerAutocomplete}
-                            onChange={(selected) => setSelectedCustomers(selected)}
+                            onChange={(newSelected) => handleChangeCustomers(newSelected, "name")}
                             onBlurColumn='textFilter'
                             placeholder="Filtre os usuários pelo nome"
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Número:</label>
+                        <AutoCompleteFilter
+                            value={selectedCustomers.filter((option) => option.column === 'id')}
+                            service={CustomerService}
+                            columnDataBase="id"
+                            isMulti={true}
+                            onChange={(newSelected) => handleChangeCustomers(newSelected, "id")}
+                            onBlurColumn='numberFilter'
+                            placeholder="Filtre os usuários pelo número"
                         />
                     </div>
                     <div className="form-group gap-2">

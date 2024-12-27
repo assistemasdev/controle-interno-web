@@ -1,9 +1,12 @@
 import { useState } from "react";
 import useDebounce from "../hooks/useDebounce";
 import Select from 'react-select';  
+import useAutocomplete from "../hooks/useAutocomplete";
 
 const AutoCompleteFilter = ({
-    fetchOptions,
+    value,
+    service,
+    columnDataBase,
     onChange,
     onBlurColumn,
     onFocus,
@@ -15,20 +18,26 @@ const AutoCompleteFilter = ({
     const [options, setOptions] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [selectedValue, setSelectedValue] = useState([]);
-    const { debouncedFn  } = useDebounce(fetchOptions, 500);
-
+    const { autoCompleteFunction } = useAutocomplete();
+    const { debouncedFn  } = useDebounce(autoCompleteFunction, 500);
     const handleInputChange = (value) => {
         setInputValue(value);
         if (value) {    
-            debouncedFn(value).then((results) => setOptions(results)); 
+            debouncedFn(service, {columnDataBase, value, onBlurColumn}).then((results) => {console.log(results); setOptions(results)}); 
         } else {
             setOptions([]);
         }
     };
     
     const handleChange = (selected) => {
-        setSelectedValue(selected);
-        onChange && onChange(selected); 
+        const updatedValue = selected || [];
+    
+        setSelectedValue(updatedValue);
+    
+        if (onChange) {
+            onChange(updatedValue, columnDataBase); 
+        }
+    
     };
 
     const handleBlur = () => {
@@ -48,7 +57,7 @@ const AutoCompleteFilter = ({
             isMulti={isMulti}
             options={options}
             isClearable={isClearable}
-            value={selectedValue}
+            value={value}
             inputValue={inputValue}
             onChange={handleChange}
             onInputChange={handleInputChange}
