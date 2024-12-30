@@ -71,7 +71,7 @@ const SupplierDetailsPage = () => {
                 cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || '')
             });       
 
-            const filteredAddress = addressesResponse.result.map(address => {                
+            const filteredAddress = addressesResponse.result.data.map(address => {                
                 return {
                     id: address.id,
                     zip: maskCep(address.zip),
@@ -83,7 +83,7 @@ const SupplierDetailsPage = () => {
             setTotalPagesAddress(addressesResponse.result.last_page);
             setCurrentPageAddress(addressesResponse.result.current_page);
 
-            const filteredContacts = contactsResponse.result.map(contact => {                
+            const filteredContacts = contactsResponse.result.data.map(contact => {                
                 return {
                     id: contact.id,
                     name: `${contact.name || ''} ${contact.surname || ''}`,
@@ -107,7 +107,7 @@ const SupplierDetailsPage = () => {
         setLoading(true);
         try {
             const response = await SupplierService.getAllSupplierAddress(id, {page, perPage: itemsPerPage}, navigate);
-            const filteredAddress = response.result.map(address => {                
+            const filteredAddress = response.result.data.map(address => {                
                 return {
                     id: address.id,
                     zip: maskCep(address.zip),

@@ -53,14 +53,14 @@ const OrganizationDetailsPage = () => {
                 active: organization.active ? 'Ativo' : 'Desativado' || '',
             });
 
-            const filteredAddresses = addressesResponse.result.map(address => ({
+            const filteredAddresses = addressesResponse.result.data.map(address => ({
                 id: address.id,
                 zip: address.zip,
                 street: address.street,
             }));
             setAddresses(filteredAddresses);
 
-            const filteredContacts = contactsResponse.result.map(contact => ({
+            const filteredContacts = contactsResponse.result.data.map(contact => ({
                 id: contact.id,
                 name: `${contact.name || ''} ${contact.surname || ''}`,
                 number: `${contact.ddd || ''} ${contact.phone || ''}`,

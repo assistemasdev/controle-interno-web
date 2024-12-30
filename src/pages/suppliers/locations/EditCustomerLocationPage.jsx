@@ -87,7 +87,7 @@ const EditSupplierLocationPage = () => {
     };
 
     const handleBack = () => {
-        navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes`);
+        navigate(`/fornecedores/detalhes/${id}/enderecos/${addressId}/localizacoes`);
     };
 
     return (

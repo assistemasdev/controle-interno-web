@@ -40,7 +40,7 @@ const LocationOrganizationPage = () => {
             setLoading(true);
 
             const response = await OrganizationService.allOrganizationLocation(organizationId, addressId, navigate);
-            const result = response.result;
+            const result = response.result.data;
 
             const formattedLocations = result.map((loc) => ({
                 id: loc.id,

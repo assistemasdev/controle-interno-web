@@ -46,7 +46,7 @@ const LocationSupplierPage = () => {
             const response = await SupplierService.getAllSupplierLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
             const result = response.result;
 
-            const formattedLocations = result.map((loc) => ({
+            const formattedLocations = result.data.map((loc) => ({
                 id: loc.id,
                 area: loc.area,
                 section: loc.section,

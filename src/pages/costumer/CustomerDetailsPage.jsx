@@ -50,14 +50,14 @@ const CustomerDetailsPage = () => {
                 name: customer.name || '',
                 cpf_cnpj: maskCpfCnpj(customer.cpf_cnpj || '')
             });
-            setAddresses(addressesResponse.result.map(address => ({
+            setAddresses(addressesResponse.result.data.map(address => ({
                 id: address.id,
                 zip: maskCep(address.zip),
                 street: address.street
             })));
 
             
-            setContacts(contactsResponse.result.map(contact => ({
+            setContacts(contactsResponse.result.data.map(contact => ({
                 id: contact.id,
                 name: `${contact.name || ''} ${contact.surname || ''}`,
                 number: `${contact.ddd || ''} ${contact.phone || ''}`
