@@ -77,7 +77,7 @@ const UnitPage = () => {
         setDeleteModalOpen(true);
     };
     const handleViewRelatedUnits = (unit) => {
-        navigate(`/unidades/${unit.id}/relacionadas`);
+        navigate(`/unidades/${unit.id}/relacionadas/criar`);
     };
 
     const confirmDelete = async () => {

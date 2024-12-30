@@ -64,7 +64,6 @@ import CreateSupplierAddressPage from "../pages/suppliers/address/CreateSupplier
 import UnitPage from "../pages/units/UnitPage";
 import CreateUnitPage from "../pages/units/CreateUnitPage";
 import EditUnitPage from "../pages/units/EditUnitPage";
-import UnitsRelatedPage from "../pages/units/unitsRelated/UnitsRelatedPage";
 import AttachUnitsRelatedPage from "../pages/units/unitsRelated/AttachUnitsRelatedPage";
 import ProductsPage from "../pages/products/ProductPage";
 import CreateProductPage from "../pages/products/CreateProductPage";
@@ -349,10 +348,6 @@ const AppRoutesContent = () => {
         {
             path: "/unidades/editar/:id",
             element: <PrivateRoute element={EditUnitPage}/>
-        },
-        {
-            path: "/unidades/:id/relacionadas",
-            element: <PrivateRoute element={UnitsRelatedPage}/>
         },
         {
             path: "/unidades/:id/relacionadas/criar",

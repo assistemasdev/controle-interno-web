@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import InputField from '../../../components/InputField';
-import Button from '../../../components/Button';
 import { CircularProgress } from '@mui/material'; 
 import '../../../assets/styles/custom-styles.css';
 import MyAlert from '../../../components/MyAlert';
 import Select from 'react-select';  
 import UnitService from '../../../services/UnitService';
+import Form from '../../../components/Form';
 
 const AttachUnitsRelatedPage = () => {
     const navigate = useNavigate();
@@ -18,24 +17,20 @@ const AttachUnitsRelatedPage = () => {
     const [units, setUnits] = useState([]);
     const [selectedUnits, setSelectedUnits] = useState([]);
 
-
-    const handleUnitChange = (selectedOptions) => {
-        setSelectedUnits(selectedOptions ? selectedOptions.map(option => option.value) : []);
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            await Promise.all([fetchUnits(), fetchAttachedUnits()]);
+        } catch (error) {
+            console.error('Erro ao carregar os dados:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
-        const fetchData = async () => {
-        try {
-            await fetchUnits();
-            await fetchAttachedUnits();
-        } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
-        }
-        };
-    
         fetchData();
-    }, [id])
-
+    }, [id]);
 
     const fetchUnits = async () => {
         try {
@@ -48,10 +43,8 @@ const AttachUnitsRelatedPage = () => {
         } catch (error) {
             setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar unidades' });
             console.error(error);
-        } finally {
-            setLoading(false)
         }
-    }
+    };
 
     const fetchAttachedUnits = async () => {
         try {
@@ -63,63 +56,68 @@ const AttachUnitsRelatedPage = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (formData) => {
         setMessage(null);
 
         try {
-            const response = await UnitService.syncOutputUnits(id, {units: selectedUnits}, navigate);
+            const response = await UnitService.syncOutputUnits(id, { units: formData.units }, navigate);
             setMessage({ type:'success', text: response.message });
-            return;
-            
+            await fetchData();
         } catch (error) {
-            console.log(error)
             setMessage({ type:'error', text: error?.data?.units[0] || 'Erro ao atrelar unidade' });
         }
     };
 
     const handleBack = () => {
-        navigate(`/unidades/${id}/relacionadas`);
+        navigate(`/unidades/`);
+    };
+
+    const initialFormData = {
+        units: selectedUnits,
     };
 
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Associonar Unidade
+                    Associar Unidade
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
+                {loading ? (
+                    <div className="d-flex justify-content-center mt-4">
+                        <CircularProgress size={50} />
+                    </div>
+                ) : (
+                    <Form
+                        initialFormData={initialFormData}
+                        onSubmit={handleSubmit}
+                        className="p-3 mt-2 rounded shadow-sm mb-2"
+                        textSubmit="Associar Unidade"
+                        textLoadingSubmit="Associando..."
+                        handleBack={handleBack}
+                    >
+                        {({ formData, handleChange }) => (
+                            <>
+                                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
 
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="form-group" style={{ marginLeft: '0px' }}>
-                                <label htmlFor="roles" className='text-dark font-weight-bold '>Unidades:</label>
-                                <Select
-                                    isMulti
-                                    name="Unidades"
-                                    options={units}  
-                                    className="basic-multi-select"
-                                    classNamePrefix="select"
-                                    value={units.filter(unit => selectedUnits.includes(unit.value))}
-                                    onChange={handleUnitChange}  
-                                    noOptionsMessage={() => "Nenhuma unidade encontrada"}
-                                    placeholder="Selecione as unidades"
-                                />
-                            </div>
-
-                            <div className="mt-3 d-flex gap-2">
-                                <Button type="submit" text="Associar Unidade" className="btn btn-blue-light fw-semibold" />
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
-                </form>
+                                <div className="form-group" style={{ marginLeft: '0px' }}>
+                                    <label htmlFor="units" className='text-dark font-weight-bold '>Unidades:</label>
+                                    <Select
+                                        isMulti
+                                        name="units"
+                                        options={units}  
+                                        className="basic-multi-select"
+                                        classNamePrefix="select"
+                                        value={units.filter(unit => formData.units.includes(unit.value))}
+                                        onChange={(selectedOptions) => handleChange({ target: { id: 'units', value: selectedOptions ? selectedOptions.map(option => option.value) : [] } })}
+                                        noOptionsMessage={() => "Nenhuma unidade encontrada"}
+                                        placeholder="Selecione as unidades"
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </Form>
+                )}
             </div>
         </MainLayout>
     );
