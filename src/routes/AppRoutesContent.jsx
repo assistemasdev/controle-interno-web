@@ -56,7 +56,6 @@ import EditConditionPage from "../pages/conditions/EditConditionPage";
 import GroupPage from "../pages/groups/GroupPage";
 import CreateGroupPage from "../pages/groups/CreateGroupPage";
 import EditGroupPage from "../pages/groups/EditGroupPage";
-import GroupsTypePage from "../pages/types/groups/GroupsTypePage";
 import AttachGroupToTypePage from "../pages/types/groups/AttachGroupToTypePage";
 import SupplierDetailsPage from "../pages/suppliers/SupplierDetailsPage";
 import EditSupplierAddressPage from "../pages/suppliers/address/EditSupplierAddressPage";
@@ -286,10 +285,6 @@ const AppRoutesContent = () => {
         {
             path: "/tipos/editar/:id",
             element: <PrivateRoute element={EditTypePage}/>
-        },
-        {
-            path: "/tipos/:id/grupos",
-            element: <PrivateRoute element={GroupsTypePage}/>
         },
         {
             path: "/tipos/:id/grupos/associar",

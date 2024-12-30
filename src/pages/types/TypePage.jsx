@@ -74,7 +74,7 @@ const TypePage = () => {
         setDeleteModalOpen(true);
     };
     const handleViewGroups = (type) => {
-        navigate(`/tipos/${type.id}/grupos`);
+        navigate(`/tipos/${type.id}/grupos/associar`);
     }
 
     const confirmDelete = async () => {
