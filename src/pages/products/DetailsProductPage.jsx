@@ -31,78 +31,90 @@ const DetailsProductPage = () => {
     });
 
     useEffect(() => {
-        const fetchOptions = async () => {
-            try {
-                const [
-                    organizationsResponse,
-                    suppliersResponse,
-                    conditionsResponse,
-                    categoriesResponse,
-                    typesResponse,
-                    statusesResponse
-                ] = await Promise.all([
-                    OrganizationService.getAll(),
-                    SupplierService.getAll(),
-                    ConditionService.getAll(),
-                    CategoryService.getAll(),
-                    TypeService.getAll(),
-                    StatusService.getAll()
-                ]);
-
-                setOptions({
-                    organizations: Object.fromEntries(
-                        organizationsResponse.result.map(org => [org.id, org.name])
-                    ),
-                    suppliers: Object.fromEntries(
-                        suppliersResponse.result.map(supplier => [supplier.id, supplier.name])
-                    ),
-                    conditions: Object.fromEntries(
-                        conditionsResponse.result.map(condition => [condition.id, condition.name])
-                    ),
-                    categories: Object.fromEntries(
-                        categoriesResponse.result.map(category => [category.id, category.name])
-                    ),
-                    types: Object.fromEntries(
-                        typesResponse.result.map(type => [type.id, type.name])
-                    ),
-                    statuses: Object.fromEntries(
-                        statusesResponse.result.map(status => [status.id, status.name])
-                    )
-                });
-            } catch (error) {
-                console.error('Erro ao buscar opções:', error);
-            }
-        };
-
         const fetchProductDetails = async () => {
             try {
                 setLoading(true);
                 const [productResponse, productGroupsResponse] = await Promise.all([
                     ProductService.getById(id, navigate),
-                    ProductService.getProductGroupsById(id, navigate)
+                    ProductService.getProductGroupsById(id, navigate),
                 ]);
-
+    
                 setProductDetails(productResponse.result);
                 setProductGroups(productGroupsResponse.result);
             } catch (error) {
-                const errorMessage = error.message || 'Erro ao carregar os dados.';
-                setMessage({ type: 'error', text: errorMessage });
-                console.error('Erro no carregamento dos dados:', error);
+                console.error('Erro ao carregar detalhes do produto:', error);
+                setMessage({ type: 'error', text: error.message || 'Erro ao carregar os dados.' });
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchOptions();
+    
         fetchProductDetails();
     }, [id, navigate]);
+
+    useEffect(() => {
+        if (!productDetails || Object.keys(productDetails).length === 0) return;
+    
+        const fetchOptions = async () => {
+            try {
+                const responses = await Promise.all([
+                    productDetails.current_organization_id
+                        ? OrganizationService.getById(productDetails.current_organization_id)
+                        : Promise.resolve({ result: { id: null, name: 'Organização não disponível' } }),
+    
+                    productDetails.supplier_id
+                        ? SupplierService.getById(productDetails.supplier_id)
+                        : Promise.resolve({ result: { id: null, name: 'Fornecedor não disponível' } }),
+    
+                    productDetails.condition_id
+                        ? ConditionService.getById(productDetails.condition_id)
+                        : Promise.resolve({ result: { id: null, name: 'Condição não disponível' } }),
+    
+                    productDetails.category_id
+                        ? CategoryService.getById(productDetails.category_id)
+                        : Promise.resolve({ result: { id: null, name: 'Categoria não disponível' } }),
+    
+                    productDetails.type_id
+                        ? TypeService.getById(productDetails.type_id)
+                        : Promise.resolve({ result: { id: null, name: 'Tipo não disponível' } }),
+    
+                    productDetails.status_id
+                        ? StatusService.getById(productDetails.status_id)
+                        : Promise.resolve({ result: { id: null, name: 'Status não disponível' } }),
+                ]);
+    
+                const [
+                    organizationResponse,
+                    supplierResponse,
+                    conditionResponse,
+                    categoryResponse,
+                    typeResponse,
+                    statusResponse,
+                ] = responses;
+    
+                setOptions({
+                    organizations: { [organizationResponse.result.id]: organizationResponse.result.name },
+                    suppliers: { [supplierResponse.result.id]: supplierResponse.result.name },
+                    conditions: { [conditionResponse.result.id]: conditionResponse.result.name },
+                    categories: { [categoryResponse.result.id]: categoryResponse.result.name },
+                    types: { [typeResponse.result.id]: typeResponse.result.name },
+                    statuses: { [statusResponse.result.id]: statusResponse.result.name },
+                });
+            } catch (error) {
+                console.error('Erro ao buscar opções:', error);
+            }
+        };
+    
+        fetchOptions();
+    }, [productDetails]);
 
     const handleBack = () => {
         navigate(`/produtos/`);
     };
 
-    const getOptionLabel = (options, id) => options[id] || 'N/A';
-
+    const getOptionLabel = (options, id) => {
+        return options[id] || 'N/A';
+    };
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
