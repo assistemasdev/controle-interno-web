@@ -2,10 +2,51 @@
     --primary-color: #4da8ff; 
     --secondary-color: #ffffff; 
     --blue-light: #4da8ff;
+    --z-tooltip: 10;
+    --z-fixed: 100;
+    --first-color: hsl(228, 85%, 63%);
+    --title-color: hsl(228, 18%, 16%);
+    --text-color: hsl(228, 8%, 56%);
+    --body-color: hsl(228, 100%, 99%);
+    --header-height: 3.5rem;
+    --shadow-color: hsla(228, 80%, 4%, .1);
+    --body-font: "Nunito Sans", system-ui;
+    --normal-font-size: .938rem;
+    --smaller-font-size: .75rem;
+    --tiny-font-size: .75rem;
+    -font-regular: 400;
+    --font-semi-bold: 600;
 }
 
-body {
-    background-color: #efefef;
+@media screen and (min-width: 1150px) {
+  :root {
+    --normal-font-size: 1rem;
+    --smaller-font-size: .813rem;
+  }
+}
+
+body, #content-wrapper{
+    font-family: var(--body-font)!important;
+    font-size: var(--normal-font-size)!important;
+    background-color: var(--body-color)!important;
+    color: var(--text-color);
+    transition: background-color .4s !important;
+  }
+
+body.dark-theme, #content-wrapper.dark-theme {
+    --first-color: hsl(228, 70%, 63%) !important;
+    --title-color: hsl(228, 18%, 96%) !important;
+    --text-color: hsl(228, 12%, 61%) !important;
+    --body-color: hsl(228, 24%, 16%) !important;
+    --shadow-color: hsla(228, 80%, 4%, .3) !important;
+}
+
+.dark-theme .sidebar__content::-webkit-scrollbar {
+    background-color: hsl(228, 16%, 30%);
+}
+
+.dark-theme .sidebar__content::-webkit-scrollbar-thumb {
+    background-color: hsl(228, 16%, 40%);
 }
 
 .btn-blue-light {
