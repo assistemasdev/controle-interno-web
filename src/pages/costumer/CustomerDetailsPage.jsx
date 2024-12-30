@@ -19,54 +19,103 @@ const CustomerDetailsPage = () => {
     const { id } = useParams();
     const [message, setMessage] = useState(null);
     const { canAccess } = usePermissions();
-    const [addresses, setAddresses] = useState([]);
-    const [contacts, setContacts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
-    const [addressToDelete, setAddressToDelete] = useState(null);
-    const [contactToDelete, setContactToDelete] = useState(null);
+
+    // Form data
     const [formData, setFormData] = useState({
         alias: '',
         name: '',
         cpf_cnpj: ''
     });
+
+    // Pagination states for addresses
+    const [addresses, setAddresses] = useState([]);
+    const [currentPageAddresses, setCurrentPageAddresses] = useState(PAGINATION.DEFAULT_PAGE);
+    const [totalPagesAddresses, setTotalPagesAddresses] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+
+    // Pagination states for contacts
+    const [contacts, setContacts] = useState([]);
+    const [currentPageContacts, setCurrentPageContacts] = useState(PAGINATION.DEFAULT_PAGE);
+    const [totalPagesContacts, setTotalPagesContacts] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+
+    const [loading, setLoading] = useState(true);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
+    const [addressToDelete, setAddressToDelete] = useState(null);
+    const [contactToDelete, setContactToDelete] = useState(null);
+
     useEffect(() => {
         fetchData();
     }, [id]);
 
-    const fetchData = async (page = 1) => {
+    const fetchData = async () => {
         setLoading(true);
         setMessage(null);
         try {
-            const [customerResponse, addressesResponse, contactsResponse] = await Promise.all([
-                CustomerService.getById(id, navigate),
-                CustomerService.getAllCustomerAddress(id, { page, perPage: PAGINATION.DEFAULT_PER_PAGE }, navigate),
-                CustomerService.getAllCustomerContact(id, { page, perPage: PAGINATION.DEFAULT_PER_PAGE }, navigate)
-            ]);
+            const customerResponse = await CustomerService.getById(id, navigate);
             const customer = customerResponse.result;
+
             setFormData({
                 alias: customer.alias || '',
                 name: customer.name || '',
                 cpf_cnpj: maskCpfCnpj(customer.cpf_cnpj || '')
             });
-            setAddresses(addressesResponse.result.data.map(address => ({
-                id: address.id,
-                zip: maskCep(address.zip),
-                street: address.street
-            })));
 
-            
-            setContacts(contactsResponse.result.data.map(contact => ({
-                id: contact.id,
-                name: `${contact.name || ''} ${contact.surname || ''}`,
-                number: `${contact.ddd || ''} ${contact.phone || ''}`
-            })));
+            // Fetch addresses and contacts with pagination
+            fetchAddresses(currentPageAddresses);
+            fetchContacts(currentPageContacts);
         } catch (error) {
             console.error('Erro ao carregar os dados:', error);
             setMessage({ type: 'error', text: 'Erro ao carregar os dados do cliente' });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAddresses = async (page = 1) => {
+        try {
+            const response = await CustomerService.getAllCustomerAddress(
+                id,
+                { page, perPage: PAGINATION.DEFAULT_PER_PAGE },
+                navigate
+            );
+
+            const { data, last_page, current_page } = response.result;
+            setAddresses(
+                data.map(address => ({
+                    id: address.id,
+                    zip: maskCep(address.zip),
+                    street: address.street
+                }))
+            );
+            setCurrentPageAddresses(current_page);
+            setTotalPagesAddresses(last_page);
+        } catch (error) {
+            console.error('Erro ao carregar endereços:', error);
+            setMessage({ type: 'error', text: 'Erro ao carregar endereços.' });
+        }
+    };
+
+    const fetchContacts = async (page = 1) => {
+        try {
+            const response = await CustomerService.getAllCustomerContact(
+                id,
+                { page, perPage: PAGINATION.DEFAULT_PER_PAGE },
+                navigate
+            );
+
+            const { data, last_page, current_page } = response.result;
+            setContacts(
+                data.map(contact => ({
+                    id: contact.id,
+                    name: `${contact.name || ''} ${contact.surname || ''}`,
+                    number: `${contact.ddd || ''} ${contact.phone || ''}`
+                }))
+            );
+            setCurrentPageContacts(current_page);
+            setTotalPagesContacts(last_page);
+        } catch (error) {
+            console.error('Erro ao carregar contatos:', error);
+            setMessage({ type: 'error', text: 'Erro ao carregar contatos.' });
         }
     };
 
@@ -85,7 +134,7 @@ const CustomerDetailsPage = () => {
         try {
             await CustomerService.deleteCustomerAddress(id, addressToDelete.id, navigate);
             setMessage({ type: 'success', text: 'Endereço excluído com sucesso' });
-            fetchData();
+            fetchAddresses(currentPageAddresses);
         } catch (error) {
             setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
         } finally {
@@ -99,18 +148,13 @@ const CustomerDetailsPage = () => {
         try {
             await CustomerService.deleteCustomerContact(id, contactToDelete.id, navigate);
             setMessage({ type: 'success', text: 'Contato excluído com sucesso' });
-            fetchData();
+            fetchContacts(currentPageContacts);
         } catch (error) {
             setMessage({ type: 'error', text: 'Erro ao excluir o contato' });
         } finally {
             setDeleteModalOpenContacts(false);
             setLoading(false);
         }
-    };
-
-    
-    const handleViewLocations = (address) => {
-        navigate(`/clientes/detalhes/${id}/enderecos/${address.id}/localizacoes`);
     };
 
     const handleBack = () => {
@@ -134,18 +178,18 @@ const CustomerDetailsPage = () => {
             onClick: handleDeleteAddress
         },
         {
-            icon: faEye, 
+            icon: faEye,
             title: 'Ver detalhes',
             buttonClass: 'btn-info',
-            permission: 'Ver endereços de clientes', 
+            permission: 'Ver endereços de clientes',
             onClick: (address) => navigate(`/clientes/${id}/endereco/${address.id}/detalhes`)
         },
         {
-            icon: faMapMarkerAlt, 
+            icon: faMapMarkerAlt,
             title: 'Ver Localizações',
             buttonClass: 'btn-warning',
-            permission: 'Listar localizações de clientes', 
-            onClick: handleViewLocations, 
+            permission: 'Listar localizações de clientes',
+            onClick: (address) => navigate(`/clientes/detalhes/${id}/enderecos/${address.id}/localizacoes`)
         },
     ];
 
@@ -156,25 +200,16 @@ const CustomerDetailsPage = () => {
             title: 'Editar Contato',
             buttonClass: 'btn-primary',
             permission: 'Atualizar contato do cliente',
-            onClick: (address) => navigate(`/clientes/${id}/contato/editar/${address.id}`)
+            onClick: (contact) => navigate(`/clientes/${id}/contato/editar/${contact.id}`)
         },
         {
             icon: faTrash,
-            title: 'Excluir Endereço',
+            title: 'Excluir Contato',
             buttonClass: 'btn-danger',
             permission: 'Excluir contato do cliente',
             onClick: handleDeleteContact
         }
     ];
-
-
-    if (loading) {
-        return (
-            <div className="d-flex justify-content-center mt-4">
-                <CircularProgress size={50} />
-            </div>
-        );
-    }
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -191,42 +226,20 @@ const CustomerDetailsPage = () => {
 
                     <div className="form-row">
                         <div className="d-flex flex-column col-md-4">
-                            <InputField
-                                label="Apelido:"
-                                type="text"
-                                id="alias"
-                                value={formData.alias}
-                                disabled
-                            />
+                            <InputField label="Apelido:" id="alias" value={formData.alias} disabled />
                         </div>
                         <div className="d-flex flex-column col-md-4">
-                            <InputField
-                                label="Nome:"
-                                type="text"
-                                id="name"
-                                value={formData.name}
-                                disabled
-                            />
+                            <InputField label="Nome:" id="name" value={formData.name} disabled />
                         </div>
                         <div className="d-flex flex-column col-md-4">
-                            <InputField
-                                label="CPF/CNPJ:"
-                                type="text"
-                                id="cpf_cnpj"
-                                value={formData.cpf_cnpj}
-                                disabled
-                            />
+                            <InputField label="CPF/CNPJ:" id="cpf_cnpj" value={formData.cpf_cnpj} disabled />
                         </div>
                     </div>
 
-                    <div className='form-row d-flex justify-content-between align-items-center mt-1' style={{marginLeft:0, marginRight:0}}>
-                        <h5 className='text-dark font-weight-bold mt-3'>Endereços do Cliente</h5>
+                    <div className="form-row d-flex justify-content-between align-items-center mt-1">
+                        <h5 className="text-dark font-weight-bold mt-3">Endereços do Cliente</h5>
                         {canAccess('Adicionar endereço ao cliente') && (
-                            <Button
-                            text="Adicionar Endereço"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/clientes/${id}/endereco/adicionar`}
-                            />
+                            <Button text="Adicionar Endereço" className="btn btn-blue-light fw-semibold" link={`/clientes/${id}/endereco/adicionar`} />
                         )}
                     </div>
                     <hr />
@@ -234,23 +247,32 @@ const CustomerDetailsPage = () => {
                         headers={addressHeaders}
                         data={addresses}
                         actions={addressActions}
-                        currentPage={1}
-                        totalPages={1}
-                        onPageChange={() => {}}
+                        currentPage={currentPageAddresses}
+                        totalPages={totalPagesAddresses}
+                        onPageChange={(page) => {
+                            setCurrentPageAddresses(page);
+                            fetchAddresses(page);
+                        }}
                     />
 
-                    <div className='form-row d-flex justify-content-between align-items-center mt-1' style={{marginLeft:0, marginRight:0}}>
+                    <div className="form-row d-flex justify-content-between align-items-center mt-1">
                         <h5 className="text-dark font-weight-bold mt-3">Contatos do Cliente</h5>
                         {canAccess('Adicionar contatos de cliente') && (
-                            <Button
-                            text="Adicionar Contato"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/clientes/${id}/contato/adicionar`}
-                            />
+                            <Button text="Adicionar Contato" className="btn btn-blue-light fw-semibold" link={`/clientes/${id}/contato/adicionar`} />
                         )}
                     </div>
                     <hr />
-                    <DynamicTable headers={contactHeaders} data={contacts} actions={contactActions} />
+                    <DynamicTable
+                        headers={contactHeaders}
+                        data={contacts}
+                        actions={contactActions}
+                        currentPage={currentPageContacts}
+                        totalPages={totalPagesContacts}
+                        onPageChange={(page) => {
+                            setCurrentPageContacts(page);
+                            fetchContacts(page);
+                        }}
+                    />
 
                     <div className="mt-3 d-flex gap-2">
                         <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
@@ -263,7 +285,6 @@ const CustomerDetailsPage = () => {
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDeleteAddress}
                 itemName={addressToDelete ? addressToDelete.street : ''}
-                onPageChange={fetchData}
             />
 
             <ConfirmationModal
@@ -271,7 +292,6 @@ const CustomerDetailsPage = () => {
                 onClose={() => setDeleteModalOpenContacts(false)}
                 onConfirm={confirmDeleteContact}
                 itemName={contactToDelete ? contactToDelete.name : ''}
-                onPageChange={fetchData}
             />
         </MainLayout>
     );

@@ -10,6 +10,7 @@ import OrganizationService from "../../../services/OrganizationService";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../../constants/pagination";
 
 const LocationOrganizationPage = () => {
     const { canAccess } = usePermissions();
@@ -24,6 +25,11 @@ const LocationOrganizationPage = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [locationToDelete, setLocationToDelete] = useState(null);
 
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+
     useEffect(() => {
         setMessage(null);
         if (location.state?.message) {
@@ -33,16 +39,23 @@ const LocationOrganizationPage = () => {
 
     const handleClearFilters = () => {
         setName('');
+        fetchLocations(); // Reset pagination
     };
 
-    const fetchLocations = async () => {
+    const fetchLocations = async (page = currentPage) => {
         try {
             setLoading(true);
 
-            const response = await OrganizationService.allOrganizationLocation(organizationId, addressId, navigate);
-            const result = response.result.data;
+            const response = await OrganizationService.allOrganizationLocation(
+                organizationId,
+                addressId,
+                { page, perPage: itemsPerPage },
+                navigate
+            );
 
-            const formattedLocations = result.map((loc) => ({
+            const { data, last_page, current_page } = response.result;
+
+            const formattedLocations = data.map((loc) => ({
                 id: loc.id,
                 area: loc.area,
                 section: loc.section,
@@ -50,6 +63,8 @@ const LocationOrganizationPage = () => {
             }));
 
             setLocations(formattedLocations);
+            setTotalPages(last_page);
+            setCurrentPage(current_page);
         } catch (error) {
             setError("Erro ao carregar localizações");
             console.error(error);
@@ -71,8 +86,8 @@ const LocationOrganizationPage = () => {
     };
 
     const handleDelete = (location) => {
-        setLocationToDelete(location); 
-        setDeleteModalOpen(true); 
+        setLocationToDelete(location);
+        setDeleteModalOpen(true);
     };
 
     const confirmDelete = async () => {
@@ -82,10 +97,10 @@ const LocationOrganizationPage = () => {
                 addressId,
                 locationToDelete.id
             );
-    
+
             setMessage({ type: 'success', text: 'Localização excluída com sucesso!' });
             setDeleteModalOpen(false);
-            fetchLocations(); 
+            fetchLocations();
         } catch (error) {
             setMessage({ type: 'error', text: 'Erro ao excluir a localização' });
             console.error(error);
@@ -152,7 +167,7 @@ const LocationOrganizationPage = () => {
                             type="button"
                             text="Filtrar"
                             className="btn btn-blue-light fw-semibold m-1"
-                            onClick={fetchLocations}
+                            onClick={() => fetchLocations(1)} 
                         />
                         <Button
                             type="button"
@@ -185,7 +200,14 @@ const LocationOrganizationPage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                 ) : (
-                    <DynamicTable headers={headers} data={locations} actions={actions} />
+                    <DynamicTable
+                        headers={headers}
+                        data={locations}
+                        actions={actions}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchLocations}
+                    />
                 )}
             </div>
 
@@ -195,7 +217,6 @@ const LocationOrganizationPage = () => {
                 onConfirm={confirmDelete}
                 itemName={locationToDelete ? locationToDelete.area : ''}
             />
-
         </MainLayout>
     );
 };

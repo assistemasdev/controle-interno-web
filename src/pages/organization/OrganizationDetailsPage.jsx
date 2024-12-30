@@ -11,25 +11,39 @@ import DynamicTable from '../../components/DynamicTable';
 import { faEdit, faTrash, faEye, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { usePermissions } from '../../hooks/usePermissions';
+import { PAGINATION } from '../../constants/pagination';
 
 const OrganizationDetailsPage = () => {
     const navigate = useNavigate();
     const { applicationId, organizationId } = useParams();
     const [message, setMessage] = useState(null);
     const { canAccess } = usePermissions();
-    const [addresses, setAddresses] = useState([]);
-    const [contacts, setContacts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
-    const [addressToDelete, setAddressToDelete] = useState(null);
-    const [contactToDelete, setContactToDelete] = useState(null);
+
+    // States for organization data
     const [formData, setFormData] = useState({
         name: '',
         alias: '',
         color: '',
         email: '',
     });
+
+    // Pagination states for addresses
+    const [addresses, setAddresses] = useState([]);
+    const [currentPageAddresses, setCurrentPageAddresses] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPageAddresses, setItemsPerPageAddresses] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPagesAddresses, setTotalPagesAddresses] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+
+    // Pagination states for contacts
+    const [contacts, setContacts] = useState([]);
+    const [currentPageContacts, setCurrentPageContacts] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPageContacts, setItemsPerPageContacts] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPagesContacts, setTotalPagesContacts] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+
+    const [loading, setLoading] = useState(true);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
+    const [addressToDelete, setAddressToDelete] = useState(null);
+    const [contactToDelete, setContactToDelete] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -40,32 +54,18 @@ const OrganizationDetailsPage = () => {
         setMessage(null);
 
         try {
-            const [organizationResponse, addressesResponse, contactsResponse] = await Promise.all([
-                OrganizationService.getById(organizationId, navigate),
-                OrganizationService.allOrganizationAddresses(organizationId, navigate),
-                OrganizationService.allOrganizationContacts(organizationId, navigate)
-            ]);
-
+            const organizationResponse = await OrganizationService.getById(organizationId, navigate);
             const organization = organizationResponse.result;
+
             setFormData({
                 name: organization.name || '',
                 color: organization.color || '',
-                active: organization.active ? 'Ativo' : 'Desativado' || '',
+                active: organization.active ? 'Ativo' : 'Desativado',
             });
 
-            const filteredAddresses = addressesResponse.result.data.map(address => ({
-                id: address.id,
-                zip: address.zip,
-                street: address.street,
-            }));
-            setAddresses(filteredAddresses);
-
-            const filteredContacts = contactsResponse.result.data.map(contact => ({
-                id: contact.id,
-                name: `${contact.name || ''} ${contact.surname || ''}`,
-                number: `${contact.ddd || ''} ${contact.phone || ''}`,
-            }));
-            setContacts(filteredContacts);
+            // Fetch paginated data
+            fetchAddresses(currentPageAddresses);
+            fetchContacts(currentPageContacts);
         } catch (error) {
             console.error('Erro ao carregar os dados:', error);
             setMessage({ type: 'error', text: 'Erro ao carregar os dados da organização' });
@@ -73,7 +73,53 @@ const OrganizationDetailsPage = () => {
             setLoading(false);
         }
     };
-    
+
+    const fetchAddresses = async (page = 1) => {
+        try {
+            const response = await OrganizationService.allOrganizationAddresses(
+                organizationId,
+                { page, perPage: itemsPerPageAddresses },
+                navigate
+            );
+
+            const { data, last_page, current_page } = response.result;
+            const filteredAddresses = data.map(address => ({
+                id: address.id,
+                zip: address.zip,
+                street: address.street,
+            }));
+
+            setAddresses(filteredAddresses);
+            setTotalPagesAddresses(last_page);
+            setCurrentPageAddresses(current_page);
+        } catch (error) {
+            console.error('Erro ao carregar endereços:', error);
+        }
+    };
+
+    const fetchContacts = async (page = 1) => {
+        try {
+            const response = await OrganizationService.allOrganizationContacts(
+                organizationId,
+                { page, perPage: itemsPerPageContacts },
+                navigate
+            );
+
+            const { data, last_page, current_page } = response.result;
+            const filteredContacts = data.map(contact => ({
+                id: contact.id,
+                name: `${contact.name || ''} ${contact.surname || ''}`,
+                number: `${contact.ddd || ''} ${contact.phone || ''}`,
+            }));
+
+            setContacts(filteredContacts);
+            setTotalPagesContacts(last_page);
+            setCurrentPageContacts(current_page);
+        } catch (error) {
+            console.error('Erro ao carregar contatos:', error);
+        }
+    };
+
     const handleDelete = (address) => {
         setAddressToDelete(address);
         setDeleteModalOpen(true);
@@ -89,7 +135,7 @@ const OrganizationDetailsPage = () => {
         try {
             await OrganizationService.deleteOrganizationAddress(organizationId, addressToDelete.id, navigate);
             setMessage({ type: 'success', text: 'Endereço excluído com sucesso' });
-            await fetchData();
+            fetchAddresses(currentPageAddresses);
         } catch (error) {
             setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
         } finally {
@@ -103,9 +149,9 @@ const OrganizationDetailsPage = () => {
         try {
             await OrganizationService.deleteOrganizationContact(organizationId, contactToDelete.id, navigate);
             setMessage({ type: 'success', text: 'Contato excluído com sucesso' });
-            await fetchData();
+            fetchContacts(currentPageContacts);
         } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
+            setMessage({ type: 'error', text: 'Erro ao excluir o contato' });
         } finally {
             setDeleteModalOpenContacts(false);
             setLoading(false);
@@ -115,26 +161,24 @@ const OrganizationDetailsPage = () => {
     const handleEdit = (address) => {
         navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/editar/${address.id}`);
     };
-
-    const handleEditContact = (contact) => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/contatos/editar/${contact.id}`);
-    };
-
+    
     const handleViewDetails = (address) => {
         navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/detalhes/${address.id}`);
     };
-
-
+    
     const handleViewLocations = (address) => {
         navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${address.id}/localizacoes`);
     };
-
-    const handleBack = () => {
-        navigate('/organizacoes/');
+    
+    const handleEditContact = (contact) => {
+        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/contatos/editar/${contact.id}`);
     };
-
+    
+    const handleBack = () => {
+        navigate('/orgaos/');
+    };
+    
     const headers = ['ID', 'CEP', 'Rua'];
-
     const actions = [
         {
             icon: faEdit,
@@ -158,16 +202,15 @@ const OrganizationDetailsPage = () => {
             onClick: handleViewDetails,
         },
         {
-            icon: faMapMarkerAlt, 
+            icon: faMapMarkerAlt,
             title: 'Ver Localizações',
             buttonClass: 'btn-warning',
-            permission: 'Listar endereços de organizações', 
-            onClick: handleViewLocations, 
+            permission: 'Listar endereços de organizações',
+            onClick: handleViewLocations,
         },
     ];
 
     const headersContacts = ['ID', 'Responsável', 'Contato'];
-
     const actionsContacts = [
         {
             icon: faEdit,
@@ -178,11 +221,11 @@ const OrganizationDetailsPage = () => {
         },
         {
             icon: faTrash,
-            title: 'Excluir Endereço',
+            title: 'Excluir Contato',
             buttonClass: 'btn-danger',
-            permission: 'Excluir endereço da organização',
+            permission: 'Excluir contato da organização',
             onClick: handleDeleteContact,
-        }
+        },
     ];
 
     return (
@@ -212,10 +255,9 @@ const OrganizationDetailsPage = () => {
                                     <InputField label="Cor" id="color" value={formData.color} disabled={true} />
                                 </div>
                                 <div className="d-flex flex-column col-md-4">
-                                    <InputField label="Status" id="color" value={formData.active} disabled={true} />
+                                    <InputField label="Status" id="status" value={formData.active} disabled={true} />
                                 </div>
                             </div>
-
 
                             <div className="form-row d-flex justify-content-between align-items-center mt-1">
                                 <h5 className="text-dark font-weight-bold mt-3">Endereços da Organização</h5>
@@ -229,7 +271,14 @@ const OrganizationDetailsPage = () => {
                             </div>
                             <hr />
 
-                            <DynamicTable headers={headers} data={addresses} actions={actions} />
+                            <DynamicTable
+                                headers={headers}
+                                data={addresses}
+                                actions={actions}
+                                currentPage={currentPageAddresses}
+                                totalPages={totalPagesAddresses}
+                                onPageChange={fetchAddresses}
+                            />
 
                             <div className="form-row d-flex justify-content-between align-items-center mt-1">
                                 <h5 className="text-dark font-weight-bold mt-3">Contatos da Organização</h5>
@@ -243,7 +292,14 @@ const OrganizationDetailsPage = () => {
                             </div>
                             <hr />
 
-                            <DynamicTable headers={headersContacts} data={contacts} actions={actionsContacts} />
+                            <DynamicTable
+                                headers={headersContacts}
+                                data={contacts}
+                                actions={actionsContacts}
+                                currentPage={currentPageContacts}
+                                totalPages={totalPagesContacts}
+                                onPageChange={fetchContacts}
+                            />
 
                             <div className="mt-3 d-flex gap-2">
                                 <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
@@ -264,7 +320,7 @@ const OrganizationDetailsPage = () => {
                 open={deleteModalOpenContacts}
                 onClose={() => setDeleteModalOpenContacts(false)}
                 onConfirm={confirmDeleteContacts}
-                itemName={contactToDelete ? `${contactToDelete.name ? contactToDelete.name : ''} ${contactToDelete.surname? contactToDelete.surname : '' }` : ''}
+                itemName={contactToDelete ? `${contactToDelete.name}` : ''}
             />
         </MainLayout>
     );
