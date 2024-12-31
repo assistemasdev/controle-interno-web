@@ -3,6 +3,7 @@
 }
 
 .main {
+  width: 100%;
   padding-top: 5rem;
 }
 
@@ -256,8 +257,8 @@
   } 
 
   .main {
-    padding-left: 360px;
-    padding-top: 8rem;
+    padding-left: 340px;
+    padding-top: 6rem;
     transition: padding .4s;
   }
 
@@ -265,8 +266,8 @@
     padding-left: 114px;
   }
 
-  .main.left-pd {
+  /* .main.left-pd {
     padding-left: 130px !important;
-  }
+  } */
 }
 

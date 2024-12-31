@@ -64,6 +64,7 @@ const CompanySelection = () => {
                     name: "Admin",
                     color: "#4F4F4F", 
                 };
+                
                 const organsWithAdmin = [...formattedOrgans, adminOrgan];
                 setOptions(organsWithAdmin);
                 setSelectedOption(organsWithAdmin.length > 0 ? organsWithAdmin[0] : null);

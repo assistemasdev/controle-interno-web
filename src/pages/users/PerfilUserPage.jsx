@@ -111,7 +111,7 @@ const PerfilUserPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-        <div className="container-fluid p-1">
+        <div className="w-100 h-100">
             <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
                 Perfil do Usuário
             </div>

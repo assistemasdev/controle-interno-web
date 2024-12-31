@@ -21,14 +21,13 @@ const MainLayout = ({ children }) => {
                 </div>
             ) : (
                 <>
-                    <SideBarTwo></SideBarTwo>
+                    <SideBarTwo children={children}></SideBarTwo>
                     {/* <Sidebar isVisible={isSidebarVisible} /> */}
 
                     {/* <div id="content-wrapper" className="main d-flex flex-column w-100">
                         <div id="content" className="flex-grow-1">
                             <Topbar />
                             <div className="container-fluid">
-                                {children}
                             </div>
                         </div>
                     </div> */}
