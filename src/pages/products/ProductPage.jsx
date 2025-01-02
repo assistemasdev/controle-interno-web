@@ -11,7 +11,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
-import { removeDuplicatesWithPriority } from "../../utils/arrayUtils";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 
 const ProductsPage = () => {
@@ -37,12 +36,13 @@ const ProductsPage = () => {
         }
     }, [location.state]); 
 
-    const fetchData = async (id, number, page = 1) => {
+
+    const fetchData = async (id, number, filledInputs, page = 1) => {
         try {
             setLoading(true);
             const [statusResponse, productsResponse] = await Promise.all([
                 StatusService.getAll(),
-                ProductService.getAll({number, id, page, perPage: itemsPerPage}, navigate)
+                ProductService.getAll({number, id, filledInputs, page, perPage: itemsPerPage}, navigate)
             ]);
 
             const statusMap = Object.fromEntries(
@@ -90,9 +90,15 @@ const ProductsPage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
+        
+        const filledInputs = new Set(
+            selectedProducts.map((option) => option.column)
+        ).size;
+
         fetchData(
             selectedProducts.filter((product) => product.numberFilter == false).map(product => (product.value)),
-            selectedProducts.filter((product) => product.numberFilter == true).map(product => (product.value))
+            selectedProducts.filter((product) => product.numberFilter == true).map(product => (product.value)),
+            filledInputs
         )
     }
 

@@ -41,10 +41,10 @@ const CostumerPage = () => {
         window.location.reload()
     };
 
-    const fetchCustomers = async (id,name, idLike,page = 1) => {
+    const fetchCustomers = async (id,name, idLike, filledInputs,page = 1) => {
         try {
             setLoading(true);
-            const response = await CustomerService.getAll({id, name, idLike, page, perPage: itemsPerPage}, navigate);
+            const response = await CustomerService.getAll({id, name, idLike, filledInputs, page, perPage: itemsPerPage}, navigate);
             const result = response.result
 
             const filteredCustomers = result.data.map(supplier => {
@@ -76,12 +76,18 @@ const CostumerPage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
+    
+        const filledInputs = new Set(
+            selectedCustomers.map((option) => option.column)
+        ).size;
+    
         fetchCustomers(
-            selectedCustomers.filter((option) => option.textFilter == false || (option.column === 'id' && option.numberFilter == false)).map((item) => (item.value)),
-            selectedCustomers.filter((option) => option.textFilter == true && option.column === 'name').map((item) => (item.value)),
-            selectedCustomers.filter((option) => option.numberFilter == true && option.column === 'id').map((item) => (item.value)),
-        )
-    }
+            selectedCustomers.filter((option) => option.textFilter == false || (option.column === 'id' && option.numberFilter == false)).map((item) => item.value),
+            selectedCustomers.filter((option) => option.textFilter == true && option.column === 'name').map((item) => item.value),
+            selectedCustomers.filter((option) => option.numberFilter == true && option.column === 'id').map((item) => item.value),
+            filledInputs 
+        );
+    };
 
     const handleChangeCustomers = (newSelected, column) => {
         setSelectedCustomers((prev) => {

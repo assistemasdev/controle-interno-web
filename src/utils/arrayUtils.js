@@ -8,14 +8,23 @@
  */
 export function removeDuplicatesWithPriority(items, uniqueKey, priorityKey) {
     return items.reduce((acc, item) => {
-        const existingItem = acc.find((i) => i[uniqueKey] === item[uniqueKey]);
-        if (!existingItem || item[priorityKey]) {
-            console.log(item)
-            return acc.filter((i) => i[uniqueKey] != item[uniqueKey]).concat(item);
+        console.log(uniqueKey)
+        const existingItemIndex = acc.findIndex((i) => i[uniqueKey] == item[uniqueKey]);
+
+        if (existingItemIndex === -1) {
+            // Adicionar o item se não existir no acumulador
+            acc.push(item);
+        } else {
+            // Encontrou duplicata: manter apenas um e definir priorityKey como true
+            acc[existingItemIndex][priorityKey] = true;
+            acc[existingItemIndex].value = acc[existingItemIndex].label;
+
         }
+
         return acc;
     }, []);
 }
+
 
 /**
  * Divide um array em pedaços menores.

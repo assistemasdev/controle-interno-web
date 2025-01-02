@@ -2,6 +2,7 @@ import { useState } from "react";
 import useDebounce from "../hooks/useDebounce";
 import Select from 'react-select';  
 import useAutocomplete from "../hooks/useAutocomplete";
+import useScanDetection from 'use-scan-detection';
 
 const AutoCompleteFilter = ({
     value,
@@ -40,8 +41,25 @@ const AutoCompleteFilter = ({
     
     };
 
+    useScanDetection({
+        onComplete: (scannedValue) => {
+            if (!selectedValue.some((item) => item.value === scannedValue)) {
+                const newItem = { column: columnDataBase, [onBlurColumn]: true,value: scannedValue, label: scannedValue };
+                const updatedValues = [...selectedValue, newItem];
+                
+                setSelectedValue(updatedValues);
+                if (onChange) {
+                    onChange(updatedValues, columnDataBase);
+                }
+            }
+            setInputValue('');
+        },
+        minLength: 5, 
+        endChar: '[Enter]', 
+    });
+
     const handleBlur = () => {
-        if (inputValue && !selectedValue.some((option) => option.label === inputValue)) {
+        if (inputValue && !selectedValue.some((option) => option.label == inputValue)) {
             setSelectedValue([
                 ...selectedValue,
                 { [onBlurColumn]: true, value: inputValue, label: inputValue },

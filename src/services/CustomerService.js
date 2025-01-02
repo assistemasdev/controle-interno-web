@@ -4,12 +4,13 @@ import qs from 'qs';
 import { buildDynamicFilters } from "../utils/filterUtils";
 const CustomerService = {
     async getAll (data,navigate) {
+        console.log(data)
         const query = qs.stringify({
             filters: buildDynamicFilters(data),
             page:data.page, 
             perPage: data.perPage
         }, {encode: false})
-        console.log(query)
+
         try {
             const response = await api.get(`/customers/?${query}`);
             return {

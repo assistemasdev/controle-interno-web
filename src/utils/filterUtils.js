@@ -5,6 +5,9 @@
  */
 export function buildDynamicFilters(data) {
     const filters = {};
+    const orFilters = []; // Para condições que precisam de OR lógico
+    const filledInputs = data.filledInputs || 0; // Total de inputs preenchidos
+
     Object.entries(data).forEach(([key, value]) => {
         if (key === 'startDate' && value) {
             // Filtrar por data inicial (maior ou igual)
@@ -13,12 +16,11 @@ export function buildDynamicFilters(data) {
             // Filtrar por data final (menor ou igual)
             filters.date = { ...(filters.date || {}), $lte: value };
         } else if (Array.isArray(value) && value.length > 0) {
-            // Se for um array
-            if (key === 'id') {
-                // Aplicar filtro $in para IDs
+            if (key === 'id' && filledInputs > 1) {
+                // Aplicar $in para IDs
                 filters[key] = { ...(filters[key] || {}), $in: value };
-            } else if (key === 'idLike') {
-                // Aplicar filtro $contains para idLike
+            } else if (key === 'idLike' && filledInputs > 1) {
+                // Aplicar $contains para idLike
                 filters.id = {
                     ...(filters.id || {}),
                     $contains: Array.isArray(filters.id?.$contains)
@@ -26,16 +28,32 @@ export function buildDynamicFilters(data) {
                         : value,
                 };
             } else {
-                // Aplicar $or para outros arrays
-                filters.$or = [...(filters.$or || []), ...value.map((item) => ({
-                    [key]: { $contains: item },
-                }))];
+                // Adicionar condições ao $or para arrays de outros campos
+                orFilters.push(...value.map((item) => ({ [key]: { $contains: item } })));
             }
         } else if (typeof value === 'string' && value.trim() !== '') {
-            // Se for uma string, aplique $contains
-            filters[key] = { ...(filters[key] || {}), $contains: value };
+            if (key === 'idLike' && filledInputs > 1) {
+                // Adicionar $contains para idLike como string
+                filters.id = { ...(filters.id || {}), $contains: value };
+            } else {
+                // Adicionar strings ao $or
+                orFilters.push({ [key]: { $contains: value } });
+            }
         }
     });
+
+    // Se mais de um input preenchido, combinar AND logic
+    if (filledInputs > 1) {
+        // Combinar os filtros em um único objeto (AND logic)
+        orFilters.forEach((condition) => {
+            Object.assign(filters, condition);
+        });
+
+    } else if (orFilters.length > 0) {
+        // Usar OR logic apenas se houver um único input preenchido
+        filters.$or = orFilters;
+    }
+
 
     return filters;
 }

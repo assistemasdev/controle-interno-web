@@ -11,7 +11,6 @@ const ProductService = {
                 page: data.page,
                 perPage: data.perPage,
             }, { encode: false });
-            
             const response = await api.get(`/products/?${query}`);
 
             return {
