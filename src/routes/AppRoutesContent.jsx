@@ -445,64 +445,61 @@ const AppRoutesContent = () => {
 
 
     return (
-        <TransitionGroup component={null}>
-            <CSSTransition key={location.key} classNames="page-transition" timeout={500}>
-                <Routes location={location}>
-                {applicationRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
 
-                {userRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        <Routes location={location}>
+        {applicationRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {organizationRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {userRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {otherRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {organizationRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {roleRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {otherRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {suppliersRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {roleRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {typesRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {suppliersRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {categoriesRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {typesRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {conditionsRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {categoriesRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {groupsRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {conditionsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {unitsRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {groupsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {productsRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+        {unitsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
 
-                {costumersRoutes.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
-                
-                </Routes>
-            </CSSTransition>
-        </TransitionGroup>
+        {productsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
+        {costumersRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+        
+        </Routes>
     );
 };
 

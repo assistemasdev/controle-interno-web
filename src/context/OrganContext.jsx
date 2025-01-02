@@ -15,6 +15,13 @@ export const OrganProvider = ({ children }) => {
     setLoading(false); 
   };
 
+  const clearOrganSelection = () => {
+    localStorage.removeItem('selectedOrgan');
+    setOrgan(null);
+    navigate('/orgaos');
+  };
+
+
   useEffect(() => {
     const savedOrgan = localStorage.getItem('selectedOrgan');
     
@@ -35,7 +42,7 @@ export const OrganProvider = ({ children }) => {
   };
 
   return (
-    <OrganContext.Provider value={{ selectedOrgan, selectOrgan, loading }}>
+    <OrganContext.Provider value={{ selectedOrgan, selectOrgan, loading, clearOrganSelection }}>
       {children}
     </OrganContext.Provider>
   );

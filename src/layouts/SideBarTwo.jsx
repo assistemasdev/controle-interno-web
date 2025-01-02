@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faBars, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faUserTag, faChevronDown, faChevronRight, faDesktop, faHome, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faBars, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
 import "../assets/styles/sidebar/header.css";
 import "../assets/styles/sidebar/sidebar.css";
 import perfil from "../assets/img/perfil.png";
 import { useAuth } from "../hooks/useAuth";
 import UserService from "../services/UserService";
 import { CircularProgress } from '@mui/material';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
+import { usePermissions } from "../hooks/usePermissions";
 
 const SideBarTwo = ({ children }) => {
     const { user, logout } = useAuth();
+    const { canAccess } = usePermissions();
     const [userData, setUserData] = useState({
         name: '',
         email: ''
     });
     const navigate = useNavigate();
-    const { selectedOrgan } = useOrgan();
+    const { selectedOrgan, clearOrganSelection } = useOrgan();
     const [loading, setLoading] = useState(null);
     const [menuSections, setMenuSections] = useState([]);
 
@@ -32,40 +34,56 @@ const SideBarTwo = ({ children }) => {
     };
 
     useEffect(() => {
+        let sections = [];
+
         if (selectedOrgan && selectedOrgan.id === 'admin') {
-            setMenuSections([
+            sections = [
                 {
                     title: 'Administração',
                     items: [
-                        { name: 'Usuários', icon: faUserFriends, to: '/usuarios' },
-                        { name: 'Aplicações', icon: faDesktop, to: '/aplicacoes/dashboard' },
-                        { name: 'Condições', icon: faInfoCircle, to: '/condicoes' },
-                        { name: 'Categorias', icon: faFolder, to: '/categorias' }
-                    ]
+                        { name: 'Usuários', icon: faUserFriends, to: '/usuarios', requiredPermission: 'show all users' },
+                        { name: 'Aplicações', icon: faDesktop, to: '/aplicacoes/dashboard', requiredPermission: '' },
+                        { name: 'Condições', icon: faInfoCircle, to: '/condicoes', requiredPermission: 'Listar condições de produto' },
+                        { name: 'Categorias', icon: faFolder, to: '/categorias', requiredPermission: 'Listar categorias de produto' }
+                    ].filter(item => canAccess(item.requiredPermission))
                 }
-            ]);
+            ];
         } else {
-            setMenuSections([
+            sections = [
                 {
                     title: 'Usuário',
                     items: [
-                        { name: 'Perfil', icon: faUser, to: `/usuarios/perfil/${user.id}` },
-                        { name: 'Clientes', icon: faUsers, to: '/clientes' }
-                    ]
+                        { name: 'Perfil', icon: faUser, to: `/usuarios/perfil/${user.id}`, requiredPermission: '' },
+                        { name: 'Clientes', icon: faUsers, to: '/clientes', requiredPermission: 'Listar clientes' }
+                    ].filter(item => canAccess(item.requiredPermission))
                 },
                 {
                     title: 'Produtos',
                     items: [
-                        { name: 'Produtos', icon: faBox, to: '/produtos' },
-                        { name: 'Fornecedores', icon: faTruck, to: '/fornecedores' },
-                        { name: 'Tipos', icon: faTags, to: '/tipos' },
-                        { name: 'Grupos', icon: faObjectGroup, to: '/grupos' },
-                        { name: 'Unidades', icon: faRuler, to: '/unidades' }
+                        { name: 'Produtos', icon: faBox, to: '/produtos', requiredPermission: 'Listar produtos' },
+                        { name: 'Fornecedores', icon: faTruck, to: '/fornecedores', requiredPermission: 'Listar fornecedores' },
+                        { name: 'Tipos', icon: faTags, to: '/tipos', requiredPermission: 'Listar tipos de produto' },
+                        { name: 'Grupos', icon: faObjectGroup, to: '/grupos', requiredPermission: 'Listar grupos de produto' },
+                        { name: 'Unidades', icon: faRuler, to: '/unidades', requiredPermission: 'Listar unidades de medida' }
+                    ].filter(item => canAccess(item.requiredPermission))
+                }
+            ];
+        }
+
+        const filteredSections = sections.filter(section => section.items.length > 0);
+        setMenuSections(filteredSections);
+
+        if (filteredSections.length === 0) {
+            setMenuSections([
+                {
+                    title: 'Sem Permissões',
+                    items: [
+                        { name: 'Nenhum item disponível', icon: faInfoCircle, to: '#' }
                     ]
                 }
             ]);
         }
-    }, [selectedOrgan]);
+    }, [selectedOrgan, canAccess]);
 
     const fetchUser = async () => {
         try {
@@ -165,6 +183,10 @@ const SideBarTwo = ({ children }) => {
                             </div>
 
                             <div className="sidebar_actions">
+                                <button onClick={clearOrganSelection} className="btn-side sidebar_link">
+                                    <FontAwesomeIcon icon={faArrowLeft} />
+                                    <span>Voltar</span>
+                                </button>
                                 <button className="btn-side sidebar_icon" onClick={toggleTheme}>
                                     <FontAwesomeIcon icon={faMoon} />
                                     <span>Tema</span>

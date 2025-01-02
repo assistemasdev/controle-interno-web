@@ -14,6 +14,7 @@ import GroupService from '../../services/GroupService';
 import Select from 'react-select';
 import { CircularProgress } from '@mui/material';
 import Form from '../../components/Form'; 
+import TypeGroupsService from '../../services/TypeGroupsService';
 
 const CreateProductPage = () => {
     const navigate = useNavigate();
@@ -59,14 +60,12 @@ const CreateProductPage = () => {
                     conditionsResponse,
                     categoriesResponse,
                     typesResponse,
-                    groupsResponse
                 ] = await Promise.all([
                     OrganizationService.getAll(navigate),
                     SupplierService.getAll(navigate),
                     ConditionService.getAll(navigate),
                     CategoryService.getAll(navigate),
                     TypeService.getAll(navigate),
-                    GroupService.getAll(navigate),
                 ]);
 
                 setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
@@ -74,7 +73,6 @@ const CreateProductPage = () => {
                 setConditions(conditionsResponse.result.data.map(condition => ({ value: condition.id, label: condition.name })));
                 setCategories(categoriesResponse.result.data.map(category => ({ value: category.id, label: category.name })));
                 setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
-                setGroups(groupsResponse.result.data.map(group => ({ value: group.id, label: group.name })));
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
                 setMessage({ type: 'error', text: errorMessage });
@@ -85,6 +83,38 @@ const CreateProductPage = () => {
         };
         fetchData();
     }, [navigate]);
+
+    const handleTypeChange = async (selectedOption) => {
+        const selectedTypeId = selectedOption ? selectedOption.value : '';
+        
+        setFormData(prev => ({
+            ...prev,
+            product: {
+                ...prev.product,
+                type_id: selectedTypeId
+            }
+        }));
+    
+        if (selectedTypeId) {
+            try {
+                setLoading(true); 
+                const response = await TypeGroupsService.showTypeGroups(selectedTypeId, navigate);
+                console.log(response)
+                const groupsFormatted = response.result.map(group => ({
+                    value: group.id,
+                    label: group.name
+                }));
+                setGroups(groupsFormatted);
+            } catch (error) {
+                const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar grupos';
+                setMessage({ type: 'error', text: errorMessage });
+            } finally {
+                setLoading(false); 
+            }
+        } else {
+            setGroups([]); 
+        }
+    };
 
     const handleSubmit = async (formData) => {
         try {
@@ -165,7 +195,7 @@ const CreateProductPage = () => {
     const fetchAddresses = async (organizationId) => {
         try {
             const response = await OrganizationService.allOrganizationAddresses(organizationId, navigate);
-            const addressesFormatted = response.result.map(address => ({
+            const addressesFormatted = response.result.data.map(address => ({
                 value: address.id,
                 label: `${address.street}, ${address.city} - ${address.state}`
             }));
@@ -179,7 +209,7 @@ const CreateProductPage = () => {
     const fetchLocations = async (organizationId, addressId) => {
         try {
             const response = await OrganizationService.allOrganizationLocation(organizationId, addressId, navigate);
-            const locationsFormatted = response.result.map(location => ({
+            const locationsFormatted = response.result.data.map(location => ({
                 value: location.id,
                 label: `${location.area}, ${location.section} - ${location.spot}`
             }));
@@ -441,16 +471,8 @@ const CreateProductPage = () => {
                                             options={types} 
                                             className={`basic-multi-select`}
                                             classNamePrefix="select"
-                                            value={types.find(org => org.value === formData.product.type_id) || null}
-                                            onChange={(selectedOption) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    product: {
-                                                        ...prev.product,
-                                                        type_id: selectedOption ? selectedOption.value : ''
-                                                    }
-                                                }))
-                                            }
+                                            value={types.find(type => type.value === formData.product.type_id) || null}
+                                            onChange={handleTypeChange} 
                                             noOptionsMessage={() => "Nenhuma tipo encontrado"}
                                             placeholder="Selecione o tipo"
                                         />
