@@ -6,6 +6,9 @@ import { ApplacationProvider } from "../context/ApplicationContext";
 import { OrganProvider } from "../context/OrganContext";
 import { SideBarProvider } from "../context/SideBarContext";
 import { PermissionsProvider } from "../context/PermissionsContext";
+import { LoaderProvider } from "../context/LoaderContext"; 
+import GlobalLoader from "../components/GlobalLoader"; 
+
 const AppRoutes = () => {
     return (
         <Router>
@@ -14,7 +17,10 @@ const AppRoutes = () => {
                     <ApplacationProvider>
                         <OrganProvider>
                             <SideBarProvider>
-                                <AppRoutesContent />
+                                <LoaderProvider>
+                                    <AppRoutesContent />
+                                    <GlobalLoader /> 
+                                </LoaderProvider>
                             </SideBarProvider>
                         </OrganProvider>
                     </ApplacationProvider>

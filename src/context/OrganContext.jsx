@@ -18,6 +18,7 @@ export const OrganProvider = ({ children }) => {
   const clearOrganSelection = () => {
     localStorage.removeItem('selectedOrgan');
     setOrgan(null);
+    updateCSSVariables('#4da8ff');
     navigate('/orgaos');
   };
 

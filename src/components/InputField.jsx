@@ -20,13 +20,13 @@ const InputField = ({
 
     return (
         <div className="d-flex flex-column py-1">
-            {label && <label htmlFor={id} className="form-label text-dark font-weight-bold">{label}</label>}
+            {label && <label htmlFor={id} className="form-label font-weight-bold">{label}</label>}
 
             <div className="input-group position-relative">
                 <input
                     type={isPasswordVisible ? 'text' : type}  
                     id={id}
-                    className={`form-control ${error ? 'is-invalid' : ''} rounded`}
+                    className={`form-control ${error ? 'is-invalid' : ''} rounded input-theme`}
                     value={value}
                     onChange={onChange}
                     placeholder={placeholder}

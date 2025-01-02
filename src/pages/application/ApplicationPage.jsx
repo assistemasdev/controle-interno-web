@@ -95,11 +95,11 @@ const ApplicationPage = () => {
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
+                <p className="text-xs font-weight-bold text-uppercase mb-1">
                     Aplicações
-                </div>
+                </p>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2 theme-background" onSubmit={() => console.log('oi')}>
                     {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
                         <InputField
@@ -118,9 +118,9 @@ const ApplicationPage = () => {
                 </form>
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
+                    <p className="font-weight-bold text-uppercase mb-1 d-flex">
                         Lista de Aplicações
-                    </div>
+                    </p>
                     {canAccess('create applications') && (
                         <Button
                         text="Nova Aplicação"

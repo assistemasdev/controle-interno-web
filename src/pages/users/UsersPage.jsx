@@ -5,27 +5,26 @@ import DynamicTable from '../../components/DynamicTable';
 import Button from '../../components/Button';
 import ConfirmationModal from '../../components/modals/ConfirmationModal'; 
 import '../../assets/styles/custom-styles.css';
-import api from '../../services/api';
-import MyAlert from '../../components/MyAlert';
 import MainLayout from '../../layouts/MainLayout';  
-import { CircularProgress } from '@mui/material';
-import UserService from '../../services/UserService';
 import { useLocation } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
 import AutoCompleteFilter from '../../components/AutoCompleteFilter';
+import useLoader from '../../hooks/useLoader';
+import useNotification from '../../hooks/useNotification';
+import useUserService from '../../hooks/useUserService';
+import UserService from '../../services/UserService';
 
 const UsersPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { canAccess } = usePermissions();
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { fetchAllUsers, deleteUser } = useUserService(navigate);
     const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);  
     const [openDeleteModal, setOpenDeleteModal] = useState(false);  
-    const [errorMessage, setErrorMessage] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
@@ -33,16 +32,15 @@ const UsersPage = () => {
 
     useEffect(() => {
         if (location.state?.message) {
-        setErrorMessage(location.state.message);
+            showNotification('error', location.state.message);
         }
-    }, [location.state]);
+    }, [location.state, showNotification]);
 
-    const fetchUsers = async (id, name, page = 1) => {
+    const fetchUsers = async (id, name, filledInputs, page = 1) => {
         try {
-            setLoading(true);
+            showLoader();
 
-            const response = await UserService.getAll({ id, name, page, perPage: itemsPerPage },navigate);
-            const result = response.result
+            const result = await fetchAllUsers({ id, name, filledInputs, page, perPage: itemsPerPage });
 
             const filteredUsers = result.data.map(user => ({
                 id: user.id,
@@ -55,10 +53,10 @@ const UsersPage = () => {
             setCurrentPage(result.current_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar usuários';
-            setError(errorMessage);
-        console.error(error);
+            showNotification('error', errorMessage);
+            console.error(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
     };
 
@@ -68,9 +66,14 @@ const UsersPage = () => {
 
     const handleFilter = (e) => {
         e.preventDefault();
+        const filledInputs = new Set(
+            selectedUsers.map((option) => option.column)
+        ).size;
+
         fetchUsers(
-            selectedUsers.filter((user) => user.textFilter == false).map(user => (user.value)),
-            selectedUsers.filter((user) => user.textFilter == true).map(user => (user.value))
+            selectedUsers.filter((user) => user.textFilter === false).map(user => (user.value)),
+            selectedUsers.filter((user) => user.textFilter === true).map(user => (user.value)),
+            filledInputs
         );
     };
 
@@ -85,14 +88,16 @@ const UsersPage = () => {
     
     const handleConfirmDelete = async (id) => {
         try {
-            await api.delete(`/users/${id}`);
-            setSuccessMessage('Usuário excluído com sucesso!');
+            showLoader();
+            await deleteUser(id);
             setOpenDeleteModal(false);  
             fetchUsers();
         } catch (error) {
-            console.log(error)
-            setErrorMessage('Erro ao excluir o usuário');
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
             setOpenDeleteModal(false);  
+        } finally {
+            hideLoader();
         }    
     };
 
@@ -104,44 +109,41 @@ const UsersPage = () => {
 
     const actions = [
         {
-        icon: faEdit,
-        title: 'Editar usuário',
-        buttonClass: 'btn-primary',
-        permission: 'update users',
-        onClick: handleEdit
+            icon: faEdit,
+            title: 'Editar usuário',
+            buttonClass: 'btn-primary',
+            permission: 'update users',
+            onClick: handleEdit
         },
         {
-        icon: faTrashAlt,
-        title: 'Excluir usuário',
-        buttonClass: 'btn-danger',
-        permission:'delete users',
-        onClick: handleDelete,
+            icon: faTrashAlt,
+            title: 'Excluir usuário',
+            buttonClass: 'btn-danger',
+            permission: 'delete users',
+            onClick: handleDelete,
         },
     ];
 
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
+                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
                     Usuários
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilter}>
-                    {errorMessage && <MyAlert severity="error" message={errorMessage} onClose={() => setErrorMessage('')} />}
-                    {successMessage && <MyAlert severity="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
-
-                        <div className="form-group col-md-12">
-                            <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
-                            <AutoCompleteFilter
-                                service={UserService}
-                                value={selectedUsers}
-                                columnDataBase='name'
-                                isMulti={true}
-                                onChange={(selected) => setSelectedUsers(selected)}
-                                onBlurColumn='textFilter'
-                                placeholder="Filtre os usuários pelo nome"
-                            />
-                        </div>
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2 theme-background" onSubmit={handleFilter}>
+                    <div className="form-group col-md-12">
+                        <label htmlFor="name" className='font-weight-bold mt-1'>Nome:</label>
+                        <AutoCompleteFilter
+                            service={UserService}
+                            value={selectedUsers}
+                            columnDataBase='name'
+                            isMulti={true}
+                            onChange={(selected) => setSelectedUsers(selected)}
+                            onBlurColumn='textFilter'
+                            placeholder="Filtre os usuários pelo nome"
+                        />
+                    </div>
 
                     <div className="form-group gap-2">
                         <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
@@ -149,28 +151,18 @@ const UsersPage = () => {
                 </form>
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                    Lista de usuários
+                    <div className="font-weight-bold text-primary text-uppercase mb-1 d-flex">
+                        Lista de usuários
+                    </div>
+                    {canAccess('create users') && (
+                        <Button
+                            text="Novo usuário"
+                            className="btn btn-blue-light fw-semibold"
+                            link="/usuarios/criar"
+                        />
+                    )}
                 </div>
-                {canAccess('create users') && (
-                    <Button
-                    text="Novo usuário"
-                    className="btn btn-blue-light fw-semibold"
-                    link="/usuarios/criar"
-                    />
-                )}
 
-                </div>
-
-                {loading ? (
-                <div className="d-flex justify-content-center mt-4">
-                    <CircularProgress size={50} />
-                </div>
-                ) : error ? (
-                <div className='mt-3'>
-                    <MyAlert notTime={true} severity="error" message={error} />
-                </div>
-                ) : (
                 <DynamicTable 
                     headers={headers} 
                     data={users} 
@@ -179,13 +171,12 @@ const UsersPage = () => {
                     totalPages={totalPages}
                     onPageChange={fetchUsers} 
                 />
-                )}
-                
+
                 <ConfirmationModal
-                open={openDeleteModal}
-                onClose={handleCancelDelete}
-                onConfirm={() => handleConfirmDelete(selectedUser.id)}
-                userName={selectedUser ? selectedUser.name : ''}
+                    open={openDeleteModal}
+                    onClose={handleCancelDelete}
+                    onConfirm={() => handleConfirmDelete(selectedUser.id)}
+                    itemName={selectedUser ? selectedUser.name : ''}
                 />
             </div>
         </MainLayout>

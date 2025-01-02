@@ -62,7 +62,7 @@ const CompanySelection = () => {
                 const adminOrgan = {
                     id: "admin",
                     name: "Admin",
-                    color: "#4F4F4F", 
+                    color: "#dc143c", 
                 };
                 
                 const organsWithAdmin = [...formattedOrgans, adminOrgan];

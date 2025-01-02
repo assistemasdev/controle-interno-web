@@ -8,7 +8,6 @@ import SideBarTwo from './SideBarTwo';
 
 const MainLayout = ({ children }) => {
     const { loading } = useOrgan();
-    const [isSidebarVisible, setIsSidebarVisible] = useState(true); 
 
     return (
         <div id="wrapper" className="d-flex">
@@ -22,15 +21,6 @@ const MainLayout = ({ children }) => {
             ) : (
                 <>
                     <SideBarTwo children={children}></SideBarTwo>
-                    {/* <Sidebar isVisible={isSidebarVisible} /> */}
-
-                    {/* <div id="content-wrapper" className="main d-flex flex-column w-100">
-                        <div id="content" className="flex-grow-1">
-                            <Topbar />
-                            <div className="container-fluid">
-                            </div>
-                        </div>
-                    </div> */}
                 </>
             )}
         </div>

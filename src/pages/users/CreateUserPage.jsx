@@ -1,45 +1,33 @@
 import React, { useState, useMemo } from 'react';
-import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField'; 
 import { useNavigate } from 'react-router-dom';
-import '../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../components/MyAlert';
-import UserService from '../../services/UserService';
+import MainLayout from '../../layouts/MainLayout';
+import InputField from '../../components/InputField';
 import Form from '../../components/Form';
+import { userProfileFields } from '../../constants/forms/userProfileFields';
+import useUserService from '../../hooks/useUserService';
+import useLoader from '../../hooks/useLoader';
 
 const CreateUserPage = () => {
-    const navigate = useNavigate(); 
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({
+    const navigate = useNavigate();
+    const { showLoader, hideLoader } = useLoader();
+    const { formErrors, createUser } = useUserService(navigate);
+
+    const memoizedInitialData = useMemo(() => ({
+        name: '',
         username: '',
         email: '',
-        name: '',
         password: '',
-    });
+        password_confirmation: '',
+    }), []);
 
-    const handleSubmit = async (formData) => {
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
-
+    const handleSubmit = async (data) => {
+        showLoader();
         try {
-            const response = await UserService.create(formData, navigate);
-            const { message } = response;
-
-            setMessage({ type: 'success', text: message });
-            return;
+            await createUser(data);
         } catch (error) {
-            if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    email: errors.email?.[0] || '',
-                    username: errors.username?.[0] || '',
-                    name: errors.name?.[0] || '',
-                    password: errors.password?.[0] || '',
-                });
-                return;
-            }
-
-            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            console.error('Error creating user:', error);
+        } finally {
+            hideLoader();
         }
     };
 
@@ -55,91 +43,34 @@ const CreateUserPage = () => {
                 </div>
 
                 <Form
+                    initialFormData={memoizedInitialData}
                     onSubmit={handleSubmit}
-                    initialFormData={{
-                        name: '',
-                        username: '',
-                        email: '',
-                        password: '',
-                        password_confirmation: '',
-                    }}
                     textSubmit="Cadastrar Usuário"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
                     {({ formData, handleChange }) => (
-                        <>
-                            {message.text && (
-                                <MyAlert
-                                    severity={message.type}
-                                    message={message.text}
-                                    onClose={() => setMessage({ type: '', text: '' })}
-                                />
-                            )}
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Nome:"
-                                        type="text"
-                                        id="name"
-                                        value={formData?.name || ''}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome do usuário"
-                                        error={formErrors.name}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Usuário:"
-                                        type="text"
-                                        id="username"
-                                        value={formData?.username || ''}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome de usuário"
-                                        error={formErrors.username}
-                                    />
+                        userProfileFields.map((field) => (
+                            <div key={field.id}>
+                                <h5>{field.section}</h5>
+                                <hr />
+                                <div className="form-row">
+                                    {field.fields.map((item) => (
+                                        <div className="d-flex flex-column col-md-6" key={item.id}>
+                                            <InputField
+                                                label={item.label}
+                                                type={item.type}
+                                                id={item.id}
+                                                value={formData[item.id]}
+                                                onChange={handleChange}
+                                                placeholder={item.placeholder}
+                                                error={formErrors[item.id]}
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="E-mail:"
-                                        type="email"
-                                        id="email"
-                                        value={formData?.email || ''}
-                                        onChange={handleChange}
-                                        placeholder="Digite seu e-mail"
-                                        error={formErrors.email}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Senha:"
-                                        type="password"
-                                        id="password"
-                                        value={formData?.password || ''}
-                                        onChange={handleChange}
-                                        placeholder="Digite sua senha"
-                                        error={formErrors.password}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Confirme sua senha:"
-                                        type="password"
-                                        id="password_confirmation"
-                                        value={formData?.password_confirmation || ''}
-                                        onChange={handleChange}
-                                        placeholder="Confirme sua senha"
-                                    />
-                                </div>
-                            </div>
-                        </>
+                        ))
                     )}
                 </Form>
             </div>

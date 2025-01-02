@@ -21,7 +21,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
     };
 
     return (
-        <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
+        <div className="p-3 mt-2 rounded shadow-sm mb-2 table-background">
             {/* Cabeçalho com Seta */}
             <div className="d-flex justify-content-between align-items-center">
                 <button
@@ -36,7 +36,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
             {/* Corpo da Tabela */}
             {!isCollapsed && (
                 <>
-                    <table className="table table-striped mt-2">
+                    <table className="table table-striped mt-2 table-theme">
                         <thead>
                             <tr>
                                 {headers.map((header, index) => (

@@ -7,6 +7,7 @@
     --first-color: hsl(228, 85%, 63%);
     --title-color: hsl(228, 18%, 16%);
     --text-color: hsl(228, 8%, 56%);
+    --text-table: #5a5c69;
     --body-color: hsl(228, 100%, 99%);
     --header-height: 3.5rem;
     --shadow-color: hsla(228, 80%, 4%, .1);
@@ -14,8 +15,13 @@
     --normal-font-size: .938rem;
     --smaller-font-size: .75rem;
     --tiny-font-size: .75rem;
-    -font-regular: 400;
+    --font-regular: 400;
     --font-semi-bold: 600;
+    --theme-background: #ffffff;
+    --input-theme: #f0f0f0; /* Ajustado para claro no tema claro */
+    --input-border-color: #ccc;
+    --input-text-color: #333; /* Texto escuro no tema claro */
+    --input-placeholder-color: #999;
 }
 
 @media screen and (min-width: 1150px) {
@@ -33,14 +39,68 @@ body, #content-wrapper{
     transition: background-color .4s !important;
   }
 
-body.dark-theme, #content-wrapper.dark-theme {
+  body.dark-theme, #content-wrapper.dark-theme {
     --first-color: hsl(228, 70%, 63%) !important;
     --title-color: hsl(228, 18%, 96%) !important;
-    --text-color: hsl(228, 12%, 61%) !important;
-    --body-color: hsl(228, 24%, 16%) !important;
+    --text-color: hsl(228, 12%, 91%) !important;
+    --text-table: hsl(228, 12%, 91%) !important;
+    --body-color: #1B1E28;
     --shadow-color: hsla(228, 80%, 4%, .3) !important;
+    --form-background: #232730; 
+    --form-border-color: #4A4F5A;
+    --form-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+p, h5 {
+    color: var(--text-table) !important;
+}
+
+input::placeholder {
+    color: var(--input-placeholder-color) !important;
+    opacity: 1;
+}
+
+input:focus {
+    border-color: var(--primary-color) !important;
+    outline: none;
+    box-shadow: 0 0 5px var(--primary-color)  !important;
+}
+
+form, .table-background {
+    background-color: var(--form-background) !important;
+    border: 1px solid var(--form-border-color) !important;
+}
+
+.table-theme {
+    background-color: var(--theme-background)  !important; 
+    color: var(--text-color)  !important;
+}
+
+.table-theme th {
+    background-color: var(--body-color)  !important; 
+    color: var(--title-table) !important;
+}
+
+.table-theme td {
+    background-color: var(--body-color) !important; 
+    color: var(--text-table) !important;
+}
+
+.table-theme tbody tr:hover {
+    background-color: hsl(228, 24%, 20%); 
+    cursor: pointer;
+}
+
+label {
+    color: var(--text-table) !important;
+}
+.theme-background {
+    background-color: var(--theme-background);
+}
+.input-theme {
+    background-color: var(--input-theme) !important;
+    color: var(--text-color) !important;
+}
 .dark-theme .sidebar__content::-webkit-scrollbar {
     background-color: hsl(228, 16%, 30%);
 }

@@ -6,22 +6,21 @@ import "../assets/styles/sidebar/sidebar.css";
 import perfil from "../assets/img/perfil.png";
 import { useAuth } from "../hooks/useAuth";
 import UserService from "../services/UserService";
-import { CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { usePermissions } from "../hooks/usePermissions";
+import useLoader from "../hooks/useLoader";
 
 const SideBarTwo = ({ children }) => {
     const { user, logout } = useAuth();
     const { canAccess } = usePermissions();
+    const { showLoader, hideLoader } = useLoader();
     const [userData, setUserData] = useState({
         name: '',
         email: ''
     });
     const navigate = useNavigate();
     const { selectedOrgan, clearOrganSelection } = useOrgan();
-    const [loading, setLoading] = useState(null);
     const [menuSections, setMenuSections] = useState([]);
 
     useEffect(() => {
@@ -87,7 +86,7 @@ const SideBarTwo = ({ children }) => {
 
     const fetchUser = async () => {
         try {
-            setLoading(true);
+            showLoader();
             const response = await UserService.getById(user.id);
             setUserData({
                 name: response.result.name,
@@ -96,7 +95,7 @@ const SideBarTwo = ({ children }) => {
         } catch (error) {
             console.log(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
     };
 
@@ -136,74 +135,66 @@ const SideBarTwo = ({ children }) => {
 
     return (
         <>
-            {loading ? (
-                <div className="d-flex justify-content-center mt-4">
-                    <CircularProgress size={50}></CircularProgress>
+            <header className={`header ${isSidebarVisible ? "left-pd" : ""}`}>
+                <div className={`header_container`}>
+                    <a href="#" className="header_logo">
+                        <FontAwesomeIcon icon={faBuilding} className="header_logo_icon" />
+                        <span>ADI</span>
+                    </a>
+                    <button className="header_toggle" onClick={toggleSidebar}>
+                        <FontAwesomeIcon icon={faBars} className="header_toggle_icon" />
+                    </button>
                 </div>
-            ) : (
-                <>
-                    <header className={`header ${isSidebarVisible ? "left-pd" : ""}`}>
-                        <div className={`header_container`}>
-                            <a href="#" className="header_logo">
-                                <FontAwesomeIcon icon={faBuilding} className="header_logo_icon" />
-                                <span>ADI</span>
-                            </a>
-                            <button className="header_toggle" onClick={toggleSidebar}>
-                                <FontAwesomeIcon icon={faBars} className="header_toggle_icon" />
-                            </button>
+            </header>
+
+            <nav className={`sidebar ${isSidebarVisible ? "show_sidebar" : ""}`}>
+                <div className="sidebar_container">
+                    <div className="sidebar_user">
+                        <div className="sidebar_img">
+                            <img src={perfil} alt="perfil" />
                         </div>
-                    </header>
-
-                    <nav className={`sidebar ${isSidebarVisible ? "show_sidebar" : ""}`}>
-                        <div className="sidebar_container">
-                            <div className="sidebar_user">
-                                <div className="sidebar_img">
-                                    <img src={perfil} alt="perfil" />
-                                </div>
-                                <div className="sidebar_info">
-                                    <h3>{userData.name}</h3>
-                                    <span>{userData.email}</span>
-                                </div>
-                            </div>
-
-                            <div className="sidebar_content">
-                                {menuSections.map((section, sectionIndex) => (
-                                    <div key={sectionIndex}>
-                                        <h3 className="sidebar_title">{section.title}</h3>
-                                        <div className="sidebar_list">
-                                            {section.items.map((item, itemIndex) => (
-                                                <a href={item.to} key={itemIndex} className="sidebar_link" onClick={handleActiveLink}>
-                                                    <FontAwesomeIcon icon={item.icon} />
-                                                    <span>{item.name}</span>
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="sidebar_actions">
-                                <button onClick={clearOrganSelection} className="btn-side sidebar_link">
-                                    <FontAwesomeIcon icon={faArrowLeft} />
-                                    <span>Voltar</span>
-                                </button>
-                                <button className="btn-side sidebar_icon" onClick={toggleTheme}>
-                                    <FontAwesomeIcon icon={faMoon} />
-                                    <span>Tema</span>
-                                </button>
-                                <button onClick={handleLogout} className="btn-side sidebar_link">
-                                    <FontAwesomeIcon icon={faSignOutAlt} />
-                                    <span>Desconectar</span>
-                                </button>
-                            </div>
+                        <div className="sidebar_info">
+                            <h3>{userData.name}</h3>
+                            <span>{userData.email}</span>
                         </div>
-                    </nav>
+                    </div>
 
-                    <main className={`main container-main ${isSidebarVisible ? "left-pd" : ""}`}>
-                        {children}
-                    </main>
-                </>
-            )}
+                    <div className="sidebar_content">
+                        {menuSections.map((section, sectionIndex) => (
+                            <div key={sectionIndex}>
+                                <h3 className="sidebar_title">{section.title}</h3>
+                                <div className="sidebar_list">
+                                    {section.items.map((item, itemIndex) => (
+                                        <a href={item.to} key={itemIndex} className="sidebar_link" onClick={handleActiveLink}>
+                                            <FontAwesomeIcon icon={item.icon} />
+                                            <span>{item.name}</span>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="sidebar_actions">
+                        <button onClick={clearOrganSelection} className="btn-side sidebar_link">
+                            <FontAwesomeIcon icon={faArrowLeft} />
+                            <span>Voltar</span>
+                        </button>
+                        <button className="btn-side sidebar_icon" onClick={toggleTheme}>
+                            <FontAwesomeIcon icon={faMoon} />
+                            <span>Tema</span>
+                        </button>
+                        <button onClick={handleLogout} className="btn-side sidebar_link">
+                            <FontAwesomeIcon icon={faSignOutAlt} />
+                            <span>Desconectar</span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <main className={`main container-main ${isSidebarVisible ? "left-pd" : ""}`}>
+                {children}
+            </main>
         </>
     );
 };
