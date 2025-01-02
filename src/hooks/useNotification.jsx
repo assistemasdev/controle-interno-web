@@ -4,7 +4,10 @@ import { toast } from 'react-toastify';
 const useNotification = () => {
     const showNotification = useCallback((type, message) => {
         if (message && toast[type]) {
-            toast[type](message);
+            const selectedTheme = localStorage.getItem("selected-theme") || "light"; 
+            toast[type](message, {
+                theme: selectedTheme, 
+            });
         }
     }, []);
 
