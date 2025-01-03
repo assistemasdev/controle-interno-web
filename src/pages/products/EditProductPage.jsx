@@ -1,37 +1,31 @@
-import React, { use, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField'; 
-import { useNavigate, useParams } from 'react-router-dom';
-import '../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../components/MyAlert';
-import ProductService from '../../services/ProductService';
-import OrganizationService from '../../services/OrganizationService';
-import SupplierService from '../../services/SupplierService';
-import ConditionService from '../../services/ConditionService';
-import CategoryService from '../../services/CategoryService';
-import TypeService from '../../services/TypeService';
-import GroupService from '../../services/GroupService'; 
-import Select from 'react-select';  
-import { CircularProgress } from '@mui/material'; 
 import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
+import { productFields } from "../../constants/forms/productFields";
+import useNotification from '../../hooks/useNotification';
+import useProductService from '../../hooks/useProductService';
+import useLoader from '../../hooks/useLoader';
+import useSupplierService from '../../hooks/useSupplierService';
+import useConditionService from '../../hooks/useConditionService';
+import useCategoryService from '../../hooks/useCategoryService';
+import useOrganizationService from '../../hooks/useOrganizationService';
+import useTypeGroupsService from '../../hooks/useTypeGroupsService';
+import { useNavigate, useParams } from 'react-router-dom';
+import TypeService from '../../services/TypeService';
+import OrganizationService from '../../services/OrganizationService';
 
 const EditProductPage = () => {
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
     const { id } = useParams();
-    const [loading, setLoading] = useState(true); 
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({}); 
     const [organizations, setOrganizations] = useState([]);
-    const [types, setTypes] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
     const [conditions, setConditions] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [addresses, setAddresses] = useState([]); 
+    const [types, setTypes] = useState([]);
+    const [addresses, setAddresses] = useState([]);
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
-    const [suppliers, setSuppliers] = useState([])
-    const [productGroups, setProductGroups] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false); 
-
     const [formData, setFormData] = useState({
         product: {
             name: '',
@@ -45,482 +39,197 @@ const EditProductPage = () => {
             condition_id: '',
             category_id: '',
             address_id: '',
-            location_id: ''
+            location_id: '',
+            type_id: '',
         },
-        groups: []
+        groups: [],
     });
 
-    const memoizedInitialData = useMemo(() => formData, [formData]);
+    const { showNotification } = useNotification();
+    const { fetchProductById, fetchProductGroups, updateProduct, formErrors } = useProductService(navigate);
+    const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
+    const { fetchSuppliers } = useSupplierService(navigate);
+    const { fetchConditions } = useConditionService(navigate);
+    const { fetchCategories } = useCategoryService(navigate);
+    const { fetchTypeGroups } = useTypeGroupsService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+
+    const memoizedInitialData = useMemo(() => {
+        const flatData = { ...formData };
+        Object.keys(formData.product).forEach((key) => {
+            flatData[`product.${key}`] = formData.product[key];
+        });
+        return flatData;
+    }, [formData]);
+
+    const fetchAddresses = useCallback(async (organizationId) => {
+        try {
+            const response = await fetchOrganizationAddresses(organizationId);
+            setAddresses(response.data.map((address) => ({
+                value: address.id,
+                label: `${address.street}, ${address.city} - ${address.state}`,
+            })));
+        } catch (error) {
+            showNotification('error', 'Erro ao carregar endereços.');
+        }
+    }, [fetchOrganizationAddresses, showNotification]);
+
+    const fetchLocations = useCallback(async (organizationId, addressId) => {
+        try {
+            const response = await fetchOrganizationLocations(organizationId, addressId);
+            setLocations(response.data.map((location) => ({
+                value: location.id,
+                label: `${location.area}, ${location.section} - ${location.spot}`,
+            })));
+        } catch (error) {
+            showNotification('error', 'Erro ao carregar localizações.');
+        }
+    }, [fetchOrganizationLocations, showNotification]);
 
     useEffect(() => {
         const fetchData = async () => {
+            showLoader();
             try {
-                setLoading(true);
-                
                 const [
-                    organizationsResponse,
+                    product,
+                    orgResponse,
                     suppliersResponse,
-                    conditionsResponse,
-                    categoriesResponse,
-                    typesResponse,
-                    groupsResponse,
-                    productResponse,
-                    productGroupsResponse
+                    conditionResponse,
+                    categoryResponse,
+                    typeResponse,
+                    productGroups
                 ] = await Promise.all([
+                    fetchProductById(id),
                     OrganizationService.getAll(navigate),
-                    SupplierService.getAll(navigate),
-                    ConditionService.getAll(navigate),
-                    CategoryService.getAll(navigate),
+                    fetchSuppliers(),
+                    fetchConditions(),
+                    fetchCategories(),
                     TypeService.getAll(navigate),
-                    GroupService.getAll(navigate),
-                    ProductService.getById(id, navigate),
-                    ProductService.getProductGroupsById(id, navigate),
+                    fetchProductGroups(id)
                 ]);
 
-                setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
-                setSuppliers(suppliersResponse.result.data.map(supplier => ({ value: supplier.id, label: supplier.name })));
-                setConditions(conditionsResponse.result.data.map(condition => ({ value: condition.id, label: condition.name })));
-                setCategories(categoriesResponse.result.data.map(category => ({ value: category.id, label: category.name })));
-                setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
-                setGroups(groupsResponse.result.data.map(group => ({ value: group.id, label: group.name })));
-                setProductGroups(productGroupsResponse.result.map(productGroup => ({value: productGroup.id, label: productGroup.name})));
-                
-                const product = productResponse.result;
+                setOrganizations(orgResponse.result.data.map((org) => ({ value: org.id, label: org.name })));
+                setSuppliers(suppliersResponse.data.map((supplier) => ({
+                    value: supplier.id,
+                    label: supplier.name,
+                })));
+                setConditions(conditionResponse.data.map((condition) => ({
+                    value: condition.id,
+                    label: condition.name,
+                })));
+                setCategories(categoryResponse.data.map((category) => ({
+                    value: category.id,
+                    label: category.name,
+                })));
+                setTypes(typeResponse.result.data.map((type) => ({
+                    value: type.id,
+                    label: type.name,
+                })));
+
+                setGroups(productGroups.map((group) => ({
+                    value: group.id,
+                    label: group.name,
+                })));
 
                 setFormData({
                     product: {
-                        name: product.name || '',
-                        number: product.number || '',
-                        serial_number: product.serial_number || '',
-                        current_organization_id: product.current_organization_id || '',
-                        owner_organization_id: product.owner_organization_id || '',
-                        supplier_id: product.supplier_id || '',
-                        purchase_date: product.purchase_date || '',
-                        warranty_date: product.warranty_date || '',
-                        condition_id: product.condition_id || '',
-                        category_id: product.category_id || '',
-                        address_id: product.address_id || '',
-                        location_id: product.location_id || '',
+                        ...product,
                         type_id: product.type_id || '',
                     },
-                    groups: productGroupsResponse.result.map(group => group.id) || []
-
+                    groups: productGroups.map((group) => group.id) || [],
                 });
 
                 if (product.current_organization_id) {
-                    fetchAddresses(product.current_organization_id);
+                    await fetchAddresses(product.current_organization_id);
                 }
-
                 if (product.address_id && product.current_organization_id) {
-                    fetchLocations(product.current_organization_id, product.address_id);
+                    await fetchLocations(product.current_organization_id, product.address_id);
                 }
-
             } catch (error) {
-                const errorMessage = error.message || 'Erro ao carregar os dados.';
-                setMessage({ type: 'error', text: errorMessage });
-                console.error('Erro no carregamento dos dados:', error);
+                console.error(error);
+                showNotification('error', 'Erro ao carregar dados do produto.');
             } finally {
-                setLoading(false);
+                hideLoader();
             }
         };
 
         fetchData();
-    }, [id, navigate]);
+    }, [id]);
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        const [category, key] = id.split('.');
-
-        setFormData((prev) => ({
-            ...prev,
-            [category]: {
-                ...prev[category],
-                [key]: value
-            }
-        }));
-    };
-
-    const handleOrganizationChange = (selectedOption) => {
-        const selectedOrganizationId = selectedOption ? selectedOption.value : '';
-        setFormData(prev => ({
-            ...prev,
-            product: {
-                ...prev.product,
-                current_organization_id: selectedOrganizationId
-            }
-        }));
-
-        if (selectedOrganizationId) {
-            fetchAddresses(selectedOrganizationId);
-        } else {
-            setAddresses([]);
-        }
-    };
-
-    const fetchAddresses = async (organizationId) => {
+    const handleSubmit = async (data) => {
         try {
-            const response = await OrganizationService.allOrganizationAddresses(organizationId, navigate);
-            const addressesFormatted = response.result.map(address => ({
-                value: address.id,
-                label: `${address.street}, ${address.city} - ${address.state}`
-            }));
-            setAddresses(addressesFormatted);
+            showLoader();
+            await updateProduct(id, data);
         } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar endereços';
-            setMessage({ type: 'error', text: errorMessage });
-        }
-    };
-
-    const fetchLocations = async (organizationId, addressId) => {
-        try {
-            const response = await OrganizationService.allOrganizationLocation(organizationId, addressId, navigate);
-            const locationsFormatted = response.result.map(location => ({
-                value: location.id,
-                label: `${location.area}, ${location.section} - ${location.spot}`
-            }));
-            setLocations(locationsFormatted);
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar localizações';
-            setMessage({ type: 'error', text: errorMessage });
-        }
-    };
-
-    const handleSubmit = async () => {
-        try {
-            const response = await ProductService.update(id, formData, navigate);
-            const { message } = response;
-
-            setMessage({ type: 'success', text: message });
-        } catch (error) {
-            if (error.status === 422 && error.data) {
-                setFormErrors(error.data);
-                return;
-            }
-
-            setMessage({ type: 'error', text: error.message || 'Erro ao atualizar o produto' });
+            console.log(error)
+            showNotification('error', 'Erro ao atualizar o produto.');
         } finally {
-            setIsSubmitting(false)
+            hideLoader();
         }
     };
 
-    const handleBack = () => {
-        navigate(`/produtos/`);
+    const getOptions = (fieldId) => {
+        switch (fieldId) {
+            case 'product.current_organization_id':
+            case 'product.owner_organization_id':
+                return organizations;
+            case 'product.supplier_id':
+                return suppliers;
+            case 'product.condition_id':
+                return conditions;
+            case 'product.category_id':
+                return categories;
+            case 'product.type_id':
+                return types;
+            case 'product.address_id':
+                return addresses;
+            case 'product.location_id':
+                return locations;
+            case 'groups':
+                return groups;
+            default:
+                return [];
+        }
+    };
+
+    const getSelectedValue = (fieldId) => {
+        if (fieldId.startsWith('product.')) {
+            const key = fieldId.replace('product.', '');
+            const value = formData.product[key];
+            return getOptions(fieldId).find(option => option.value === value) || null;
+        }
+        if (fieldId === 'groups') {
+            return groups.filter(group => formData.groups.includes(group.value));
+        }
+        return null;
     };
 
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
+                <p className="text-xs font-weight-bold text-uppercase mb-1">
                     Editar Produto
-                </div>
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-5">
-                        <CircularProgress size={50} />
-                    </div>
-                ) : (
-                    <Form
-                        initialFormData={memoizedInitialData}
-                        onSubmit={() => handleSubmit(formData)} 
-                        textSubmit="Editar"
-                        textLoadingSubmit="Editando..."
-                        handleBack={handleBack}
-                    >
-                        {() => (
-                            <>
-                            
-                                {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
+                </p>
 
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label="Nome:"
-                                            type="text"
-                                            id="product.name"
-                                            value={formData.product.name}
-                                            onChange={handleChange}
-                                            placeholder="Digite o nome do produto"
-                                            error={formErrors['product.name']}
-                                        />
-                                    </div>
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label="Número:"
-                                            type="number"
-                                            id="product.number"
-                                            value={formData.product.number}
-                                            onChange={handleChange}
-                                            placeholder="Digite o número do produto"
-                                            error={formErrors['product.number']}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label="Número de Série:"
-                                            type="text"
-                                            id="product.serial_number"
-                                            value={formData.product.serial_number}
-                                            onChange={handleChange}
-                                            placeholder="Digite o número de série"
-                                            error={formErrors['product.serial_number']}
-                                        />
-                                    </div>
-                                    <div className="d-flex flex-column col-md-6">
-                                        <label htmlFor="current_organization_id" className="text-dark font-weight-bold mt-1">Organização Atual:</label>
-                                        <Select
-                                            name="current_organization_id"
-                                            options={organizations}
-                                            classNamePrefix="select"
-                                            value={organizations.find(org => org.value === formData.product.current_organization_id) || null}
-                                            onChange={handleOrganizationChange}
-                                            noOptionsMessage={() => "Nenhuma organização encontrada"}
-                                            placeholder="Selecione a organização"
-                                        />
-                                        {formErrors['product.current_organization_id'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['product.current_organization_id']}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-6">
-                                        <label htmlFor="owner_organization_id" className="text-dark font-weight-bold mt-1">Organização Proprietária:</label>
-                                        <Select
-                                            name="owner_organization_id"
-                                            options={organizations}
-                                            classNamePrefix="select"
-                                            value={organizations.find(org => org.value === formData.product.owner_organization_id) || null}
-                                            onChange={(selectedOption) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    product: {
-                                                        ...prev.product,
-                                                        owner_organization_id: selectedOption ? selectedOption.value : ''
-                                                    }
-                                                }))
-                                            }
-                                            noOptionsMessage={() => "Nenhuma organização encontrada"}
-                                            placeholder="Selecione a organização"
-                                        />
-                                        {formErrors['product.owner_organization_id'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['product.owner_organization_id']}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="d-flex flex-column col-md-6">
-                                        <label htmlFor="supplier_id" className="text-dark font-weight-bold mt-1">Fornecedor:</label>
-                                        <Select
-                                            name="supplier_id"
-                                            options={suppliers}
-                                            classNamePrefix="select"
-                                            value={suppliers.find(supplier => supplier.value === formData.product.supplier_id) || null}
-                                            onChange={(selectedOption) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    product: {
-                                                        ...prev.product,
-                                                        supplier_id: selectedOption ? selectedOption.value : ''
-                                                    }
-                                                }))
-                                            }
-                                            noOptionsMessage={() => "Nenhum fornecedor encontrado"}
-                                            placeholder="Selecione o fornecedor"
-                                        />
-                                        {formErrors['product.supplier_id'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['product.supplier_id']}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-6">
-                                        <label htmlFor="address_id" className="text-dark font-weight-bold mt-1">Endereço:</label>
-                                        <Select
-                                            name="address_id"
-                                            options={addresses}
-                                            classNamePrefix="select"
-                                            value={addresses.find(address => address.value === formData.product.address_id) || null}
-                                            onChange={(selectedOption) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    product: {
-                                                        ...prev.product,
-                                                        address_id: selectedOption ? selectedOption.value : ''
-                                                    }
-                                                }))
-                                            }
-                                            noOptionsMessage={() => "Nenhum endereço encontrado"}
-                                            placeholder="Selecione o endereço"
-                                        />
-                                        {formErrors['product.address_id'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['product.address_id']}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="d-flex flex-column col-md-6">
-                                        <label htmlFor="location_id" className="text-dark font-weight-bold mt-1">Localização:</label>
-                                        <Select
-                                            name="location_id"
-                                            options={locations}
-                                            classNamePrefix="select"
-                                            value={locations.find(location => location.value === formData.product.location_id) || null}
-                                            onChange={(selectedOption) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    product: {
-                                                        ...prev.product,
-                                                        location_id: selectedOption ? selectedOption.value : ''
-                                                    }
-                                                }))
-                                            }
-                                            noOptionsMessage={() => "Nenhuma localização encontrada"}
-                                            placeholder="Selecione a localização"
-                                        />
-                                        {formErrors['product.location_id'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['product.location_id']}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label="Data de Compra:"
-                                            type="date"
-                                            id="product.purchase_date"
-                                            value={formData.product.purchase_date}
-                                            onChange={handleChange}
-                                            error={formErrors['product.purchase_date']}
-                                        />
-                                    </div>
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label="Data de Garantia:"
-                                            type="date"
-                                            id="product.warranty_date"
-                                            value={formData.product.warranty_date}
-                                            onChange={handleChange}
-                                            error={formErrors['product.warranty_date']}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-4">
-                                        <label htmlFor="condition_id" className="text-dark font-weight-bold mt-1">Condição:</label>
-                                        <Select
-                                            name="condition_id"
-                                            options={conditions}
-                                            classNamePrefix="select"
-                                            value={conditions.find(condition => condition.value === formData.product.condition_id) || null}
-                                            onChange={(selectedOption) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    product: {
-                                                        ...prev.product,
-                                                        condition_id: selectedOption ? selectedOption.value : ''
-                                                    }
-                                                }))
-                                            }
-                                            noOptionsMessage={() => "Nenhuma condição encontrada"}
-                                            placeholder="Selecione a condição"
-                                        />
-                                        {formErrors['product.condition_id'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['product.condition_id']}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="d-flex flex-column col-md-4">
-                                        <label htmlFor="type_id" className="text-dark font-weight-bold mt-1">Tipo:</label>
-                                        <Select
-                                            name="type_id"
-                                            options={types}
-                                            classNamePrefix="select"
-                                            value={types.find(type => type.value === formData.product.type_id) || null}
-                                            onChange={(selectedOption) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    product: {
-                                                        ...prev.product,
-                                                        type_id: selectedOption ? selectedOption.value : ''
-                                                    }
-                                                }))
-                                            }
-                                            noOptionsMessage={() => "Nenhum tipo encontrado"}
-                                            placeholder="Selecione o tipo"
-                                        />
-                                        {formErrors['product.type_id'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['product.type_id']}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="d-flex flex-column col-md-4">
-                                        <label htmlFor="type_id" className="text-dark font-weight-bold mt-1">Categoria:</label>
-                                        <Select
-                                            name="category_id"
-                                            options={categories}
-                                            classNamePrefix="select"
-                                            value={categories.find(category => category.value === formData.product.category_id) || null}
-                                            onChange={(selectedOption) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    product: {
-                                                        ...prev.product,
-                                                        category_id: selectedOption ? selectedOption.value : ''
-                                                    }
-                                                }))
-                                            }
-                                            noOptionsMessage={() => "Nenhuma categoria encontrado"}
-                                            placeholder="Selecione a categoria"
-                                        />
-                                        {formErrors['product.category_id'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['product.category_id']}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-12">
-                                        <label htmlFor="groups" className="text-dark font-weight-bold mt-1">Grupos:</label>
-                                        <Select
-                                            isMulti
-                                            name="groups"
-                                            options={groups}
-                                            classNamePrefix="select"
-                                            value={groups.filter(group => formData.groups.includes(group.value))} 
-                                            onChange={(selectedOptions) =>
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    groups: selectedOptions ? selectedOptions.map(option => option.value) : []
-                                                }))
-                                            }
-                                            noOptionsMessage={() => "Nenhum grupo encontrado"}
-                                            placeholder="Selecione os grupos"
-                                        />
-                                        {formErrors['groups'] && (
-                                            <div className="invalid-feedback d-block">
-                                                {formErrors['groups']}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </Form>
-                )}
+                <Form
+                    initialFormData={memoizedInitialData}
+                    onSubmit={handleSubmit}
+                    textSubmit="Salvar Alterações"
+                    textLoadingSubmit="Salvando..."
+                >
+                    {() =>
+                        productFields.map(section => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={memoizedInitialData}
+                                getOptions={getOptions}
+                                formErrors={formErrors}
+                                getSelectedValue={getSelectedValue}
+                            />
+                        ))
+                    }
+                </Form>
             </div>
         </MainLayout>
     );

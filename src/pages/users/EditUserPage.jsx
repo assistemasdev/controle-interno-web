@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
 import useUserService from '../../hooks/useUserService';
 import Select from 'react-select';
@@ -29,8 +29,6 @@ const EditUserPage = () => {
     const [selectedRoles, setSelectedRoles] = useState([]);
     const [selectedPermissions, setSelectedPermissions] = useState([]);
     const [oldSelectedRoles, setOldSelectedRoles] = useState([]);
-
-    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -66,18 +64,25 @@ const EditUserPage = () => {
         fetchData();
     }, [id]);
 
+    const handleChange = (fieldId, value) => {
+        setFormData((prev) => ({
+            ...prev,
+            [fieldId]: value,
+        }));
+    };
+
     const handleRoleChange = async (selectedOptions) => {
         const safeSelectedOptions = selectedOptions || [];
         const safeOldSelectedRoles = oldSelectedRoles || [];
-    
+
         const addedRoles = safeSelectedOptions.filter(option => !safeOldSelectedRoles.includes(option.value));
         const removedRoles = safeOldSelectedRoles.filter(role => !safeSelectedOptions.some(option => option.value === role));
-    
+
         if (addedRoles.length > 0) {
             for (const addedRole of addedRoles) {
                 const response = await fetchPermissionsForRole(addedRole.value);
                 const permissionsFromRole = response || [];
-    
+
                 setSelectedPermissions((prevPermissions) => {
                     const updatedPermissions = [...prevPermissions];
                     permissionsFromRole.forEach((permission) => {
@@ -89,20 +94,20 @@ const EditUserPage = () => {
                 });
             }
         }
-    
+
         if (removedRoles.length > 0) {
             for (const removedRole of removedRoles) {
                 const response = await fetchPermissionsForRole(removedRole);
                 const permissionsFromRole = response || [];
                 const remainingRoles = safeSelectedOptions.filter(role => role.value !== removedRole);
-    
+
                 const remainingPermissions = [];
                 for (const role of remainingRoles) {
                     const roleResponse = await fetchPermissionsForRole(role.value);
                     const rolePermissions = roleResponse || [];
                     remainingPermissions.push(...rolePermissions);
                 }
-    
+
                 setSelectedPermissions((prevPermissions) => {
                     return prevPermissions.filter((permissionId) => {
                         return !permissionsFromRole.some((permission) => {
@@ -113,11 +118,11 @@ const EditUserPage = () => {
                 });
             }
         }
-    
+
         setOldSelectedRoles(safeSelectedOptions.map(option => option.value));
         setSelectedRoles(safeSelectedOptions);
     };
-    
+
     const handlePermissionChange = (selectedOptions) => {
         setSelectedPermissions(selectedOptions ? selectedOptions.map(option => option.value) : []);
     };
@@ -155,80 +160,68 @@ const EditUserPage = () => {
                     Edição de Usuário
                 </div>
 
-                <>
-                    <Form
-                        initialFormData={memoizedInitialData}
-                        onSubmit={handleSubmit}
-                        textSubmit="Atualizar Usuário"
-                        textLoadingSubmit="Atualizando..."
-                        handleBack={handleBack}
-                    >
-                        {({ formData, handleChange }) => (
-                            userProfileFields.map((field) => (
-                                <div key={field.id}>
-                                    <h5>{field.section}</h5>
-                                    <hr />
-                                    <div className="form-row">
-                                        {field.fields.map((item) => (
-                                            <div className="d-flex flex-column col-md-6" key={item.id}>
-                                                <InputField
-                                                    label={item.label}
-                                                    type={item.type}
-                                                    id={item.id}
-                                                    value={formData[item.id]}
-                                                    onChange={handleChange}
-                                                    placeholder={item.placeholder}
-                                                    error={formErrors[item.id]}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </Form>
+                <Form
+                    initialFormData={formData}
+                    onSubmit={handleSubmit}
+                    textSubmit="Atualizar Usuário"
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {() =>
+                        userProfileFields.map((field) => (
+                            <FormSection
+                                key={field.section}
+                                section={field}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                getOptions={() => []}
+                                getSelectedValue={() => null}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
+                </Form>
 
-                    <Form
-                        onSubmit={handlePermissionSubmit}
-                        initialFormData={{ permissions: selectedPermissions }}
-                        textSubmit="Atualizar Permissões"
-                        textLoadingSubmit="Atualizando..."
-                        handleBack={handleBack}
-                    >
-                        {() => (
-                            <>
-                                <div className="form-group">
-                                    <label htmlFor="roles" className='text-dark font-weight-bold '>Cargos:</label>
-                                    <Select
-                                        id="roles"
-                                        isMulti
-                                        value={selectedRoles}
-                                        onChange={handleRoleChange}
-                                        options={roles.map(role => ({ value: role.id, label: role.name }))}
-                                        isClearable
-                                        noOptionsMessage={() => "Nenhum cargo encontrado"}
-                                        placeholder="Selecione os cargos (opcional)"
-                                    />
-                                </div>
+                <Form
+                    onSubmit={handlePermissionSubmit}
+                    initialFormData={{ permissions: selectedPermissions }}
+                    textSubmit="Atualizar Permissões"
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {() => (
+                        <>
+                            <div className="form-group">
+                                <label htmlFor="roles" className='text-dark font-weight-bold '>Cargos:</label>
+                                <Select
+                                    id="roles"
+                                    isMulti
+                                    value={selectedRoles}
+                                    onChange={handleRoleChange}
+                                    options={roles.map(role => ({ value: role.id, label: role.name }))}
+                                    isClearable
+                                    noOptionsMessage={() => "Nenhum cargo encontrado"}
+                                    placeholder="Selecione os cargos (opcional)"
+                                />
+                            </div>
 
-                                <div className="form-group">
-                                    <label htmlFor="permissions" className='text-dark font-weight-bold '>Permissões:</label>
-                                    <Select
-                                        isMulti
-                                        name="permissions"
-                                        options={permissions.map(permission => ({ value: permission.id, label: permission.name }))}
-                                        value={permissions
-                                            .filter(permission => selectedPermissions.includes(permission.id))
-                                            .map(permission => ({ value: permission.id, label: permission.name }))}
-                                        onChange={handlePermissionChange}
-                                        noOptionsMessage={() => "Nenhuma permissão encontrada"}
-                                        placeholder="Selecione as permissões"
-                                    />
-                                </div>
-                            </>
-                        )}
-                    </Form>
-                </>
+                            <div className="form-group">
+                                <label htmlFor="permissions" className='text-dark font-weight-bold '>Permissões:</label>
+                                <Select
+                                    isMulti
+                                    name="permissions"
+                                    options={permissions.map(permission => ({ value: permission.id, label: permission.name }))}
+                                    value={permissions
+                                        .filter(permission => selectedPermissions.includes(permission.id))
+                                        .map(permission => ({ value: permission.id, label: permission.name }))}
+                                    onChange={handlePermissionChange}
+                                    noOptionsMessage={() => "Nenhuma permissão encontrada"}
+                                    placeholder="Selecione as permissões"
+                                />
+                            </div>
+                        </>
+                    )}
+                </Form>
             </div>
         </MainLayout>
     );

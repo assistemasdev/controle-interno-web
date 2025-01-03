@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
 import useUserService from '../../hooks/useUserService';
 import useLoader from '../../hooks/useLoader';
@@ -12,6 +12,7 @@ const PerfilUserPage = () => {
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { formErrors, fetchUserById, updateUser } = useUserService(navigate);
+
     const [formData, setFormData] = useState({
         name: '',
         username: '',
@@ -19,8 +20,6 @@ const PerfilUserPage = () => {
         password: '',
         password_confirmation: '',
     });
-
-    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -43,6 +42,13 @@ const PerfilUserPage = () => {
 
         fetchData();
     }, [id]);
+
+    const handleChange = (fieldId, value) => {
+        setFormData((prev) => ({
+            ...prev,
+            [fieldId]: value,
+        }));
+    };
 
     const handleSubmit = async (data) => {
         showLoader();
@@ -67,35 +73,25 @@ const PerfilUserPage = () => {
                 </div>
 
                 <Form
-                    initialFormData={memoizedInitialData}
+                    initialFormData={formData}
                     onSubmit={handleSubmit}
                     textSubmit="Atualizar"
                     textLoadingSubmit="Atualizando..."
                     handleBack={handleBack}
                 >
-                    {({ formData, handleChange }) => (
-                        userProfileFields.map((field) => (
-                            <div key={field.id}>
-                                <h5>{field.section}</h5>
-                                <hr />
-                                <div className="form-row">
-                                    {field.fields.map((item) => (
-                                        <div className="d-flex flex-column col-md-6" key={item.id}>
-                                            <InputField
-                                                label={item.label}
-                                                type={item.type}
-                                                id={item.id}
-                                                value={formData[item.id]}
-                                                onChange={handleChange}
-                                                placeholder={item.placeholder}
-                                                error={formErrors[item.id]}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                    {() =>
+                        userProfileFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                getOptions={() => []} 
+                                getSelectedValue={() => null} 
+                                formErrors={formErrors}
+                            />
                         ))
-                    )}
+                    }
                 </Form>
             </div>
         </MainLayout>

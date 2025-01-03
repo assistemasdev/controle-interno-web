@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
 import useUserService from '../../hooks/useUserService';
 import useLoader from '../../hooks/useLoader';
@@ -19,6 +19,15 @@ const CreateUserPage = () => {
         password: '',
         password_confirmation: '',
     }), []);
+
+    const [formData, setFormData] = useState(memoizedInitialData);
+
+    const handleChange = (fieldId, value) => {
+        setFormData((prev) => ({
+            ...prev,
+            [fieldId]: value,
+        }));
+    };
 
     const handleSubmit = async (data) => {
         showLoader();
@@ -43,35 +52,25 @@ const CreateUserPage = () => {
                 </div>
 
                 <Form
-                    initialFormData={memoizedInitialData}
+                    initialFormData={formData}
                     onSubmit={handleSubmit}
                     textSubmit="Cadastrar Usuário"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
-                    {({ formData, handleChange }) => (
+                    {() =>
                         userProfileFields.map((field) => (
-                            <div key={field.id}>
-                                <h5>{field.section}</h5>
-                                <hr />
-                                <div className="form-row">
-                                    {field.fields.map((item) => (
-                                        <div className="d-flex flex-column col-md-6" key={item.id}>
-                                            <InputField
-                                                label={item.label}
-                                                type={item.type}
-                                                id={item.id}
-                                                value={formData[item.id]}
-                                                onChange={handleChange}
-                                                placeholder={item.placeholder}
-                                                error={formErrors[item.id]}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                            <FormSection
+                                key={field.section}
+                                section={field}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                getOptions={() => []}
+                                getSelectedValue={() => null}
+                                formErrors={formErrors}
+                            />
                         ))
-                    )}
+                    }
                 </Form>
             </div>
         </MainLayout>

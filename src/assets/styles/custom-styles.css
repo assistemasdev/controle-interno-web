@@ -51,19 +51,12 @@ body, #content-wrapper{
     --form-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.section-title:not(:first-of-type) {
+    margin-top: 20px !important;
+}
+
 p, h5 {
     color: var(--text-table) !important;
-}
-
-input::placeholder {
-    color: var(--input-placeholder-color) !important;
-    opacity: 1;
-}
-
-input:focus {
-    border-color: var(--primary-color) !important;
-    outline: none;
-    box-shadow: 0 0 5px var(--primary-color)  !important;
 }
 
 form, .table-background {

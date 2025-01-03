@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useDebounce from "../hooks/useDebounce";
-import Select from 'react-select';  
+import Select from "react-select";
 import useAutocomplete from "../hooks/useAutocomplete";
-import useScanDetection from 'use-scan-detection';
 
 const AutoCompleteFilter = ({
     value,
@@ -17,57 +16,78 @@ const AutoCompleteFilter = ({
     noOptionsMessage = () => "Nenhuma opção encontrada"
 }) => {
     const [options, setOptions] = useState([]);
-    const [inputValue, setInputValue] = useState('');
+    const [inputValue, setInputValue] = useState("");
     const [selectedValue, setSelectedValue] = useState([]);
+    const [barcodeBuffer, setBarcodeBuffer] = useState(""); 
     const { autoCompleteFunction } = useAutocomplete();
-    const { debouncedFn  } = useDebounce(autoCompleteFunction, 500);
+    const { debouncedFn } = useDebounce(autoCompleteFunction, 500);
+
     const handleInputChange = (value) => {
         setInputValue(value);
-        if (value) {    
-            debouncedFn(service, {columnDataBase, value, onBlurColumn}).then((results) => {console.log(results); setOptions(results)}); 
+        if (value) {
+            debouncedFn(service, { columnDataBase, value, onBlurColumn }).then((results) => {
+                setOptions(results);
+            });
         } else {
             setOptions([]);
         }
     };
-    
+
     const handleChange = (selected) => {
         const updatedValue = selected || [];
-    
         setSelectedValue(updatedValue);
-    
+
         if (onChange) {
-            onChange(updatedValue, columnDataBase); 
+            onChange(updatedValue, columnDataBase);
         }
-    
     };
 
-    useScanDetection({
-        onComplete: (scannedValue) => {
-            if (!selectedValue.some((item) => item.value === scannedValue)) {
-                const newItem = { column: columnDataBase, [onBlurColumn]: true,value: scannedValue, label: scannedValue };
-                const updatedValues = [...selectedValue, newItem];
-                
-                setSelectedValue(updatedValues);
-                if (onChange) {
-                    onChange(updatedValues, columnDataBase);
-                }
+    const handleScanComplete = (barcodeString) => {
+        if (!selectedValue.some((item) => item.value === barcodeString)) {
+            const newItem = {
+                column: columnDataBase,
+                [onBlurColumn]: true,
+                value: barcodeString,
+                label: barcodeString,
+            };
+            const updatedValues = [...selectedValue, newItem];
+
+            setSelectedValue(updatedValues);
+
+            if (onChange) {
+                onChange(updatedValues, columnDataBase);
             }
-            setInputValue('');
-        },
-        minLength: 5, 
-        endChar: '[Enter]', 
-    });
+        }
+        setBarcodeBuffer("");
+        setInputValue('');
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Enter" && barcodeBuffer.length > 3) {
+                handleScanComplete(barcodeBuffer);
+            } else if (e.key.length === 1) {
+                setBarcodeBuffer((prev) => prev + e.key);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [barcodeBuffer]);
 
     const handleBlur = () => {
-        if (inputValue && !selectedValue.some((option) => option.label == inputValue)) {
+        if (inputValue && !selectedValue.some((option) => option.label === inputValue)) {
             setSelectedValue([
                 ...selectedValue,
                 { [onBlurColumn]: true, value: inputValue, label: inputValue },
             ]);
         }
-    
-        setOptions([]); 
-        setInputValue(""); 
+
+        setOptions([]);
+        setInputValue("");
     };
 
     return (
@@ -79,12 +99,12 @@ const AutoCompleteFilter = ({
             inputValue={inputValue}
             onChange={handleChange}
             onInputChange={handleInputChange}
-            onBlur={handleBlur}         
-            onFocus={onFocus}       
+            onBlur={handleBlur}
+            onFocus={onFocus}
             noOptionsMessage={noOptionsMessage}
             placeholder={placeholder}
         />
     );
-}
+};
 
 export default AutoCompleteFilter;
