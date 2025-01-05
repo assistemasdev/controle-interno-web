@@ -26,6 +26,7 @@ const EditProductPage = () => {
     const [addresses, setAddresses] = useState([]);
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
+    const [selectedOrganizationId, setSelectedOrganizationId] = useState();
     const [formData, setFormData] = useState({
         product: {
             name: '',
@@ -54,13 +55,7 @@ const EditProductPage = () => {
     const { fetchTypeGroups } = useTypeGroupsService(navigate);
     const { showLoader, hideLoader } = useLoader();
 
-    const memoizedInitialData = useMemo(() => {
-        const flatData = { ...formData };
-        Object.keys(formData.product).forEach((key) => {
-            flatData[`product.${key}`] = formData.product[key];
-        });
-        return flatData;
-    }, [formData]);
+    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     const fetchAddresses = useCallback(async (organizationId) => {
         try {
@@ -168,6 +163,85 @@ const EditProductPage = () => {
         }
     };
 
+    const handleTypeChange = async (selectedOption) => {
+            if (!selectedOption || !selectedOption.value) {
+                setGroups([]); 
+                return;
+            }
+        
+            const selectedTypeId = selectedOption.value;
+        
+            setFormData((prev) => ({
+                ...prev,
+                product: {
+                    ...prev.product,
+                    type_id: selectedTypeId,
+                },
+            }));
+        
+            try {
+                showLoader(true);
+                const response = await fetchTypeGroups(selectedTypeId);
+                const groupsFormatted = response.map((group) => ({
+                    value: group.id,
+                    label: group.name,
+                }));
+                setGroups(groupsFormatted);
+            } catch (error) {
+                const errorMessage =
+                    error.response?.data?.error || error.message || "Erro ao carregar grupos";
+                showNotification("error", errorMessage);
+            } finally {
+                hideLoader();
+            }
+        };
+        
+       
+        const handleOrganizationChange = useCallback((selectedOption) => {
+            const selectedOrganizationId = selectedOption ? selectedOption.value : '';
+            setFormData((prev) => ({
+                ...prev,
+                product: {
+                    ...prev.product,
+                    current_organization_id: selectedOrganizationId,
+                },
+            }));
+        
+            if (selectedOrganizationId) {
+                fetchAddresses(selectedOrganizationId);
+            } else {
+                setAddresses([]);
+            }
+        }, [fetchAddresses]);
+    
+        const handleGroupChange = useCallback((selectedOptions) => {
+            const selectedValues = Array.isArray(selectedOptions)
+                ? selectedOptions.map((option) => option.value)
+                : [];
+            setFormData((prev) => ({
+                ...prev,
+                groups: selectedValues,
+            }));
+        }, []);
+        
+    
+        const handleAddressChange = useCallback((selectedOption) => {
+            const selectedAddressId = selectedOption ? selectedOption.value : '';
+            setFormData((prev) => ({
+                ...prev,
+                product: {
+                    ...prev.product,
+                    address_id: selectedAddressId,
+                },
+            }));
+        
+            if (selectedAddressId && selectedOrganizationId) {
+                fetchLocations(selectedOrganizationId, selectedAddressId);
+            } else {
+                setLocations([]);
+            }
+        }, [fetchLocations, selectedOrganizationId]);
+
     const getOptions = (fieldId) => {
         switch (fieldId) {
             case 'product.current_organization_id':
@@ -203,7 +277,10 @@ const EditProductPage = () => {
         }
         return null;
     };
-
+    
+    const handleBack = () => {
+        navigate(`/produtos`)
+    }
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
@@ -216,6 +293,7 @@ const EditProductPage = () => {
                     onSubmit={handleSubmit}
                     textSubmit="Salvar Alterações"
                     textLoadingSubmit="Salvando..."
+                    handleBack={handleBack}
                 >
                     {() =>
                         productFields.map(section => (
@@ -223,6 +301,35 @@ const EditProductPage = () => {
                                 key={section.section}
                                 section={section}
                                 formData={memoizedInitialData}
+                                handleFieldChange={(fieldId, value, field) => {
+                                    const [category, key] = fieldId.split(".");
+                                    if (field.handleChange === "handleChange") {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            [category]: {
+                                                ...prev[category],
+                                                [key]: value,
+                                            },
+                                        }));
+                                    } else if (field.handleChange === "handleOrganizationChange") {
+                                        handleOrganizationChange({ value, label: getOptions(fieldId).find(option => option.value == value)?.label });
+                                    } else if (field.handleChange === "handleGroupChange") {
+                                        handleGroupChange(
+                                            Array.isArray(value)
+                                                ? value.map((val) => ({
+                                                      value: val,
+                                                      label: getOptions(fieldId).find((option) => option.value == val)?.label || "",
+                                                  }))
+                                                : []
+                                        );                                    
+                                    } else if (field.handleChange === "handleTypeChange") {
+                                        handleTypeChange({ value, label: getOptions(fieldId).find(option => option.value == value)?.label });
+                                    } else if (field.handleChange === "handleAddressChange") {
+                                        handleAddressChange({ value, label: getOptions(fieldId).find(option => option.value == value)?.label });
+                                    } else {
+                                        console.warn("Nenhum handle definido para:", fieldId);
+                                    }
+                                }}
                                 getOptions={getOptions}
                                 formErrors={formErrors}
                                 getSelectedValue={getSelectedValue}

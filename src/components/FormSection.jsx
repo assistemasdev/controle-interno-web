@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import InputField from '../components/InputField';
 import Select from 'react-select';
 
@@ -10,6 +10,15 @@ const FormSection = ({
     getSelectedValue, 
     formErrors 
 }) => {
+
+    const flatData = useMemo(() => {
+        const flat = {};
+        Object.keys(formData.product).forEach((key) => {
+            flat[`product.${key}`] = formData.product[key];
+        });
+        return flat;
+    }, [formData]);
+
     return (
         <div>
             <hr />
@@ -23,7 +32,7 @@ const FormSection = ({
                                 label={field.label}
                                 type={field.type}
                                 id={field.id}
-                                value={formData[field.id] || ""}
+                                value={flatData[field.id] || ""}
                                 onChange={(e) => {
                                     if (e && e.target) {
                                         handleFieldChange(field.id, e.target.value, field);

@@ -127,6 +127,30 @@ const CreateProductPage = () => {
         return null;
     };
     
+    const handleSubmit = async (data) => {
+        showLoader();
+        try {
+            await createProduct(data);
+        } catch (error) {
+            console.error('Error creating user:', error);
+        } finally {
+            hideLoader();
+        }
+    };
+
+    const handleChange = useCallback((e) => {
+        const { id, value } = e.target;
+        const [category, key] = id.split('.');
+        setFormData((prev) => ({
+            ...prev,
+            [category]: {
+                ...prev[category],
+                [key]: value,
+            },
+        }));
+    }, []);
+
+
     const handleTypeChange = async (selectedOption) => {
         if (!selectedOption || !selectedOption.value) {
             setGroups([]); 
@@ -159,29 +183,6 @@ const CreateProductPage = () => {
             hideLoader();
         }
     };
-
-    const handleSubmit = async (data) => {
-        showLoader();
-        try {
-            await createProduct(data);
-        } catch (error) {
-            console.error('Error creating user:', error);
-        } finally {
-            hideLoader();
-        }
-    };
-
-    const handleChange = useCallback((e) => {
-        const { id, value } = e.target;
-        const [category, key] = id.split('.');
-        setFormData((prev) => ({
-            ...prev,
-            [category]: {
-                ...prev[category],
-                [key]: value,
-            },
-        }));
-    }, []);
 
     const fetchAddresses = useCallback(async (organizationId) => {
         try {
@@ -285,7 +286,7 @@ const CreateProductPage = () => {
                             <FormSection
                                 key={section.section}
                                 section={section}
-                                formData={formData}
+                                formData={memoizedInitialData}
                                 handleFieldChange={(fieldId, value, field) => {
                                     const [category, key] = fieldId.split(".");
                                     if (field.handleChange === "handleChange") {
