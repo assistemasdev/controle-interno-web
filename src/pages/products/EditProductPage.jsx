@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -54,8 +54,6 @@ const EditProductPage = () => {
     const { fetchCategories } = useCategoryService(navigate);
     const { fetchTypeGroups } = useTypeGroupsService(navigate);
     const { showLoader, hideLoader } = useLoader();
-
-    const memoizedInitialData = useMemo(() => formData, [formData]);
 
     const fetchAddresses = useCallback(async (organizationId) => {
         try {
@@ -277,6 +275,45 @@ const EditProductPage = () => {
         }
         return null;
     };
+
+
+    const handleFieldChange = useCallback((fieldId, value, field) => {
+        const [category, key] = fieldId.split(".");
+        setFormData((prev) => ({
+            ...prev,
+            [category]: {
+                ...prev[category],
+                [key]: value,
+            },
+        }));
+    
+        if (field.handleChange) {
+            switch (field.handleChange) {
+                case "handleOrganizationChange":
+                    handleOrganizationChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
+                    break;
+                case "handleGroupChange":
+                    handleGroupChange(
+                        Array.isArray(value)
+                            ? value.map((val) => ({
+                                    value: val,
+                                    label: getOptions(fieldId).find((option) => option.value === val)?.label || "",
+                                }))
+                            : []
+                    );
+                    break;
+                case "handleTypeChange":
+                    handleTypeChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
+                    break;
+                case "handleAddressChange":
+                    handleAddressChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
+                    break;
+                default:
+                    console.warn("Nenhum handle definido para:", fieldId);
+            }
+        }
+    }, [handleOrganizationChange, handleGroupChange, handleTypeChange, handleAddressChange, getOptions]);
+
     
     const handleBack = () => {
         navigate(`/produtos`)
@@ -289,9 +326,9 @@ const EditProductPage = () => {
                 </p>
 
                 <Form
-                    initialFormData={memoizedInitialData}
+                    initialFormData={formData}
                     onSubmit={handleSubmit}
-                    textSubmit="Salvar Alterações"
+                    textSubmit="Salvar"
                     textLoadingSubmit="Salvando..."
                     handleBack={handleBack}
                 >
@@ -300,36 +337,8 @@ const EditProductPage = () => {
                             <FormSection
                                 key={section.section}
                                 section={section}
-                                formData={memoizedInitialData}
-                                handleFieldChange={(fieldId, value, field) => {
-                                    const [category, key] = fieldId.split(".");
-                                    if (field.handleChange === "handleChange") {
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            [category]: {
-                                                ...prev[category],
-                                                [key]: value,
-                                            },
-                                        }));
-                                    } else if (field.handleChange === "handleOrganizationChange") {
-                                        handleOrganizationChange({ value, label: getOptions(fieldId).find(option => option.value == value)?.label });
-                                    } else if (field.handleChange === "handleGroupChange") {
-                                        handleGroupChange(
-                                            Array.isArray(value)
-                                                ? value.map((val) => ({
-                                                      value: val,
-                                                      label: getOptions(fieldId).find((option) => option.value == val)?.label || "",
-                                                  }))
-                                                : []
-                                        );                                    
-                                    } else if (field.handleChange === "handleTypeChange") {
-                                        handleTypeChange({ value, label: getOptions(fieldId).find(option => option.value == value)?.label });
-                                    } else if (field.handleChange === "handleAddressChange") {
-                                        handleAddressChange({ value, label: getOptions(fieldId).find(option => option.value == value)?.label });
-                                    } else {
-                                        console.warn("Nenhum handle definido para:", fieldId);
-                                    }
-                                }}
+                                formData={formData}
+                                handleFieldChange={handleFieldChange}
                                 getOptions={getOptions}
                                 formErrors={formErrors}
                                 getSelectedValue={getSelectedValue}
