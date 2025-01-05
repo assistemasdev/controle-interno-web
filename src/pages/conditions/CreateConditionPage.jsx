@@ -1,39 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField'; 
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../components/MyAlert';
 import ConditionService from '../../services/ConditionService';
 import Form from '../../components/Form';
+import { conditionFields } from '../../constants/forms/conditionFields';
+import FormSection from '../../components/FormSection';
+import useConditionService from '../../hooks/useConditionService';
 
 const CreateConditionPage = () => {
     const navigate = useNavigate(); 
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({    
-        name: '',
-    }); 
-
-    const handleSubmit = async (formData) => {
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
-    
+    const { createCondition, formErrors } = useConditionService(navigate)
+    const [formData, setFormData] = useState({
+        name: ''
+    })
+    const handleSubmit = async (formData) => {    
         try {
-            const response = await ConditionService.create(formData, navigate);
-            const {  message } = response; 
-    
-            setMessage({ type: 'success', text: message });
-            return;
-    
+            await createCondition(formData);
         } catch (error) {
-            if (error.status === 422) {
-                setFormErrors({
-                    name: error.data.name?.[0] || ''
-                });
-                return;
-            }
-            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            console.log(error)
         }
+    };
+
+    const handleChange = (fieldId, value) => {
+        setFormData((prev) => ({
+            ...prev,
+            [fieldId]: value,
+        }));
     };
 
     const handleBack = () => {
@@ -49,29 +42,21 @@ const CreateConditionPage = () => {
 
                 <Form
                     onSubmit={handleSubmit}
-                    initialFormData={{ name: '' }}
-                    textSubmit="Cadastrar Condição"
+                    initialFormData={formData}
+                    textSubmit="Cadastrar"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
-                    {({ formData, handleChange }) => (
-                        <>
-                            {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="Condições:"
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome da condição"
-                                        error={formErrors?.name} 
-                                    />
-                                </div>
-                            </div>
-                        </>
+                    {() => (
+                        conditionFields.map((field) => (
+                            <FormSection
+                                key={field.section}
+                                section={field}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                formErrors={formErrors}
+                            />
+                        ))
                     )}
                 </Form>
             </div>

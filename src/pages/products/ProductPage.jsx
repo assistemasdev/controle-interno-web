@@ -31,7 +31,7 @@ const ProductsPage = () => {
     const { hideLoader, showLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedProducts, setSelectedProducts] = useState([]);
-
+    
     useEffect(() => {
         if (location.state?.message) {
             showNotification('error', location.state.message );
@@ -68,7 +68,7 @@ const ProductsPage = () => {
             setTotalPages(productsResponse.last_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || "Erro ao carregar produtos";
-            showNotification(errorMessage);
+            showNotification('error ', errorMessage);
             console.error("Erro capturado no fetchData:", error);
         } finally {
             hideLoader();

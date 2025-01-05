@@ -1,22 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import MyAlert from "../../components/MyAlert";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
-import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
 import ConditionService from "../../services/ConditionService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
+import useConditionService from "../../hooks/useConditionService";
+import useLoader from "../../hooks/useLoader";
+import useNotification from "../../hooks/useNotification";
+
 const ConditionPage = () => {
     const { canAccess } = usePermissions();
     const [message, setMessage] = useState(null);
-    const [error, setError] = useState(null);
     const [name, setName] = useState('');
-    const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [conditionToDelete, setConditionToDelete] = useState(null);
     const [conditions, setConditions] = useState([]);
@@ -25,76 +26,76 @@ const ConditionPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const { fetchConditions, deleteCondition } = useConditionService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
 
     useEffect(() => {
-        setMessage(null);
         if (location.state?.message) {
-            setMessage({type:location.state.type, text: location.state.message});
+          showNotification('error', location.state.message);
+          navigate(location.pathname, { replace: true, state: {} });
         }
-    }, [location.state]); 
-    
+      }, [location, navigate]);
+      
     const handleClearFilters = () => {
         setName('');
     };
 
-    const fetchCondition = async (page = 1) => {
+    const fetchCondition = useCallback (async (page = 1) => {
         try {
-            setLoading(true);
+            showLoader();
         
-            const response = await ConditionService.getAll({ page, perPage: itemsPerPage }, navigate);
-            const result = response.result
-        
-            const filteredCondition = result.data.map(role => ({
+            const response = await fetchConditions({ page, perPage: itemsPerPage });
+
+            const filteredCondition = response.data.map(role => ({
                 id: role.id,
                 name: role.name
             }));
         
             setConditions(filteredCondition);
-            setTotalPages(result.last_page);
-            setCurrentPage(result.current_page);
+            setTotalPages(response.last_page);
+            setCurrentPage(response.current_page);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar condições';
-            setError(errorMessage);
+            showNotification('error', errorMessage);
             console.error(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [fetchConditions, showLoader, hideLoader, showNotification, itemsPerPage]);
     
     useEffect(() => {
         fetchCondition();
     }, []);
 
-    const handleEdit = (condition) => {
+    const handleEdit = useCallback((condition) => {
         navigate(`/condicoes/editar/${condition.id}`);
-    };
+    }, []);
 
-    const handleDelete = (condition) => {
+    const handleDelete = useCallback((condition) => {
         setConditionToDelete(condition);
         setDeleteModalOpen(true);
-    };
+    },[]);
 
-    const confirmDelete = async () => {
+    const confirmDelete = useCallback(async () => {
         try {
-            setLoading(true);
-            const response = await ConditionService.delete(conditionToDelete.id);
-
-            setMessage({ type: 'success', text: response.message });
+            showLoader();
+            await deleteCondition(conditionToDelete.id);
             fetchCondition();
             return;
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao excluir condição';
-            setError(errorMessage);
+            showNotification('error', errorMessage);
             console.error(error);
         } finally {
             setDeleteModalOpen(false);
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [showLoader, hideLoader, fetchCondition, showNotification, deleteCondition, conditionToDelete]);
 
-    const headers = ['id', 'Nome'];
+    const headers = useMemo(() => ['id', 'Nome'], []);
 
-    const actions = [
+    const actions = useMemo(() => [
         {
             icon: faEdit,
             title: 'Editar Categoria',
@@ -109,7 +110,7 @@ const ConditionPage = () => {
             permission: 'Excluir condições de produto',
             onClick: handleDelete
         }
-    ];
+    ], [handleDelete, handleEdit]);
     
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -149,24 +150,16 @@ const ConditionPage = () => {
                     )}
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                    ) : error ? (
-                    <div className='mt-3'>
-                        <MyAlert notTime={true} severity="error" message={error} />
-                    </div>
-                    ) : (
-                    <DynamicTable 
-                        headers={headers} 
-                        data={conditions} 
-                        actions={actions} 
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={fetchCondition}
-                    />
-                )}
+                
+                <DynamicTable 
+                    headers={headers} 
+                    data={conditions} 
+                    actions={actions} 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={fetchCondition}
+                />
+                
 
                 <ConfirmationModal
                     open={deleteModalOpen}

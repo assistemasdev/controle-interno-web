@@ -34,7 +34,7 @@ const FormSection = ({
             <hr />
             <div className="form-row">
                 {section.fields.map((field) => (
-                    <div className="d-flex flex-column col-md-6" key={field.id}>
+                    <div className={`d-flex flex-column ${field.fullWidth ? 'col-md-12' : 'col-md-6'}`} key={field.id}>
                         {field.type === "text" || field.type === "email" || field.type === "password" || field.type === "number" || field.type === "date" ? (
                             <InputField
                                 label={field.label}
