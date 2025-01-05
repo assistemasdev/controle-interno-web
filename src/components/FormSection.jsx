@@ -11,13 +11,21 @@ const FormSection = ({
     formErrors 
 }) => {
 
-    const flatData = useMemo(() => {
-        const flat = {};
-        Object.keys(formData.product).forEach((key) => {
-            flat[`product.${key}`] = formData.product[key];
-        });
-        return flat;
-    }, [formData]);
+    const flattenObject = (obj, parentKey = '', result = {}) => {
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                const newKey = parentKey ? `${parentKey}.${key}` : key;
+                if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                    flattenObject(obj[key], newKey, result);
+                } else {
+                    result[newKey] = obj[key];
+                }
+            }
+        }
+        return result;
+    };
+
+    const flatData = useMemo(() => flattenObject(formData), [formData]);
 
     return (
         <div>
