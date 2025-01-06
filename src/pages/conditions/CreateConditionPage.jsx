@@ -1,36 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
-import ConditionService from '../../services/ConditionService';
 import Form from '../../components/Form';
 import { conditionFields } from '../../constants/forms/conditionFields';
 import FormSection from '../../components/FormSection';
 import useConditionService from '../../hooks/useConditionService';
+import useForm from '../../hooks/useForm';
 
 const CreateConditionPage = () => {
-    const navigate = useNavigate(); 
-    const { createCondition, formErrors } = useConditionService(navigate)
-    const [formData, setFormData] = useState({
-        name: ''
-    })
-    const handleSubmit = async (formData) => {    
+    const navigate = useNavigate();
+    const { createCondition, formErrors } = useConditionService(navigate);
+
+    const { formData, handleChange, resetForm, initializeData } = useForm({});
+
+    useEffect(() => {
+        initializeData(conditionFields);
+    }, [conditionFields]);
+
+    const handleSubmit = async () => {
         try {
             await createCondition(formData);
+            resetForm(); 
         } catch (error) {
-            console.log(error)
+            console.error('Erro ao cadastrar condição:', error);
         }
     };
 
-    const handleChange = (fieldId, value) => {
-        setFormData((prev) => ({
-            ...prev,
-            [fieldId]: value,
-        }));
-    };
-
     const handleBack = () => {
-        navigate(`/condicoes/`);  
+        navigate('/condicoes/');
     };
 
     return (
@@ -42,22 +40,21 @@ const CreateConditionPage = () => {
 
                 <Form
                     onSubmit={handleSubmit}
-                    initialFormData={formData}
                     textSubmit="Cadastrar"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
-                    {() => (
-                        conditionFields.map((field) => (
+                    {() =>
+                        conditionFields.map((section) => (
                             <FormSection
-                                key={field.section}
-                                section={field}
+                                key={section.section}
+                                section={section}
                                 formData={formData}
                                 handleFieldChange={handleChange}
                                 formErrors={formErrors}
                             />
                         ))
-                    )}
+                    }
                 </Form>
             </div>
         </MainLayout>

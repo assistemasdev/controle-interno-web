@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
@@ -7,6 +7,7 @@ import useConditionService from '../../hooks/useConditionService';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import { conditionFields } from '../../constants/forms/conditionFields';
+import useForm from '../../hooks/useForm';
 
 const EditConditionPage = () => {
     const navigate = useNavigate();
@@ -14,40 +15,38 @@ const EditConditionPage = () => {
     const { getConditionById, updateCondition, formErrors } = useConditionService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const [formData, setFormData] = useState({ name: '' });
+
+    const { formData, handleChange, initializeData, formatData } = useForm({});
 
     useEffect(() => {
-        const fetchCondition = async () => {
-            showLoader();
-            try {
-                const data = await getConditionById(id);
-                setFormData({ name: data.name });
-            } catch (error) {
-                showNotification('error', 'Erro ao buscar a condição.');
-            } finally {
-                hideLoader();
-            }
-        };
+        initializeData(conditionFields);
+    }, [conditionFields]);
 
+    const fetchCondition = useCallback(async () => {
+        showLoader();
+        try {
+            const data = await getConditionById(id);
+            formatData(data, conditionFields);
+        } catch (error) {
+            showNotification('error', 'Erro ao buscar a condição.');
+        } finally {
+            hideLoader();
+        }
+    }, [id, getConditionById, formatData, conditionFields, showLoader, hideLoader, showNotification]);
+
+    useEffect(() => {
         fetchCondition();
     }, [id]);
 
-    const handleSubmit = async (data) => {
+    const handleSubmit = async () => {
         showLoader();
         try {
-            await updateCondition(id, data);
+            await updateCondition(id, formData);
         } catch (error) {
             console.log(error)
         } finally {
             hideLoader();
         }
-    };
-
-    const handleChange = (fieldId, value) => {
-        setFormData((prev) => ({
-            ...prev,
-            [fieldId]: value,
-        }));
     };
 
     const handleBack = () => {
@@ -63,24 +62,22 @@ const EditConditionPage = () => {
 
                 <Form
                     onSubmit={handleSubmit}
-                    initialFormData={formData}
                     textSubmit="Atualizar"
                     textLoadingSubmit="Atualizando..."
                     handleBack={handleBack}
                 >
-                    {() => (
-                        conditionFields.map((field) => (
+                    {() =>
+                        conditionFields.map((section) => (
                             <FormSection
-                                key={field.section}
-                                section={field}
+                                key={section.section}
+                                section={section}
                                 formData={formData}
                                 handleFieldChange={handleChange}
                                 formErrors={formErrors}
                             />
                         ))
-                    )}
+                    }
                 </Form>
-                
             </div>
         </MainLayout>
     );

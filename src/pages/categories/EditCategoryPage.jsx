@@ -43,19 +43,13 @@ const EditCategoryPage = () => {
 
     useEffect(() => {
         fetchCategory();
-    }, []);
+    }, [id]);
 
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
             await updateCategory(id, formData);
-            showNotification('success', 'Categoria atualizada com sucesso!');
         } catch (error) {
-            if (error.status === 422) {
-                showNotification('error', error.data?.name?.[0] || 'Erro de validação.');
-                return;
-            }
-            showNotification('error', 'Erro ao atualizar a categoria.');
             console.error(error);
         } finally {
             hideLoader();
