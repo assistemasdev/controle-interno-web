@@ -9,6 +9,7 @@ export const groupFields =  [
                 type: 'multi-select',
                 placeholder: 'Selecione os grupos',
                 handleChange: 'handleGroupsChange',
+                fullWidth: true
             },
         ],
     },
