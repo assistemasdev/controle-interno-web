@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import MyAlert from "../../components/MyAlert";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
-import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
-import TypeService from "../../services/TypeService";
+import useTypeService from "../../hooks/useTypeService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
+import useLoader from "../../hooks/useLoader";
 
 const TypePage = () => {
     const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [error, setError] = useState(null);
+    const { fetchTypes, deleteType } = useTypeService();
+    const { showLoader, hideLoader } = useLoader();
     const [name, setName] = useState('');
-    const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [typeToDelete, setTypeToDelete] = useState(null);
     const [types, setTypes] = useState([]);
@@ -28,75 +26,62 @@ const TypePage = () => {
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
-        setMessage(null);
         if (location.state?.message) {
-            setMessage({type:location.state.type, text: location.state.message});
+            const { type, text } = location.state.message;
+            setTimeout(() => navigate(location.pathname, { replace: true }), 0); 
         }
-    }, [location.state]); 
-    
-    const handleClearFilters = () => {
-        setName('');
-    };
+    }, [location.state, navigate]);
 
-    const fetchTypes = async (page = 1) => {
+    const handleClearFilters = useCallback(() => {
+        setName('');
+    }, []);
+
+    const loadTypes = useCallback(async (page = 1) => {
+        showLoader();
         try {
-            setLoading(true);
-            const response = await TypeService.getAll({ page, perPage: itemsPerPage }, navigate);
-            
-            const result = response.result;
-            const paginatedTypes = result.data.map(type => ({
+            const result = await fetchTypes({ page, perPage: itemsPerPage });
+            setTypes(result.data.map((type) => ({
                 id: type.id,
-                name: type.name,
-            }));
-            
-            setTypes(paginatedTypes);
+                name: type.name
+            })));
             setTotalPages(result.last_page);
             setCurrentPage(result.current_page);
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar tipos';
-            setError(errorMessage);
-            console.error(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
-    
+    }, [fetchTypes, itemsPerPage, showLoader, hideLoader]);
+
     useEffect(() => {
-        fetchTypes();
+        loadTypes();
     }, [itemsPerPage]);
 
-    const handleEdit = (type) => {
+    const handleEdit = useCallback((type) => {
         navigate(`/tipos/editar/${type.id}`);
-    };
+    }, [navigate]);
 
-    const handleDelete = (type) => {
+    const handleDelete = useCallback((type) => {
         setTypeToDelete(type);
         setDeleteModalOpen(true);
-    };
-    const handleViewGroups = (type) => {
+    }, []);
+
+    const handleViewGroups = useCallback((type) => {
         navigate(`/tipos/${type.id}/grupos/associar`);
-    }
+    }, [navigate]);
 
-    const confirmDelete = async () => {
+    const confirmDelete = useCallback(async () => {
+        showLoader();
         try {
-            setLoading(true);
-            const response = await TypeService.delete(typeToDelete.id);
-
-            setMessage({ type: 'success', text: response.message });
-            fetchTypes();
-            return;
-        } catch (error) {
-            setMessage({ type: 'error', text: error.message || 'error ao excluir tipo' });
-            console.error(error);
+            await deleteType(typeToDelete.id);
+            loadTypes();
         } finally {
             setDeleteModalOpen(false);
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [deleteType, typeToDelete, loadTypes, showLoader, hideLoader]);
 
-    const headers = ['id', 'Nome'];
+    const headers = useMemo(() => ['id', 'Nome'], []);
 
-    const actions = [
+    const actions = useMemo(() => [
         {
             icon: faEdit,
             title: 'Editar Cargos',
@@ -112,14 +97,14 @@ const TypePage = () => {
             onClick: handleDelete
         },
         {
-            icon: faLayerGroup, 
+            icon: faLayerGroup,
             title: 'Ver Grupos do Tipo',
             buttonClass: 'btn-info',
             permission: 'Visualizar grupos do tipo',
             onClick: handleViewGroups
         }
-    ];
-    
+    ], [handleEdit, handleDelete, handleViewGroups]);
+
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
@@ -127,8 +112,7 @@ const TypePage = () => {
                     Tipos
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
                     <div className="form-group col-md-12">
                         <InputField
                             label='Nome do Tipo:'
@@ -151,31 +135,21 @@ const TypePage = () => {
                     </div>
                     {canAccess('Criar tipos de produto') && (
                         <Button
-                        text="Novo Tipo"
-                        className="btn btn-blue-light fw-semibold"
-                        link="/tipos/criar"
+                            text="Novo Tipo"
+                            className="btn btn-blue-light fw-semibold"
+                            link="/tipos/criar"
                         />
                     )}
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                    ) : error ? (
-                    <div className='mt-3'>
-                        <MyAlert notTime={true} severity="error" message={error} />
-                    </div>
-                    ) : (
-                        <DynamicTable 
-                            headers={headers} 
-                            data={types} 
-                            actions={actions} 
-                            currentPage={currentPage} 
-                            totalPages={totalPages}
-                            onPageChange={fetchTypes} 
-                        />
-                    )}
+                <DynamicTable
+                    headers={headers}
+                    data={types}
+                    actions={actions}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={loadTypes}
+                />
 
                 <ConfirmationModal
                     open={deleteModalOpen}
@@ -185,8 +159,7 @@ const TypePage = () => {
                 />
             </div>
         </MainLayout>
-
-    )
-}
+    );
+};
 
 export default TypePage;

@@ -1,43 +1,36 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField'; 
 import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
 import { useNavigate } from 'react-router-dom';
-import '../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../components/MyAlert';
-import TypeService from '../../services/TypeService';
+import '../../assets/styles/custom-styles.css';
+import useTypeService from '../../hooks/useTypeService';
+import useForm from '../../hooks/useForm';
+import { typeFields } from '../../constants/forms/typeFields';
 
 const CreateTypePage = () => {
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const { createType, formErrors } = useTypeService();
 
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({}); 
+    const { formData, handleChange, initializeData } = useForm({
+        name: '',
+    });
 
-    const handleSubmit = async (formData) => {
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
-    
+    const handleSubmit = async () => {
         try {
-            const response = await TypeService.create(formData, navigate);
-            const { message } = response; 
-        
-            setMessage({ type: 'success', text: message });
-            return;
+            await createType(formData);
         } catch (error) {
-            if (error.status === 422 && error.data) {
-                setFormErrors({
-                    name: error.data.name?.[0] || ''
-                });
-                return;
-            }
-
-            setMessage({ type: 'error', text: error.message || 'Erro ao editar o tipo' });
+            console.error('Erro ao criar tipo:', error);
         }
     };
 
-    const handleBack = () => {
-        navigate(`/tipos/`);  
-    };
+    const handleBack = useCallback(() => {
+        navigate('/tipos');
+    }, [navigate]);
+
+    useEffect(() => {
+        initializeData(typeFields);
+    }, [typeFields]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -47,32 +40,23 @@ const CreateTypePage = () => {
                 </div>
 
                 <Form
-                    initialFormData={{ name: '' }}
+                    initialFormData={formData}
                     onSubmit={handleSubmit}
-                    className="p-3 mt-2 rounded shadow-sm mb-2"
-                    textSubmit="Cadastrar Tipo"
+                    textSubmit="Cadastrar"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
-                    {({ formData, handleChange }) => (
-                        <>
-                            {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="Nome:"
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome do tipo"
-                                        error={formErrors.name} 
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
+                    {() =>
+                        typeFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
                 </Form>
             </div>
         </MainLayout>
