@@ -9,7 +9,7 @@ import useGroupService from '../../../hooks/useGroupService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
-import { groupFields } from '../../../constants/forms/groupFields'
+import { associeteGroupFields } from '../../../constants/forms/groupFields'
 
 const AttachGroupToTypePage = () => {
     const navigate = useNavigate();
@@ -33,7 +33,7 @@ const AttachGroupToTypePage = () => {
             ]);
 
             initializeData(
-                groupFields.map((section) => ({
+                associeteGroupFields.map((section) => ({
                     ...section,
                     fields: section.fields.map((field) => ({
                         ...field,
@@ -58,7 +58,7 @@ const AttachGroupToTypePage = () => {
         } finally {
             hideLoader();
         }
-    }, [id, groupFields]);
+    }, [id, associeteGroupFields]);
 
     useEffect(() => {
         fetchData();
@@ -115,7 +115,7 @@ const AttachGroupToTypePage = () => {
                     handleBack={handleBack}
                 >
                     {() =>
-                        groupFields.map((section) => (
+                        associeteGroupFields.map((section) => (
                             <FormSection
                                 key={section.section}
                                 section={section}

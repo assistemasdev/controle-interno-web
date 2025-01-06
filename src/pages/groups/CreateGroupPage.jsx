@@ -1,47 +1,45 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField'; 
 import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
 import { useNavigate } from 'react-router-dom';
-import '../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../components/MyAlert';
-import GroupService from '../../services/GroupService';
+import '../../assets/styles/custom-styles.css';
+import useGroupService from '../../hooks/useGroupService';
+import useNotification from '../../hooks/useNotification';
+import useLoader from '../../hooks/useLoader';
+import useForm from '../../hooks/useForm';
+import { groupFields } from '../../constants/forms/groupFields';
 
 const CreateGroupPage = () => {
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const { createGroup, formErrors } = useGroupService(navigate);
+    const { showNotification } = useNotification();
+    const { showLoader, hideLoader } = useLoader();
 
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({});
-
-    const initialFormData = {
+    const { formData, handleChange, initializeData } = useForm({
         name: '',
-    };
+    });
 
-    const memoizedInitialData = useMemo(() => initialFormData, [initialFormData]);
+    const memoizedFields = useMemo(() => groupFields, []);
 
-    const handleSubmit = async (formData) => {
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
-    
+    useEffect(() => {
+        initializeData(memoizedFields);
+    },  [memoizedFields]);
+
+    const handleSubmit = useCallback(async () => {
         try {
-            const response = await GroupService.create(formData, navigate);
-            const { message } = response; 
-    
-            setMessage({ type: 'success', text: message });
-        } catch (error) {    
-            if (error.data && error.status === 422) {
-                setFormErrors({
-                    name: error.data.name?.[0] || '',
-                });
-            } else {
-                setMessage({ type: 'error', text: error.message || 'Erro ao realizar o cadastro' });
-            }
+            showLoader();
+            await createGroup(formData);
+        } catch (error) {
+            console.log(error)
+        } finally {
+            hideLoader();
         }
-    };
+    }, [createGroup, formData, navigate, showLoader, hideLoader, showNotification]);
 
-    const handleBack = () => {
-        navigate(`/grupos/`);  
-    };
+    const handleBack = useCallback(() => {
+        navigate('/grupos');
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -51,32 +49,24 @@ const CreateGroupPage = () => {
                 </div>
 
                 <Form
-                    initialFormData={memoizedInitialData}
                     onSubmit={handleSubmit}
+                    initialFormData={formData}
                     className="p-3 mt-2 rounded shadow-sm mb-2"
                     textSubmit="Cadastrar Grupo"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
-                    {({ formData, handleChange }) => (
-                        <>
-                            {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="Grupos:"
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome do grupo"
-                                        error={formErrors.name} 
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
+                    {() =>
+                        memoizedFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
                 </Form>
             </div>
         </MainLayout>

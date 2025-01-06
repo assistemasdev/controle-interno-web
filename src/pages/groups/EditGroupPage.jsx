@@ -1,88 +1,52 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import Form from '../../components/Form';
-import '../../assets/styles/custom-styles.css';
-import MyAlert from '../../components/MyAlert';
-import GroupService from '../../services/GroupService';
-import { CircularProgress } from '@mui/material';
+import FormSection from '../../components/FormSection';
+import useGroupService from '../../hooks/useGroupService';
+import useLoader from '../../hooks/useLoader';
+import useNotification from '../../hooks/useNotification';
+import useForm from '../../hooks/useForm';
+import { groupFields } from '../../constants/forms/groupFields';
 
 const EditGroupPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({ name: '' });
-    const [loading, setLoading] = useState(true); 
-    const [formData, setFormData] = useState({
-        name: ''
-    });
+    const { getById, updateGroup, formErrors } = useGroupService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { formData, handleChange, setFormData } = useForm({ name: '' });
 
-    const memoizedInitialData = useMemo(() => formData, [formData]);
+    const fetchGroup = useCallback(async () => {
+        try {
+            showLoader();
+            const group = await getById(id);
+            setFormData(group);
+        } catch (error) {
+            showNotification('error', 'Erro ao carregar os dados do grupo.');
+        } finally {
+            hideLoader();
+        }
+    }, [id, getById, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchGroup();
-            } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
-            }
-        };
-    
-        fetchData();
-    }, [id]);
+        fetchGroup();
+    }, [id, groupFields]);
 
-    const fetchGroup = async () => {
-        setLoading(true);
+    const handleSubmit = async () => {
         try {
-            const response = await GroupService.getById(id, navigate);
-    
-            setFormData({
-                name: response.result.name,
-            });
-            return;
-            
+            showLoader();
+            await updateGroup(id, formData);
         } catch (error) {
-            if (error.status === 404) {
-                navigate('/grupos/', {
-                    state: { 
-                        type: 'error', 
-                        message: error.message 
-                    },
-                });
-                return;
-            }
-
-            setMessage({ type: 'error', text: error.message || 'Erro ao buscar pelo grupo' });
-            console.error("Erro capturado no fetchGroup:", error);
+            console.log(error)
         } finally {
-            setLoading(false);
-        }
-    };
-    
-
-    const handleSubmit = async (formData) => {
-        try {
-            const response = await GroupService.update(id, formData, navigate);
-            setMessage({ type: 'success', text: response.message });
-            return;
-        } catch (error) {
-            if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    name: errors?.name ? errors.name[0] : '',
-                });
-                return;
-            }
-            
-            setMessage({ type: 'error', text: error.message || 'Erro ao editar o grupo' });
-            console.error("Erro capturado no handleSubmit:", error);
+            hideLoader();
         }
     };
 
-    const handleBack = () => {
-        navigate(`/grupos/`);
-    };
+    const handleBack = useCallback(() => {
+        navigate('/grupos');
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -91,39 +55,25 @@ const EditGroupPage = () => {
                     Edição de Grupo
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                ) : (
-                    <Form
-                        onSubmit={handleSubmit}
-                        initialFormData={memoizedInitialData}
-                        textSubmit="Atualizar"
-                        textLoadingSubmit="Atualizando..."
-                        handleBack={handleBack}
-                    >
-                        {({ formData, handleChange }) => (
-                            <>
-                                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-12">
-                                        <InputField
-                                            label='Nome:'
-                                            type="text"
-                                            id="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            placeholder="Digite o nome do grupo"
-                                            error={formErrors.name}
-                                        />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </Form>
-                )}
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={formData}
+                    textSubmit="Atualizar"
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {() =>
+                        groupFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
+                </Form>
             </div>
         </MainLayout>
     );
