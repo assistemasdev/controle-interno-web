@@ -1,47 +1,45 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField'; 
-import { useNavigate } from 'react-router-dom';
-import '../../assets/styles/custom-styles.css'; 
+import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
+import '../../assets/styles/custom-styles.css';
 import MyAlert from '../../components/MyAlert';
-import { usePermissions } from '../../hooks/usePermissions';
-import ApplicationService from '../../services/ApplicationService';
-import Form from '../../components/Form'; 
+import { applicationFields } from '../../constants/forms/applicationFields';
+import useApplicationService from '../../hooks/useApplicationService';
+import useNotification from '../../hooks/useNotification';
+import useLoader from '../../hooks/useLoader';
+import useForm from '../../hooks/useForm';
+import { useNavigate } from 'react-router-dom';
 
 const CreateApplicationPage = () => {
-    const navigate = useNavigate(); 
-    const [message, setMessage] = React.useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = React.useState({
+    const navigate = useNavigate();
+    const { createApplication, formErrors } = useApplicationService(navigate);
+    const { showNotification } = useNotification();
+    const { showLoader, hideLoader } = useLoader();
+    const { formData, handleChange, initializeData } = useForm({
         name: '',
         session_code: '',
     });
 
-    const handleSubmit = async (formData) => {
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
+    useEffect(() => {
+        initializeData(applicationFields);
+    }, [initializeData]);
 
+    const handleSubmit = useCallback(async () => {
         try {
-            const response = await ApplicationService.create(formData, navigate);
-            const { message } = response; 
-
-            setMessage({ type: 'success', text: message });
-            return;
+            showLoader();
+            await createApplication(formData);
         } catch (error) {
-            if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    session_code: errors.session_code?.[0] || '',
-                    name: errors.name?.[0] || ''
-                });
-                return;
-            }
-            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            console.log(error)
+            showNotification('error', 'Erro ao cadastrar a aplicação.');
+        } finally {
+            hideLoader();
         }
-    };
+    }, [formData, createApplication, showNotification, navigate, showLoader, hideLoader]);
 
-    const handleBack = () => {
-        navigate('/aplicacoes/dashboard');  
-    };
+    const handleBack = useCallback(() => {
+        navigate('/aplicacoes/dashboard');
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -52,50 +50,24 @@ const CreateApplicationPage = () => {
 
                 <Form
                     onSubmit={handleSubmit}
-                    initialFormData={{
-                        name: '',
-                        session_code: '',
-                    }}
-                    textSubmit="Cadastrar Aplicação"
+                    initialFormData={formData}
+                    textSubmit="Cadastrar"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
-                    {({ formData, handleChange }) => (
-                        <>
-                            {message.text && (
-                                <MyAlert
-                                    severity={message.type}
-                                    message={message.text}
-                                    onClose={() => setMessage({ type: '', text: '' })}
-                                />
-                            )}
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Nome:"
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome da aplicação"
-                                        error={formErrors.name}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Código de Sessão:"
-                                        type="text"
-                                        id="session_code"
-                                        value={formData.session_code}
-                                        onChange={handleChange}
-                                        placeholder="Digite o código da sessão"
-                                        error={formErrors.session_code}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
+                    {() =>
+                        applicationFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                getOptions={() => []}
+                                getSelectedValue={() => null}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
                 </Form>
             </div>
         </MainLayout>
