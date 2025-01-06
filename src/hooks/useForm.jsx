@@ -4,10 +4,22 @@ const useForm = (initialData) => {
     const [formData, setFormData] = useState(initialData);
 
     const handleChange = (fieldId, value) => {
-        setFormData((prev) => ({
-            ...prev,
-            [fieldId]: value,
-        }));
+        const [category, key] = fieldId.split('.');
+
+        if (key) {
+            setFormData((prev) => ({
+                ...prev,
+                [category]: {
+                    ...prev[category],
+                    [key]: value,
+                },
+            }));
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                [fieldId]: value,
+            }));
+        }
     };
 
     const resetForm = () => {
@@ -17,20 +29,38 @@ const useForm = (initialData) => {
     const initializeData = (fields) => {
         const initializedData = fields.reduce((acc, section) => {
             return section.fields.reduce((innerAcc, field) => {
+                const [category, key] = field.id.split('.');
+                if (key) {
+                    return {
+                        ...innerAcc,
+                        [category]: {
+                            ...innerAcc[category],
+                            [key]: '',
+                        },
+                    };
+                }
                 return { ...innerAcc, [field.id]: '' };
             }, acc);
-        }, {});
+        }, { ...initialData });
         setFormData(initializedData);
     };
 
     const formatData = (response, fields) => {
-        console.log(response, fields)
-
         const parsedData = fields.reduce((acc, section) => {
             return section.fields.reduce((innerAcc, field) => {
+                const [category, key] = field.id.split('.');
+                if (key) {
+                    return {
+                        ...innerAcc,
+                        [category]: {
+                            ...innerAcc[category],
+                            [key]: response[category]?.[key] || '',
+                        },
+                    };
+                }
                 return { ...innerAcc, [field.id]: response[field.id] || '' };
             }, acc);
-        }, {});
+        }, { ...initialData });
         setFormData(parsedData);
     };
 
@@ -39,8 +69,8 @@ const useForm = (initialData) => {
         setFormData,
         handleChange,
         resetForm,
-        initializeData, 
-        formatData, 
+        initializeData,
+        formatData,
     };
 };
 

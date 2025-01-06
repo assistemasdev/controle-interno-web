@@ -11,6 +11,7 @@ import useConditionService from '../../hooks/useConditionService';
 import useCategoryService from '../../hooks/useCategoryService';
 import useOrganizationService from '../../hooks/useOrganizationService';
 import useTypeGroupsService from '../../hooks/useTypeGroupsService';
+import useForm from '../../hooks/useForm';
 import { useNavigate, useParams } from 'react-router-dom';
 import TypeService from '../../services/TypeService';
 import OrganizationService from '../../services/OrganizationService';
@@ -18,16 +19,22 @@ import OrganizationService from '../../services/OrganizationService';
 const EditProductPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [organizations, setOrganizations] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
-    const [conditions, setConditions] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [types, setTypes] = useState([]);
-    const [addresses, setAddresses] = useState([]);
-    const [locations, setLocations] = useState([]);
-    const [groups, setGroups] = useState([]);
-    const [selectedOrganizationId, setSelectedOrganizationId] = useState();
-    const [formData, setFormData] = useState({
+
+    const { showNotification } = useNotification();
+    const { fetchProductById, fetchProductGroups, updateProduct, formErrors } = useProductService(navigate);
+    const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
+    const { fetchSuppliers } = useSupplierService(navigate);
+    const { fetchConditions } = useConditionService(navigate);
+    const { fetchCategories } = useCategoryService(navigate);
+    const { fetchTypeGroups } = useTypeGroupsService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+
+    const {
+        formData,
+        setFormData,
+        handleChange,
+        initializeData,
+    } = useForm({
         product: {
             name: '',
             number: '',
@@ -46,40 +53,19 @@ const EditProductPage = () => {
         groups: [],
     });
 
-    const { showNotification } = useNotification();
-    const { fetchProductById, fetchProductGroups, updateProduct, formErrors } = useProductService(navigate);
-    const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
-    const { fetchSuppliers } = useSupplierService(navigate);
-    const { fetchConditions } = useConditionService(navigate);
-    const { fetchCategories } = useCategoryService(navigate);
-    const { fetchTypeGroups } = useTypeGroupsService(navigate);
-    const { showLoader, hideLoader } = useLoader();
-
-    const fetchAddresses = useCallback(async (organizationId) => {
-        try {
-            const response = await fetchOrganizationAddresses(organizationId);
-            setAddresses(response.data.map((address) => ({
-                value: address.id,
-                label: `${address.street}, ${address.city} - ${address.state}`,
-            })));
-        } catch (error) {
-            showNotification('error', 'Erro ao carregar endereços.');
-        }
-    }, [fetchOrganizationAddresses, showNotification]);
-
-    const fetchLocations = useCallback(async (organizationId, addressId) => {
-        try {
-            const response = await fetchOrganizationLocations(organizationId, addressId);
-            setLocations(response.data.map((location) => ({
-                value: location.id,
-                label: `${location.area}, ${location.section} - ${location.spot}`,
-            })));
-        } catch (error) {
-            showNotification('error', 'Erro ao carregar localizações.');
-        }
-    }, [fetchOrganizationLocations, showNotification]);
+    const [organizations, setOrganizations] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
+    const [conditions, setConditions] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [types, setTypes] = useState([]);
+    const [addresses, setAddresses] = useState([]);
+    const [locations, setLocations] = useState([]);
+    const [groups, setGroups] = useState([]);
+    const [selectedOrganizationId, setSelectedOrganizationId] = useState();
 
     useEffect(() => {
+        initializeData(productFields);
+
         const fetchData = async () => {
             showLoader();
             try {
@@ -95,13 +81,14 @@ const EditProductPage = () => {
                     fetchProductById(id),
                     OrganizationService.getAll(navigate),
                     fetchSuppliers(),
-                    fetchConditions(),
-                    fetchCategories(),
+                    fetchConditions({}),
+                    fetchCategories({}),
                     TypeService.getAll(navigate),
                     fetchProductGroups(id)
                 ]);
 
                 setOrganizations(orgResponse.result.data.map((org) => ({ value: org.id, label: org.name })));
+
                 setSuppliers(suppliersResponse.data.map((supplier) => ({
                     value: supplier.id,
                     label: supplier.name,
@@ -149,96 +136,49 @@ const EditProductPage = () => {
         fetchData();
     }, [id]);
 
-    const handleSubmit = async (data) => {
+    const handleTypeChange = async (selectedOption) => {
+        if (!selectedOption || !selectedOption.value) {
+            setGroups([]); 
+            return;
+        }
+
+        const selectedTypeId = selectedOption.value;
+
+        setFormData((prev) => ({
+            ...prev,
+            product: {
+                ...prev.product,
+                type_id: selectedTypeId,
+            },
+        }));
+
         try {
-            showLoader();
-            await updateProduct(id, data);
+            showLoader(true);
+            const response = await fetchTypeGroups(selectedTypeId);
+            const groupsFormatted = response.map((group) => ({
+                value: group.id,
+                label: group.name,
+            }));
+            setGroups(groupsFormatted);
         } catch (error) {
-            console.log(error)
-            showNotification('error', 'Erro ao atualizar o produto.');
+            const errorMessage =
+                error.response?.data?.error || error.message || "Erro ao carregar grupos";
+            showNotification("error", errorMessage);
         } finally {
             hideLoader();
         }
     };
 
-    const handleTypeChange = async (selectedOption) => {
-            if (!selectedOption || !selectedOption.value) {
-                setGroups([]); 
-                return;
-            }
-        
-            const selectedTypeId = selectedOption.value;
-        
-            setFormData((prev) => ({
-                ...prev,
-                product: {
-                    ...prev.product,
-                    type_id: selectedTypeId,
-                },
-            }));
-        
-            try {
-                showLoader(true);
-                const response = await fetchTypeGroups(selectedTypeId);
-                const groupsFormatted = response.map((group) => ({
-                    value: group.id,
-                    label: group.name,
-                }));
-                setGroups(groupsFormatted);
-            } catch (error) {
-                const errorMessage =
-                    error.response?.data?.error || error.message || "Erro ao carregar grupos";
-                showNotification("error", errorMessage);
-            } finally {
-                hideLoader();
-            }
-        };
-        
-       
-        const handleOrganizationChange = useCallback((selectedOption) => {
-            const selectedOrganizationId = selectedOption ? selectedOption.value : '';
-            setFormData((prev) => ({
-                ...prev,
-                product: {
-                    ...prev.product,
-                    current_organization_id: selectedOrganizationId,
-                },
-            }));
-        
-            if (selectedOrganizationId) {
-                fetchAddresses(selectedOrganizationId);
-            } else {
-                setAddresses([]);
-            }
-        }, [fetchAddresses]);
-    
-        const handleGroupChange = useCallback((selectedOptions) => {
-            const selectedValues = Array.isArray(selectedOptions)
-                ? selectedOptions.map((option) => option.value)
-                : [];
-            setFormData((prev) => ({
-                ...prev,
-                groups: selectedValues,
-            }));
-        }, []);
-        
-    
-        const handleAddressChange = useCallback((selectedOption) => {
-            const selectedAddressId = selectedOption ? selectedOption.value : '';
-            setFormData((prev) => ({
-                ...prev,
-                product: {
-                    ...prev.product,
-                    address_id: selectedAddressId,
-                },
-            }));
-        
-            if (selectedAddressId && selectedOrganizationId) {
-                fetchLocations(selectedOrganizationId, selectedAddressId);
-            } else {
-                setLocations([]);
-            }
-        }, [fetchLocations, selectedOrganizationId]);
+    const handleSubmit = async (data) => {
+        try {
+            showLoader();
+            await updateProduct(id, data);
+        } catch (error) {
+            showNotification('error', 'Erro ao atualizar o produto.');
+        } finally {
+            hideLoader();
+        }
+    };
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
@@ -276,17 +216,91 @@ const EditProductPage = () => {
         return null;
     };
 
+    const fetchAddresses = useCallback(async (organizationId) => {
+        try {
+            showLoader();
+            const response = await fetchOrganizationAddresses(organizationId);
+            const addressesFormatted = response.data.map((address) => ({
+                value: address.id,
+                label: `${address.street}, ${address.city} - ${address.state}`,
+            }));
+            setAddresses(addressesFormatted);
+        } catch (error) {
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar endereços';
+            showNotification('error', errorMessage);
+        } finally {
+            hideLoader();
+        }
+    }, [fetchOrganizationAddresses, showLoader, hideLoader, showNotification]);
 
-    const handleFieldChange = useCallback((fieldId, value, field) => {
-        const [category, key] = fieldId.split(".");
+    const fetchLocations = async (organizationId, addressId) => {
+        try {
+            showLoader();
+            const response = await fetchOrganizationLocations(organizationId, addressId);
+            const locationsFormatted = response.data.map(location => ({
+                value: location.id,
+                label: `${location.area}, ${location.section} - ${location.spot}`
+            }));
+            setLocations(locationsFormatted);
+        } catch (error) {
+            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar localizações';
+            showNotification('error', errorMessage);
+        } finally {
+            hideLoader();
+        }
+    };
+
+    const handleBack = () => {
+        navigate(`/produtos/`);  
+    };
+
+    const handleOrganizationChange = useCallback((selectedOption) => {
+        const selectedOrganizationId = selectedOption ? selectedOption.value : '';
         setFormData((prev) => ({
             ...prev,
-            [category]: {
-                ...prev[category],
-                [key]: value,
+            product: {
+                ...prev.product,
+                current_organization_id: selectedOrganizationId,
             },
         }));
-    
+
+        if (selectedOrganizationId) {
+            fetchAddresses(selectedOrganizationId);
+        } else {
+            setAddresses([]);
+        }
+    }, [fetchAddresses]);
+
+    const handleGroupChange = useCallback((selectedOptions) => {
+        const selectedValues = Array.isArray(selectedOptions)
+            ? selectedOptions.map((option) => option.value)
+            : [];
+        setFormData((prev) => ({
+            ...prev,
+            groups: selectedValues,
+        }));
+    }, []);
+
+    const handleAddressChange = useCallback((selectedOption) => {
+        const selectedAddressId = selectedOption ? selectedOption.value : '';
+        setFormData((prev) => ({
+            ...prev,
+            product: {
+                ...prev.product,
+                address_id: selectedAddressId,
+            },
+        }));
+
+        if (selectedAddressId && selectedOrganizationId) {
+            fetchLocations(selectedOrganizationId, selectedAddressId);
+        } else {
+            setLocations([]);
+        }
+    }, [fetchLocations, selectedOrganizationId]);
+
+    const handleFieldChange = useCallback((fieldId, value, field) => {
+        handleChange(fieldId, value);
+
         if (field.handleChange) {
             switch (field.handleChange) {
                 case "handleOrganizationChange":
@@ -296,9 +310,9 @@ const EditProductPage = () => {
                     handleGroupChange(
                         Array.isArray(value)
                             ? value.map((val) => ({
-                                    value: val,
-                                    label: getOptions(fieldId).find((option) => option.value === val)?.label || "",
-                                }))
+                                value: val,
+                                label: getOptions(fieldId).find((option) => option.value === val)?.label || "",
+                            }))
                             : []
                     );
                     break;
@@ -314,10 +328,6 @@ const EditProductPage = () => {
         }
     }, [handleOrganizationChange, handleGroupChange, handleTypeChange, handleAddressChange, getOptions]);
 
-    
-    const handleBack = () => {
-        navigate(`/produtos`)
-    }
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">

@@ -65,6 +65,7 @@ const PerfilUserPage = () => {
                 <Form
                     onSubmit={handleSubmit}
                     textSubmit="Atualizar"
+                    initialFormData={formData}
                     textLoadingSubmit="Atualizando..."
                     handleBack={handleBack}
                 >

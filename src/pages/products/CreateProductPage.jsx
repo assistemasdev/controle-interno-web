@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
 import OrganizationService from '../../services/OrganizationService';
@@ -8,28 +7,25 @@ import SupplierService from '../../services/SupplierService';
 import ConditionService from '../../services/ConditionService';
 import CategoryService from '../../services/CategoryService';
 import TypeService from '../../services/TypeService';
-import Select from 'react-select';
-import Form from '../../components/Form'; 
-import { productFields } from "../../constants/forms/productFields";
 import useNotification from '../../hooks/useNotification';
 import useProductService from '../../hooks/useProductService';
 import useLoader from '../../hooks/useLoader';
 import useOrganizationService from '../../hooks/useOrganizationService';
 import useTypeGroupsService from '../../hooks/useTypeGroupsService';
+import useForm from '../../hooks/useForm';
+import Form from '../../components/Form'; 
 import FormSection from '../../components/FormSection';
+import { productFields } from "../../constants/forms/productFields";
 
 const CreateProductPage = () => {
     const navigate = useNavigate();
-    const [organizations, setOrganizations] = useState([]);
-    const [types, setTypes] = useState([]);
-    const [conditions, setConditions] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [addresses, setAddresses] = useState([]);
-    const [locations, setLocations] = useState([]);
-    const [groups, setGroups] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
-    const [selectedOrganizationId, setSelectedOrganizationId] = useState();
-    const [formData, setFormData] = useState({
+    const { showNotification } = useNotification();
+    const { createProduct, formErrors } = useProductService(navigate);
+    const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { fetchTypeGroups } = useTypeGroupsService(navigate);
+    const [suppliers, setSuppliers] = useState();
+    const { formData, handleChange, initializeData, setFormData } = useForm({
         product: {
             name: '',
             number: '',
@@ -45,14 +41,20 @@ const CreateProductPage = () => {
             location_id: ''
         },
         groups: []
-    })
-    const { showNotification } = useNotification();
-    const { createProduct, formErrors } = useProductService(navigate);
-    const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
-    const { showLoader, hideLoader } = useLoader();
-    const { fetchTypeGroups } = useTypeGroupsService(navigate);
-    
+    });
+
+    const [organizations, setOrganizations] = useState([]);
+    const [types, setTypes] = useState([]);
+    const [conditions, setConditions] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [addresses, setAddresses] = useState([]);
+    const [locations, setLocations] = useState([]);
+    const [groups, setGroups] = useState([]);
+    const [selectedOrganizationId, setSelectedOrganizationId] = useState();
+
     useEffect(() => {
+        initializeData(productFields);
+
         const fetchData = async () => {
             try {
                 showLoader();
@@ -77,34 +79,34 @@ const CreateProductPage = () => {
                 setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
-                showNotification('error',errorMessage);
+                showNotification('error', errorMessage);
                 console.error('Erro no carregamento dos dados:', error);
             } finally {
                 hideLoader();
             }
         };
         fetchData();
-    }, [navigate]);
+    }, [productFields]);
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
             case "product.current_organization_id":
             case "product.owner_organization_id":
-                return organizations;
+                return organizations || [];
             case "product.supplier_id":
-                return suppliers;
+                return suppliers || [];
             case "product.condition_id":
-                return conditions;
+                return conditions || [];
             case "product.category_id":
-                return categories;
+                return categories || [];
             case "product.type_id":
-                return types;
+                return types || [];
             case "product.address_id":
-                return addresses;
+                return addresses || [];
             case "product.location_id":
-                return locations;
+                return locations || [];
             case "groups":
-                return groups;
+                return groups || [];
             default:
                 return [];
         }
@@ -113,24 +115,24 @@ const CreateProductPage = () => {
     const getSelectedValue = (fieldId) => {
         const [category, key] = fieldId.split(".");
         if (key) {
-            const value = formData[category][key];
+            const value = formData[category]?.[key];
             return getOptions(fieldId).find((option) => option.value === value) || null;
         }
         if (fieldId === "groups") {
             if (Array.isArray(formData.groups)) {
                 return groups.filter((group) => formData.groups.includes(group.value));
             }
-            return []; 
+            return [];
         }
         return null;
     };
-    
+
     const handleSubmit = async (data) => {
         showLoader();
         try {
             await createProduct(data);
         } catch (error) {
-            console.error('Error creating user:', error);
+            console.error('Error creating product:', error);
         } finally {
             hideLoader();
         }
@@ -185,7 +187,7 @@ const CreateProductPage = () => {
             hideLoader();
         }
     }, [fetchOrganizationAddresses, showLoader, hideLoader, showNotification]);
-    
+
     const fetchLocations = async (organizationId, addressId) => {
         try {
             showLoader();
@@ -199,10 +201,14 @@ const CreateProductPage = () => {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar localizações';
             showNotification('error', errorMessage);
         } finally {
-            hideLoader()
+            hideLoader();
         }
     };
-    
+
+    const handleBack = () => {
+        navigate(`/produtos/`);  
+    };
+
     const handleOrganizationChange = useCallback((selectedOption) => {
         const selectedOrganizationId = selectedOption ? selectedOption.value : '';
         setFormData((prev) => ({
@@ -250,14 +256,7 @@ const CreateProductPage = () => {
 
     
     const handleFieldChange = useCallback((fieldId, value, field) => {
-        const [category, key] = fieldId.split(".");
-        setFormData((prev) => ({
-            ...prev,
-            [category]: {
-                ...prev[category],
-                [key]: value,
-            },
-        }));
+        handleChange(fieldId, value);
     
         if (field.handleChange) {
             switch (field.handleChange) {
@@ -285,10 +284,6 @@ const CreateProductPage = () => {
             }
         }
     }, [handleOrganizationChange, handleGroupChange, handleTypeChange, handleAddressChange, getOptions]);
-
-    const handleBack = () => {
-        navigate(`/produtos/`);  
-    };
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -318,7 +313,6 @@ const CreateProductPage = () => {
                         ))
                     }
                 </Form>
-                
             </div>
         </MainLayout>
     );
