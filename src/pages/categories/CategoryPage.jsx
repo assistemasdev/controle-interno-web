@@ -1,23 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import MyAlert from "../../components/MyAlert";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
-import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
-import CategoryService from "../../services/CategoryService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
+import useLoader from "../../hooks/useLoader";
+import useCategoryService from "../../hooks/useCategoryService";
+import useNotification from "../../hooks/useNotification";
 
 const CategoryPage = () => {
     const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [error, setError] = useState(null);
     const [name, setName] = useState('');
-    const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [categoryToDelete, setCategoryToDelete] = useState(null);
     const [categories, setCategories] = useState([]);
@@ -26,76 +23,72 @@ const CategoryPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const { showLoader, hideLoader } = useLoader();
+    const { fetchCategories: getCategories, deleteCategory } = useCategoryService(navigate);
+    const { showNotification } = useNotification();
 
     useEffect(() => {
-        setMessage(null);
         if (location.state?.message) {
-            setMessage({type:location.state.type, text: location.state.message});
+            showNotification(location.state.type, location.state.message);
+            navigate(location.pathname, { replace: true, state: {} });
         }
-    }, [location.state]); 
+    }, [location.state, navigate]); 
     
     const handleClearFilters = () => {
         setName('');
     };
 
-    const fetchCategories = async (page = 1) => {
-        try {
-            setLoading(true);
-        
-            const response = await CategoryService.getAll({page, perPage: itemsPerPage} ,navigate);
-            const result = response.result
-        
-            const filteredCategories = result.data.map(role => ({
-                id: role.id,
-                name: role.name
-            }));
-        
-            setCategories(filteredCategories);
-            setTotalPages(result.last_page);
-            setCurrentPage(result.current_page);
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao excluir categoria';
-            setError(errorMessage);
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-    
     useEffect(() => {
         fetchCategories();
     }, []);
 
-    const handleEdit = (category) => {
+    const fetchCategories = useCallback(async (page = 1) => {
+        try {
+            showLoader();
+            
+            const response = await getCategories({ page, perPage: itemsPerPage });
+            
+            const filteredCategories = response.data.map(role => ({
+                id: role.id,
+                name: role.name,
+            }));
+            
+            setCategories(filteredCategories);
+            setTotalPages(response.last_page);
+            setCurrentPage(response.current_page);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            hideLoader();
+        }
+    }, [getCategories, itemsPerPage, showLoader, hideLoader]);
+    
+    const handleEdit = useCallback((category) => {
         navigate(`/categorias/editar/${category.id}`);
-    };
-
-    const handleDelete = (category) => {
+    }, [navigate]);
+    
+    const handleDelete = useCallback((category) => {
         setCategoryToDelete(category);
         setDeleteModalOpen(true);
-    };
-
-    const confirmDelete = async () => {
+    }, []);
+    
+    const confirmDelete = useCallback(async () => {
         try {
-            setLoading(true);
-            const response = await CategoryService.delete(categoryToDelete.id);
-
-            setMessage({ type: 'success', text: response.message });
+            showLoader();
+            await deleteCategory(categoryToDelete.id);
             fetchCategories();
-            return;
         } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao excluir categoria';
-            setError(errorMessage);
             console.error(error);
         } finally {
             setDeleteModalOpen(false);
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [categoryToDelete, deleteCategory, fetchCategories, showLoader, hideLoader]);
+    
 
-    const headers = ['id', 'Nome'];
+    const headers = useMemo(() => ['id', 'Nome'], []);
 
-    const actions = [
+    const actions = useMemo(() => [
         {
             icon: faEdit,
             title: 'Editar Categoria',
@@ -110,7 +103,7 @@ const CategoryPage = () => {
             permission: 'Excluir categorias de produto',
             onClick: handleDelete
         }
-    ];
+    ], [handleDelete, handleEdit]);
     
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -120,7 +113,6 @@ const CategoryPage = () => {
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
                         <InputField
                             label='Nome da Categoria:'
@@ -150,24 +142,16 @@ const CategoryPage = () => {
                     )}
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                    ) : error ? (
-                    <div className='mt-3'>
-                        <MyAlert notTime={true} severity="error" message={error} />
-                    </div>
-                    ) : (
-                    <DynamicTable 
-                        headers={headers} 
-                        data={categories} 
-                        actions={actions} 
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={fetchCategories}
-                    />
-                )}
+               
+                <DynamicTable 
+                    headers={headers} 
+                    data={categories} 
+                    actions={actions} 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={fetchCategories}
+                />
+                
 
                 <ConfirmationModal
                     open={deleteModalOpen}

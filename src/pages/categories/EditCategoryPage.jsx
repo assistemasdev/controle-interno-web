@@ -1,89 +1,70 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
-import { CircularProgress } from '@mui/material'; 
 import '../../assets/styles/custom-styles.css';
-import MyAlert from '../../components/MyAlert';
-import CategoryService from '../../services/CategoryService';
 import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
+import useForm from '../../hooks/useForm';
+import useNotification from '../../hooks/useNotification';
+import useCategoryService from '../../hooks/useCategoryService';
+import useLoader from '../../hooks/useLoader';
+import { categoryFields } from '../../constants/forms/categoryFields';
 
 const EditCategoryPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({ name: '', color: '' });
-    const [loading, setLoading] = useState(true); 
-    const [formData, setFormData] = useState({
-        name: ''
-    });
+    const { showNotification } = useNotification();
+    const { fetchCategoryById, updateCategory, formErrors } = useCategoryService(navigate);
+    const { showLoader, hideLoader } = useLoader();
 
-    const memoizedInitialData = useMemo(() => formData, [formData]);
+    const { formData, handleChange, initializeData, formatData } = useForm({});
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchCategory();
-        
-            } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
-            }
-        };
-    
-        fetchData();
-    }, [id])
+        initializeData(categoryFields); 
+    }, [categoryFields]);
 
-
-    const fetchCategory = async () => {
+    const fetchCategory = useCallback(async () => {
         try {
-            const response = await CategoryService.getById(id, navigate);
-            setFormData({
-                name: response.result.name,
-            });
+            showLoader();
+            const response = await fetchCategoryById(id);
+            formatData(response, categoryFields);
         } catch (error) {
             if (error.status === 404) {
-                navigate(
-                    '/categorias/', 
-                    {
-                        state: { 
-                            type: 'error', 
-                            message: error.message 
-                        }
-                    }
-                );
+                showNotification('error', error.message || 'Categoria não encontrada.');
+                navigate('/categorias/');
+                return;
             }
-    
-            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pela categoria' });
+            showNotification('error', 'Erro ao carregar a categoria.');
             console.error(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [id, fetchCategoryById, formatData, showLoader, hideLoader, showNotification, navigate]);
 
-    const handleSubmit = async (formData) => {
-        setFormErrors({  name: '', color: '', active: '' });
-        setMessage(null);
+    useEffect(() => {
+        fetchCategory();
+    }, []);
 
+    const handleSubmit = useCallback(async () => {
         try {
-            const response = await CategoryService.update(id, formData, navigate);
-
-            setMessage({ type:'success', text: response.message });
+            showLoader();
+            await updateCategory(id, formData);
+            showNotification('success', 'Categoria atualizada com sucesso!');
         } catch (error) {
             if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    name: errors?.name ? errors.name[0] : '',
-                });
-                return
+                showNotification('error', error.data?.name?.[0] || 'Erro de validação.');
+                return;
             }
-            console.log(error)
-            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao editar a categoria' });
+            showNotification('error', 'Erro ao atualizar a categoria.');
+            console.error(error);
+        } finally {
+            hideLoader();
         }
-    };
+    }, [id, formData, updateCategory, showNotification, showLoader, hideLoader]);
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         navigate(`/categorias/`);
-    };
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -92,45 +73,25 @@ const EditCategoryPage = () => {
                     Edição de Categoria
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                ) : (
-                    <Form
-                        onSubmit={handleSubmit}
-                        initialFormData={memoizedInitialData}
-                        textSubmit="Atualizar"
-                        textLoadingSubmit="Atualizando..."
-                        handleBack={handleBack}
-                    >
-                        {({ formData, handleChange }) => (
-                            <>
-                                {message && (
-                                    <MyAlert
-                                        severity={message.type}
-                                        message={message.text}
-                                        onClose={() => setMessage(null)}
-                                    />
-                                )}
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-12">
-                                        <InputField
-                                            label='Nome:'
-                                            type="text"
-                                            id="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            placeholder="Digite o nome da categoria"
-                                            error={formErrors?.name}
-                                        />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </Form>
-                )}
+                <Form
+                    onSubmit={handleSubmit}
+                    textSubmit="Atualizar"
+                    initialFormData={formData}
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {() =>
+                        categoryFields.map((field) => (
+                            <FormSection
+                                key={field.id}
+                                section={field}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
+                </Form>
             </div>
         </MainLayout>
     );

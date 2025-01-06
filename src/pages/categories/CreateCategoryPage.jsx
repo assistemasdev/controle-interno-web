@@ -1,44 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField'; 
 import { useNavigate } from 'react-router-dom';
-import '../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../components/MyAlert';
-import { usePermissions } from '../../hooks/usePermissions';
-import CategoryService from '../../services/CategoryService';
 import Form from '../../components/Form';
+import useCategoryService from '../../hooks/useCategoryService';
+import { categoryFields } from '../../constants/forms/categoryFields';
+import FormSection from '../../components/FormSection';
+import useForm from '../../hooks/useForm';
 
 const CreateCategoryPage = () => {
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const { createCategory, formErrors } = useCategoryService(navigate);
 
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({    
-        name: '',
-    }); 
+    const { formData, handleChange, resetForm, initializeData } = useForm({});
 
-    const handleSubmit = async (formData) => {
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
-    
+    useEffect(() => {
+        initializeData(categoryFields);
+    }, [categoryFields]);
+
+    const handleSubmit = async () => {
         try {
-            const response = await CategoryService.create(formData, navigate);
-            const {  message } = response; 
-        
-            setMessage({ type: 'success', text: message });
-            return;
+            await createCategory(formData);
+            resetForm(); 
         } catch (error) {
-            if (error.status === 422) {
-                setFormErrors({
-                    name: error.data.name?.[0] || ''
-                });
-                return;
-            }
-            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            console.error('Erro ao cadastrar categoria:', error);
         }
     };
 
     const handleBack = () => {
-        navigate(`/categorias/`);  
+        navigate('/categorias/');
     };
 
     return (
@@ -50,38 +39,21 @@ const CreateCategoryPage = () => {
 
                 <Form
                     onSubmit={handleSubmit}
-                    initialFormData={{
-                        name: '',
-                    }}
-                    textSubmit="Cadastrar Categoria"
+                    textSubmit="Cadastrar"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
-                    {({ formData, handleChange}) => (
-                        <>
-                            {message?.text && (
-                                <MyAlert
-                                    severity={message.type}
-                                    message={message.text}
-                                    onClose={() => setMessage({ type: '', text: '' })}
-                                />
-                            )}
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="Categoria:"
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome da categoria"
-                                        error={formErrors.name}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
+                    {() =>
+                        categoryFields.map((field) => (
+                            <FormSection
+                                key={field.id}
+                                section={field}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
                 </Form>
             </div>
         </MainLayout>
