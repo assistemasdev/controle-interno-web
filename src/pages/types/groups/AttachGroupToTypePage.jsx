@@ -29,7 +29,7 @@ const AttachGroupToTypePage = () => {
             showLoader();
             const [typeGroups, allGroups] = await Promise.all([
                 fetchTypeGroups(id),
-                fetchAllGroups(),
+                fetchAllGroups({}),
             ]);
 
             initializeData(

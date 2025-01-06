@@ -1,90 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import Form from '../../components/Form';
-import { CircularProgress } from '@mui/material'; 
+import FormSection from '../../components/FormSection';
 import '../../assets/styles/custom-styles.css';
-import MyAlert from '../../components/MyAlert';
-import UnitService from '../../services/UnitService';
-import { usePermissions } from '../../hooks/usePermissions';
+import { unitFields } from '../../constants/forms/unitFields';
+import useUnitService from '../../hooks/useUnitService';
+import useForm from '../../hooks/useForm';
+import useLoader from '../../hooks/useLoader';
+import useNotification from '../../hooks/useNotification';
 
 const EditUnitPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({ name: '', abbreviation: '' });
-    const [loading, setLoading] = useState(true); 
-    const [formData, setFormData] = useState({
+    const { getUnitById, updateUnit, formErrors } = useUnitService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { formData, handleChange, setFormData, initializeData } = useForm({
         name: '',
-        abbreviation: ''
+        abbreviation: '',
     });
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchUnitData = async () => {
             try {
-                await fetchUnit();
+                showLoader();
+                const unit = await getUnitById(id);
+                initializeData(unitFields);
+                setFormData({
+                    name: unit.name,
+                    abbreviation: unit.abbreviation || '',
+                });
             } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
+                console.log(error)
+            } finally {
+                hideLoader();
             }
         };
-    
-        fetchData();
-    }, [id]);
 
-    const fetchUnit = async () => {
+        fetchUnitData();
+    }, [id, unitFields]);
+
+    const handleSubmit = useCallback(async () => {
         try {
-            const response = await UnitService.getById(id, navigate);
-
-            setFormData({
-                name: response.result.name,
-                abbreviation: response.result.abbreviation || ''
-            });
+            showLoader();
+            await updateUnit(id, formData);
         } catch (error) {
-            if (error.status === 404) {
-                navigate(
-                    '/unidades/', 
-                    {
-                        state: { 
-                            type: 'error', 
-                            message: error.message 
-                        }
-                    }
-                );
-            }
-            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar a unidade' });
-            console.error(error);
+            console.log(error)
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [id, formData, updateUnit, showLoader, hideLoader, showNotification, navigate]);
 
-    const handleSubmit = async (formData) => {
-        setFormErrors({ name: '', abbreviation: '' });
-        setMessage(null);
-
-        try {
-            const response = await UnitService.update(id, formData, navigate);
-
-            setMessage({ type:'success', text: response.message });
-        } catch (error) {
-            console.log(error);
-            if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    name: errors?.name ? errors.name[0] : '',
-                    abbreviation: errors?.abbreviation ? errors.abbreviation[0] : ''
-                });
-                return;
-            }
-            setMessage({ type:'error', text: error.message || 'Erro ao editar a unidade' });
-        }
-    };
-
-    const handleBack = () => {
-        navigate(`/unidades/`);
-    };
+    const handleBack = useCallback(() => {
+        navigate('/unidades');
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -93,50 +63,26 @@ const EditUnitPage = () => {
                     Edição de Unidade
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                ) : (
-                    <Form
-                        onSubmit={handleSubmit}
-                        initialFormData={formData}
-                        textSubmit="Atualizar Unidade"
-                        textLoadingSubmit="Atualizando..."
-                        handleBack={handleBack}
-                    >
-                        {({ formData, handleChange }) => (
-                            <>
-                                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label='Nome:'
-                                            type="text"
-                                            id="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            placeholder="Digite o nome da unidade"
-                                            error={formErrors.name}
-                                        />
-                                    </div>
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label='Abreviação:'
-                                            type="text"
-                                            id="abbreviation"
-                                            value={formData.abbreviation}
-                                            onChange={handleChange}
-                                            placeholder="Digite a abreviação da unidade"
-                                            error={formErrors.abbreviation}
-                                        />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </Form>
-                )}
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={formData}
+                    textSubmit="Atualizar"
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {() =>
+                        unitFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
+                </Form>
+                
             </div>
         </MainLayout>
     );

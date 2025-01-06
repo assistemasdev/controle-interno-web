@@ -1,54 +1,43 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField'; 
-import Form from '../../components/Form'; 
-import '../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../components/MyAlert';
-import UnitService from '../../services/UnitService';
+import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
+import '../../assets/styles/custom-styles.css';
 import { useNavigate } from 'react-router-dom';
+import { unitFields } from '../../constants/forms/unitFields';
+import useUnitService from '../../hooks/useUnitService';
+import useForm from '../../hooks/useForm';
+import useLoader from '../../hooks/useLoader';
+import useNotification from '../../hooks/useNotification';
 
 const CreateUnitPage = () => {
-    const navigate = useNavigate(); 
-
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({    
+    const navigate = useNavigate();
+    const { createUnit, formErrors } = useUnitService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { formData, handleChange, initializeData } = useForm({
         name: '',
-        abbreviation: ''
-    }); 
+        abbreviation: '',
+    });
 
-    const initialFormData = {
-        name: '',
-        abbreviation: ''
-    };
+    useEffect(() => {
+        initializeData(unitFields);
+    }, [unitFields]);
 
-    const memoizedInitialData = useMemo(() => initialFormData, [initialFormData]);
-
-    const handleSubmit = async (formData) => {
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
-    
+    const handleSubmit = useCallback(async () => {
         try {
-            const response = await UnitService.create(formData, navigate);
-            const { message } = response; 
-        
-            setMessage({ type: 'success', text: message });
-            return;
+            showLoader();
+            await createUnit(formData);
         } catch (error) {
-            if (error.status === 422 && error.data) {
-                setFormErrors({
-                    name: error.data.name?.[0] || '',
-                    abbreviation: error.data.abbreviation?.[0] || ''
-                });
-                return;
-            }
-
-            setMessage({ type: 'error', text: error.message || 'Erro ao cadastrar a unidade' });
+            console.log(error)
+        } finally {
+            hideLoader();
         }
-    };
+    }, [createUnit, formData, showLoader, hideLoader, showNotification, navigate]);
 
-    const handleBack = () => {
-        navigate(`/unidades/`);  
-    };
+    const handleBack = useCallback(() => {
+        navigate('/unidades');
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -59,41 +48,22 @@ const CreateUnitPage = () => {
 
                 <Form
                     onSubmit={handleSubmit}
-                    initialFormData={memoizedInitialData}
+                    initialFormData={formData}
                     textSubmit="Cadastrar Unidade"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
-                    {({ formData, handleChange }) => (
-                        <>
-                            {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
-
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Nome:"
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome da unidade"
-                                        error={formErrors.name} 
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Abreviação:"
-                                        type="text"
-                                        id="abbreviation"
-                                        value={formData.abbreviation}
-                                        onChange={handleChange}
-                                        placeholder="Digite a abreviação da unidade"
-                                        error={formErrors.abbreviation} 
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
+                    {() =>
+                        unitFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
                 </Form>
             </div>
         </MainLayout>

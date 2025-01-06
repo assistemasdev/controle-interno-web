@@ -1,123 +1,127 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import { CircularProgress } from '@mui/material'; 
-import '../../../assets/styles/custom-styles.css';
-import MyAlert from '../../../components/MyAlert';
-import Select from 'react-select';  
-import UnitService from '../../../services/UnitService';
 import Form from '../../../components/Form';
+import FormSection from '../../../components/FormSection';
+import '../../../assets/styles/custom-styles.css';
+import { unitAssociationFields } from '../../../constants/forms/unitFields';
+import useUnitService from '../../../hooks/useUnitService';
+import useLoader from '../../../hooks/useLoader';
+import useNotification from '../../../hooks/useNotification';
+import useForm from '../../../hooks/useForm';
 
 const AttachUnitsRelatedPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [message, setMessage] = useState(null);
-    const [loading, setLoading] = useState(true); 
-
+    const { fetchUnits, fetchAttachedUnits, syncRelatedUnits, formErrors } = useUnitService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { formData, handleChange, setFormData, initializeData } = useForm({
+        units: [],
+    });
     const [units, setUnits] = useState([]);
-    const [selectedUnits, setSelectedUnits] = useState([]);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
-            setLoading(true);
-            await Promise.all([fetchUnits(), fetchAttachedUnits()]);
+            showLoader();
+
+            const [allUnits, attachedUnits] = await Promise.all([
+                fetchUnits({}),
+                fetchAttachedUnits(id),
+            ]);
+            
+            initializeData(
+                unitAssociationFields.map((section) => ({
+                    ...section,
+                    fields: section.fields.map((field) => ({
+                        ...field,
+                        options: allUnits.data.map((unit) => ({
+                            value: unit.id,
+                            label: unit.name,
+                        })),
+                    })),
+                }))
+            );
+
+            setUnits(allUnits.data.map((unit) => ({
+                value: unit.id,
+                label: unit.name
+            })))
+
+            setFormData({
+                units: attachedUnits.map((unit) => unit.id),
+            });
         } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
+            console.log(error)
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [id, fetchUnits, fetchAttachedUnits, initializeData, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchData();
     }, [id]);
 
-    const fetchUnits = async () => {
+    const handleSubmit = useCallback(async () => {
         try {
-            const response = await UnitService.getAll(navigate);
-            const formattedUnits = response.result.data.map(unit => ({
-                value: unit.id,
-                label: unit.name
-            }));
-            setUnits(formattedUnits);  
+            showLoader();
+            await syncRelatedUnits(id, formData);
         } catch (error) {
-            setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar unidades' });
-            console.error(error);
+            console.log(error)
+            showNotification('error', 'Erro ao associar unidades.');
+        } finally {
+            hideLoader();
         }
-    };
+    }, [id, formData.units, syncRelatedUnits, showLoader, hideLoader, showNotification]);
 
-    const fetchAttachedUnits = async () => {
-        try {
-            const response = await UnitService.allOutputUnits(id, navigate);
-            const attachedUnits = response.result.map(unit => unit.id);
-            setSelectedUnits(attachedUnits);
-        } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar unidades atreladas' });
+    const handleBack = useCallback(() => {
+        navigate('/unidades');
+    }, [navigate]);
+
+    const getOptions = useCallback((fieldId) => {
+        if (fieldId === 'units') {
+            return units || [];
         }
-    };
+        return [];
+    }, []);
 
-    const handleSubmit = async (formData) => {
-        setMessage(null);
-
-        try {
-            const response = await UnitService.syncOutputUnits(id, { units: formData.units }, navigate);
-            setMessage({ type:'success', text: response.message });
-            await fetchData();
-        } catch (error) {
-            setMessage({ type:'error', text: error?.data?.units[0] || 'Erro ao atrelar unidade' });
+    const getSelectedValue = useCallback((fieldId) => {
+        if (fieldId === 'units' && Array.isArray(formData.units)) {
+            return units.filter((unit) => formData.units.includes(unit.value));
         }
-    };
-
-    const handleBack = () => {
-        navigate(`/unidades/`);
-    };
-
-    const initialFormData = {
-        units: selectedUnits,
-    };
+        return [];
+    }, [formData.units, units]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Associar Unidade
+                    Associar Unidades Relacionadas
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                ) : (
-                    <Form
-                        initialFormData={initialFormData}
-                        onSubmit={handleSubmit}
-                        className="p-3 mt-2 rounded shadow-sm mb-2"
-                        textSubmit="Associar Unidade"
-                        textLoadingSubmit="Associando..."
-                        handleBack={handleBack}
-                    >
-                        {({ formData, handleChange }) => (
-                            <>
-                                {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
-
-                                <div className="form-group" style={{ marginLeft: '0px' }}>
-                                    <label htmlFor="units" className='text-dark font-weight-bold '>Unidades:</label>
-                                    <Select
-                                        isMulti
-                                        name="units"
-                                        options={units}  
-                                        className="basic-multi-select"
-                                        classNamePrefix="select"
-                                        value={units.filter(unit => formData.units.includes(unit.value))}
-                                        onChange={(selectedOptions) => handleChange({ target: { id: 'units', value: selectedOptions ? selectedOptions.map(option => option.value) : [] } })}
-                                        noOptionsMessage={() => "Nenhuma unidade encontrada"}
-                                        placeholder="Selecione as unidades"
-                                    />
-                                </div>
-                            </>
-                        )}
-                    </Form>
-                )}
+                <Form
+                    initialFormData={formData}
+                    onSubmit={handleSubmit}
+                    className="p-3 mt-2 rounded shadow-sm mb-2"
+                    textSubmit="Associar Unidade"
+                    textLoadingSubmit="Associando..."
+                    handleBack={handleBack}
+                >
+                    {() =>
+                        unitAssociationFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                getOptions={getOptions}
+                                getSelectedValue={getSelectedValue}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
+                </Form>
+            
             </div>
         </MainLayout>
     );
