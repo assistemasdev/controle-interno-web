@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import InputField from '../components/InputField';
 import Select from 'react-select';
 
@@ -10,7 +10,6 @@ const FormSection = ({
     getSelectedValue, 
     formErrors 
 }) => {
-
     const flattenObject = (obj, parentKey = '', result = {}) => {
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {

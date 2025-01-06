@@ -1,93 +1,103 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import MainLayout from '../../../layouts/MainLayout';
 import { useNavigate, useParams } from 'react-router-dom';
-import '../../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../../components/MyAlert';
-import TypeGroupsService from '../../../services/TypeGroupsService';
-import GroupService from '../../../services/GroupService';
-import Select from 'react-select';  
+import '../../../assets/styles/custom-styles.css';
 import Form from '../../../components/Form';
-import { CircularProgress } from '@mui/material';
+import FormSection from '../../../components/FormSection';
+import useTypeGroupsService from '../../../hooks/useTypeGroupsService';
+import useGroupService from '../../../hooks/useGroupService';
+import useLoader from '../../../hooks/useLoader';
+import useNotification from '../../../hooks/useNotification';
+import useForm from '../../../hooks/useForm';
+import { groupFields } from '../../../constants/forms/groupFields'
 
 const AttachGroupToTypePage = () => {
-    const navigate = useNavigate(); 
-    const [groups, setGroups] = useState([]);
-    const [selectedGroups, setSelectedGroups] = useState([]);
+    const navigate = useNavigate();
     const { id } = useParams();
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [loading, setLoading] = useState(false);
+    const { fetchTypeGroups, attachGroupToType, formErrors } = useTypeGroupsService(navigate);
+    const { fetchAllGroups } = useGroupService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const [groups, setGroups] = useState([]);
 
-    const [formData, setFormData] = useState({
-        groups: selectedGroups.map(group => group.value)
-    })
-    const initialFormData = useMemo(() => ({
-        groups: selectedGroups.map(group => group.value),
-    }), [selectedGroups]);
+    const { formData, handleChange, setFormData, initializeData } = useForm({
+        groups: [],
+    });
+
+    const fetchData = useCallback(async () => {
+        try {
+            showLoader();
+            const [typeGroups, allGroups] = await Promise.all([
+                fetchTypeGroups(id),
+                fetchAllGroups(),
+            ]);
+
+            initializeData(
+                groupFields.map((section) => ({
+                    ...section,
+                    fields: section.fields.map((field) => ({
+                        ...field,
+                        options: allGroups.data.map((group) => ({
+                            value: group.id,
+                            label: group.name,
+                        })),
+                    })),
+                }))
+            );
+
+            setFormData({
+                groups: typeGroups.map((group) => group.id),
+            });
+
+            setGroups(allGroups.data.map((group) => ({
+                value: group.id,
+                label: group.name,
+            })));
+        } catch (error) {
+            showNotification('error', 'Erro ao carregar grupos.');
+        } finally {
+            hideLoader();
+        }
+    }, [id, groupFields]);
 
     useEffect(() => {
         fetchData();
-    }, [id, navigate]);
+    }, [fetchData]);
 
-    const fetchData = async () => {
+    const handleSubmit = useCallback(async () => {
         try {
-            setLoading(true);
-
-            const [groupsOfTheTypesResponse, groupsResponse] = await Promise.all([
-                await TypeGroupsService.showTypeGroups(id, navigate),
-                await GroupService.getAll(navigate)
-            ])
-
-            const groupsOfTheTypes = groupsOfTheTypesResponse.result.map(role => ({
-                id: role.id,
-                name: role.name
-            }));
-
-            setGroups(groupsResponse.result.data.map((option) => ({
-                value: option.id,
-                label: option.name
-            })));
-
-            setSelectedGroups(groupsOfTheTypes.map((option) => ({
-                value: option.id,
-                label: option.name
-            })))
+            showLoader();
+            const message = await attachGroupToType(id, formData.groups);
+            showNotification('success', message);
         } catch (error) {
-            setMessage({type:'error', message:'Erro ao carregar grupos'});
-            console.error(error);
+            showNotification('error', 'Erro ao associar grupos.');
         } finally {
-            setLoading(false)
+            hideLoader();
         }
-    }
+    }, [attachGroupToType, id, formData.groups, showLoader, showNotification, hideLoader]);
 
-    const handleGroupsChange = (selectedOptions) => {
-        setSelectedGroups(selectedOptions || []); 
-        setFormData((prev) => ({
-            ...prev,
-            groups: selectedOptions ? selectedOptions.map(option => option.value) : [], 
-        }));
-    };
+    const getOptions = useCallback((fieldId) => {
+        switch (fieldId) {
+            case 'groups':
+                return groups || [];
+            default:
+                return [];
+        }
+    }, [groups]);
 
-    const handleSubmit = async (formData) => {
-        setMessage({ type: '', text: '' });
-
-        try {
-            const response = await TypeGroupsService.attachGroupToType(id, formData, navigate);
-            const { message } = response; 
-        
-            setMessage({ type: 'success', text: message });
-            fetchData();
-        } catch (error) {
-            if (error.status === 422 && error.data) {
-                setMessage({ type: 'error', text: error.data.groups[0] });
-                return;
+    const getSelectedValue = useCallback((fieldId) => {
+        if (fieldId === 'groups') {
+            if (Array.isArray(formData.groups)) {
+                return groups.filter((group) => formData.groups.includes(group.value));
             }
-            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            return [];
         }
-    };
+        return null;
+    }, [formData.groups, groups]);
 
-    const handleBack = () => {
-        navigate(`/tipos/`);  
-    };
+    const handleBack = useCallback(() => {
+        navigate('/tipos');
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -96,43 +106,28 @@ const AttachGroupToTypePage = () => {
                     Associar Grupos
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-5">
-                        <CircularProgress size={50} />
-                    </div>
-                ) : (
-                    <Form
-                        initialFormData={initialFormData}
-                        onSubmit={handleSubmit}
-                        className="p-3 mt-2 rounded shadow-sm mb-2"
-                        textSubmit="Associar"
-                        textLoadingSubmit="Associando..."
-                        handleBack={handleBack}
-                    >
-                        {() => (
-                            <>
-                                {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-12">
-                                    <Select
-                                        isMulti
-                                        name="groups"
-                                        options={groups}  
-                                        className="basic-multi-select"
-                                        classNamePrefix="select"
-                                        value={groups.filter(group => selectedGroups.some(selected => selected.value === group.value))}
-                                        onChange={handleGroupsChange}  
-                                        noOptionsMessage={() => "Nenhum grupo encontrado"}
-                                        placeholder="Selecione os grupos"
-                                    />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
-                    </Form>
-                )}
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={formData}
+                    className="p-3 mt-2 rounded shadow-sm mb-2"
+                    textSubmit="Associar"
+                    textLoadingSubmit="Associando..."
+                    handleBack={handleBack}
+                >
+                    {() =>
+                        groupFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                getOptions={getOptions}
+                                getSelectedValue={getSelectedValue}
+                                formErrors={formErrors}
+                            />
+                        ))
+                    }
+                </Form>
             </div>
         </MainLayout>
     );

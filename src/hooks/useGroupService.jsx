@@ -1,6 +1,6 @@
-import GroupService from '../services/GroupService';
 import { useCallback } from 'react';
 import useErrorHandling from './useErrorHandling';
+import GroupService from '../services/GroupService';
 
 const useGroupService = (navigate) => {
     const { handleError } = useErrorHandling();
@@ -13,13 +13,24 @@ const useGroupService = (navigate) => {
             const response = await GroupService.getByType(typeId, navigate);
             return response.result;
         } catch (error) {
-            handleError(error, 'Erro ao carregar grupos.');
+            handleError(error, 'Erro ao carregar grupos associados ao tipo.');
+            throw error;
+        }
+    }, [handleError, navigate]);
+
+    const fetchAllGroups = useCallback(async () => {
+        try {
+            const response = await GroupService.getAll(navigate);
+            return response.result;
+        } catch (error) {
+            handleError(error, 'Erro ao carregar todos os grupos.');
             throw error;
         }
     }, [handleError, navigate]);
 
     return {
         fetchGroupsByType,
+        fetchAllGroups,
     };
 };
 
