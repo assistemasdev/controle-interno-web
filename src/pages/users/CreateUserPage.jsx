@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
@@ -6,35 +6,26 @@ import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
 import useUserService from '../../hooks/useUserService';
 import useLoader from '../../hooks/useLoader';
+import useForm from '../../hooks/useForm';
 
 const CreateUserPage = () => {
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
     const { formErrors, createUser } = useUserService(navigate);
 
-    const memoizedInitialData = useMemo(() => ({
-        name: '',
-        username: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-    }), []);
+    const { formData, handleChange, resetForm, initializeData } = useForm({});
 
-    const [formData, setFormData] = useState(memoizedInitialData);
+    useEffect(() => {
+        initializeData(userProfileFields);
+    }, [userProfileFields]);
 
-    const handleChange = (fieldId, value) => {
-        setFormData((prev) => ({
-            ...prev,
-            [fieldId]: value,
-        }));
-    };
-
-    const handleSubmit = async (data) => {
+    const handleSubmit = async () => {
         showLoader();
         try {
-            await createUser(data);
+            await createUser(formData);
+            resetForm();
         } catch (error) {
-            console.error('Error creating user:', error);
+            console.error('Erro ao cadastrar usuário:', error);
         } finally {
             hideLoader();
         }
@@ -52,17 +43,16 @@ const CreateUserPage = () => {
                 </div>
 
                 <Form
-                    initialFormData={formData}
                     onSubmit={handleSubmit}
                     textSubmit="Cadastrar Usuário"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
                     {() =>
-                        userProfileFields.map((field) => (
+                        userProfileFields.map((section) => (
                             <FormSection
-                                key={field.section}
-                                section={field}
+                                key={section.section}
+                                section={section}
                                 formData={formData}
                                 handleFieldChange={handleChange}
                                 getOptions={() => []}
