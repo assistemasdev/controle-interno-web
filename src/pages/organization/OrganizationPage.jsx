@@ -1,33 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import MyAlert from "../../components/MyAlert";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
-import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
-import OrganizationService from "../../services/OrganizationService";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { faEdit, faEye  } from '@fortawesome/free-solid-svg-icons';
-import { PAGINATION } from "../../constants/pagination";
+import useLoader from '../../hooks/useLoader';
+import useNotification from "../../hooks/useNotification";
+import useOrganizationService from "../../hooks/useOrganizationService";
+
 const OrganizationPage = () => {
     const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [error, setError] = useState(null);
     const { applicationId } = useParams();
     const [name, setName] = useState('');
-    const [loading, setLoading] = useState(true);
     const [organizations, setOrganizations] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
-    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
-    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
-    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { fetchOrganizationsByApplicationId } = useOrganizationService(navigate);
 
     useEffect(() => {
-        setMessage(null);
         if (location.state?.message) {
-            setMessage({type:location.state.type, message: location.state.message});
+            showNotification(location.state.type, location.state.message);
+            navigate(location.pathname, { replace: true });
         }
     }, [location.state]); 
     
@@ -35,14 +32,13 @@ const OrganizationPage = () => {
         setName('');
     };
 
-    const fetchOrganizations = async (page = 1) => {
+    const fetchOrganizations = useCallback(async (page = 1) => {
         try {
-            setLoading(true);
+            showLoader();
         
-            const response = await OrganizationService.getByApplicationId(applicationId,navigate);
-            const result = response.result
-        
-            const filteredOrganizations = result.map(organization => ({
+            const response = await fetchOrganizationsByApplicationId(applicationId);
+
+            const filteredOrganizations = response.map(organization => ({
                 id: organization.id,
                 name: organization.name,
                 color: organization.color,
@@ -51,28 +47,28 @@ const OrganizationPage = () => {
             
             setOrganizations(filteredOrganizations);
         } catch (error) {
-            setError('Erro ao carregar organizações');
+            showNotification('error','Erro ao carregar organizações');
             console.error(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    },[showLoader, fetchOrganizationsByApplicationId, showNotification, hideLoader]);
     
     useEffect(() => {
         fetchOrganizations();
-    }, []);
+    }, [applicationId]);
 
-    const handleEdit = (organization) => {
+    const handleEdit = useCallback((organization) => {
         navigate(`/orgaos/editar/${applicationId}/${organization.id}`);
-    };
+    }, [navigate, applicationId]);
 
-    const handleDetails = (organization) => {
+    const handleDetails = useCallback((organization) => {
         navigate(`/orgaos/detalhes/${applicationId}/${organization.id}`);
-    }
+    }, [navigate, applicationId])
 
-    const headers = ['id', 'Nome', 'Cor', 'Ativo'];
+    const headers = useMemo(() => ['id', 'Nome', 'Cor', 'Ativo'], []);
 
-    const actions = [
+    const actions = useMemo(() => [
         {
             icon: faEdit,
             title: 'Editar Organização',
@@ -87,7 +83,7 @@ const OrganizationPage = () => {
             permission: 'Ver organizações',
             onClick: handleDetails
         }
-    ];
+    ], [handleEdit, handleDetails]);
     
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -97,7 +93,6 @@ const OrganizationPage = () => {
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
                     <div className="form-group col-md-12">
                         <InputField
                             label='Nome da Organização:'
@@ -127,17 +122,7 @@ const OrganizationPage = () => {
                     )}
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                    ) : error ? (
-                    <div className='mt-3'>
-                        <MyAlert notTime={true} severity="error" message={error} />
-                    </div>
-                    ) : (
-                    <DynamicTable headers={headers} data={organizations} actions={actions} />
-                )}
+                <DynamicTable headers={headers} data={organizations} actions={actions} />
 
             </div>
         </MainLayout>

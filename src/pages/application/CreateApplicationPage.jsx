@@ -23,7 +23,7 @@ const CreateApplicationPage = () => {
 
     useEffect(() => {
         initializeData(applicationFields);
-    }, [initializeData]);
+    }, [applicationFields]);
 
     const handleSubmit = useCallback(async () => {
         try {
