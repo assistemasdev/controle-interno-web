@@ -1,323 +1,156 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useCallback, useState, useMemo } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import Button from '../../components/Button';
-import { CircularProgress } from '@mui/material';
-import '../../assets/styles/custom-styles.css';
-import MyAlert from '../../components/MyAlert';
-import SupplierService from '../../services/SupplierService';
-import { maskCpfCnpj, maskCep } from '../../utils/maskUtils';
+import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
 import DynamicTable from '../../components/DynamicTable';
-import { faEdit, faTrash, faEye, faMapMarkerAlt  } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
-import { usePermissions } from '../../hooks/usePermissions';
+import { useNavigate, useParams } from 'react-router-dom';
+import { faEdit, faTrash, faEye } from '@fortawesome/free-solid-svg-icons';
+import useLoader from '../../hooks/useLoader';
+import useNotification from '../../hooks/useNotification';
+import useSupplierService from '../../hooks/useSupplierService';
+import { supplierFields } from '../../constants/forms/supplierFields';
 import { PAGINATION } from '../../constants/pagination';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const SupplierDetailsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({});
-    const [error, setError] = useState();
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
     const { canAccess } = usePermissions();
+    const { fetchSupplierById, fetchSupplierAddresses, fetchSupplierContacts, deleteSupplierAddress, deleteSupplierContact } = useSupplierService(navigate);
+
+    const [supplierData, setSupplierData] = useState({});
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [addressToDelete, setAddressToDelete] = useState(null);
-    const [formData, setFormData] = useState({
-        alias: '',
-        name: '',
-        cpf_cnpj: ''
-    });
-    const [currentPageAddress, setCurrentPageAddress] = useState(PAGINATION.DEFAULT_PAGE);
-    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
-    const [totalPagesAddress, setTotalPagesAddress] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [currentPageContact, setCurrentPageContact] = useState(PAGINATION.DEFAULT_PAGE);
-    const [totalPagesContact, setTotalPagesContact] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
     const [contactToDelete, setContactToDelete] = useState(null);
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-    
-        setFormData((prev) => ({
-            ...prev,
-            [id]: id === 'cpf_cnpj' ? maskCpfCnpj(value) : value
-        }));
-    };
+    const [currentPageAddress, setCurrentPageAddress] = useState(PAGINATION.DEFAULT_PAGE);
+    const [totalPagesAddress, setTotalPagesAddress] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [currentPageContact, setCurrentPageContact] = useState(PAGINATION.DEFAULT_PAGE);
+    const [totalPagesContact, setTotalPagesContact] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+
+    const fetchData = useCallback(async () => {
+        showLoader();
+        try {
+            const supplier = await fetchSupplierById(id);
+            const addressesResponse = await fetchSupplierAddresses(id, { page: currentPageAddress });
+            const contactsResponse = await fetchSupplierContacts(id, { page: currentPageContact });
+
+            setSupplierData({
+                alias: supplier.alias,
+                name: supplier.name,
+                cpf_cnpj: supplier.cpf_cnpj
+            });
+            setAddresses(addressesResponse.data.map((address) => ({
+                id: address.id,
+                zip: address.zip,
+                street: address.street
+            })));
+
+            setTotalPagesAddress(addressesResponse.last_page);
+            setContacts(contactsResponse.data.map((contact) => ({
+                id: contact.id,
+                name: contact.name,
+                number: contact.ddd + '-' + contact.phone
+            })));
+            setTotalPagesContact(contactsResponse.last_page);
+        } catch (error) {
+            console.log(error);
+            showNotification('error', 'Erro ao carregar os dados do fornecedor.');
+        } finally {
+            hideLoader();
+        }
+    }, [id, currentPageAddress, currentPageContact, fetchSupplierById, fetchSupplierAddresses, fetchSupplierContacts, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchData();
     }, [id]);
-    
 
-    const fetchData = async (page = 1) => {
-        setLoading(true);
-        setMessage(null);
-        try {
-            const [organizationResponse, addressesResponse, contactsResponse] = await Promise.all([
-                SupplierService.getById(id, navigate),
-                SupplierService.getAllSupplierAddress(id, {page, perPage:itemsPerPage}, navigate),
-                SupplierService.getAllSupplierContact(id, {page, perPage:itemsPerPage}, navigate)
-            ]);
-
-            const supplier = organizationResponse.result;
-
-            setFormData({
-                alias: supplier.alias || '',
-                name: supplier.name || '',
-                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || '')
-            });       
-
-            const filteredAddress = addressesResponse.result.data.map(address => {                
-                return {
-                    id: address.id,
-                    zip: maskCep(address.zip),
-                    street: address.street
-                };
-            });
-                        
-            setAddresses(filteredAddress)
-            setTotalPagesAddress(addressesResponse.result.last_page);
-            setCurrentPageAddress(addressesResponse.result.current_page);
-
-            const filteredContacts = contactsResponse.result.data.map(contact => {                
-                return {
-                    id: contact.id,
-                    name: `${contact.name || ''} ${contact.surname || ''}`,
-                    number: `${contact.ddd || ''} ${contact.phone || ''}`,
-                };
-            });
-                        
-            setContacts(filteredContacts)
-            setTotalPagesContact(contactsResponse.result.last_page);
-            setCurrentPageContact(contactsResponse.result.current_page);
-
-        } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
-            setMessage({ type: 'error', text: 'Erro ao carregar os dados do fornecedor' });
-        } finally {
-            setLoading(false);
-        }
-    };
-    
-    const fetchAddresses = async (page = 1) => {
-        setLoading(true);
-        try {
-            const response = await SupplierService.getAllSupplierAddress(id, {page, perPage: itemsPerPage}, navigate);
-            const filteredAddress = response.result.data.map(address => {                
-                return {
-                    id: address.id,
-                    zip: maskCep(address.zip),
-                    street: address.street
-                };
-            });
-                        
-            setAddresses(filteredAddress)
-            setTotalPagesAddress(response.result.last_page);
-            setCurrentPageAddress(response.result.current_page);
-            return
-        } catch (error) {
-            if (error.status === 404) {
-                navigate(
-                    '/fornecedores/', 
-                    {
-                        state: { 
-                            type: 'error', 
-                            message: error.message 
-                        }
-                    }
-                );
-                return
-            }
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelos endereços do fornecedor' });
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    const fetchContacts = async (page = 1) => {
-        setLoading(true);
-        try {
-            const response = await SupplierService.getAllSupplierContact(id, {page, perPage: itemsPerPage}, navigate);
-            const filteredContacts = response.result.map(contact => {                
-                return {
-                    id: contact.id,
-                    name: `${contact.name || ''} ${contact.surname || ''}`,
-                    number: `${contact.ddd || ''} ${contact.phone || ''}`,
-                };
-            });
-                        
-            setContacts(filteredContacts)
-            setTotalPagesContact(response.result.last_page);
-            setCurrentPageContact(response.result.current_page);
-            return
-        } catch (error) {
-            if (error.status === 404) {
-                navigate(
-                    '/fornecedores/', 
-                    {
-                        state: { 
-                            type: 'error', 
-                            message: error.message 
-                        }
-                    }
-                );
-                return
-            }
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelos contatos do fornecedor' });
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    const handleEdit = (address) => {
-        navigate(`/fornecedores/editar/${id}/endereco/${address.id}`);
+    const handleDeleteAddress = (address) => {
+        setAddressToDelete(address);
+        setDeleteModalOpen(true);
     };
 
-    const handleEditContact = (contact) => {
-        navigate(`/fornecedores/${id}/contato/editar/${contact.id}`);
-    };
+    const confirmDeleteAddress = useCallback(async () => {
+        showLoader();
+        try {
+            await deleteSupplierAddress(id, addressToDelete.id);
+            fetchData();
+        } catch (error) {
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o endereço.');
+        } finally {
+            setDeleteModalOpen(false);
+            hideLoader();
+        }
+    }, [id, addressToDelete, deleteSupplierAddress, fetchData, showLoader, hideLoader, showNotification]);
 
     const handleDeleteContact = (contact) => {
         setContactToDelete(contact);
         setDeleteModalOpenContacts(true);
     };
 
-    const handleDelete = (address) => {
-        setAddressToDelete(address);
-        setDeleteModalOpen(true);
-    };
-
-    const handleViewLocations = (address) => {
-        navigate(`/fornecedores/detalhes/${id}/enderecos/${address.id}/localizacoes`);
-    };
-
-    const confirmDeleteContacts = async () => {
-        setLoading(true);
+    const confirmDeleteContact = useCallback(async () => {
+        showLoader();
         try {
-            await SupplierService.deleteSupplierContact(id, contactToDelete.id, navigate);
-            setMessage({ type: 'success', text: 'Contato excluído com sucesso' });
-            await fetchContacts();
+            await deleteSupplierContact(id, contactToDelete.id);
+            fetchData();
         } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao excluir o contato' });
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o contato.');
         } finally {
             setDeleteModalOpenContacts(false);
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [id, contactToDelete, deleteSupplierContact, fetchData, showLoader, hideLoader, showNotification]);
 
-
-    const confirmDelete = async () => {
-        setLoading(true); 
-        try {
-            const response = await SupplierService.deleteSupplierAddress(id, addressToDelete.id, navigate);
-
-            setMessage({ type: 'success', text: response.message });
-            await fetchAddresses();
-            return;
-        } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Erro ao excluir o endereço';
-            setError(errorMessage);
-            console.error("Erro capturado no confirmDelete:", error);
-        } finally {
-            setDeleteModalOpen(false); 
-            setLoading(false); 
-        }
-    };
-    const handleViewDetails = (address) => {
-        navigate(`/fornecedores/${id}/endereco/${address.id}/detalhes`);
-    };
-
-    const headers = ['id', 'CEP', 'Rua'];
-    
-    const actions = [
+    const addressHeaders = useMemo(() => ['ID', 'CEP', 'Rua'], []);
+    const addressActions = useMemo(() => [
         {
             icon: faEdit,
             title: 'Editar Endereço',
             buttonClass: 'btn-primary',
             permission: 'Atualizar endereço do fornecedor',
-            onClick: handleEdit
+            onClick: (address) => navigate(`/fornecedores/editar/${id}/endereco/${address.id}`),
         },
         {
             icon: faTrash,
             title: 'Excluir Endereço',
             buttonClass: 'btn-danger',
             permission: 'Excluir endereço do fornecedor',
-            onClick: handleDelete
+            onClick: handleDeleteAddress,
         },
         {
             icon: faEye, 
-            title: 'Ver Detalhes',
+            title: 'Ver endereços de fornecedores',
             buttonClass: 'btn-info',
-            permission: 'Ver endereços de fornecedores', 
-            onClick: handleViewDetails 
+            permission: 'Visualizar endereço do fornecedor',
+            onClick: (address) => navigate(`/fornecedores/${id}/endereco/${address.id}/detalhes/`),
         },
-        {
-            icon: faMapMarkerAlt, 
-            title: 'Ver Localizações',
-            buttonClass: 'btn-warning',
-            permission: 'Listar localizações de clientes', 
-            onClick: handleViewLocations, 
-        },
-    ];
+    ], [navigate, id, handleDeleteAddress]);
 
-    const headersContacts = ['ID', 'Responsável', 'Contato'];
-    
-    const actionsContacts = [
+    const contactHeaders = useMemo(() => ['ID', 'Nome', 'Número'], []);
+    const contactActions = useMemo(() => [
         {
             icon: faEdit,
             title: 'Editar Contato',
             buttonClass: 'btn-primary',
-            permission: 'Atualizar contato de organizações',
-            onClick: handleEditContact,
+            permission: 'Atualizar contato do fornecedor',
+            onClick: (contact) => navigate(`/fornecedores/${id}/contato/editar/${contact.id}`),
         },
         {
             icon: faTrash,
-            title: 'Excluir Endereço',
+            title: 'Excluir Contato',
             buttonClass: 'btn-danger',
-            permission: 'Excluir endereço da organização',
+            permission: 'Excluir contato do fornecedor',
             onClick: handleDeleteContact,
         }
-    ];
-
-    const fetchSupplier = async () => {
-        try {
-            const response = await SupplierService.getById(id, navigate);
-            const supplier = response.result;
-
-            setFormData({
-                alias: supplier.alias || '',
-                name: supplier.name || '',
-                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || '')
-            });            
-        } catch (error) {
-            if (error.status === 404) {
-                navigate(
-                    '/fornecedores/', 
-                    {
-                        state: { 
-                            type: 'error', 
-                            message: error.message 
-                        }
-                    }
-                );
-            }
-
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo fornecedor' });
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleBack = () => {
-        navigate('/fornecedores/');
-    };
+    ], [navigate, id, handleDeleteContact]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -325,121 +158,69 @@ const SupplierDetailsPage = () => {
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
                     Detalhes do Fornecedor
                 </div>
-
                 <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
+                    <DetailsSectionRenderer
+                        sections={supplierFields}
+                        formData={supplierData}
+                    />
 
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <>
-                            <h5 className='text-dark font-weight-bold mt-3'>Dados do Fornecedor</h5>
-                            
-                            <hr />
-                        
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Apelido:"
-                                        type="text"
-                                        id="alias"
-                                        value={formData.alias}
-                                        onChange={handleChange}
-                                        placeholder="Digite o apelido do fornecedor"
-                                        error={formErrors.alias}
-                                        disabled={true}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Nome:"
-                                        type="text"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="Digite o nome do fornecedor"
-                                        error={formErrors.name}
-                                        disabled={true}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="CPF/CNPJ:"
-                                        type="text"
-                                        id="cpf_cnpj"
-                                        value={formData.cpf_cnpj}
-                                        onChange={handleChange}
-                                        placeholder="Digite o CPF ou CNPJ"
-                                        error={formErrors.cpf_cnpj}
-                                        disabled={true}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className='form-row d-flex justify-content-between align-items-center mt-1' style={{marginLeft:0, marginRight:0}}>
-                                <h5 className='text-dark font-weight-bold mt-3'>Endereços do Fornecedor</h5>
-                                {canAccess('Adicionar endereço ao fornecedor') && (
-                                    <Button
-                                    text="Adicionar Endereço"
-                                    className="btn btn-blue-light fw-semibold"
-                                    link={`/fornecedores/${id}/endereco/adicionar`}
-                                    />
-                                )}
-                            </div>
-                            <hr />
-
-                            <DynamicTable 
-                                headers={headers} 
-                                data={addresses} 
-                                actions={actions} 
-                                currentPage={currentPageAddress}
-                                totalPages={totalPagesAddress}
-                                onPageChange={fetchAddresses}
+                    <div className='form-row d-flex justify-content-between align-items-center mt-1'>
+                        <h5 className='text-dark font-weight-bold mt-3'>Endereços</h5>
+                        {canAccess('Adicionar endereço ao fornecedor') && (
+                            <Button
+                                text="Adicionar Endereço"
+                                className="btn btn-blue-light fw-semibold"
+                                link={`/fornecedores/${id}/endereco/adicionar`}
                             />
+                        )}
+                    </div>
+                    <DynamicTable
+                        headers={addressHeaders}
+                        data={addresses}
+                        actions={addressActions}
+                        currentPage={currentPageAddress}
+                        totalPages={totalPagesAddress}
+                        onPageChange={setCurrentPageAddress}
+                    />
 
-                            <div className='form-row d-flex justify-content-between align-items-center mt-1' style={{marginLeft:0, marginRight:0}}>
-                                <h5 className='text-dark font-weight-bold mt-3'>Contatos do Fornecedor</h5>
-                                {canAccess('Adicionar endereço ao fornecedor') && (
-                                    <Button
-                                    text="Adicionar Contato"
-                                    className="btn btn-blue-light fw-semibold"
-                                    link={`/fornecedores/${id}/contato/adicionar`}
-                                    />
-                                )}
-                            </div>
-                            <hr />
-
-                            <DynamicTable 
-                                headers={headersContacts} 
-                                data={contacts} 
-                                actions={actionsContacts} 
-                                currentPage={currentPageContact}
-                                totalPages={totalPagesContact}
-                                onPageChange={fetchAddresses}
+                    <div className='form-row d-flex justify-content-between align-items-center mt-1'>
+                        <h5 className='text-dark font-weight-bold mt-3'>Contatos</h5>
+                        {canAccess('Adicionar contato ao fornecedor') && (
+                            <Button
+                                text="Adicionar Contato"
+                                className="btn btn-blue-light fw-semibold"
+                                link={`/fornecedores/${id}/contato/adicionar`}
                             />
+                        )}
+                    </div>
+                    <DynamicTable
+                        headers={contactHeaders}
+                        data={contacts}
+                        actions={contactActions}
+                        currentPage={currentPageContact}
+                        totalPages={totalPagesContact}
+                        onPageChange={setCurrentPageContact}
+                    />
 
-
-                            <div className="mt-3 d-flex gap-2">
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
+                    <div className="mt-3 d-flex gap-2">
+                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={() => navigate('/fornecedores')} />
+                    </div>
                 </div>
+
+                <ConfirmationModal
+                    open={deleteModalOpen}
+                    onClose={() => setDeleteModalOpen(false)}
+                    onConfirm={confirmDeleteAddress}
+                    itemName={addressToDelete ? addressToDelete.street : ''}
+                />
+
+                <ConfirmationModal
+                    open={deleteModalOpenContacts}
+                    onClose={() => setDeleteModalOpenContacts(false)}
+                    onConfirm={confirmDeleteContact}
+                    itemName={contactToDelete ? contactToDelete.name : ''}
+                />
             </div>
-            <ConfirmationModal
-                open={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                itemName={addressToDelete ? addressToDelete.street : ''}
-            />
-            <ConfirmationModal
-                open={deleteModalOpenContacts}
-                onClose={() => setDeleteModalOpenContacts(false)}
-                onConfirm={confirmDeleteContacts}
-                itemName={contactToDelete ? `${contactToDelete.name ? contactToDelete.name : ''} ${contactToDelete.surname? contactToDelete.surname : '' }` : ''}
-            />
         </MainLayout>
     );
 };

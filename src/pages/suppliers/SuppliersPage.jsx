@@ -1,81 +1,67 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import MyAlert from "../../components/MyAlert";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
-import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
-import SupplierService from "../../services/SupplierService";
-import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faEye  } from '@fortawesome/free-solid-svg-icons';
-import { maskCpf, maskCnpj } from "../../utils/maskUtils";
+import { useNavigate } from "react-router-dom";
+import { faEdit, faTrash, faEye } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
-import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import useLoader from "../../hooks/useLoader";
+import useNotification from "../../hooks/useNotification";
+import { maskCpf, maskCnpj } from "../../utils/maskUtils";
+import useSupplierService from "../../hooks/useSupplierService";
 
 const SuppliersPage = () => {
     const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [error, setError] = useState(null);
-    const [name, setName] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [suppliers, setSuppliers] = useState([]);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [supplierToDelete, setSupplierToDelete] = useState(null);
     const navigate = useNavigate();
-    const location = useLocation();
-    const [selectedSuppliers, setSelectedSuppliers] = useState([]);
-    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
-    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
-    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { fetchSuppliers, deleteSupplier } = useSupplierService(navigate);
 
-    useEffect(() => {
-        setMessage(null);
-        if (location.state?.message) {
-            setMessage({type:location.state.type, text: location.state.message});
-        }
-    }, [location.state]); 
-    
-    const handleClearFilters = () => {
-        setName('');
-    };
+    const [name, setName] = React.useState('');
+    const [suppliers, setSuppliers] = React.useState([]);
+    const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+    const [supplierToDelete, setSupplierToDelete] = React.useState(null);
 
-    const fetchSuppliers = async (page = 1) => {
+    const [currentPage, setCurrentPage] = React.useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = React.useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = React.useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+
+    const fetchSuppliersData = useCallback(async (page = 1) => {
+        showLoader();
         try {
-            setLoading(true);
-        
-            const response = await SupplierService.getAll({page, perPage: itemsPerPage}, navigate);
-            const result = response.result
-
-            const filteredSuppliers = result.data.map(supplier => {
+            const response = await fetchSuppliers({ page, perPage: itemsPerPage, name });
+            const formattedSuppliers = response.data.map(supplier => {
                 const numericValue = supplier.cpf_cnpj.replace(/\D/g, '');
-            
                 return {
                     id: supplier.id,
                     alias: supplier.alias,
                     name: supplier.name,
-                    cpf_cnpj: numericValue.length <= 11 ? maskCpf(numericValue) : maskCnpj(numericValue) 
+                    cpf_cnpj: numericValue.length <= 11 ? maskCpf(numericValue) : maskCnpj(numericValue)
                 };
             });
-            
-            setSuppliers(filteredSuppliers);
-            setTotalPages(result.last_page);
-            setCurrentPage(result.current_page);
+            setSuppliers(formattedSuppliers);
+            setTotalPages(response.last_page);
+            setCurrentPage(response.current_page);
         } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar fornecedores';
-            setError(errorMessage);
-            console.error("Erro capturado no fetchSuppliers:", error);
+            console.log(error)
+            showNotification("error", "Erro ao carregar fornecedores.");
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
-    
+    }, [fetchSuppliers, name, itemsPerPage, showLoader, hideLoader, showNotification]);
+
     useEffect(() => {
-        fetchSuppliers();
+        fetchSuppliersData();
     }, []);
 
     const handleEdit = (supplier) => {
         navigate(`/fornecedores/editar/${supplier.id}`);
+    };
+
+    const handleViewDetails = (supplier) => {
+        navigate(`/fornecedores/detalhes/${supplier.id}`);
     };
 
     const handleDelete = (supplier) => {
@@ -83,36 +69,26 @@ const SuppliersPage = () => {
         setDeleteModalOpen(true);
     };
 
-    const handleViewDetails = (supplier) => {
-        navigate(`/fornecedores/detalhes/${supplier.id}`);
-    };
-
-    const confirmDelete = async () => {
+    const confirmDelete = useCallback(async () => {
+        showLoader();
         try {
-            setLoading(true);
-            const response = await SupplierService.delete(supplierToDelete.id);
-
-            if (response.status === 200) {
-                setMessage({ type: 'success', text: response.message });
-                fetchSuppliers();
-                return
-            }
-
-            if(response.status == 404 || response.status == 400) {
-                setMessage({ type: 'error', text: response.message });
-                return
-            }
-        } catch (error) {
-            setError('Erro ao excluir o fornecedor');
-            console.error(error);
-        } finally {
+            await deleteSupplier(supplierToDelete.id);
             setDeleteModalOpen(false);
-            setLoading(false);
+            fetchSuppliersData();
+        } catch (error) {
+            console.log(error)
+            showNotification("error", "Erro ao excluir o fornecedor.");
+        } finally {
+            hideLoader();
         }
+    }, [deleteSupplier, supplierToDelete, fetchSuppliersData, showLoader, hideLoader, showNotification]);
+
+    const handleClearFilters = () => {
+        setName('');
+        fetchSuppliersData();
     };
 
-    const headers = ['id', 'Apelido', 'Nome', 'CPF/CPNPJ'];
-
+    const headers = ['ID', 'Apelido', 'Nome', 'CPF/CNPJ'];
     const actions = [
         {
             icon: faEdit,
@@ -127,15 +103,16 @@ const SuppliersPage = () => {
             buttonClass: 'btn-danger',
             permission: 'Excluir fornecedores',
             onClick: handleDelete
-        },{
-            icon: faEye, 
+        },
+        {
+            icon: faEye,
             title: 'Ver Detalhes',
             buttonClass: 'btn-info',
-            permission: 'Ver fornecedores', 
-            onClick: handleViewDetails 
+            permission: 'Ver fornecedores',
+            onClick: handleViewDetails
         }
     ];
-    
+
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
@@ -143,23 +120,31 @@ const SuppliersPage = () => {
                     Fornecedores
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
                     <div className="form-group col-md-12">
-                        <label htmlFor="text" className='text-dark font-weight-bold mt-1'>Nome:</label>
-                        <AutoCompleteFilter
-                            service={SupplierService}
-                            columnDataBase='name'
-                            value={selectedSuppliers}
-                            onChange={(selected) => setSelectedSuppliers(selected)}
-                            onBlurColumn='textFilter' 
-                            placeholder="Filtre os fornecedores pelo nome"
-                            isMulti={true}
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">Nome:</label>
+                        <input
+                            type="text"
+                            id="name"
+                            className="form-control"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Digite o nome do fornecedor"
                         />
                     </div>
                     <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
+                        <Button
+                            type="button"
+                            text="Filtrar"
+                            className="btn btn-blue-light fw-semibold m-1"
+                            onClick={() => fetchSuppliersData(1)}
+                        />
+                        <Button
+                            type="button"
+                            text="Limpar filtros"
+                            className="btn btn-blue-light fw-semibold m-1"
+                            onClick={handleClearFilters}
+                        />
                     </div>
                 </form>
 
@@ -169,33 +154,23 @@ const SuppliersPage = () => {
                     </div>
                     {canAccess('Criar fornecedores') && (
                         <Button
-                        text="Novo Fornecedor"
-                        className="btn btn-blue-light fw-semibold"
-                        link="/fornecedores/criar"
+                            text="Novo Fornecedor"
+                            className="btn btn-blue-light fw-semibold"
+                            link="/fornecedores/criar"
                         />
                     )}
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                    ) : error ? (
-                    <div className='mt-3'>
-                        <MyAlert notTime={true} severity="error" message={error} />
-                    </div>
-                    ) : (
-                    <DynamicTable 
-                        headers={headers} 
-                        data={suppliers} 
-                        actions={actions} 
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={fetchSuppliers}
-                    />
-                )}
-
+                <DynamicTable
+                    headers={headers}
+                    data={suppliers}
+                    actions={actions}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={fetchSuppliersData}
+                />
             </div>
+
             <ConfirmationModal
                 open={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
@@ -203,7 +178,7 @@ const SuppliersPage = () => {
                 itemName={supplierToDelete ? supplierToDelete.name : ''}
             />
         </MainLayout>
-    )
-}
+    );
+};
 
 export default SuppliersPage;

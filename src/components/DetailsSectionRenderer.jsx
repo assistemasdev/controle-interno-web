@@ -6,6 +6,7 @@ const resolveFieldValue = (formData, fieldId) => {
         const [parentKey, childKey] = fieldId.split('.');
         return formData[parentKey]?.[childKey] || formData[childKey] || '';
     }
+    
     return formData[fieldId] || '';
 };
 

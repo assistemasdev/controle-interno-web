@@ -71,8 +71,6 @@ import OrganizationDetailsPage from "../pages/organization/OrganizationDetailsPa
 import CreateOrganizationAddressPage from "../pages/organization/address/CreateOrganizationAddressPage";
 import EditOrganizationAddressPage from "../pages/organization/address/EditOrganizationAddressPage";
 import OrganizationAddressDetailsPage from "../pages/organization/address/OrganizationAddressDetailsPage";
-import CreateOrganizationContactPage from "../pages/organization/contact/CreateOrganizationContactPage";
-import EditOrganizationContactPage from "../pages/organization/contact/EditOrganizationContactPage";
 import LocationOrganizationPage from "../pages/organization/locations/LocationOrganizationPage";
 import CreateOrganizationLocationPage from "../pages/organization/locations/CreateOrganizationLocationPage";
 import EditOrganizationLocationPage from "../pages/organization/locations/EditOrganizationLocationPage";
@@ -92,10 +90,6 @@ import LocationCustomerPage from "../pages/costumer/locations/LocationCustomerPa
 import CreateCustomerLocationPage from "../pages/costumer/locations/CreateCustomerLocationPage";
 import EditCustomerLocationPage from "../pages/costumer/locations/EditCustomerLocationPage";
 import DetailsCustomerLocationPage from "../pages/costumer/locations/DetailsOrganizationLocationPage";
-import LocationSupplierPage from "../pages/suppliers/locations/LocationSupplierPage";
-import CreateSupplierLocationPage from "../pages/suppliers/locations/CreateSupplierLocationPage";
-import EditSupplierLocationPage from "../pages/suppliers/locations/EditCustomerLocationPage";
-import DetailsSupplierLocationPage from "../pages/suppliers/locations/DetailsSupplierLocationPage";
 import EditProductPage from "../pages/products/EditProductPage";
 import DetailsProductPage from "../pages/products/DetailsProductPage";
 
@@ -174,14 +168,6 @@ const AppRoutesContent = () => {
             element: <PrivateRoute element={OrganizationAddressDetailsPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/contatos/adicionar/",
-            element: <PrivateRoute element={CreateOrganizationContactPage} />,
-        },
-        {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/contatos/editar/:contactId",
-            element: <PrivateRoute element={EditOrganizationContactPage} />,
-        },
-        {
             path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes",
             element: <PrivateRoute element={LocationOrganizationPage} />,
         },
@@ -252,24 +238,6 @@ const AppRoutesContent = () => {
             path: "/fornecedores/:supplierId/contato/editar/:contactId",
             element: <PrivateRoute element={EditSupplierContactPage}/>
         },
-        ,
-        {
-            path: "/fornecedores/detalhes/:id/enderecos/:addressId/localizacoes",
-            element: <PrivateRoute element={LocationSupplierPage} />,
-        },
-        {
-            path: "/fornecedores/detalhes/:id/enderecos/:addressId/localizacoes/adicionar",
-            element: <PrivateRoute element={CreateSupplierLocationPage} />,
-        },
-        {
-            path: "/fornecedores/detalhes/:id/enderecos/:addressId/localizacoes/editar/:locationId",
-            element: <PrivateRoute element={EditSupplierLocationPage} />,
-        },
-        {
-            path: "/fornecedores/detalhes/:id/enderecos/:addressId/localizacoes/detalhes/:locationId",
-            element: <PrivateRoute element={DetailsSupplierLocationPage} />,
-        },
-
     ];
 
     const typesRoutes = [

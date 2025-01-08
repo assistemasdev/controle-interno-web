@@ -1,101 +1,61 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
-import { CircularProgress } from '@mui/material';
 import '../../assets/styles/custom-styles.css';
-import MyAlert from '../../components/MyAlert';
-import SupplierService from '../../services/SupplierService';
-import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
 import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
+import useSupplierService from '../../hooks/useSupplierService';
+import useLoader from '../../hooks/useLoader';
+import useNotification from '../../hooks/useNotification';
+import useForm from '../../hooks/useForm';
+import { supplierFields } from '../../constants/forms/supplierFields';
+import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
 
 const EditSupplierPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState({
-        alias: '',
-        name: '',
-        cpf_cnpj: '',
-    });
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { fetchSupplierById, updateSupplier, formErrors } = useSupplierService(navigate);
 
-    const memoizedInitialData = useMemo(() => formData, [formData]);
+    const { formData, setFormData, handleChange, initializeData } = useForm({});
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-    
-        setFormData((prev) => ({
-            ...prev,
-            [id]: id === 'cpf_cnpj' ? maskCpfCnpj(value) : value
-        }));
-    };
+    const fetchSupplier = useCallback(async () => {
+        showLoader();
+        try {
+            const supplier = await fetchSupplierById(id);
+            initializeData(supplierFields);
+            setFormData({
+                name: supplier.name || '',
+                alias: supplier.alias || '',
+                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''),
+            });
+        } catch (error) {
+            showNotification('error', 'Erro ao carregar os dados do fornecedor.');
+        } finally {
+            hideLoader();
+        }
+    }, [id, fetchSupplierById, initializeData, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchSupplier();
-            } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
-            }
-        };
-
-        fetchData();
+        fetchSupplier();
     }, [id]);
 
-    const fetchSupplier = async () => {
-        try {
-            const response = await SupplierService.getById(id, navigate);
-            const supplier = response.result;
-            setFormData({
-                alias: supplier.alias || '',
-                name: supplier.name || '',
-                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''), 
-            });
+    const handleSubmit = async () => {
+        showLoader();
 
-        } catch (error) {
-            if (error.status === 404) {
-                navigate(
-                    '/fornecedores/', 
-                    {
-                        state: { 
-                            type: 'error', 
-                            message: error.message 
-                        }
-                    }
-                );
-            }
-
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo fornecedor' });
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSubmit = async (formData) => {
         const sanitizedData = {
             ...formData,
             cpf_cnpj: removeMask(formData.cpf_cnpj)
         };
-
+        
         try {
-            const response = await SupplierService.update(id, sanitizedData, navigate);
-            setMessage({ type: 'success', text: response.message });
+            await updateSupplier(id, sanitizedData);
         } catch (error) {
-            if (error.status === 422) {
-                const errors = error.data;
-
-                setFormErrors({
-                    alias: errors?.alias?.[0] || '',
-                    name: errors?.name?.[0] || '',
-                    cpf_cnpj: errors?.cpf_cnpj?.[0] || '',
-                });
-
-                return
-            }
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao editar o fornecedor' });
+            console.log(error);
+            showNotification('error', 'Erro ao atualizar o fornecedor.');
+        } finally {
+            hideLoader();
         }
     };
 
@@ -109,61 +69,29 @@ const EditSupplierPage = () => {
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
                     Edição de Fornecedor
                 </div>
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <Form
-                            onSubmit={handleSubmit}
-                            initialFormData={memoizedInitialData}
-                            textSubmit="Atualizar"
-                            textLoadingSubmit="Atualizando..."
-                            handleBack={handleBack}
-                        >
-                            {({ formData }) => (
-                                <>
-                                    {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
 
-                                    <div className="form-row">
-                                        <div className="d-flex flex-column col-md-4">
-                                            <InputField
-                                                label="Apelido:"
-                                                type="text"
-                                                id="alias"
-                                                value={formData.alias}
-                                                onChange={handleChange}
-                                                placeholder="Digite o apelido do fornecedor"
-                                                error={formErrors.alias}
-                                            />
-                                        </div>
-                                        <div className="d-flex flex-column col-md-4">
-                                            <InputField
-                                                label="Nome:"
-                                                type="text"
-                                                id="name"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                placeholder="Digite o nome do fornecedor"
-                                                error={formErrors.name}
-                                            />
-                                        </div>
-                                        <div className="d-flex flex-column col-md-4">
-                                            <InputField
-                                                label="CPF/CNPJ:"
-                                                type="text"
-                                                id="cpf_cnpj"
-                                                value={formData.cpf_cnpj}
-                                                onChange={handleChange}
-                                                placeholder="Digite o CPF ou CNPJ"
-                                                error={formErrors.cpf_cnpj}
-                                            />
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </Form>
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={formData}
+                    textSubmit="Atualizar"
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {() => (
+                        <>
+                            {supplierFields.map((section) => (
+                                <FormSection
+                                    key={section.section}
+                                    section={section}
+                                    formData={formData}
+                                    formErrors={formErrors}
+                                    handleFieldChange={handleChange}
+                                />
+                            ))}
+                        </>
                     )}
+                </Form>
+                
             </div>
         </MainLayout>
     );

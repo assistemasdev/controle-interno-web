@@ -122,6 +122,7 @@ const OrganizationDetailsPage = () => {
             permission: 'Listar endereços de organizações',
             onClick: (address) => navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${address.id}/localizacoes`),
         },
+        
     ], [navigate, applicationId, organizationId]);
 
     return (
