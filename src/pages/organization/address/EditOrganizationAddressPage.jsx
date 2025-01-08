@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import InputField from '../../../components/InputField';
-import Button from '../../../components/Button';
-import { CircularProgress } from '@mui/material';
 import '../../../assets/styles/custom-styles.css';
-import MyAlert from '../../../components/MyAlert';
-import OrganizationService from '../../../services/OrganizationService';
+
+import { addressFields } from '../../../constants/forms/addressFields';
+import FormSection from '../../../components/FormSection';
+import Form from '../../../components/Form';
+import useLoader from '../../../hooks/useLoader';
+import useNotification from '../../../hooks/useNotification';
+import useOrganizationService from '../../../hooks/useOrganizationService';
+import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
-import { usePermissions } from '../../../hooks/usePermissions';
 
 const EditOrganizationAddressPage = () => {
-    const { canAccess } = usePermissions();
     const navigate = useNavigate();
     const { applicationId, organizationId, addressId } = useParams();
-    const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [loadingCep, setLoadingCep] = useState(false)
-    const [formData, setFormData] = useState({
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { fetchOrganizationAddressById, updateOrganizationAddress, formErrors } = useOrganizationService(navigate);
+
+    const { formData, setFormData, handleChange } = useForm({
         alias: '',
         zip: '',
         street: '',
@@ -27,102 +28,76 @@ const EditOrganizationAddressPage = () => {
         district: '',
         city: '',
         state: '',
-        country: ''
+        country: '',
     });
 
-    const handleChange = async (e) => {
-        const { id, value } = e.target;
-    
-        const maskedValue = id === 'zip' ? maskCep(value) : value;
+    const handleFieldChange = useCallback((fieldId, value, field) => {
+        if (fieldId === 'zip') {
+            handleCepChange(value);
+        } else {
+            handleChange(fieldId, value);
+        }
+    }, [handleChange]);
+
+    const handleCepChange = useCallback(async (cep) => {
+        const value = maskCep(cep);
+        const zip = removeMask(value);
+
         setFormData((prev) => ({
             ...prev,
-            [id]: maskedValue
+            zip: value,
         }));
-    
-        if (id === 'zip' && removeMask(value).length === 8) {
-            setLoadingCep(true); 
+
+        if (zip.length === 8) {
+            showLoader();
             try {
-                const response = await fetch(`https://viacep.com.br/ws/${removeMask(value)}/json/`);
+                const response = await fetch(`https://viacep.com.br/ws/${zip}/json/`);
                 if (!response.ok) throw new Error('Erro ao buscar o CEP');
-                
+
                 const data = await response.json();
                 if (data.erro) throw new Error('CEP não encontrado');
-    
+
                 setFormData((prev) => ({
                     ...prev,
                     street: data.logradouro || '',
                     district: data.bairro || '',
                     city: data.localidade || '',
                     state: data.uf || '',
-                    country: 'Brasil' 
+                    country: 'Brasil',
                 }));
             } catch (error) {
-                setMessage({ type: 'error', text: error.message });
+                showNotification('error', error.message);
             } finally {
-                setLoadingCep(false); 
+                hideLoader();
             }
         }
-    };
-    
-    
+    }, [setFormData, showNotification]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchAddress();
-            } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
-            }
-        };
-
-        fetchData();
-    }, [organizationId]);
-
-    const fetchAddress = async () => {
+    const fetchData = useCallback(async () => {
+        showLoader();
         try {
-            const response = await OrganizationService.showOrganizationAddress(organizationId, addressId, navigate);
-            const address = response.result;
-
-            if (response.status === 200) {
-                setFormData({
-                    alias: address.alias || '',
-                    zip: maskCep(address.zip || ''),
-                    street: address.street || '',
-                    number: address.number || '',
-                    details: address.details || '',
-                    district: address.district || '',
-                    city: address.city || '',
-                    state: address.state || '',
-                    country: address.country || ''
-                });
-
-                return;
-            }
-
-            if (response.status === 404) {
-                navigate(
-                    '/fornecedores/',
-                    {
-                        state: {
-                            type: 'error',
-                            message: response.message
-                        }
-                    }
-                );
-            }
-
+            const address = await fetchOrganizationAddressById(organizationId, addressId);
+            setFormData({
+                alias: address.alias || '',
+                zip: maskCep(address.zip || ''),
+                street: address.street || '',
+                number: address.number || '',
+                details: address.details || '',
+                district: address.district || '',
+                city: address.city || '',
+                state: address.state || '',
+                country: address.country || '',
+            });
         } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo endereço' });
-            console.error(error);
+            console.log(error);
+            showNotification('error', 'Erro ao carregar os dados do endereço.');
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [fetchOrganizationAddressById, organizationId, addressId, showLoader, hideLoader, navigate, showNotification, setFormData]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({});
-        setMessage(null);
+    const handleSubmit = useCallback(async (data) => {
+        showLoader();
 
         const sanitizedData = {
             ...formData,
@@ -130,32 +105,22 @@ const EditOrganizationAddressPage = () => {
         };
 
         try {
-            const response = await OrganizationService.updateOrganizationAddress(organizationId, addressId, sanitizedData, navigate);
-            setMessage({ type: 'success', text: response.message });
+            await updateOrganizationAddress(organizationId, addressId, sanitizedData);
         } catch (error) {
-            if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    alias: errors?.alias?.[0] || '',
-                    zip: errors?.zip?.[0] || '',
-                    street: errors?.street?.[0] || '',
-                    number: errors?.number?.[0] || '',
-                    details: errors?.details?.[0] || '',
-                    district: errors?.district?.[0] || '',
-                    city: errors?.city?.[0] || '',
-                    state: errors?.state?.[0] || '',
-                    country: errors?.country?.[0] || ''
-                });
-                return
-            }
-            console.error(error);
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao editar o endereço' });
+            console.log(error);
+            showNotification('error', 'Erro ao atualizar o endereço.');
+        } finally {
+            hideLoader();
         }
-    };
+    }, [updateOrganizationAddress, organizationId, addressId, navigate, applicationId, showLoader, hideLoader, showNotification]);
 
-    const handleBack = () => {
+    useEffect(() => {
+        fetchData();
+    }, [organizationId, addressId]);
+
+    const handleBack = useCallback(() => {
         navigate(`/orgaos/detalhes/${applicationId}/${organizationId}`);
-    };
+    }, [navigate, applicationId, organizationId]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -164,137 +129,27 @@ const EditOrganizationAddressPage = () => {
                     Edição de Endereço da Organização
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
-
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={formData}
+                    textSubmit="Atualizar Endereço"
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {() => (
                         <>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Apelido:"
-                                        type="text"
-                                        id="alias"
-                                        value={formData.alias}
-                                        onChange={handleChange}
-                                        placeholder="Digite o apelido do endereço"
-                                        error={formErrors.alias}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="CEP:"
-                                        type="text"
-                                        id="zip"
-                                        value={formData.zip}
-                                        onChange={handleChange}
-                                        placeholder="Digite o CEP"
-                                        error={formErrors.zip}
-                                    />
-                                    {loadingCep && (
-                                        <div className="mt-2">
-                                            <CircularProgress size={20} /> Carregando endereço...
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Rua:"
-                                        type="text"
-                                        id="street"
-                                        value={formData.street}
-                                        onChange={handleChange}
-                                        placeholder="Digite a rua"
-                                        error={formErrors.street}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-3">
-                                    <InputField
-                                        label="Número:"
-                                        type="text"
-                                        id="number"
-                                        value={formData.number}
-                                        onChange={handleChange}
-                                        placeholder="Digite o número"
-                                        error={formErrors.number}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-3">
-                                    <InputField
-                                        label="Detalhes:"
-                                        type="text"
-                                        id="details"
-                                        value={formData.details}
-                                        onChange={handleChange}
-                                        placeholder="Digite os detalhes"
-                                        error={formErrors.details}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Bairro:"
-                                        type="text"
-                                        id="district"
-                                        value={formData.district}
-                                        onChange={handleChange}
-                                        placeholder="Digite o bairro"
-                                        error={formErrors.district}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Cidade:"
-                                        type="text"
-                                        id="city"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        placeholder="Digite a cidade"
-                                        error={formErrors.city}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Estado:"
-                                        type="text"
-                                        id="state"
-                                        value={formData.state}
-                                        onChange={handleChange}
-                                        placeholder="Digite o estado"
-                                        error={formErrors.state}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="País:"
-                                        type="text"
-                                        id="country"
-                                        value={formData.country}
-                                        onChange={handleChange}
-                                        placeholder="Digite o país"
-                                        error={formErrors.country}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mt-3 d-flex gap-2">
-                                {canAccess('Atualizar endereço da organização') && (
-                                    <Button type="submit" text="Atualizar Endereço" className="btn btn-blue-light fw-semibold" />
-                                )}
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
+                            {addressFields.map((section) => (
+                                <FormSection
+                                    key={section.section}
+                                    section={section}
+                                    formData={formData}
+                                    formErrors={formErrors}
+                                    handleFieldChange={handleFieldChange}
+                                />
+                            ))}
                         </>
                     )}
-                </form>
+                </Form>
             </div>
         </MainLayout>
     );

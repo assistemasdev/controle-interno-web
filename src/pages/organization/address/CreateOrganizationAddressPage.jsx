@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import InputField from '../../../components/InputField';
-import Button from '../../../components/Button';
 import '../../../assets/styles/custom-styles.css';
-import MyAlert from '../../../components/MyAlert';
-import OrganizationService from '../../../services/OrganizationService';
+import { addressFields } from '../../../constants/forms/addressFields';
+import FormSection from '../../../components/FormSection';
+import Form from '../../../components/Form';
+import useLoader from '../../../hooks/useLoader';
+import useNotification from '../../../hooks/useNotification';
+import useOrganizationService from '../../../hooks/useOrganizationService';
+import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
-import { usePermissions } from '../../../hooks/usePermissions';
 
 const CreateOrganizationAddressPage = () => {
     const navigate = useNavigate();
     const { applicationId, organizationId } = useParams();
-    const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({});
-    const [loadingCep, setLoadingCep] = useState(false); 
-    const [formData, setFormData] = useState({
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { addOrganizationAddress, formErrors } = useOrganizationService(navigate);
+
+    const { formData, setFormData, handleChange, resetForm } = useForm({
         alias: '',
         zip: '',
         street: '',
@@ -25,24 +27,32 @@ const CreateOrganizationAddressPage = () => {
         district: '',
         city: '',
         state: '',
-        country: ''
+        country: '',
     });
 
-    const handleChange = async (e) => {
-        const { id, value } = e.target;
+    const handleFieldChange = useCallback(async (fieldId, value) => {
+        if (fieldId === 'zip') {
+            handleCepChange(value);
+        } else {
+            handleChange(fieldId, value);
+        }
+    }, [handleChange]);
 
-        const maskedValue = id === 'zip' ? maskCep(value) : value;
+    const handleCepChange = useCallback(async (cep) => {
+        const value = maskCep(cep);
+        const zip = removeMask(value);
+
         setFormData((prev) => ({
             ...prev,
-            [id]: maskedValue
+            zip: value,
         }));
 
-        if (id === 'zip' && removeMask(value).length === 8) {
-            setLoadingCep(true);
+        if (zip.length === 8) {
+            showLoader();
             try {
-                const response = await fetch(`https://viacep.com.br/ws/${removeMask(value)}/json/`);
+                const response = await fetch(`https://viacep.com.br/ws/${zip}/json/`);
                 if (!response.ok) throw new Error('Erro ao buscar o CEP');
-                
+
                 const data = await response.json();
                 if (data.erro) throw new Error('CEP não encontrado');
 
@@ -52,65 +62,40 @@ const CreateOrganizationAddressPage = () => {
                     district: data.bairro || '',
                     city: data.localidade || '',
                     state: data.uf || '',
-                    country: 'Brasil'
+                    country: 'Brasil',
                 }));
-                setMessage({ type: 'success', text: 'Endereço preenchido automaticamente!' });
+
+                showNotification('success', 'Endereço preenchido automaticamente!');
             } catch (error) {
-                setMessage({ type: 'error', text: error.message });
+                showNotification('error', error.message);
             } finally {
-                setLoadingCep(false);
+                hideLoader();
             }
         }
-    };
+    }, [setFormData, showNotification, showLoader, hideLoader]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({});
-        setMessage(null);
+    const handleSubmit = useCallback(async (data) => {
+        showLoader();
 
         const sanitizedData = {
             ...formData,
             zip: removeMask(formData.zip)
-        }
+        };
 
         try {
-            const response = await OrganizationService.addOrganizationAddress(organizationId, sanitizedData, navigate);
-            setMessage({ type: 'success', text: response.message });
-            setFormData({
-                alias: '',
-                zip: '',
-                street: '',
-                number: '',
-                details: '',
-                district: '',
-                city: '',
-                state: '',
-                country: ''
-            });
+            await addOrganizationAddress(organizationId, sanitizedData);
+            resetForm();
         } catch (error) {
-            if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    alias: errors?.alias?.[0] || '',
-                    zip: errors?.zip?.[0] || '',
-                    street: errors?.street?.[0] || '',
-                    number: errors?.number?.[0] || '',
-                    details: errors?.details?.[0] || '',
-                    district: errors?.district?.[0] || '',
-                    city: errors?.city?.[0] || '',
-                    state: errors?.state?.[0] || '',
-                    country: errors?.country?.[0] || ''
-                });
-                return
-            }
-            console.log(error);
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao criar endereço' });
+            console.log(error)
+            showNotification('error', 'Erro ao cadastrar o endereço.');
+        } finally {
+            hideLoader();
         }
-    };
+    }, [addOrganizationAddress, organizationId, navigate, applicationId, showLoader, hideLoader, showNotification]);
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/`);
-    };
+    }, [navigate, applicationId, organizationId]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -119,124 +104,27 @@ const CreateOrganizationAddressPage = () => {
                     Cadastro de Endereço da Organização
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Apelido:"
-                                type="text"
-                                id="alias"
-                                value={formData.alias}
-                                onChange={handleChange}
-                                placeholder="Digite o apelido do endereço"
-                                error={formErrors.alias}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="CEP:"
-                                type="text"
-                                id="zip"
-                                value={formData.zip}
-                                onChange={handleChange}
-                                placeholder="Digite o CEP"
-                                error={formErrors.zip}
-                            />
-                            {loadingCep && <p>Carregando endereço...</p>}
-                        </div>
-                    </div>
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Rua:"
-                                type="text"
-                                id="street"
-                                value={formData.street}
-                                onChange={handleChange}
-                                placeholder="Digite a rua"
-                                error={formErrors.street}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-3">
-                            <InputField
-                                label="Número:"
-                                type="text"
-                                id="number"
-                                value={formData.number}
-                                onChange={handleChange}
-                                placeholder="Digite o número"
-                                error={formErrors.number}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-3">
-                            <InputField
-                                label="Detalhes:"
-                                type="text"
-                                id="details"
-                                value={formData.details}
-                                onChange={handleChange}
-                                placeholder="Digite os detalhes"
-                                error={formErrors.details}
-                            />
-                        </div>
-                    </div>
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-4">
-                            <InputField
-                                label="Bairro:"
-                                type="text"
-                                id="district"
-                                value={formData.district}
-                                onChange={handleChange}
-                                placeholder="Digite o bairro"
-                                error={formErrors.district}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-4">
-                            <InputField
-                                label="Cidade:"
-                                type="text"
-                                id="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                                placeholder="Digite a cidade"
-                                error={formErrors.city}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-4">
-                            <InputField
-                                label="Estado:"
-                                type="text"
-                                id="state"
-                                value={formData.state}
-                                onChange={handleChange}
-                                placeholder="Digite o estado"
-                                error={formErrors.state}
-                            />
-                        </div>
-                    </div>
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-12">
-                            <InputField
-                                label="País:"
-                                type="text"
-                                id="country"
-                                value={formData.country}
-                                onChange={handleChange}
-                                placeholder="Digite o país"
-                                error={formErrors.country}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-3 d-flex gap-2">
-                        {canAccess('Adicionar endereço à organização') && (
-                            <Button type="submit" text="Cadastrar Endereço" className="btn btn-blue-light fw-semibold" />
-                        )}
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                    </div>
-                </form>
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={formData}
+                    textSubmit="Cadastrar"
+                    textLoadingSubmit="Cadastrando..."
+                    handleBack={handleBack}
+                >
+                    {() => (
+                        <>
+                            {addressFields.map((section) => (
+                                <FormSection
+                                    key={section.section}
+                                    section={section}
+                                    formData={formData}
+                                    formErrors={formErrors}
+                                    handleFieldChange={handleFieldChange}
+                                />
+                            ))}
+                        </>
+                    )}
+                </Form>
             </div>
         </MainLayout>
     );

@@ -90,10 +90,10 @@ label {
 .theme-background {
     background-color: var(--theme-background);
 }
-.input-theme {
+/* .input-theme {
     background-color: var(--input-theme) !important;
     color: var(--text-color) !important;
-}
+} */
 .dark-theme .sidebar__content::-webkit-scrollbar {
     background-color: hsl(228, 16%, 30%);
 }

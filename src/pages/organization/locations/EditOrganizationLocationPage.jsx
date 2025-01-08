@@ -1,93 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import InputField from '../../../components/InputField';
-import Button from '../../../components/Button';
 import '../../../assets/styles/custom-styles.css';
-import MyAlert from '../../../components/MyAlert';
-import OrganizationService from '../../../services/OrganizationService';
+import Form from '../../../components/Form';
+import FormSection from '../../../components/FormSection';
+import useOrganizationService from '../../../hooks/useOrganizationService';
+import useLoader from '../../../hooks/useLoader';
+import useNotification from '../../../hooks/useNotification';
+import useForm from '../../../hooks/useForm';
 import { usePermissions } from '../../../hooks/usePermissions';
+import { locationFields } from '../../../constants/forms/locationFields';
 
 const EditOrganizationLocationPage = () => {
     const navigate = useNavigate();
     const { applicationId, organizationId, addressId, locationId } = useParams(); 
     const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [formErrors, setFormErrors] = useState({});
-    const [formData, setFormData] = useState({
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { fetchOrganizationLocationById, updateOrganizationLocation, formErrors } = useOrganizationService(navigate);
+
+    const { formData, setFormData, handleChange, resetForm } = useForm({
         area: '',
         section: '',
         spot: '',
         details: ''
     });
 
+    const fetchLocationData = useCallback(async () => {
+        showLoader();
+        try {
+            const location = await fetchOrganizationLocationById(organizationId, addressId, locationId);
+            setFormData({
+                area: location.area || '',
+                section: location.section || '',
+                spot: location.spot || '',
+                details: location.details || ''
+            });
+        } catch (error) {
+            showNotification('error', 'Erro ao carregar os dados da localização');
+        } finally {
+            hideLoader();
+        }
+    }, [fetchOrganizationLocationById, organizationId, addressId, locationId, showLoader, hideLoader, showNotification, setFormData]);
+
     useEffect(() => {
-        const fetchLocationData = async () => {
-            try {
-                const response = await OrganizationService.showOrganizationLocation(
-                    organizationId,
-                    addressId,
-                    locationId
-                );
-                const { area, section, spot, details } = response.result;
-
-                setFormData({
-                    area: area || '',
-                    section: section || '',
-                    spot: spot || '',
-                    details: details || ''
-                });
-            } catch (error) {
-                setMessage({ type: 'error', text: 'Erro ao carregar os dados da localização' });
-                console.error(error);
-            }
-        };
-
         fetchLocationData();
     }, [organizationId, addressId, locationId]);
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-
-        setFormData((prev) => ({
-            ...prev,
-            [id]: value
-        }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({});
-        setMessage(null);
+    const handleSubmit = async (data) => {
+        showLoader();
 
         try {
-            const response = await OrganizationService.updateOrganizationLocation(
-                organizationId,
-                addressId,
-                locationId,
-                formData,
-                navigate
-            );
-
-            setMessage({ type: 'success', text: response.message });
+            await updateOrganizationLocation(organizationId, addressId, locationId, data);
         } catch (error) {
-            if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    area: errors?.area?.[0] || '',
-                    section: errors?.section?.[0] || '',
-                    spot: errors?.spot?.[0] || '',
-                    details: errors?.details?.[0] || ''
-                });
-                return;
-            }
-            console.error(error);
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao atualizar localização' });
+            console.log(error)
+            showNotification('error', 'Erro ao atualizar localização');
+        } finally {
+            hideLoader();
         }
     };
 
     const handleBack = () => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}`);
+        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${addressId}/localizacoes`);
     };
 
     return (
@@ -97,66 +71,25 @@ const EditOrganizationLocationPage = () => {
                     Editar Localização
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
-
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Área:"
-                                type="text"
-                                id="area"
-                                value={formData.area}
-                                onChange={handleChange}
-                                placeholder="Digite a área"
-                                error={formErrors.area}
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={formData}
+                    textSubmit="Salvar"
+                    textLoadingSubmit="Salvando..."
+                    handleBack={handleBack}
+                >
+                    {() => (
+                        locationFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                formErrors={formErrors}
+                                handleFieldChange={handleChange}
                             />
-                        </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Seção:"
-                                type="text"
-                                id="section"
-                                value={formData.section}
-                                onChange={handleChange}
-                                placeholder="Digite a seção"
-                                error={formErrors.section}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Ponto:"
-                                type="text"
-                                id="spot"
-                                value={formData.spot}
-                                onChange={handleChange}
-                                placeholder="Digite o ponto"
-                                error={formErrors.spot}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Detalhes:"
-                                type="text"
-                                id="details"
-                                value={formData.details}
-                                onChange={handleChange}
-                                placeholder="Digite os detalhes"
-                                error={formErrors.details}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-3 d-flex gap-2">
-                        {canAccess('Atualizar endereço da organização') && (
-                            <Button type="submit" text="Salvar Alterações" className="btn btn-blue-light fw-semibold" />
-                        )}
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                    </div>
-                </form>
+                        ))
+                    )}
+                </Form>
             </div>
         </MainLayout>
     );

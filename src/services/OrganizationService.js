@@ -197,6 +197,7 @@ const OrganizationService = {
     async createOrganizationLocation(id, idAddress, data, navigate) {
         try {
             const response = await api.post(`/organizations/${id}/addresses/${idAddress}/locations`, data);
+            
             return {
                 message: response.data.message,
                 result: response.data.result,

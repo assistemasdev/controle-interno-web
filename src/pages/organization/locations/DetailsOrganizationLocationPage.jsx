@@ -1,51 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import InputField from '../../../components/InputField';
-import Button from '../../../components/Button';
 import '../../../assets/styles/custom-styles.css';
-import MyAlert from '../../../components/MyAlert';
-import OrganizationService from '../../../services/OrganizationService';
-
+import Button from '../../../components/Button';
+import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
+import useOrganizationService from '../../../hooks/useOrganizationService';
+import useLoader from '../../../hooks/useLoader';
+import useNotification from '../../../hooks/useNotification';
+import { locationFields } from '../../../constants/forms/locationFields';
 const DetailsOrganizationLocationPage = () => {
     const navigate = useNavigate();
-    const { applicationId, organizationId, addressId, locationId } = useParams(); 
-    const [message, setMessage] = useState(null);
-    const [formData, setFormData] = useState({
+    const { applicationId, organizationId, addressId, locationId } = useParams();
+    const { fetchOrganizationLocationById } = useOrganizationService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+
+    const [formData, setFormData] = React.useState({
         area: '',
         section: '',
         spot: '',
-        details: ''
+        details: '',
     });
 
+    const fetchLocationData = useCallback(async () => {
+        showLoader();
+        try {
+            const location = await fetchOrganizationLocationById(organizationId, addressId, locationId);
+            setFormData({
+                area: location.area || '',
+                section: location.section || '',
+                spot: location.spot || '',
+                details: location.details || '',
+            });
+        } catch (error) {
+            showNotification('error', 'Erro ao carregar os dados da localização.');
+        } finally {
+            hideLoader();
+        }
+    }, [fetchOrganizationLocationById, organizationId, addressId, locationId, showLoader, hideLoader, showNotification]);
+
     useEffect(() => {
-        const fetchLocationData = async () => {
-            try {
-                const response = await OrganizationService.showOrganizationLocation(
-                    organizationId,
-                    addressId,
-                    locationId
-                );
-                const { area, section, spot, details } = response.result;
-
-                setFormData({
-                    area: area || '',
-                    section: section || '',
-                    spot: spot || '',
-                    details: details || ''
-                });
-            } catch (error) {
-                setMessage({ type: 'error', text: 'Erro ao carregar os dados da localização' });
-                console.error(error);
-            }
-        };
-
         fetchLocationData();
     }, [organizationId, addressId, locationId]);
 
-    const handleBack = () => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}`);
-    };
+    const handleBack = useCallback(() => {
+        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${addressId}/localizacoes`);
+    }, [navigate, applicationId, organizationId]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -55,53 +55,8 @@ const DetailsOrganizationLocationPage = () => {
                 </div>
 
                 <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
 
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Área:"
-                                type="text"
-                                id="area"
-                                value={formData.area}
-                                placeholder="Área não definida"
-                                disabled={true}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Seção:"
-                                type="text"
-                                id="section"
-                                value={formData.section}
-                                placeholder="Seção não definida"
-                                disabled={true}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Ponto:"
-                                type="text"
-                                id="spot"
-                                value={formData.spot}
-                                placeholder="Ponto não definido"
-                                disabled={true}
-                            />
-                        </div>
-                        <div className="d-flex flex-column col-md-6">
-                            <InputField
-                                label="Detalhes:"
-                                type="text"
-                                id="details"
-                                value={formData.details}
-                                placeholder="Detalhes não definidos"
-                                disabled={true}
-                            />
-                        </div>
-                    </div>
+                    <DetailsSectionRenderer sections={locationFields} formData={formData} />
 
                     <div className="mt-3 d-flex gap-2">
                         <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />

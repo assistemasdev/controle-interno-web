@@ -1,232 +1,128 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import Button from '../../components/Button';
-import { CircularProgress } from '@mui/material';
 import '../../assets/styles/custom-styles.css';
-import MyAlert from '../../components/MyAlert';
-import OrganizationService from '../../services/OrganizationService';
 import DynamicTable from '../../components/DynamicTable';
 import { faEdit, faTrash, faEye, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
+import useLoader from '../../hooks/useLoader';
+import useNotification from '../../hooks/useNotification';
+import useOrganizationService from '../../hooks/useOrganizationService';
+import { editOrganizationFields } from '../../constants/forms/organizationFields';
+import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
 
 const OrganizationDetailsPage = () => {
     const navigate = useNavigate();
     const { applicationId, organizationId } = useParams();
-    const [message, setMessage] = useState(null);
     const { canAccess } = usePermissions();
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const {
+        fetchOrganizationById,
+        fetchOrganizationAddresses,
+        deleteOrganizationAddress,
+    } = useOrganizationService(navigate);
 
-    // States for organization data
     const [formData, setFormData] = useState({
         name: '',
-        alias: '',
         color: '',
-        email: '',
+        active: '',
     });
-
-    // Pagination states for addresses
     const [addresses, setAddresses] = useState([]);
     const [currentPageAddresses, setCurrentPageAddresses] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPageAddresses, setItemsPerPageAddresses] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPagesAddresses, setTotalPagesAddresses] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-
-    // Pagination states for contacts
-    const [contacts, setContacts] = useState([]);
-    const [currentPageContacts, setCurrentPageContacts] = useState(PAGINATION.DEFAULT_PAGE);
-    const [itemsPerPageContacts, setItemsPerPageContacts] = useState(PAGINATION.DEFAULT_PER_PAGE);
-    const [totalPagesContacts, setTotalPagesContacts] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-
-    const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
     const [addressToDelete, setAddressToDelete] = useState(null);
-    const [contactToDelete, setContactToDelete] = useState(null);
 
-    useEffect(() => {
-        fetchData();
-    }, [organizationId]);
+    const fetchAddresses = useCallback(async (page = 1) => {
+        try {
+            const response = await fetchOrganizationAddresses(organizationId, { page, perPage: itemsPerPageAddresses });
+            setAddresses(response.data.map((address) => ({
+                id: address.id,
+                zip: address.zip,
+                street: address.street,
+            })));
+            setTotalPagesAddresses(response.last_page);
+            setCurrentPageAddresses(response.current_page);
+        } catch (error) {
+            showNotification('error', 'Erro ao carregar endereços.');
+        }
+    }, [fetchOrganizationAddresses, itemsPerPageAddresses, organizationId]);
 
-    const fetchData = async () => {
-        setLoading(true);
-        setMessage(null);
+    const fetchData = useCallback(async () => {
+        showLoader();
 
         try {
-            const organizationResponse = await OrganizationService.getById(organizationId, navigate);
-            const organization = organizationResponse.result;
-
+            const organization = await fetchOrganizationById(organizationId);
             setFormData({
                 name: organization.name || '',
                 color: organization.color || '',
                 active: organization.active ? 'Ativo' : 'Desativado',
             });
 
-            // Fetch paginated data
-            fetchAddresses(currentPageAddresses);
-            fetchContacts(currentPageContacts);
+            await fetchAddresses(currentPageAddresses);
         } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
-            setMessage({ type: 'error', text: 'Erro ao carregar os dados da organização' });
+            showNotification('error', 'Erro ao carregar os dados da organização.');
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [fetchOrganizationById, fetchAddresses, currentPageAddresses]);
 
-    const fetchAddresses = async (page = 1) => {
+    const confirmDelete = useCallback(async () => {
+        showLoader();
         try {
-            const response = await OrganizationService.allOrganizationAddresses(
-                organizationId,
-                { page, perPage: itemsPerPageAddresses },
-                navigate
-            );
-
-            const { data, last_page, current_page } = response.result;
-            const filteredAddresses = data.map(address => ({
-                id: address.id,
-                zip: address.zip,
-                street: address.street,
-            }));
-
-            setAddresses(filteredAddresses);
-            setTotalPagesAddresses(last_page);
-            setCurrentPageAddresses(current_page);
-        } catch (error) {
-            console.error('Erro ao carregar endereços:', error);
-        }
-    };
-
-    const fetchContacts = async (page = 1) => {
-        try {
-            const response = await OrganizationService.allOrganizationContacts(
-                organizationId,
-                { page, perPage: itemsPerPageContacts },
-                navigate
-            );
-
-            const { data, last_page, current_page } = response.result;
-            const filteredContacts = data.map(contact => ({
-                id: contact.id,
-                name: `${contact.name || ''} ${contact.surname || ''}`,
-                number: `${contact.ddd || ''} ${contact.phone || ''}`,
-            }));
-
-            setContacts(filteredContacts);
-            setTotalPagesContacts(last_page);
-            setCurrentPageContacts(current_page);
-        } catch (error) {
-            console.error('Erro ao carregar contatos:', error);
-        }
-    };
-
-    const handleDelete = (address) => {
-        setAddressToDelete(address);
-        setDeleteModalOpen(true);
-    };
-
-    const handleDeleteContact = (contact) => {
-        setContactToDelete(contact);
-        setDeleteModalOpenContacts(true);
-    };
-
-    const confirmDelete = async () => {
-        setLoading(true);
-        try {
-            await OrganizationService.deleteOrganizationAddress(organizationId, addressToDelete.id, navigate);
-            setMessage({ type: 'success', text: 'Endereço excluído com sucesso' });
+            await deleteOrganizationAddress(organizationId, addressToDelete.id);
+            showNotification('success', 'Endereço excluído com sucesso.');
             fetchAddresses(currentPageAddresses);
         } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
+            showNotification('error', 'Erro ao excluir endereço.');
         } finally {
             setDeleteModalOpen(false);
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [deleteOrganizationAddress, addressToDelete, currentPageAddresses, fetchAddresses, organizationId]);
 
-    const confirmDeleteContacts = async () => {
-        setLoading(true);
-        try {
-            await OrganizationService.deleteOrganizationContact(organizationId, contactToDelete.id, navigate);
-            setMessage({ type: 'success', text: 'Contato excluído com sucesso' });
-            fetchContacts(currentPageContacts);
-        } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao excluir o contato' });
-        } finally {
-            setDeleteModalOpenContacts(false);
-            setLoading(false);
-        }
-    };
+    useEffect(() => {
+        fetchData();
+    }, [organizationId]);
 
-    const handleEdit = (address) => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/editar/${address.id}`);
-    };
-    
-    const handleViewDetails = (address) => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/detalhes/${address.id}`);
-    };
-    
-    const handleViewLocations = (address) => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${address.id}/localizacoes`);
-    };
-    
-    const handleEditContact = (contact) => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/contatos/editar/${contact.id}`);
-    };
-    
-    const handleBack = () => {
-        navigate('/orgaos/');
-    };
-    
-    const headers = ['ID', 'CEP', 'Rua'];
-    const actions = [
+    const actions = useMemo(() => [
         {
             icon: faEdit,
             title: 'Editar Endereço',
             buttonClass: 'btn-primary',
             permission: 'Atualizar endereço da organização',
-            onClick: handleEdit,
+            onClick: (address) => navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/editar/${address.id}`),
         },
         {
             icon: faTrash,
             title: 'Excluir Endereço',
             buttonClass: 'btn-danger',
             permission: 'Excluir endereço da organização',
-            onClick: handleDelete,
+            onClick: (address) => {
+                setAddressToDelete(address);
+                setDeleteModalOpen(true);
+            },
         },
         {
             icon: faEye,
             title: 'Ver Detalhes',
             buttonClass: 'btn-info',
             permission: 'Visualizar detalhes do endereço',
-            onClick: handleViewDetails,
+            onClick: (address) => navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/detalhes/${address.id}`),
         },
         {
             icon: faMapMarkerAlt,
             title: 'Ver Localizações',
             buttonClass: 'btn-warning',
             permission: 'Listar endereços de organizações',
-            onClick: handleViewLocations,
+            onClick: (address) => navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${address.id}/localizacoes`),
         },
-    ];
-
-    const headersContacts = ['ID', 'Responsável', 'Contato'];
-    const actionsContacts = [
-        {
-            icon: faEdit,
-            title: 'Editar Contato',
-            buttonClass: 'btn-primary',
-            permission: 'Atualizar contato de organizações',
-            onClick: handleEditContact,
-        },
-        {
-            icon: faTrash,
-            title: 'Excluir Contato',
-            buttonClass: 'btn-danger',
-            permission: 'Excluir contato da organização',
-            onClick: handleDeleteContact,
-        },
-    ];
+    ], [navigate, applicationId, organizationId]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -236,76 +132,34 @@ const OrganizationDetailsPage = () => {
                 </div>
 
                 <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
+                    <>
+                        <DetailsSectionRenderer sections={editOrganizationFields} formData={formData} />
 
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
+                        <div className="form-row d-flex justify-content-between align-items-center mt-1">
+                            <h5 className="text-dark font-weight-bold mt-3">Endereços da Organização</h5>
+                            {canAccess('Adicionar endereço') && (
+                                <Button
+                                    text="Adicionar Endereço"
+                                    className="btn btn-blue-light fw-semibold"
+                                    link={`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/adicionar`}
+                                />
+                            )}
                         </div>
-                    ) : (
-                        <>
-                            <h5 className="text-dark font-weight-bold mt-3">Dados da Organização</h5>
-                            <hr />
+                        
+                        <hr />
+                        <DynamicTable
+                            headers={['ID', 'CEP', 'Rua']}
+                            data={addresses}
+                            actions={actions}
+                            currentPage={currentPageAddresses}
+                            totalPages={totalPagesAddresses}
+                            onPageChange={fetchAddresses}
+                        />
 
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField label="Nome" id="name" value={formData.name} disabled={true} />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField label="Cor" id="color" value={formData.color} disabled={true} />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField label="Status" id="status" value={formData.active} disabled={true} />
-                                </div>
-                            </div>
-
-                            <div className="form-row d-flex justify-content-between align-items-center mt-1">
-                                <h5 className="text-dark font-weight-bold mt-3">Endereços da Organização</h5>
-                                {canAccess('Adicionar endereço') && (
-                                    <Button
-                                        text="Adicionar Endereço"
-                                        className="btn btn-blue-light fw-semibold"
-                                        link={`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/adicionar`}
-                                    />
-                                )}
-                            </div>
-                            <hr />
-
-                            <DynamicTable
-                                headers={headers}
-                                data={addresses}
-                                actions={actions}
-                                currentPage={currentPageAddresses}
-                                totalPages={totalPagesAddresses}
-                                onPageChange={fetchAddresses}
-                            />
-
-                            <div className="form-row d-flex justify-content-between align-items-center mt-1">
-                                <h5 className="text-dark font-weight-bold mt-3">Contatos da Organização</h5>
-                                {canAccess('Adicionar contatos de organizações') && (
-                                    <Button
-                                        text="Adicionar Contato"
-                                        className="btn btn-blue-light fw-semibold"
-                                        link={`/orgaos/detalhes/${applicationId}/${organizationId}/contatos/adicionar`}
-                                    />
-                                )}
-                            </div>
-                            <hr />
-
-                            <DynamicTable
-                                headers={headersContacts}
-                                data={contacts}
-                                actions={actionsContacts}
-                                currentPage={currentPageContacts}
-                                totalPages={totalPagesContacts}
-                                onPageChange={fetchContacts}
-                            />
-
-                            <div className="mt-3 d-flex gap-2">
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
+                        <div className="mt-3 d-flex gap-2">
+                            <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={() => navigate('/orgaos/')} />
+                        </div>
+                    </>
                 </div>
             </div>
 
@@ -314,13 +168,6 @@ const OrganizationDetailsPage = () => {
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
                 itemName={addressToDelete ? addressToDelete.street : ''}
-            />
-
-            <ConfirmationModal
-                open={deleteModalOpenContacts}
-                onClose={() => setDeleteModalOpenContacts(false)}
-                onConfirm={confirmDeleteContacts}
-                itemName={contactToDelete ? `${contactToDelete.name}` : ''}
             />
         </MainLayout>
     );
