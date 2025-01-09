@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -10,18 +10,15 @@ import useLoader from '../../hooks/useLoader';
 import useCustomerService from '../../hooks/useCustomerService';
 import { maskCep, removeMask } from '../../utils/maskUtils';
 import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateCustomerPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { createCustomer, formErrors } = useCustomerService(navigate);
+    const { formData, handleChange, setFormData, initializeData, resetForm } = useForm(setDefaultFieldValues(customerFields));
 
-    const { formData, handleChange, setFormData, initializeData, resetForm } = useForm({});
-
-    useEffect(() => {
-        initializeData(customerFields);
-    }, [customerFields]);
     
     const handleCepChange = useCallback(async (e) => {
         const value = maskCep(e.target.value);
@@ -87,8 +84,10 @@ const CreateCustomerPage = () => {
                     }
                 };
         try {
-            await createCustomer(sanitizedData);
-            resetForm();
+            const success = await createCustomer(sanitizedData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.log(error)
             showNotification('error', 'Erro ao criar cliente.');

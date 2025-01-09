@@ -10,6 +10,7 @@ import useForm from '../../../hooks/useForm';
 import { addressFields } from '../../../constants/forms/addressFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const EditCustomerAddressPage = () => {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ const EditCustomerAddressPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchCustomerAddress, updateAddress, formErrors } = useCustomerService(navigate);
-    const { formData, setFormData, initializeData, handleChange } = useForm({});
+    const { formData, setFormData, formatData, handleChange } = useForm(setDefaultFieldValues(addressFields));
 
     const handleFieldChange = useCallback((fieldId, value) => {
         if (fieldId === 'zip') {
@@ -63,26 +64,18 @@ const EditCustomerAddressPage = () => {
     }, [setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
-        initializeData(addressFields);
         fetchAddress();
-    }, [id, addressId, addressFields]);
+    }, [id, addressId]);
 
     const fetchAddress = useCallback(async () => {
         try {
             showLoader();
-            const address = await fetchCustomerAddress(id, addressId);
-
-            setFormData({
-                alias: address.alias || '',
-                zip: maskCep(address.zip || ''),
-                street: address.street || '',
-                number: address.number || '',
-                details: address.details || '',
-                district: address.district || '',
-                city: address.city || '',
-                state: address.state || '',
-                country: address.country || ''
-            });
+            const response = await fetchCustomerAddress(id, addressId);
+            formatData(response, addressFields)
+            setFormData((prev) => ({
+                ...prev,
+                zip: maskCep(response.zip)
+            }))
         } catch (error) {
             showNotification('error', 'Erro ao buscar pelo endereço');
             console.error(error);

@@ -9,35 +9,25 @@ import { contactFields } from '../../../constants/forms/contactFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import useCustomerService from '../../../hooks/useCustomerService';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const EditCustomerContactPage = () => {
     const navigate = useNavigate();
     const { id, contactId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, setFormData, handleChange, initializeData } = useForm({});
+    const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(contactFields));
     const { fetchCustomerContact, updateContact, formErrors } = useCustomerService(navigate);
 
     useEffect(() => {
-        initializeData(contactFields)
         fetchContact();
-    }, [id, contactId, contactFields]);
+    }, [id, contactId]);
 
     const fetchContact = async () => {
         try {
             showLoader();
-            const contact = await fetchCustomerContact(id, contactId);
-
-            setFormData({
-                name: contact.name || '',
-                surname: contact.surname || '',
-                role: contact.role || '',
-                ddd: contact.ddd || '',
-                phone: contact.phone || '',
-                cell_ddd: contact.cell_ddd || '',
-                cell: contact.cell || '',
-                email: contact.email || ''
-            });
+            const response = await fetchCustomerContact(id, contactId);
+            formatData(response, contactFields)
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados do contato');
             console.error(error);

@@ -23,7 +23,7 @@ const useForm = (initialData) => {
     };
 
     const resetForm = () => {
-        setFormData(initialFormData); 
+        setFormData(initialData); 
     };
 
     const initializeData = (fields) => {

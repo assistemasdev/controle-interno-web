@@ -16,6 +16,7 @@ import useForm from '../../hooks/useForm';
 import Form from '../../components/Form'; 
 import FormSection from '../../components/FormSection';
 import { productFields } from "../../constants/forms/productFields";
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateProductPage = () => {
     const navigate = useNavigate();
@@ -25,24 +26,7 @@ const CreateProductPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { fetchTypeGroups } = useTypeGroupsService(navigate);
     const [suppliers, setSuppliers] = useState();
-    const { formData, handleChange, initializeData, setFormData } = useForm({
-        product: {
-            name: '',
-            number: '',
-            serial_number: '',
-            current_organization_id: '',
-            owner_organization_id: '',
-            supplier_id: '',
-            purchase_date: '',
-            warranty_date: '',
-            condition_id: '',
-            category_id: '',
-            address_id: '',
-            location_id: ''
-        },
-        groups: []
-    });
-
+    const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(productFields));
     const [organizations, setOrganizations] = useState([]);
     const [types, setTypes] = useState([]);
     const [conditions, setConditions] = useState([]);
@@ -53,8 +37,6 @@ const CreateProductPage = () => {
     const [selectedOrganizationId, setSelectedOrganizationId] = useState();
 
     useEffect(() => {
-        initializeData(productFields);
-
         const fetchData = async () => {
             try {
                 showLoader();
@@ -86,7 +68,7 @@ const CreateProductPage = () => {
             }
         };
         fetchData();
-    }, [productFields]);
+    }, []);
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
@@ -130,7 +112,10 @@ const CreateProductPage = () => {
     const handleSubmit = async (data) => {
         showLoader();
         try {
-            await createProduct(data);
+            const success = await createProduct(data);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.error('Error creating product:', error);
         } finally {

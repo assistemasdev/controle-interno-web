@@ -9,6 +9,7 @@ import useNotification from '../../hooks/useNotification';
 import useCategoryService from '../../hooks/useCategoryService';
 import useLoader from '../../hooks/useLoader';
 import { categoryFields } from '../../constants/forms/categoryFields';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditCategoryPage = () => {
     const navigate = useNavigate();
@@ -16,12 +17,7 @@ const EditCategoryPage = () => {
     const { showNotification } = useNotification();
     const { fetchCategoryById, updateCategory, formErrors } = useCategoryService(navigate);
     const { showLoader, hideLoader } = useLoader();
-
-    const { formData, handleChange, initializeData, formatData } = useForm({});
-
-    useEffect(() => {
-        initializeData(categoryFields); 
-    }, [categoryFields]);
+    const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(categoryFields));
 
     const fetchCategory = useCallback(async () => {
         try {

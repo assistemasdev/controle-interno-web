@@ -8,30 +8,22 @@ import useOrganizationService from '../../../hooks/useOrganizationService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import { locationFields } from '../../../constants/forms/locationFields';
+import useForm from '../../../hooks/useForm';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
+
 const DetailsOrganizationLocationPage = () => {
     const navigate = useNavigate();
     const { applicationId, organizationId, addressId, locationId } = useParams();
     const { fetchOrganizationLocationById } = useOrganizationService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-
-    const [formData, setFormData] = React.useState({
-        area: '',
-        section: '',
-        spot: '',
-        details: '',
-    });
-
+    const { formData, formatData } = useForm(setDefaultFieldValues(locationFields));
+    
     const fetchLocationData = useCallback(async () => {
         showLoader();
         try {
-            const location = await fetchOrganizationLocationById(organizationId, addressId, locationId);
-            setFormData({
-                area: location.area || '',
-                section: location.section || '',
-                spot: location.spot || '',
-                details: location.details || '',
-            });
+            const response = await fetchOrganizationLocationById(organizationId, addressId, locationId);
+            formatData(response, locationFields)
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização.');
         } finally {

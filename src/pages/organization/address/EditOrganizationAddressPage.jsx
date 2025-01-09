@@ -11,6 +11,7 @@ import useNotification from '../../../hooks/useNotification';
 import useOrganizationService from '../../../hooks/useOrganizationService';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const EditOrganizationAddressPage = () => {
     const navigate = useNavigate();
@@ -18,19 +19,8 @@ const EditOrganizationAddressPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchOrganizationAddressById, updateOrganizationAddress, formErrors } = useOrganizationService(navigate);
-
-    const { formData, setFormData, handleChange } = useForm({
-        alias: '',
-        zip: '',
-        street: '',
-        number: '',
-        details: '',
-        district: '',
-        city: '',
-        state: '',
-        country: '',
-    });
-
+    const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(addressFields));
+    
     const handleFieldChange = useCallback((fieldId, value, field) => {
         if (fieldId === 'zip') {
             handleCepChange(value);
@@ -76,18 +66,12 @@ const EditOrganizationAddressPage = () => {
     const fetchData = useCallback(async () => {
         showLoader();
         try {
-            const address = await fetchOrganizationAddressById(organizationId, addressId);
-            setFormData({
-                alias: address.alias || '',
-                zip: maskCep(address.zip || ''),
-                street: address.street || '',
-                number: address.number || '',
-                details: address.details || '',
-                district: address.district || '',
-                city: address.city || '',
-                state: address.state || '',
-                country: address.country || '',
-            });
+            const response = await fetchOrganizationAddressById(organizationId, addressId);
+            formatData(response, addressFields)
+            setFormData(prev => ({
+                ...prev,
+                zip: maskCep(response.zip)
+            }))
         } catch (error) {
             console.log(error);
             showNotification('error', 'Erro ao carregar os dados do endereço.');

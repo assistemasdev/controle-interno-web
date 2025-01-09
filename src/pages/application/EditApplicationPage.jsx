@@ -9,6 +9,7 @@ import useApplicationService from '../../hooks/useApplicationService';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditApplicationPage = () => {
     const navigate = useNavigate();
@@ -16,32 +17,23 @@ const EditApplicationPage = () => {
     const { getApplicationById, updateApplication, formErrors } = useApplicationService(navigate);
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { formData, handleChange, setFormData, initializeData } = useForm({
-        name: '',
-        session_code: '',
-        active: '',
-    });
+    const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(applicationFields));
 
     const fetchData = useCallback(async () => {
         try {
             showLoader();
-            const application = await getApplicationById(id);
-            initializeData(applicationFields);
-            setFormData({
-                name: application.name,
-                session_code: application.session_code,
-                active: application.active,
-            });
+            const response = await getApplicationById(id);
+            formatData(response, applicationFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da aplicação.');
         } finally {
             hideLoader();
         }
-    }, [id, getApplicationById, initializeData, setFormData, showLoader, hideLoader, showNotification]);
+    }, [id, getApplicationById, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchData();
-    }, [id]);
+    }, [id, applicationFields]);
 
     const handleSubmit = useCallback(async () => {
         try {

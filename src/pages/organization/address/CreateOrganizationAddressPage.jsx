@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
@@ -10,6 +10,7 @@ import useNotification from '../../../hooks/useNotification';
 import useOrganizationService from '../../../hooks/useOrganizationService';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const CreateOrganizationAddressPage = () => {
     const navigate = useNavigate();
@@ -17,18 +18,7 @@ const CreateOrganizationAddressPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { addOrganizationAddress, formErrors } = useOrganizationService(navigate);
-
-    const { formData, setFormData, handleChange, resetForm } = useForm({
-        alias: '',
-        zip: '',
-        street: '',
-        number: '',
-        details: '',
-        district: '',
-        city: '',
-        state: '',
-        country: '',
-    });
+    const { formData, setFormData, handleChange, resetForm } = useForm(setDefaultFieldValues(addressFields));
 
     const handleFieldChange = useCallback(async (fieldId, value) => {
         if (fieldId === 'zip') {
@@ -83,8 +73,10 @@ const CreateOrganizationAddressPage = () => {
         };
 
         try {
-            await addOrganizationAddress(organizationId, sanitizedData);
-            resetForm();
+            const success = await addOrganizationAddress(organizationId, sanitizedData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.log(error)
             showNotification('error', 'Erro ao cadastrar o endereço.');

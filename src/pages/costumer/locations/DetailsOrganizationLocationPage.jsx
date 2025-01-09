@@ -9,19 +9,19 @@ import useForm from '../../../hooks/useForm';
 import { locationFields } from '../../../constants/forms/locationFields';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import useCustomerService from '../../../hooks/useCustomerService';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const DetailsCustomerLocationPage = () => {
     const navigate = useNavigate();
     const { id, addressId, locationId } = useParams(); 
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, setFormData, initializeData } = useForm({});
+    const { formData, setFormData } = useForm(setDefaultFieldValues(locationFields));
     const { fetchCustomerLocation } = useCustomerService(navigate);
 
     useEffect(() => {
-        initializeData(locationFields);
         fetchLocationData();
-    }, [id, addressId, locationFields]);
+    }, [id, addressId]);
 
     const fetchLocationData = useCallback(async () => {
         showLoader();

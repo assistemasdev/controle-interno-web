@@ -10,6 +10,7 @@ import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import useOrganizationService from '../../hooks/useOrganizationService';
 import colorToHex from '../../utils/colorToHex';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditOrganizationPage = () => {
     const navigate = useNavigate();
@@ -17,16 +18,10 @@ const EditOrganizationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchOrganizationById, updateOrganization, formErrors } = useOrganizationService(navigate);
-    const { formData, handleChange, setFormData } = useForm({
-        organization: {
-            name: '',
-            color: '',
-            active: ''
-        }
-    });
+    const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
 
     const handleFieldChange = useCallback((fieldId, value) => {
-        if (fieldId === 'organization.color') {
+        if (fieldId === 'color') {
             const hexColor = colorToHex(value);
             setFormData((prev) => ({
                 ...prev,
@@ -41,7 +36,7 @@ const EditOrganizationPage = () => {
     }, [handleChange, setFormData]);
 
     const getOptions = useCallback((fieldId) => {
-        if (fieldId === 'organization.active') {
+        if (fieldId === 'active') {
             return [
                 { label: 'Ativo', value: '1' },
                 { label: 'Inativo', value: '0' },
@@ -51,8 +46,8 @@ const EditOrganizationPage = () => {
     }, []);
 
     const getSelectedValue = useCallback((fieldId) => {
-        if (fieldId === 'organization.active') {
-            return getOptions(fieldId).find(option => option.value === formData.organization.active) || null;
+        if (fieldId === 'active') {
+            return getOptions(fieldId).find(option => option.value === formData.active) || null;
         }
         return null;
     }, [formData, getOptions]);
@@ -61,9 +56,9 @@ const EditOrganizationPage = () => {
         const fetchData = async () => {
             showLoader();
             try {
-                const organization = await fetchOrganizationById(organizationId);
+                const response = await fetchOrganizationById(organizationId);
 
-                if (organization.application_id != applicationId) {
+                if (response.application_id != applicationId) {
                     navigate('/aplicacoes/dashboard', {
                         state: {
                             type: 'error',
@@ -72,14 +67,11 @@ const EditOrganizationPage = () => {
                     });
                     return;
                 }
-
-                setFormData({
-                    organization: {
-                        name: organization.name,
-                        color: organization.color,
-                        active: organization.active ? '1' : '0',
-                    },
-                });
+                formatData(response, editOrganizationFields)
+                setFormData(prev => ({
+                    ...prev,
+                    active: response.active ? '1' : '0'
+                }))
             } catch (error) {
                 showNotification('error', 'Erro ao carregar a organização.');
                 navigate('/aplicacoes/dashboard');

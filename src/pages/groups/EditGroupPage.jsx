@@ -8,6 +8,7 @@ import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { groupFields } from '../../constants/forms/groupFields';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditGroupPage = () => {
     const navigate = useNavigate();
@@ -15,13 +16,13 @@ const EditGroupPage = () => {
     const { getById, updateGroup, formErrors } = useGroupService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, handleChange, setFormData } = useForm({ name: '' });
+    const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(groupFields));
 
     const fetchGroup = useCallback(async () => {
         try {
             showLoader();
-            const group = await getById(id);
-            setFormData(group);
+            const response = await getById(id);
+            formatData(response, groupFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados do grupo.');
         } finally {
@@ -31,7 +32,7 @@ const EditGroupPage = () => {
 
     useEffect(() => {
         fetchGroup();
-    }, [id, groupFields]);
+    }, [id]);
 
     const handleSubmit = async () => {
         try {

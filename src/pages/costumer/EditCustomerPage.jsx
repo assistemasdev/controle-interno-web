@@ -10,6 +10,7 @@ import useLoader from '../../hooks/useLoader';
 import useCustomerService from '../../hooks/useCustomerService';
 import useForm from '../../hooks/useForm';
 import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditCustomerPage = () => {
     const navigate = useNavigate();
@@ -17,21 +18,18 @@ const EditCustomerPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { fetchCustomerById, updateCustomer, formErrors } = useCustomerService(navigate);
-
-    const { formData, setFormData, handleChange, initializeData } = useForm({});
+    const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(editCustomerFields));
 
     useEffect(() => {
         const fetchCustomerData = async () => {
             showLoader();
             try {
                 const response = await fetchCustomerById(id);
-                initializeData(editCustomerFields);
-                setFormData({
-                    alias: response.alias,
-                    name: response.name,
+                formatData(response, editCustomerFields)
+                setFormData(prev => ({
+                    ...prev,
                     cpf_cnpj: maskCpfCnpj(response.cpf_cnpj)
-                });
-
+                }))
             } catch (error) {
                 console.log(error)
                 showNotification('error', error.message || 'Erro ao buscar cliente.');

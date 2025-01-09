@@ -13,6 +13,8 @@ import useNotification from '../../hooks/useNotification';
 import useOrganizationService from '../../hooks/useOrganizationService';
 import { editOrganizationFields } from '../../constants/forms/organizationFields';
 import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
+import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const OrganizationDetailsPage = () => {
     const navigate = useNavigate();
@@ -25,12 +27,7 @@ const OrganizationDetailsPage = () => {
         fetchOrganizationAddresses,
         deleteOrganizationAddress,
     } = useOrganizationService(navigate);
-
-    const [formData, setFormData] = useState({
-        name: '',
-        color: '',
-        active: '',
-    });
+    const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
     const [addresses, setAddresses] = useState([]);
     const [currentPageAddresses, setCurrentPageAddresses] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPageAddresses, setItemsPerPageAddresses] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -57,12 +54,12 @@ const OrganizationDetailsPage = () => {
         showLoader();
 
         try {
-            const organization = await fetchOrganizationById(organizationId);
-            setFormData({
-                name: organization.name || '',
-                color: organization.color || '',
-                active: organization.active ? 'Ativo' : 'Desativado',
-            });
+            const response = await fetchOrganizationById(organizationId);
+            formatData(response, editOrganizationFields)
+            setFormData(prev => ({
+                ...prev,
+                active: response.active ? 'Ativo' : 'Desativado',
+            }));
 
             await fetchAddresses(currentPageAddresses);
         } catch (error) {

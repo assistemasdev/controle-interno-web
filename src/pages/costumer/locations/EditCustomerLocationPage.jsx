@@ -9,25 +9,21 @@ import useCustomerService from '../../../hooks/useCustomerService';
 import { locationFields } from '../../../constants/forms/locationFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const EditCustomerLocationPage = () => {
     const navigate = useNavigate();
     const { id, addressId, locationId } = useParams(); 
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, setFormData, initializeData, handleChange } = useForm({});
+    const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(locationFields));
     const { fetchCustomerLocation, updateLocation, formErrors } = useCustomerService(navigate);
 
     const fetchLocationData = useCallback(async () => {
         try {
             showLoader();
-            const result = await fetchCustomerLocation(id, addressId, locationId);
-            setFormData({
-                area: result.area || '',
-                section: result.section || '',
-                spot: result.spot || '',
-                details: result.details || ''
-            });
+            const response = await fetchCustomerLocation(id, addressId, locationId);
+            formatData(response, locationFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização');
             console.error(error);
@@ -37,9 +33,8 @@ const EditCustomerLocationPage = () => {
     }, [id, addressId, locationId, setFormData, showLoader, hideLoader, fetchCustomerLocation, showNotification]);
 
     useEffect(() => {
-        initializeData(locationFields);
         fetchLocationData();
-    }, [id, addressId, locationId, locationFields]);
+    }, [id, addressId, locationId]);
 
     const handleSubmit = useCallback(async () => {
         try {

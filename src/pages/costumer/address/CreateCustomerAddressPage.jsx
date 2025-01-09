@@ -11,18 +11,15 @@ import { addressFields } from '../../../constants/forms/addressFields';
 import useCustomerService from '../../../hooks/useCustomerService';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const CreateCustomerAddressPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, setFormData, resetForm, initializeData, handleChange } = useForm({});
+    const { formData, setFormData, resetForm, handleChange } = useForm(setDefaultFieldValues(addressFields));
     const { createAddress, formErrors } = useCustomerService(navigate);
-
-    useEffect(() => {
-        initializeData(addressFields)
-    }, [addressFields]);
 
     const handleFieldChange = (fieldId, value) => {
         if (fieldId == 'zip') {

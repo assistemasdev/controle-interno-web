@@ -9,24 +9,23 @@ import { contactFields } from '../../../constants/forms/contactFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import useCustomerService from '../../../hooks/useCustomerService';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const CreateCustomerContactPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, initializeData, resetForm, handleChange } = useForm({});
+    const { formData, resetForm, handleChange } = useForm(setDefaultFieldValues(contactFields));
     const { createContact, formErrors } = useCustomerService(navigate);
-
-    useEffect(() => {
-        initializeData(contactFields)
-    }, [contactFields]);
 
     const handleSubmit = async () => {
         showLoader()
         try {
-            await createContact(id, formData);
-            resetForm();
+            const success = await createContact(id, formData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.error(error);
             showNotification('error', 'Erro ao criar contato');

@@ -8,6 +8,7 @@ import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import { conditionFields } from '../../constants/forms/conditionFields';
 import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditConditionPage = () => {
     const navigate = useNavigate();
@@ -15,12 +16,8 @@ const EditConditionPage = () => {
     const { getConditionById, updateCondition, formErrors } = useConditionService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
+    const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(conditionFields));
 
-    const { formData, handleChange, initializeData, formatData } = useForm({});
-
-    useEffect(() => {
-        initializeData(conditionFields);
-    }, [conditionFields]);
 
     const fetchCondition = useCallback(async () => {
         showLoader();

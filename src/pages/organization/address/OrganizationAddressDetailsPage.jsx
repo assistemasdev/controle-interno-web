@@ -9,6 +9,8 @@ import useOrganizationService from '../../../hooks/useOrganizationService';
 import { maskCep } from '../../../utils/maskUtils';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { addressFields } from '../../../constants/forms/addressFields';
+import useForm from '../../../hooks/useForm';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const OrganizationAddressDetailsPage = () => {
     const navigate = useNavigate();
@@ -16,34 +18,17 @@ const OrganizationAddressDetailsPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchOrganizationAddressById } = useOrganizationService(navigate);
-
-    const [formData, setFormData] = useState({
-        alias: '',
-        zip: '',
-        street: '',
-        number: '',
-        details: '',
-        district: '',
-        city: '',
-        state: '',
-        country: ''
-    });
-
+    const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields));
+    
     const fetchAddress = useCallback(async () => {
         showLoader();
         try {
-            const address = await fetchOrganizationAddressById(organizationId, addressId);
-            setFormData({
-                alias: address.alias || '',
-                zip: maskCep(address.zip || ''),
-                street: address.street || '',
-                number: address.number || '',
-                details: address.details || '',
-                district: address.district || '',
-                city: address.city || '',
-                state: address.state || '',
-                country: address.country || ''
-            });
+            const response = await fetchOrganizationAddressById(organizationId, addressId);
+            formatData(response, addressFields)
+            setFormData(prev => ({
+                ...prev,
+                zip: maskCep(response.zip)
+            }));
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados do endereço.');
         } finally {

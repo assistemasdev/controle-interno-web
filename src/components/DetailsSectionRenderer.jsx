@@ -10,7 +10,6 @@ const resolveFieldValue = (formData, fieldId) => {
     return formData[fieldId] || '';
 };
 
-
 const DetailsSectionRenderer = ({ sections, formData }) => {
     return (
         <div className="row">

@@ -17,7 +17,7 @@ const useOrganizationService = (navigate) => {
             const response = await OrganizationService.allOrganizationAddresses(organizationId, navigate);
             return response.result;
         } catch (error) {
-            handleError(error, 'Erro ao carregar endereços da organização.');
+            // handleError(error, 'Erro ao carregar endereços da organização.');
             throw error;
         }
     }, [handleError, navigate]);

@@ -88,7 +88,7 @@ export const editOrganizationFields = [
         section: 'Dados da Organização',
         fields: [
             { 
-                id: 'organization.name', 
+                id: 'name', 
                 label: 'Nome:', 
                 type: 'text', 
                 placeholder: 'Digite o nome da organização', 
@@ -96,7 +96,7 @@ export const editOrganizationFields = [
                 handleChange: 'handleChange' 
             },
             { 
-                id: 'organization.color', 
+                id: 'color', 
                 label: 'Cor:', 
                 type: 'color', 
                 placeholder: '', 
@@ -109,7 +109,7 @@ export const editOrganizationFields = [
         section: 'Status',
         fields: [
             { 
-                id: 'organization.active', 
+                id: 'active', 
                 label: 'Status:', 
                 type: 'multi-select', 
                 isMulti: false,

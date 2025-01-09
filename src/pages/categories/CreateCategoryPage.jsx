@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import Form from '../../components/Form';
@@ -6,21 +6,20 @@ import useCategoryService from '../../hooks/useCategoryService';
 import { categoryFields } from '../../constants/forms/categoryFields';
 import FormSection from '../../components/FormSection';
 import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateCategoryPage = () => {
     const navigate = useNavigate();
     const { createCategory, formErrors } = useCategoryService(navigate);
 
-    const { formData, handleChange, resetForm, initializeData } = useForm({});
-
-    useEffect(() => {
-        initializeData(categoryFields);
-    }, [categoryFields]);
+    const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(categoryFields));
 
     const handleSubmit = async () => {
         try {
-            await createCategory(formData);
-            resetForm(); 
+            const success = await createCategory(formData); 
+            if (success) {
+                resetForm(); 
+            }
         } catch (error) {
             console.error('Erro ao cadastrar categoria:', error);
         }

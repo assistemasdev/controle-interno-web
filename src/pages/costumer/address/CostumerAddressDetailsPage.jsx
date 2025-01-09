@@ -10,18 +10,18 @@ import { addressFields } from '../../../constants/forms/addressFields';
 import useForm from '../../../hooks/useForm';
 import useNotification from '../../../hooks/useNotification';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const CostumerAddressDetailsPage = () => {
     const navigate = useNavigate();
     const { id, addressId } = useParams();
-    const { formData, setFormData, initializeData } = useForm({});
+    const { formData, setFormData } = useForm(setDefaultFieldValues(addressFields));
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
 
     useEffect(() => {
-        initializeData(addressFields);
         fetchAddress();
-    }, [id, addressFields]);
+    }, [id]);
 
     const fetchAddress = useCallback(async () => {
         try {

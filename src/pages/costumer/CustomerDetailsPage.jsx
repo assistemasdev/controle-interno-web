@@ -14,6 +14,7 @@ import useCustomerService from '../../hooks/useCustomerService';
 import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
 import { editCustomerFields } from '../../constants/forms/customerFields';
 import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CustomerDetailsPage = () => {
     const navigate = useNavigate();
@@ -22,7 +23,7 @@ const CustomerDetailsPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { fetchCustomerById, fetchCustomerAddresses, fetchCustomerContacts, deleteAddress, deleteContact } = useCustomerService(navigate);
-    const { formData, setFormData, initializeData } = useForm({});
+    const { formData, setFormData } = useForm(setDefaultFieldValues(editCustomerFields));
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -59,9 +60,7 @@ const CustomerDetailsPage = () => {
 
     useEffect(() => {
         fetchData();
-        initializeData(editCustomerFields);
-
-    }, [id, editCustomerFields]);
+    }, [id]);
 
     const handleDelete = useCallback((item, isAddress) => {
         setItemToDelete(item);

@@ -8,34 +8,23 @@ import useOrganizationService from '../../../hooks/useOrganizationService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
-import { usePermissions } from '../../../hooks/usePermissions';
 import { locationFields } from '../../../constants/forms/locationFields';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const EditOrganizationLocationPage = () => {
     const navigate = useNavigate();
     const { applicationId, organizationId, addressId, locationId } = useParams(); 
-    const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchOrganizationLocationById, updateOrganizationLocation, formErrors } = useOrganizationService(navigate);
 
-    const { formData, setFormData, handleChange, resetForm } = useForm({
-        area: '',
-        section: '',
-        spot: '',
-        details: ''
-    });
+    const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(locationFields));
 
     const fetchLocationData = useCallback(async () => {
         showLoader();
         try {
-            const location = await fetchOrganizationLocationById(organizationId, addressId, locationId);
-            setFormData({
-                area: location.area || '',
-                section: location.section || '',
-                spot: location.spot || '',
-                details: location.details || ''
-            });
+            const response = await fetchOrganizationLocationById(organizationId, addressId, locationId);
+            formatData(response, locationFields)
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização');
         } finally {

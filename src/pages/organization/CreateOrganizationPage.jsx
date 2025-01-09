@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -11,41 +11,14 @@ import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import colorToHex from '../../utils/colorToHex';
 import useOrganizationService from '../../hooks/useOrganizationService';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateOrganizationPage = () => {
     const navigate = useNavigate();
     const { applicationId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, handleChange, setFormData } = useForm({
-        organization: {
-            name: '',
-            color: '',
-            application_id: applicationId,
-        },
-        address: {
-            alias: '',
-            zip: '',
-            street: '',
-            number: '',
-            details: '',
-            district: '',
-            city: '',
-            state: '',
-            country: ''
-        },
-        contact: {
-            name: '',
-            surname: '',
-            role: '',
-            ddd: '',
-            phone: '',
-            cell_ddd: '',
-            cell: '',
-            email: ''
-        }
-    });
-
+    const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(organizationFields));
     const { createOrganization, formErrors } = useOrganizationService(navigate);
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
@@ -122,7 +95,10 @@ const CreateOrganizationPage = () => {
 
         showLoader();
         try {
-            await createOrganization(sanitizedData);
+            const success = await createOrganization(sanitizedData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.log(error)
             showNotification('error', 'Erro ao realizar o cadastro.');

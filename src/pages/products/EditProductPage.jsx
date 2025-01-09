@@ -290,8 +290,10 @@ const EditProductPage = () => {
                 address_id: selectedAddressId,
             },
         }));
+        console.log('oi')
 
         if (selectedAddressId && selectedOrganizationId) {
+            console.log('oi')
             fetchLocations(selectedOrganizationId, selectedAddressId);
         } else {
             setLocations([]);

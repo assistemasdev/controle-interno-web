@@ -7,21 +7,19 @@ import { conditionFields } from '../../constants/forms/conditionFields';
 import FormSection from '../../components/FormSection';
 import useConditionService from '../../hooks/useConditionService';
 import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateConditionPage = () => {
     const navigate = useNavigate();
     const { createCondition, formErrors } = useConditionService(navigate);
-
-    const { formData, handleChange, resetForm, initializeData } = useForm({});
-
-    useEffect(() => {
-        initializeData(conditionFields);
-    }, [conditionFields]);
+    const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(conditionFields));
 
     const handleSubmit = async () => {
         try {
-            await createCondition(formData);
-            resetForm(); 
+            const success = await createCondition(formData);
+            if (success) {
+                resetForm(); 
+            }
         } catch (error) {
             console.error('Erro ao cadastrar condição:', error);
         }

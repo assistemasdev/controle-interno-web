@@ -9,27 +9,22 @@ import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import { groupFields } from '../../constants/forms/groupFields';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateGroupPage = () => {
     const navigate = useNavigate();
     const { createGroup, formErrors } = useGroupService(navigate);
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-
-    const { formData, handleChange, initializeData } = useForm({
-        name: '',
-    });
-
-    const memoizedFields = useMemo(() => groupFields, []);
-
-    useEffect(() => {
-        initializeData(memoizedFields);
-    },  [memoizedFields]);
+    const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(groupFields));
 
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await createGroup(formData);
+            const success = await createGroup(formData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.log(error)
         } finally {
@@ -57,7 +52,7 @@ const CreateGroupPage = () => {
                     handleBack={handleBack}
                 >
                     {() =>
-                        memoizedFields.map((section) => (
+                        groupFields.map((section) => (
                             <FormSection
                                 key={section.section}
                                 section={section}

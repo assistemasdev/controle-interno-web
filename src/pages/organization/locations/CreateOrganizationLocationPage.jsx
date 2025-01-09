@@ -7,23 +7,20 @@ import FormSection from '../../../components/FormSection';
 import { locationFields } from '../../../constants/forms/locationFields';
 import useOrganizationService from '../../../hooks/useOrganizationService';
 import useForm from '../../../hooks/useForm';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const CreateOrganizationLocationPage = () => {
     const navigate = useNavigate();
     const { applicationId, organizationId, addressId } = useParams(); 
     const { addOrganizationLocation, formErrors } = useOrganizationService(navigate);
-
-    const { formData, resetForm, handleChange } = useForm({
-        area: '',
-        section: '',
-        spot: '',
-        details: '',
-    });
+    const { formData, resetForm, handleChange } = useForm(setDefaultFieldValues(locationFields));
 
     const handleSubmit = async (data) => {
         try {
-            await addOrganizationLocation(organizationId, addressId, data);
-            resetForm();
+            const success = await addOrganizationLocation(organizationId, addressId, data);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.error('Erro ao cadastrar localização:', error);
         }
