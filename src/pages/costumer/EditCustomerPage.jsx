@@ -1,89 +1,76 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
+import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import MyAlert from '../../components/MyAlert';
-import CustomerService from '../../services/CustomerService';
+import { editCustomerFields  } from '../../constants/forms/customerFields';
+import useNotification from '../../hooks/useNotification';
+import useLoader from '../../hooks/useLoader';
+import useCustomerService from '../../hooks/useCustomerService';
+import useForm from '../../hooks/useForm';
 import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
-import { CircularProgress } from '@mui/material';
-import Form from '../../components/Form';
+
 const EditCustomerPage = () => {
     const navigate = useNavigate();
-    const { id } = useParams(); 
-    const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState({
-        customer: { alias: '', name: '', cpf_cnpj: '' }
-    });
+    const { id } = useParams();
+    const { showNotification } = useNotification();
+    const { showLoader, hideLoader } = useLoader();
+    const { fetchCustomerById, updateCustomer, formErrors } = useCustomerService(navigate);
 
-    const memoizedInitialData = useMemo(() => formData, [formData]);
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [formErrors, setFormErrors] = useState({});
+    const { formData, setFormData, handleChange, initializeData } = useForm({});
 
     useEffect(() => {
         const fetchCustomerData = async () => {
+            showLoader();
             try {
-                const response = await CustomerService.getById(id, navigate);
-                setFormData({ customer: response.result });
+                const response = await fetchCustomerById(id);
+                initializeData(editCustomerFields);
+                setFormData({
+                    alias: response.alias,
+                    name: response.name,
+                    cpf_cnpj: maskCpfCnpj(response.cpf_cnpj)
+                });
+
             } catch (error) {
-                if (error.status === 404) {
-                    navigate('/dashboard', {
-                    state: { 
-                        type: 'error', 
-                        message: error.message 
-                    }
-                    });
-                    return
-                }
-                setMessage({ type:'error', text: error.response?.data?.error || 'Erro ao buscar pela organização' });
+                console.log(error)
+                showNotification('error', error.message || 'Erro ao buscar cliente.');
             } finally {
-                setLoading(false);
+                hideLoader();
             }
         };
 
         fetchCustomerData();
     }, [id]);
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        const [category, key] = id.split('.');
-        setFormData((prev) => ({
-            ...prev,
-            [category]: {
-                ...prev[category],
-                [key]: key === 'cpf_cnpj' ? maskCpfCnpj(value) : value
-            }
-        }));
-    };
+    const handleFieldChange = useCallback((fieldId, value) => {
+        if (fieldId === 'customer.cpf_cnpj') {
+            handleChange(fieldId, maskCpfCnpj(value));
+        } else {
+            handleChange(fieldId, value);
+        }
+    }, [handleChange]);
 
-    const handleSubmit = async (formData) => {
-        setFormErrors({});
-        setMessage({ type: '', text: '' });
+    const handleSubmit = useCallback(async () => {
+        showLoader();
         const sanitizedData = {
-            ...formData.customer,
-            cpf_cnpj: removeMask(formData.customer.cpf_cnpj),
+            ...formData,
+            cpf_cnpj: removeMask(formData.cpf_cnpj), 
         };
+
         try {
-            const response = await CustomerService.update(id, sanitizedData, navigate);
-            setMessage({ type: 'success', text: response.message });
+            await updateCustomer(id, sanitizedData);
         } catch (error) {
             console.log(error)
-            if (error.status === 422 && error.data) {
-                setFormErrors({
-                    'customer.alias': error.data?.alias?.[0] ?? '', 
-                    'customer.name': error.data?.name?.[0] ?? '', 
-                    'customer.cpf_cnpj': error.data?.cpf_cnpj?.[0] ?? '', 
-                });
-                return;
-            }
-            setMessage({ type: 'error', text: 'Erro ao atualizar o cliente' });
+            showNotification('error', 'Erro ao atualizar cliente.');
+        } finally {
+            hideLoader();
         }
-    };
+    }, [formData, updateCustomer, id, navigate, showLoader, hideLoader, showNotification]);
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         navigate('/clientes/');
-    };
-
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -92,59 +79,28 @@ const EditCustomerPage = () => {
                     Editar Cliente
                 </div>
 
-                {loading? (
-                    <CircularProgress size={50}/>
-                ): (
-                    <Form
-                        onSubmit={handleSubmit}
-                        initialFormData={memoizedInitialData}
-                        textSubmit="Atualizar"
-                        textLoadingSubmit="Atualizando..."
-                        handleBack={handleBack}
-                    >
-                        {({ formData }) => (
-                            <>
-                                {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label="Nome Fantasia:"
-                                            id="customer.alias"
-                                            value={formData.customer.alias}
-                                            onChange={handleChange}
-                                            placeholder="Digite o nome fantasia"
-                                            error={formErrors['customer.alias']}
-                                        />  
-                                    </div>
-                                    <div className="d-flex flex-column col-md-6">
-                                        <InputField
-                                            label="Nome:"
-                                            id="customer.name"
-                                            value={formData.customer.name}
-                                            onChange={handleChange}
-                                            placeholder="Digite o nome do cliente"
-                                            error={formErrors['customer.name']}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="d-flex flex-column col-md-12">
-                                        <InputField
-                                            label="CPF/CNPJ:"
-                                            id="customer.cpf_cnpj"
-                                            value={formData.customer.cpf_cnpj}
-                                            onChange={handleChange}
-                                            placeholder="Digite o CPF ou CNPJ"
-                                            error={formErrors['customer.cpf_cnpj']}
-                                        />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </Form>
-                )}
+                <Form
+                    onSubmit={handleSubmit}
+                    textSubmit="Atualizar"
+                    initialFormData={formData}
+                    textLoadingSubmit="Atualizando..."
+                    handleBack={handleBack}
+                >
+                    {() => (
+                        <>
+                            {editCustomerFields.map((section) => (
+                                <FormSection
+                                    key={section.section}
+                                    section={section}
+                                    formData={formData}
+                                    formErrors={formErrors}
+                                    handleFieldChange={handleFieldChange}
+                                />
+                            ))}
+                        </>
+                    )}
+                </Form>
+                
             </div>
         </MainLayout>
     );

@@ -1,168 +1,100 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import Button from '../../components/Button';
-import { CircularProgress } from '@mui/material';
 import '../../assets/styles/custom-styles.css';
-import MyAlert from '../../components/MyAlert';
-import CustomerService from '../../services/CustomerService';
-import { maskCpfCnpj, maskCep } from '../../utils/maskUtils';
-import DynamicTable from '../../components/DynamicTable';
 import { faEdit, faTrash, faEye, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
+import DynamicTable from '../../components/DynamicTable';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
+import useNotification from '../../hooks/useNotification';
+import useLoader from '../../hooks/useLoader';
+import useCustomerService from '../../hooks/useCustomerService';
+import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
+import { editCustomerFields } from '../../constants/forms/customerFields';
+import useForm from '../../hooks/useForm';
 
 const CustomerDetailsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [message, setMessage] = useState(null);
     const { canAccess } = usePermissions();
-
-    // Form data
-    const [formData, setFormData] = useState({
-        alias: '',
-        name: '',
-        cpf_cnpj: ''
-    });
-
-    // Pagination states for addresses
+    const { showNotification } = useNotification();
+    const { showLoader, hideLoader } = useLoader();
+    const { fetchCustomerById, fetchCustomerAddresses, fetchCustomerContacts, deleteAddress, deleteContact } = useCustomerService(navigate);
+    const { formData, setFormData, initializeData } = useForm({});
     const [addresses, setAddresses] = useState([]);
-    const [currentPageAddresses, setCurrentPageAddresses] = useState(PAGINATION.DEFAULT_PAGE);
-    const [totalPagesAddresses, setTotalPagesAddresses] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-
-    // Pagination states for contacts
     const [contacts, setContacts] = useState([]);
-    const [currentPageContacts, setCurrentPageContacts] = useState(PAGINATION.DEFAULT_PAGE);
-    const [totalPagesContacts, setTotalPagesContacts] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-
-    const [loading, setLoading] = useState(true);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
-    const [addressToDelete, setAddressToDelete] = useState(null);
-    const [contactToDelete, setContactToDelete] = useState(null);
+    const [itemToDelete, setItemToDelete] = useState(null);
+    const [isAddressDelete, setIsAddressDelete] = useState(false);
+
+    const fetchData = async () => {
+        showLoader();
+        try {
+            const customerResponse = await fetchCustomerById(id);
+            setFormData(customerResponse);
+
+            const addressesResponse = await fetchCustomerAddresses(id, { page: 1, perPage: PAGINATION.DEFAULT_PER_PAGE });
+            setAddresses(addressesResponse.data.map((address) => ({
+                id: address.id,
+                zip: address.zip,
+                street: address.street
+            })));
+
+            const contactsResponse = await fetchCustomerContacts(id, { page: 1, perPage: PAGINATION.DEFAULT_PER_PAGE });
+            setContacts(contactsResponse.data.map((contact) => ({
+                id: contact.id,
+                name: contact.name,
+                number: contact.ddd + '-' + contact.phone            
+            })));
+        } catch (error) {
+            console.log(error)
+            showNotification('Erro ao carregar os dados.');
+        } finally {
+            hideLoader();
+        }
+    };
 
     useEffect(() => {
         fetchData();
-    }, [id]);
+        initializeData(editCustomerFields);
 
-    const fetchData = async () => {
-        setLoading(true);
-        setMessage(null);
+    }, [id, editCustomerFields]);
+
+    const handleDelete = useCallback((item, isAddress) => {
+        setItemToDelete(item);
+        setIsAddressDelete(isAddress);
+        if (isAddress) setDeleteModalOpen(true);
+        else setDeleteModalOpenContacts(true);
+    }, []);
+
+    const confirmDelete = useCallback(async () => {
+        showLoader();
         try {
-            const customerResponse = await CustomerService.getById(id, navigate);
-            const customer = customerResponse.result;
-
-            setFormData({
-                alias: customer.alias || '',
-                name: customer.name || '',
-                cpf_cnpj: maskCpfCnpj(customer.cpf_cnpj || '')
-            });
-
-            // Fetch addresses and contacts with pagination
-            fetchAddresses(currentPageAddresses);
-            fetchContacts(currentPageContacts);
+            if (isAddressDelete) {
+                await deleteAddress(id, itemToDelete.id);
+                fetchData()
+            } else {
+                await deleteContact(id, itemToDelete.id);
+                fetchData()
+            }
         } catch (error) {
-            console.error('Erro ao carregar os dados:', error);
-            setMessage({ type: 'error', text: 'Erro ao carregar os dados do cliente' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchAddresses = async (page = 1) => {
-        try {
-            const response = await CustomerService.getAllCustomerAddress(
-                id,
-                { page, perPage: PAGINATION.DEFAULT_PER_PAGE },
-                navigate
-            );
-
-            const { data, last_page, current_page } = response.result;
-            setAddresses(
-                data.map(address => ({
-                    id: address.id,
-                    zip: maskCep(address.zip),
-                    street: address.street
-                }))
-            );
-            setCurrentPageAddresses(current_page);
-            setTotalPagesAddresses(last_page);
-        } catch (error) {
-            console.error('Erro ao carregar endereços:', error);
-            setMessage({ type: 'error', text: 'Erro ao carregar endereços.' });
-        }
-    };
-
-    const fetchContacts = async (page = 1) => {
-        try {
-            const response = await CustomerService.getAllCustomerContact(
-                id,
-                { page, perPage: PAGINATION.DEFAULT_PER_PAGE },
-                navigate
-            );
-
-            const { data, last_page, current_page } = response.result;
-            setContacts(
-                data.map(contact => ({
-                    id: contact.id,
-                    name: `${contact.name || ''} ${contact.surname || ''}`,
-                    number: `${contact.ddd || ''} ${contact.phone || ''}`
-                }))
-            );
-            setCurrentPageContacts(current_page);
-            setTotalPagesContacts(last_page);
-        } catch (error) {
-            console.error('Erro ao carregar contatos:', error);
-            setMessage({ type: 'error', text: 'Erro ao carregar contatos.' });
-        }
-    };
-
-    const handleDeleteAddress = (address) => {
-        setAddressToDelete(address);
-        setDeleteModalOpen(true);
-    };
-
-    const handleDeleteContact = (contact) => {
-        setContactToDelete(contact);
-        setDeleteModalOpenContacts(true);
-    };
-
-    const confirmDeleteAddress = async () => {
-        setLoading(true);
-        try {
-            await CustomerService.deleteCustomerAddress(id, addressToDelete.id, navigate);
-            setMessage({ type: 'success', text: 'Endereço excluído com sucesso' });
-            fetchAddresses(currentPageAddresses);
-        } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao excluir o endereço' });
+            console.log(error)
+            showNotification('Erro ao excluir.');
         } finally {
             setDeleteModalOpen(false);
-            setLoading(false);
-        }
-    };
-
-    const confirmDeleteContact = async () => {
-        setLoading(true);
-        try {
-            await CustomerService.deleteCustomerContact(id, contactToDelete.id, navigate);
-            setMessage({ type: 'success', text: 'Contato excluído com sucesso' });
-            fetchContacts(currentPageContacts);
-        } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao excluir o contato' });
-        } finally {
             setDeleteModalOpenContacts(false);
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [isAddressDelete, itemToDelete, id, deleteAddress, deleteContact, showLoader, hideLoader, showNotification]);
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         navigate('/clientes/');
-    };
+    }, [navigate]);
 
-    const addressHeaders = ['ID', 'CEP', 'Rua'];
-    const addressActions = [
+    const addressActions = useCallback([
         {
             icon: faEdit,
             title: 'Editar Endereço',
@@ -175,7 +107,7 @@ const CustomerDetailsPage = () => {
             title: 'Excluir Endereço',
             buttonClass: 'btn-danger',
             permission: 'Excluir endereço do cliente',
-            onClick: handleDeleteAddress
+            onClick: (item) => handleDelete(item, true),
         },
         {
             icon: faEye,
@@ -191,10 +123,9 @@ const CustomerDetailsPage = () => {
             permission: 'Listar localizações de clientes',
             onClick: (address) => navigate(`/clientes/detalhes/${id}/enderecos/${address.id}/localizacoes`)
         },
-    ];
+    ], [handleDelete]);
 
-    const contactHeaders = ['ID', 'Nome', 'Telefone'];
-    const contactActions = [
+    const contactActions = useCallback([
         {
             icon: faEdit,
             title: 'Editar Contato',
@@ -207,92 +138,72 @@ const CustomerDetailsPage = () => {
             title: 'Excluir Contato',
             buttonClass: 'btn-danger',
             permission: 'Excluir contato do cliente',
-            onClick: handleDeleteContact
+            onClick: (item) => handleDelete(item, false),
+
         }
-    ];
+    ], [handleDelete]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes do Cliente
+                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">Detalhes do Cliente</div>
+
+                <DetailsSectionRenderer sections={editCustomerFields} formData={formData} />
+                
+                <div className="form-row d-flex justify-content-between align-items-center mt-1">
+                    <h5 className="text-dark font-weight-bold mt-3">Endereços do Cliente</h5>
+                    {canAccess('Adicionar endereço ao cliente') && (
+                        <Button
+                            text="Adicionar Endereço"
+                            className="btn btn-blue-light fw-semibold"
+                            link={`/clientes/${id}/endereco/adicionar`}
+                        />
+                    )}
                 </div>
 
-                <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
+                <DynamicTable
+                    headers={['ID', 'CEP', 'Rua']}
+                    data={addresses}
+                    actions={addressActions}
+                    title="Endereços do Cliente"
+                />
 
-                    <h5 className="text-dark font-weight-bold mt-3">Dados do Cliente</h5>
-                    <hr />
-
-                    <div className="form-row">
-                        <div className="d-flex flex-column col-md-4">
-                            <InputField label="Apelido:" id="alias" value={formData.alias} disabled />
-                        </div>
-                        <div className="d-flex flex-column col-md-4">
-                            <InputField label="Nome:" id="name" value={formData.name} disabled />
-                        </div>
-                        <div className="d-flex flex-column col-md-4">
-                            <InputField label="CPF/CNPJ:" id="cpf_cnpj" value={formData.cpf_cnpj} disabled />
-                        </div>
-                    </div>
-
-                    <div className="form-row d-flex justify-content-between align-items-center mt-1">
-                        <h5 className="text-dark font-weight-bold mt-3">Endereços do Cliente</h5>
-                        {canAccess('Adicionar endereço ao cliente') && (
-                            <Button text="Adicionar Endereço" className="btn btn-blue-light fw-semibold" link={`/clientes/${id}/endereco/adicionar`} />
-                        )}
-                    </div>
-                    <hr />
-                    <DynamicTable
-                        headers={addressHeaders}
-                        data={addresses}
-                        actions={addressActions}
-                        currentPage={currentPageAddresses}
-                        totalPages={totalPagesAddresses}
-                        onPageChange={(page) => {
-                            setCurrentPageAddresses(page);
-                            fetchAddresses(page);
-                        }}
-                    />
-
-                    <div className="form-row d-flex justify-content-between align-items-center mt-1">
-                        <h5 className="text-dark font-weight-bold mt-3">Contatos do Cliente</h5>
-                        {canAccess('Adicionar contatos de cliente') && (
-                            <Button text="Adicionar Contato" className="btn btn-blue-light fw-semibold" link={`/clientes/${id}/contato/adicionar`} />
-                        )}
-                    </div>
-                    <hr />
-                    <DynamicTable
-                        headers={contactHeaders}
-                        data={contacts}
-                        actions={contactActions}
-                        currentPage={currentPageContacts}
-                        totalPages={totalPagesContacts}
-                        onPageChange={(page) => {
-                            setCurrentPageContacts(page);
-                            fetchContacts(page);
-                        }}
-                    />
-
-                    <div className="mt-3 d-flex gap-2">
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                    </div>
+                <div className="form-row d-flex justify-content-between align-items-center mt-1">
+                    <h5 className="text-dark font-weight-bold mt-3">Contatos do Cliente</h5>
+                    {canAccess('Adicionar contatos de cliente') && (
+                        <Button
+                            text="Adicionar Contato"
+                            className="btn btn-blue-light fw-semibold"
+                            link={`/clientes/${id}/contato/adicionar`}
+                        />
+                    )}
                 </div>
+
+                <DynamicTable
+                    headers={['ID', 'Nome', 'Telefone']}
+                    data={contacts}
+                    actions={contactActions}
+                    title="Contatos do Cliente"
+                />
+
+                <div className="mt-3 d-flex gap-2">
+                    <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
+                </div>
+        
+                <ConfirmationModal
+                    open={deleteModalOpen}
+                    onClose={() => setDeleteModalOpen(false)}
+                    onConfirm={confirmDelete}
+                    itemName={itemToDelete?.street || ''}
+                />
+
+                <ConfirmationModal
+                    open={deleteModalOpenContacts}
+                    onClose={() => setDeleteModalOpenContacts(false)}
+                    onConfirm={confirmDelete}
+                    itemName={itemToDelete?.name || ''}
+                />
             </div>
-
-            <ConfirmationModal
-                open={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                onConfirm={confirmDeleteAddress}
-                itemName={addressToDelete ? addressToDelete.street : ''}
-            />
-
-            <ConfirmationModal
-                open={deleteModalOpenContacts}
-                onClose={() => setDeleteModalOpenContacts(false)}
-                onConfirm={confirmDeleteContact}
-                itemName={contactToDelete ? contactToDelete.name : ''}
-            />
         </MainLayout>
     );
 };

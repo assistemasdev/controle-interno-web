@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import MyAlert from "../../../components/MyAlert";
 import InputField from "../../../components/InputField";
 import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
-import { CircularProgress } from "@mui/material";
 import DynamicTable from "../../../components/DynamicTable";
-import CustomerService from "../../../services/CustomerService";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
+import useLoader from "../../../hooks/useLoader";
+import useNotification from "../../../hooks/useNotification";
+import useCustomerService from "../../../hooks/useCustomerService";
 
 const LocationCustomerPage = () => {
     const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [error, setError] = useState(null);
     const { id, addressId } = useParams();
     const [name, setName] = useState('');
-    const [loading, setLoading] = useState(true);
     const [locations, setLocations] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
@@ -27,24 +24,26 @@ const LocationCustomerPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
+    const { fetchCustomerLocations, deleteLocation } = useCustomerService(navigate);
 
     useEffect(() => {
-        setMessage(null);
         if (location.state?.message) {
-            setMessage({ type: location.state.type, message: location.state.message });
+            showNotification(location.state.type, location.state.message);
+            navigate(location.pathname, { replace: true });
         }
     }, [location.state]);
 
-    const handleClearFilters = () => {
+    const handleClearFilters = useCallback(() => {
         setName('');
-    };
+    }, []);
 
-    const fetchLocations = async (page = 1) => {
+    const fetchLocations = useCallback(async (page = 1) => {
         try {
-            setLoading(true);
+            showLoader();
 
-            const response = await CustomerService.getAllCustomerLocation(id, addressId, { page, perPage: itemsPerPage}, navigate);
-            const result = response.result;
+            const result = await fetchCustomerLocations(id, addressId, { page, perPage: itemsPerPage });
 
             const formattedLocations = result.data.map((loc) => ({
                 id: loc.id,
@@ -57,50 +56,47 @@ const LocationCustomerPage = () => {
             setTotalPages(result.last_page);
             setCurrentPage(result.current_page);
         } catch (error) {
-            setError("Erro ao carregar localizações");
+            showNotification("error", "Erro ao carregar localizações");
             console.error(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [id, addressId, itemsPerPage, fetchCustomerLocations, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchLocations();
+    }, [id, addressId]);
+
+    const handleEdit = useCallback((location) => {
+        navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes/editar/${location.id}`);
+    }, [id, addressId, navigate]);
+
+    const handleDetails = useCallback((location) => {
+        navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes/detalhes/${location.id}`);
+    }, [id, addressId, navigate]);
+
+    const handleDelete = useCallback((location) => {
+        setLocationToDelete(location);
+        setDeleteModalOpen(true);
     }, []);
 
-    const handleEdit = (location) => {
-        navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes/editar/${location.id}`);
-    };
-
-    const handleDetails = (location) => {
-        navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes/detalhes/${location.id}`);
-    };
-
-    const handleDelete = (location) => {
-        setLocationToDelete(location); 
-        setDeleteModalOpen(true); 
-    };
-
-    const confirmDelete = async () => {
+    const confirmDelete = useCallback(async () => {
         try {
-            await CustomerService.deleteCustomerLocation(
-                id,
-                addressId,
-                locationToDelete.id
-            );
-    
-            setMessage({ type: 'success', text: 'Localização excluída com sucesso!' });
+            showLoader();
+            await deleteLocation(id, addressId, locationToDelete.id);
             setDeleteModalOpen(false);
-            fetchLocations(); 
+            fetchLocations();
         } catch (error) {
-            setMessage({ type: 'error', text: 'Erro ao excluir a localização' });
+            showNotification('error', 'Erro ao excluir a localização');
             console.error(error);
+        } finally {
+            hideLoader();
         }
-    };
+    }, [id, addressId, locationToDelete, deleteLocation, fetchLocations, showLoader, hideLoader, showNotification]);
 
-    const headers = ["id", "Área", "Seção", "Ponto"];
+    const headers = useMemo(() => ["id", "Área", "Seção", "Ponto"], []);
 
-    const actions = [
+    const actions = useMemo(() => [
         {
             icon: faEdit,
             title: "Editar Localização",
@@ -122,7 +118,7 @@ const LocationCustomerPage = () => {
             permission: "Excluir endereço da cliente",
             onClick: handleDelete,
         }
-    ];
+    ], [handleEdit, handleDetails, handleDelete]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -136,13 +132,6 @@ const LocationCustomerPage = () => {
                     style={{ backgroundColor: "#FFFFFF" }}
                     onSubmit={(e) => e.preventDefault()}
                 >
-                    {message && (
-                        <MyAlert
-                            severity={message.type}
-                            message={message.text}
-                            onClose={() => setMessage("")}
-                        />
-                    )}
                     <div className="form-group col-md-12">
                         <InputField
                             label="Nome da Localização:"
@@ -182,24 +171,14 @@ const LocationCustomerPage = () => {
                     )}
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                ) : error ? (
-                    <div className="mt-3">
-                        <MyAlert notTime={true} severity="error" message={error} />
-                    </div>
-                ) : (
-                    <DynamicTable 
-                        headers={headers} 
-                        data={locations} 
-                        actions={actions}
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={fetchLocations}
-                    />
-                )}
+                <DynamicTable 
+                    headers={headers} 
+                    data={locations} 
+                    actions={actions}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={fetchLocations}
+                />
             </div>
 
             <ConfirmationModal
@@ -208,7 +187,6 @@ const LocationCustomerPage = () => {
                 onConfirm={confirmDelete}
                 itemName={locationToDelete ? locationToDelete.area : ''}
             />
-
         </MainLayout>
     );
 };

@@ -10,7 +10,7 @@ export const addressFields = [
             { id: 'district', label: 'Bairro:', type: 'text', placeholder: 'Digite o bairro', fullWidth: false },
             { id: 'city', label: 'Cidade:', type: 'text', placeholder: 'Digite a cidade', fullWidth: false },
             { id: 'state', label: 'Estado:', type: 'text', placeholder: 'Digite o estado', fullWidth: false },
-            { id: 'country', label: 'País:', type: 'text', placeholder: 'Digite o país', fullWidth: false },
+            { id: 'country', label: 'País:', type: 'text', placeholder: 'Digite o país', fullWidth: true },
         ],
     },
 ];

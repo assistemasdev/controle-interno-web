@@ -2,10 +2,10 @@ import { useState } from 'react';
 
 const useForm = (initialData) => {
     const [formData, setFormData] = useState(initialData);
+    const [initialFormData, setInitialFormData] = useState(initialData);
 
     const handleChange = (fieldId, value) => {
         const [category, key] = fieldId.split('.');
-
         if (key) {
             setFormData((prev) => ({
                 ...prev,
@@ -23,7 +23,7 @@ const useForm = (initialData) => {
     };
 
     const resetForm = () => {
-        setFormData(initialData);
+        setFormData(initialFormData); 
     };
 
     const initializeData = (fields) => {
@@ -41,8 +41,9 @@ const useForm = (initialData) => {
                 }
                 return { ...innerAcc, [field.id]: '' };
             }, acc);
-        }, { ...initialData });
+        }, {});
         setFormData(initializedData);
+        setInitialFormData(initializedData); 
     };
 
     const formatData = (response, fields) => {
@@ -60,12 +61,13 @@ const useForm = (initialData) => {
                 }
                 return { ...innerAcc, [field.id]: response[field.id] || '' };
             }, acc);
-        }, { ...initialData });
+        }, {});
         setFormData(parsedData);
     };
 
     return {
         formData,
+        initialFormData,
         setFormData,
         handleChange,
         resetForm,

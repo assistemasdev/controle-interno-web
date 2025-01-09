@@ -4,7 +4,6 @@ import qs from 'qs';
 import { buildDynamicFilters } from "../utils/filterUtils";
 const CustomerService = {
     async getAll (data,navigate) {
-        console.log(data)
         const query = qs.stringify({
             filters: buildDynamicFilters(data),
             page:data.page, 
@@ -78,6 +77,7 @@ const CustomerService = {
     async addCustomerContact(id, data, navigate) {
         try {
             const response = await api.post(`/customers/${id}/contacts`, data);
+            console.log(response)
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -100,9 +100,9 @@ const CustomerService = {
             return handleError(error, navigate)
         }
     },
-    async showCustomerAddress(id, customerId, navigate) {
+    async showCustomerAddress(id, addressId, navigate) {
         try {
-            const response = await api.get(`/customers/${id}/addresses/${customerId}`);
+            const response = await api.get(`/customers/${id}/addresses/${addressId}`);
             return {
                 message: response.data.message,
                 result: response.data.result,
@@ -112,6 +112,7 @@ const CustomerService = {
             return handleError(error, navigate)
         }
     },
+    
     async showCustomerContact(id, contactId, navigate) {
         try {
             const response = await api.get(`/customers/${id}/contacts/${contactId}`);
@@ -201,7 +202,7 @@ const CustomerService = {
 
     async delete(id, navigate) {
         try {
-            const response = await api.delete(`/suppliers/${id}`);
+            const response = await api.delete(`/customers/${id}`);
             return {
                 message: response.data.message,
                 result: response.data.result,

@@ -1,47 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import InputField from '../../../components/InputField';
 import Button from '../../../components/Button';
-import { CircularProgress } from '@mui/material';
 import '../../../assets/styles/custom-styles.css';
-import MyAlert from '../../../components/MyAlert';
 import CustomerService from '../../../services/CustomerService';
 import { maskCep } from '../../../utils/maskUtils';
+import useLoader from '../../../hooks/useLoader';
+import { addressFields } from '../../../constants/forms/addressFields';
+import useForm from '../../../hooks/useForm';
+import useNotification from '../../../hooks/useNotification';
+import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 
 const CostumerAddressDetailsPage = () => {
     const navigate = useNavigate();
     const { id, addressId } = useParams();
-    const [message, setMessage] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState({
-        alias: '',
-        zip: '',
-        street: '',
-        number: '',
-        details: '',
-        district: '',
-        city: '',
-        state: '',
-        country: ''
-    });
+    const { formData, setFormData, initializeData } = useForm({});
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchAddress();
-            } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
-            }
-        };
+        initializeData(addressFields);
+        fetchAddress();
+    }, [id, addressFields]);
 
-        fetchData();
-    }, [id]);
-
-    const fetchAddress = async () => {
+    const fetchAddress = useCallback(async () => {
         try {
+            showLoader();
             const response = await CustomerService.showCustomerAddress(id, addressId, navigate);
             const address = response.result;
+
             setFormData({
                 alias: address.alias || '',
                 zip: maskCep(address.zip || ''),
@@ -52,29 +39,18 @@ const CostumerAddressDetailsPage = () => {
                 city: address.city || '',
                 state: address.state || '',
                 country: address.country || ''
-            });            
+            });
         } catch (error) {
-            if (error.status === 404) {
-                navigate(
-                    '/customers/',
-                    {
-                        state: {
-                            type: 'error',
-                            message: error.message
-                        }
-                    }
-                );
-            }
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Erro ao buscar pelo endereço' });
+            showNotification('error', 'Erro ao buscar pelo endereço');
             console.error(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
-    };
+    }, [id, addressId, navigate, setFormData, showLoader, hideLoader, showNotification]);
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         navigate(`/clientes/detalhes/${id}`);
-    };
+    }, [id, navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -83,111 +59,11 @@ const CostumerAddressDetailsPage = () => {
                     Detalhes do Endereço do Cliente
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage(null)} />}
+                <DetailsSectionRenderer sections={addressFields} formData={formData} />
 
-                    {loading ? (
-                        <div className="d-flex justify-content-center mt-4">
-                            <CircularProgress size={50} />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Apelido:"
-                                        type="text"
-                                        id="alias"
-                                        value={formData.alias}
-                                        disabled
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="CEP:"
-                                        type="text"
-                                        id="zip"
-                                        value={formData.zip}
-                                        disabled
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-6">
-                                    <InputField
-                                        label="Rua:"
-                                        type="text"
-                                        id="street"
-                                        value={formData.street}
-                                        disabled
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-3">
-                                    <InputField
-                                        label="Número:"
-                                        type="text"
-                                        id="number"
-                                        value={formData.number}
-                                        disabled
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-3">
-                                    <InputField
-                                        label="Detalhes:"
-                                        type="text"
-                                        id="details"
-                                        value={formData.details}
-                                        disabled
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Bairro:"
-                                        type="text"
-                                        id="district"
-                                        value={formData.district}
-                                        disabled
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Cidade:"
-                                        type="text"
-                                        id="city"
-                                        value={formData.city}
-                                        disabled
-                                    />
-                                </div>
-                                <div className="d-flex flex-column col-md-4">
-                                    <InputField
-                                        label="Estado:"
-                                        type="text"
-                                        id="state"
-                                        value={formData.state}
-                                        disabled
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="d-flex flex-column col-md-12">
-                                    <InputField
-                                        label="País:"
-                                        type="text"
-                                        id="country"
-                                        value={formData.country}
-                                        disabled
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mt-3 d-flex gap-2">
-                                <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                            </div>
-                        </>
-                    )}
-                </form>
+                <div className="mt-3 d-flex gap-2">
+                    <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
+                </div>
             </div>
         </MainLayout>
     );
