@@ -7,24 +7,16 @@ import { userProfileFields } from '../../constants/forms/userProfileFields';
 import useUserService from '../../hooks/useUserService';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const PerfilUserPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { formErrors, fetchUserById, updateUser } = useUserService(navigate);
-
-    const { formData, handleChange, initializeData, formatData } = useForm({
-        name: '',
-        username: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-    });
+    const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
 
     useEffect(() => {
-        initializeData(userProfileFields);
-
         const fetchData = async () => {
             showLoader();
             try {
@@ -38,7 +30,7 @@ const PerfilUserPage = () => {
         };
 
         fetchData();
-    }, [id, userProfileFields]);
+    }, [id]);
 
     const handleSubmit = async () => {
         showLoader();

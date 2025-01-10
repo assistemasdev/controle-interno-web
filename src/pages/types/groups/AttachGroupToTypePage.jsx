@@ -10,6 +10,7 @@ import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { associeteGroupFields } from '../../../constants/forms/groupFields'
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const AttachGroupToTypePage = () => {
     const navigate = useNavigate();
@@ -20,9 +21,7 @@ const AttachGroupToTypePage = () => {
     const { showNotification } = useNotification();
     const [groups, setGroups] = useState([]);
 
-    const { formData, handleChange, setFormData, initializeData } = useForm({
-        groups: [],
-    });
+    const { formData, handleChange, setFormData } = useForm(setDefaultFieldValues(associeteGroupFields));
 
     const fetchData = useCallback(async () => {
         try {
@@ -31,19 +30,6 @@ const AttachGroupToTypePage = () => {
                 fetchTypeGroups(id),
                 fetchAllGroups({}),
             ]);
-
-            initializeData(
-                associeteGroupFields.map((section) => ({
-                    ...section,
-                    fields: section.fields.map((field) => ({
-                        ...field,
-                        options: allGroups.data.map((group) => ({
-                            value: group.id,
-                            label: group.name,
-                        })),
-                    })),
-                }))
-            );
 
             setFormData({
                 groups: typeGroups.map((group) => group.id),

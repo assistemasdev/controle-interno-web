@@ -15,6 +15,7 @@ import useForm from '../../hooks/useForm';
 import { useNavigate, useParams } from 'react-router-dom';
 import TypeService from '../../services/TypeService';
 import OrganizationService from '../../services/OrganizationService';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditProductPage = () => {
     const navigate = useNavigate();
@@ -34,24 +35,8 @@ const EditProductPage = () => {
         setFormData,
         handleChange,
         initializeData,
-    } = useForm({
-        product: {
-            name: '',
-            number: '',
-            serial_number: '',
-            current_organization_id: '',
-            owner_organization_id: '',
-            supplier_id: '',
-            purchase_date: '',
-            warranty_date: '',
-            condition_id: '',
-            category_id: '',
-            address_id: '',
-            location_id: '',
-            type_id: '',
-        },
-        groups: [],
-    });
+        formatData
+    } = useForm(setDefaultFieldValues(productFields));
 
     const [organizations, setOrganizations] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
@@ -110,6 +95,10 @@ const EditProductPage = () => {
                     value: group.id,
                     label: group.name,
                 })));
+
+                setSelectedOrganizationId(product.current_organization_id)
+
+                formatData({product:product}, productFields)
 
                 setFormData({
                     product: {
@@ -255,7 +244,7 @@ const EditProductPage = () => {
     };
 
     const handleOrganizationChange = useCallback((selectedOption) => {
-        const selectedOrganizationId = selectedOption ? selectedOption.value : '';
+        setSelectedOrganizationId(selectedOption ? selectedOption.value : '');
         setFormData((prev) => ({
             ...prev,
             product: {
@@ -283,6 +272,7 @@ const EditProductPage = () => {
 
     const handleAddressChange = useCallback((selectedOption) => {
         const selectedAddressId = selectedOption ? selectedOption.value : '';
+
         setFormData((prev) => ({
             ...prev,
             product: {
@@ -290,10 +280,7 @@ const EditProductPage = () => {
                 address_id: selectedAddressId,
             },
         }));
-        console.log('oi')
-
         if (selectedAddressId && selectedOrganizationId) {
-            console.log('oi')
             fetchLocations(selectedOrganizationId, selectedAddressId);
         } else {
             setLocations([]);

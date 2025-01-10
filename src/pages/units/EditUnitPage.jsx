@@ -9,6 +9,8 @@ import useUnitService from '../../hooks/useUnitService';
 import useForm from '../../hooks/useForm';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
+import { set } from 'lodash';
 
 const EditUnitPage = () => {
     const navigate = useNavigate();
@@ -16,21 +18,14 @@ const EditUnitPage = () => {
     const { getUnitById, updateUnit, formErrors } = useUnitService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, handleChange, setFormData, initializeData } = useForm({
-        name: '',
-        abbreviation: '',
-    });
+    const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(unitFields));
 
     useEffect(() => {
         const fetchUnitData = async () => {
             try {
                 showLoader();
                 const unit = await getUnitById(id);
-                initializeData(unitFields);
-                setFormData({
-                    name: unit.name,
-                    abbreviation: unit.abbreviation || '',
-                });
+                formatData(unit, unitFields);
             } catch (error) {
                 console.log(error)
             } finally {

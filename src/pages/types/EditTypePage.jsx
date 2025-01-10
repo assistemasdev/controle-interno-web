@@ -8,24 +8,21 @@ import useTypeService from '../../hooks/useTypeService';
 import useForm from '../../hooks/useForm';
 import useLoader from '../../hooks/useLoader';
 import { typeFields } from '../../constants/forms/typeFields';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditTypePage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-
     const { fetchTypeById, updateType, formErrors } = useTypeService();
     const { showLoader, hideLoader } = useLoader();
-
-    const { formData, handleChange, setFormData, initializeData } = useForm({
-        name: '',
-    });
+    const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(typeFields));
 
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
                 const typeData = await fetchTypeById(id);
-                setFormData(typeData);
+                formatData(typeData, typeFields);
             } catch (error) {
                 console.log(error)
             } finally {
@@ -50,10 +47,6 @@ const EditTypePage = () => {
     const handleBack = useCallback(() => {
         navigate('/tipos');
     }, [navigate]);
-
-    useEffect(() => {
-        initializeData(typeFields);
-    }, [typeFields]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">

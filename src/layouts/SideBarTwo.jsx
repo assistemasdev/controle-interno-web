@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faBars, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faBriefcase, faBars, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
 import "../assets/styles/sidebar/header.css";
 import "../assets/styles/sidebar/sidebar.css";
 import perfil from "../assets/img/perfil.png";
@@ -41,6 +41,7 @@ const SideBarTwo = ({ children }) => {
                     title: 'Administração',
                     items: [
                         { name: 'Usuários', icon: faUserFriends, to: '/usuarios', requiredPermission: 'show all users' },
+                        { name: 'Cargos', icon: faBriefcase, to: '/cargos', requiredPermission: 'Listar cargos' },
                         { name: 'Aplicações', icon: faDesktop, to: '/aplicacoes/dashboard', requiredPermission: '' },
                         { name: 'Condições', icon: faInfoCircle, to: '/condicoes', requiredPermission: 'Listar condições de produto' },
                         { name: 'Categorias', icon: faFolder, to: '/categorias', requiredPermission: 'Listar categorias de produto' }

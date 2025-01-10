@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
 import ProductService from '../../services/ProductService';

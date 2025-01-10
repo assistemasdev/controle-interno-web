@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
@@ -10,24 +10,14 @@ import { addressFields } from '../../../constants/forms/addressFields';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import useSupplierService from '../../../hooks/useSupplierService';
-
+import { setDefaultFieldValues } from '../../../utils/objectUtils'
 const CreateSupplierAddressPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { createSupplierAddress, formErrors } = useSupplierService(navigate);
-    const { formData, handleChange, setFormData, resetForm } = useForm({
-        alias: '',
-        zip: '',
-        street: '',
-        number: '',
-        details: '',
-        district: '',
-        city: '',
-        state: '',
-        country: '',
-    });
+    const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(addressFields));
 
     const handleCepChange = useCallback(async (cep) => {
         const value = maskCep(cep);
@@ -82,12 +72,13 @@ const CreateSupplierAddressPage = () => {
         };
     
         try {
-            await createSupplierAddress(id, sanitizedData);
-            resetForm();
+            const success = await createSupplierAddress(id, sanitizedData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.error(error);
             showNotification('error', 'Erro ao cadastrar o endereço.'); 
-            
         } finally {
             hideLoader(); 
         }

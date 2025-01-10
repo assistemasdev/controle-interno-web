@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
-
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { contactFields } from '../../../constants/forms/contactFields';
@@ -10,6 +9,7 @@ import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
 import useSupplierService from '../../../hooks/useSupplierService';
 import useForm from '../../../hooks/useForm';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const EditSupplierContactPage = () => {
     const navigate = useNavigate();
@@ -17,23 +17,14 @@ const EditSupplierContactPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { fetchSupplierContactById, updateSupplierContact, formErrors } = useSupplierService(navigate);
-    const { formData, handleChange, setFormData, initializeData } = useForm({});
+    const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(contactFields));
 
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
                 const contact = await fetchSupplierContactById(supplierId, contactId);
-                setFormData({
-                    name: contact.name || '',
-                    surname: contact.surname || '',
-                    role: contact.role || '',
-                    ddd: contact.ddd || '',
-                    phone: contact.phone || '',
-                    cell_ddd: contact.cell_ddd || '',
-                    cell: contact.cell || '',
-                    email: contact.email || '',
-                });
+                formatData(contact, contactFields)
             } catch (error) {
                 console.error(error);
                 showNotification('error', 'Erro ao carregar os dados do contato.');

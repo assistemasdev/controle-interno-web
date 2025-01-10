@@ -9,6 +9,8 @@ import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useSupplierService from '../../../hooks/useSupplierService';
 import { maskCep } from '../../../utils/maskUtils';
+import useForm from '../../../hooks/useForm';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const SupplierAddressDetailsPage = () => {
     const navigate = useNavigate();
@@ -16,35 +18,19 @@ const SupplierAddressDetailsPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchSupplierAddressById } = useSupplierService(navigate);
-    const [formData, setFormData] = useState({
-        alias: '',
-        zip: '',
-        street: '',
-        number: '',
-        details: '',
-        district: '',
-        city: '',
-        state: '',
-        country: '',
-    });
+    const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields))
+
 
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
                 const response = await fetchSupplierAddressById(id, addressId);
-
-                setFormData({
-                    alias: response.alias || '',
+                formatData(response, addressFields);
+                setFormData(prev => ({
+                    ...prev,
                     zip: maskCep(response.zip || ''),
-                    street: response.street || '',
-                    number: response.number || '',
-                    details: response.details || '',
-                    district: response.district || '',
-                    city: response.city || '',
-                    state: response.state || '',
-                    country: response.country || '',
-                });
+                }));
             } catch (error) {
                 console.log(error)
                 showNotification('error', error.response?.data?.error || 'Erro ao buscar o endereço.' );

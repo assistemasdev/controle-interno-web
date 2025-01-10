@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -7,18 +7,20 @@ import '../../assets/styles/custom-styles.css';
 import useTypeService from '../../hooks/useTypeService';
 import useForm from '../../hooks/useForm';
 import { typeFields } from '../../constants/forms/typeFields';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateTypePage = () => {
     const navigate = useNavigate();
     const { createType, formErrors } = useTypeService();
 
-    const { formData, handleChange, initializeData } = useForm({
-        name: '',
-    });
+    const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(typeFields));
 
     const handleSubmit = async () => {
         try {
-            await createType(formData);
+            const success = await createType(formData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.error('Erro ao criar tipo:', error);
         }
@@ -27,10 +29,6 @@ const CreateTypePage = () => {
     const handleBack = useCallback(() => {
         navigate('/tipos');
     }, [navigate]);
-
-    useEffect(() => {
-        initializeData(typeFields);
-    }, [typeFields]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">

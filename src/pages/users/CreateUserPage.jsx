@@ -7,23 +7,20 @@ import { userProfileFields } from '../../constants/forms/userProfileFields';
 import useUserService from '../../hooks/useUserService';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
-
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 const CreateUserPage = () => {
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
     const { formErrors, createUser } = useUserService(navigate);
-
-    const { formData, handleChange, resetForm, initializeData } = useForm({});
-
-    useEffect(() => {
-        initializeData(userProfileFields);
-    }, [userProfileFields]);
+    const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(userProfileFields));
 
     const handleSubmit = async () => {
         showLoader();
         try {
-            await createUser(formData);
-            resetForm();
+            const success = await createUser(formData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.error('Erro ao cadastrar usuário:', error);
         } finally {

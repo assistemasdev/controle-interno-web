@@ -31,7 +31,7 @@ const CreateRolePage = () => {
     const fetchPermissions = async () => {
         try {
         const response = await PermissionService.getPermissions();
-        const formattedPermissions = response.result.map(permission => ({
+        const formattedPermissions = response.result.data.map(permission => ({
             value: permission.id,
             label: permission.name
         }));
@@ -89,7 +89,8 @@ const CreateRolePage = () => {
     
         setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
         } catch (error) {
-        setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            console.log(error)
+            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
         }
     };
 

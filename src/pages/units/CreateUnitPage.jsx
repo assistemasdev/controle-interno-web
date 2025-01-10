@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -9,25 +9,22 @@ import useUnitService from '../../hooks/useUnitService';
 import useForm from '../../hooks/useForm';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateUnitPage = () => {
     const navigate = useNavigate();
     const { createUnit, formErrors } = useUnitService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, handleChange, initializeData } = useForm({
-        name: '',
-        abbreviation: '',
-    });
-
-    useEffect(() => {
-        initializeData(unitFields);
-    }, [unitFields]);
+    const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(unitFields));
 
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await createUnit(formData);
+            const success = await createUnit(formData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.log(error)
         } finally {

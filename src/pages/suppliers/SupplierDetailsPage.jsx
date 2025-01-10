@@ -12,6 +12,8 @@ import useSupplierService from '../../hooks/useSupplierService';
 import { supplierFields } from '../../constants/forms/supplierFields';
 import { PAGINATION } from '../../constants/pagination';
 import { usePermissions } from '../../hooks/usePermissions';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useForm from '../../hooks/useForm';
 
 const SupplierDetailsPage = () => {
     const navigate = useNavigate();
@@ -20,8 +22,7 @@ const SupplierDetailsPage = () => {
     const { showNotification } = useNotification();
     const { canAccess } = usePermissions();
     const { fetchSupplierById, fetchSupplierAddresses, fetchSupplierContacts, deleteSupplierAddress, deleteSupplierContact } = useSupplierService(navigate);
-
-    const [supplierData, setSupplierData] = useState({});
+    const { formData, formatData } = useForm(setDefaultFieldValues(supplierFields));
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -41,11 +42,8 @@ const SupplierDetailsPage = () => {
             const addressesResponse = await fetchSupplierAddresses(id, { page: currentPageAddress });
             const contactsResponse = await fetchSupplierContacts(id, { page: currentPageContact });
 
-            setSupplierData({
-                alias: supplier.alias,
-                name: supplier.name,
-                cpf_cnpj: supplier.cpf_cnpj
-            });
+            formatData(supplier, supplierFields);
+            
             setAddresses(addressesResponse.data.map((address) => ({
                 id: address.id,
                 zip: address.zip,
@@ -161,7 +159,7 @@ const SupplierDetailsPage = () => {
                 <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
                     <DetailsSectionRenderer
                         sections={supplierFields}
-                        formData={supplierData}
+                        formData={formData}
                     />
 
                     <div className='form-row d-flex justify-content-between align-items-center mt-1'>

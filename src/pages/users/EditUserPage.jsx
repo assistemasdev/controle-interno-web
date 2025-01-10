@@ -10,6 +10,7 @@ import useLoader from '../../hooks/useLoader';
 import usePermissionService from '../../hooks/usePermissionService';
 import useRoleService from '../../hooks/useRoleService';
 import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditUserPage = () => {
     const navigate = useNavigate();
@@ -19,7 +20,7 @@ const EditUserPage = () => {
     const { roles, fetchRoles, fetchPermissionsForRole } = useRoleService();
     const { permissions, fetchPermissions, fetchPermissionsForUser, updateUserPermissions } = usePermissionService();
 
-    const { formData, handleChange, initializeData, formatData } = useForm({});
+    const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
 
     const [selectedRoles, setSelectedRoles] = useState([]);
     const [selectedPermissions, setSelectedPermissions] = useState([]);
@@ -50,9 +51,8 @@ const EditUserPage = () => {
     }, [id, fetchUserById, fetchRoles, fetchPermissions, fetchPermissionsForUser, formatData, showLoader, hideLoader]);
 
     useEffect(() => {
-        initializeData(userProfileFields);
         fetchData();
-    }, [userProfileFields]);
+    }, [id]);
 
     const handleRoleChange = async (selectedOptions) => {
         const safeSelectedOptions = selectedOptions || [];

@@ -9,16 +9,14 @@ import useUnitService from '../../../hooks/useUnitService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
-
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 const AttachUnitsRelatedPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { fetchUnits, fetchAttachedUnits, syncRelatedUnits, formErrors } = useUnitService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, handleChange, setFormData, initializeData } = useForm({
-        units: [],
-    });
+    const { formData, handleChange, setFormData } = useForm(setDefaultFieldValues(unitAssociationFields));
     const [units, setUnits] = useState([]);
 
     const fetchData = useCallback(async () => {
@@ -30,19 +28,6 @@ const AttachUnitsRelatedPage = () => {
                 fetchAttachedUnits(id),
             ]);
             
-            initializeData(
-                unitAssociationFields.map((section) => ({
-                    ...section,
-                    fields: section.fields.map((field) => ({
-                        ...field,
-                        options: allUnits.data.map((unit) => ({
-                            value: unit.id,
-                            label: unit.name,
-                        })),
-                    })),
-                }))
-            );
-
             setUnits(allUnits.data.map((unit) => ({
                 value: unit.id,
                 label: unit.name
@@ -56,7 +41,7 @@ const AttachUnitsRelatedPage = () => {
         } finally {
             hideLoader();
         }
-    }, [id, fetchUnits, fetchAttachedUnits, initializeData, setFormData, showLoader, hideLoader, showNotification]);
+    }, [id, fetchUnits, fetchAttachedUnits, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchData();

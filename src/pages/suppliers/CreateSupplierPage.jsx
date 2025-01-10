@@ -10,17 +10,14 @@ import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { createSupplierFields } from '../../constants/forms/supplierFields';
 import { maskCep, removeMask } from '../../utils/maskUtils';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateSupplierPage = () => {
     const navigate = useNavigate(); 
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { createSupplier, formErrors } = useSupplierService(navigate);
-    const { formData, setFormData, handleChange, initializeData, resetForm } = useForm({});
-
-    useEffect(() => {
-        initializeData(createSupplierFields);
-    }, [createSupplierFields]);
+    const { formData, setFormData, handleChange, resetForm } = useForm(setDefaultFieldValues(createSupplierFields));
 
     const handleCepChange = useCallback(async (fieldId, value) => {
         const maskedValue = maskCep(value);
@@ -72,8 +69,10 @@ const CreateSupplierPage = () => {
         };
 
         try {
-            await createSupplier(sanitizedData);
-            resetForm();
+            const success = await createSupplier(sanitizedData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.error('Erro ao criar fornecedor:', error);
         } finally {

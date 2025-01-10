@@ -10,6 +10,7 @@ import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { supplierFields } from '../../constants/forms/supplierFields';
 import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditSupplierPage = () => {
     const navigate = useNavigate();
@@ -18,24 +19,23 @@ const EditSupplierPage = () => {
     const { showNotification } = useNotification();
     const { fetchSupplierById, updateSupplier, formErrors } = useSupplierService(navigate);
 
-    const { formData, setFormData, handleChange, initializeData } = useForm({});
+    const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(supplierFields));
 
     const fetchSupplier = useCallback(async () => {
         showLoader();
         try {
             const supplier = await fetchSupplierById(id);
-            initializeData(supplierFields);
-            setFormData({
-                name: supplier.name || '',
-                alias: supplier.alias || '',
+            formatData(supplier, supplierFields);
+            setFormData(prev => ({
+                ...prev,
                 cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''),
-            });
+            }));
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados do fornecedor.');
         } finally {
             hideLoader();
         }
-    }, [id, fetchSupplierById, initializeData, setFormData, showLoader, hideLoader, showNotification]);
+    }, [id, fetchSupplierById, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchSupplier();

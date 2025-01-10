@@ -62,6 +62,8 @@ const useForm = (initialData) => {
                 return { ...innerAcc, [field.id]: response[field.id] || '' };
             }, acc);
         }, {});
+
+        console.log(parsedData)
         setFormData(parsedData);
     };
 
