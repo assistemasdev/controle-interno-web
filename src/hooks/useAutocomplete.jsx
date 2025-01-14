@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { removeDuplicatesWithPriority } from '../utils/arrayUtils';
 
-const useAutocomplete = () => {
+const useAutocomplete = (model) => {
     const navigate = useNavigate();
 
     const autoCompleteFunction = async (service, object) => {
         try {
             const [column, value, onBlurColumn] = Object.values(object);
-            const response = await service.autocomplete({[column]: value}, navigate)
+            const response = await service.autocomplete(model,{[column]: value}, navigate)
             const filteredArray = removeDuplicatesWithPriority(
                 [
                     {
@@ -30,6 +30,7 @@ const useAutocomplete = () => {
     
             return filteredArray
         } catch (error) {
+            console.log(error)
             const readableError = {
                 message: error.response?.data?.message || 'Erro desconhecido.',
                 status: error.response?.status || 500,

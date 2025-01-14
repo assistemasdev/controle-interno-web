@@ -5,7 +5,6 @@ import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
-import ConditionService from "../../services/ConditionService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
@@ -13,6 +12,8 @@ import { PAGINATION } from "../../constants/pagination";
 import useConditionService from "../../hooks/useConditionService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import baseService from "../../services/baseService";
 
 const ConditionPage = () => {
     const { canAccess } = usePermissions();
@@ -23,6 +24,7 @@ const ConditionPage = () => {
     const [conditions, setConditions] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [selectedConditions, setSelectedConditions] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
@@ -41,11 +43,11 @@ const ConditionPage = () => {
         setName('');
     };
 
-    const fetchCondition = useCallback (async (page = 1) => {
+    const fetchCondition = useCallback (async (id, name, idLike, filledInputs, page = 1) => {
         try {
             showLoader();
         
-            const response = await fetchConditions({ page, perPage: itemsPerPage });
+            const response = await fetchConditions({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
 
             const filteredCondition = response.data.map(role => ({
                 id: role.id,
@@ -66,6 +68,34 @@ const ConditionPage = () => {
     
     useEffect(() => {
         fetchCondition();
+    }, []);
+
+    const handleFilterSubmit = useCallback((e) => {
+        e.preventDefault();
+
+        const filledInputs = new Set(
+            selectedConditions.map((option) => option.column)
+        ).size;
+
+        fetchCondition(
+            selectedConditions.filter((option) => option.textFilter === false || (option.column === 'id' && option.numberFilter === false)).map((item) => item.value),
+            selectedConditions.filter((option) => option.textFilter === true && option.column === 'name').map((item) => item.value),
+            selectedConditions.filter((option) => option.numberFilter === true && option.column === 'id').map((item) => item.value),
+            filledInputs
+        );
+    }, [selectedConditions, fetchCondition]);
+
+    const handleChangeOrg = useCallback((newSelected, column) => {
+        setSelectedConditions((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
     }, []);
 
     const handleEdit = useCallback((condition) => {
@@ -119,16 +149,35 @@ const ConditionPage = () => {
                     Condições
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
-                    <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome da Condição:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome da condição"
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Número:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="id"
+                            model='condition'
+                            value={selectedConditions.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeOrg(selected, 'id')}
+                            onBlurColumn="numberFilter"
+                            placeholder="Filtre os grupos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='condition'
+                            value={selectedConditions.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeOrg(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os grupos pelo nome"
+                            isMulti
                         />
                     </div>
                     <div className="form-group gap-2">

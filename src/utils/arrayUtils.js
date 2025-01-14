@@ -8,7 +8,6 @@
  */
 export function removeDuplicatesWithPriority(items, uniqueKey, priorityKey) {
     return items.reduce((acc, item) => {
-        console.log(uniqueKey)
         const existingItemIndex = acc.findIndex((i) => i[uniqueKey] == item[uniqueKey]);
 
         if (existingItemIndex === -1) {

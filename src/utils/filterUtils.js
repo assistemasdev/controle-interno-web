@@ -7,7 +7,7 @@ export function buildDynamicFilters(data) {
     const filters = {};
     const orFilters = []; // Para condições que precisam de OR lógico
     const filledInputs = data.filledInputs || 0; // Total de inputs preenchidos
-
+    console.log(data)
     Object.entries(data).forEach(([key, value]) => {
         if (key === 'startDate' && value) {
             // Filtrar por data inicial (maior ou igual)
@@ -27,12 +27,19 @@ export function buildDynamicFilters(data) {
                         ? [...filters.id.$contains, ...value]
                         : value,
                 };
+            } else if (key === 'idLike' && filledInputs <= 1) {
+                filters.id = {
+                    ...(filters.id || {}),
+                    $in: Array.isArray(filters.id?.$contains)
+                        ? [...filters.id.$contains, ...value]
+                        : value,
+                };
             } else {
                 // Adicionar condições ao $or para arrays de outros campos
                 orFilters.push(...value.map((item) => ({ [key]: { $contains: item } })));
             }
         } else if (typeof value === 'string' && value.trim() !== '') {
-            if (key === 'idLike' && filledInputs > 1) {
+            if (key === 'idLike') {
                 // Adicionar $contains para idLike como string
                 filters.id = { ...(filters.id || {}), $contains: value };
             } else {

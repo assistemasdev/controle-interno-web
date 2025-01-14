@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { faEdit, faTrashAlt, faBuilding } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import DynamicTable from '../../components/DynamicTable';
@@ -14,6 +14,7 @@ import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useUserService from '../../hooks/useUserService';
 import UserService from '../../services/UserService';
+import baseService from '../../services/baseService';
 
 const UsersPage = () => {
     const navigate = useNavigate();
@@ -36,11 +37,11 @@ const UsersPage = () => {
         }
     }, [location.state, showNotification]);
 
-    const fetchUsers = async (id, name, filledInputs, page = 1) => {
+    const fetchUsers = async (id, name, idLike, filledInputs, page = 1) => {
         try {
             showLoader();
 
-            const result = await fetchAllUsers({ id, name, filledInputs, page, perPage: itemsPerPage });
+            const result = await fetchAllUsers({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
 
             const filteredUsers = result.data.map(user => ({
                 id: user.id,
@@ -64,18 +65,31 @@ const UsersPage = () => {
         fetchUsers();
     }, []);
 
-    const handleFilter = (e) => {
+    const handleFilterSubmit = (e) => {
         e.preventDefault();
-        const filledInputs = new Set(
-            selectedUsers.map((option) => option.column)
-        ).size;
+
+        const filledInputs = new Set(selectedUsers.map((option) => option.column)).size;
 
         fetchUsers(
-            selectedUsers.filter((user) => user.textFilter === false).map(user => (user.value)),
-            selectedUsers.filter((user) => user.textFilter === true).map(user => (user.value)),
+            selectedUsers.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
+            selectedUsers.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
+            selectedUsers.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
             filledInputs
         );
     };
+    
+    const handleChangeUsers = useCallback((newSelected, column) => {
+        setSelectedUsers((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
+    }, []);
 
     const handleEdit = (user) => {
         navigate(`/usuarios/editar/${user.id}`);
@@ -142,17 +156,35 @@ const UsersPage = () => {
                     Usuários
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2 theme-background" onSubmit={handleFilter}>
-                    <div className="form-group col-md-12">
-                        <label htmlFor="name" className='font-weight-bold mt-1'>Nome:</label>
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2 theme-background" onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Número:
+                        </label>
                         <AutoCompleteFilter
-                            service={UserService}
-                            value={selectedUsers}
-                            columnDataBase='name'
-                            isMulti={true}
-                            onChange={(selected) => setSelectedUsers(selected)}
-                            onBlurColumn='textFilter'
-                            placeholder="Filtre os usuários pelo nome"
+                            service={baseService}
+                            columnDataBase="id"
+                            model='user'
+                            value={selectedUsers.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeUsers(selected, 'id')}
+                            onBlurColumn="numberFilter"
+                            placeholder="Filtre os tipos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='user'
+                            value={selectedUsers.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeUsers(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os tipos pelo nome"
+                            isMulti
                         />
                     </div>
 

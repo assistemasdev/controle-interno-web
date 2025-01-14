@@ -1,10 +1,17 @@
 import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
+import qs from 'qs';
+import { buildDynamicFilters } from "../utils/filterUtils";
 
 const UnitService = {
     async getAll (data,navigate) {
+        const query = qs.stringify({
+            filters: buildDynamicFilters(data),
+            page:data.page, 
+            perPage: data.perPage
+        }, { encode: false });
         try {
-            const response = await api.get("/units/", {params: {page:data.page, perPage: data.perPage}});
+            const response = await api.get(`/units/?${query}`);
             return {
                 message: response.data.message,
                 result: response.data.result,

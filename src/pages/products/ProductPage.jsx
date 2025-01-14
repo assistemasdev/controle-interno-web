@@ -14,6 +14,7 @@ import useProductService from "../../hooks/useProductService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import useStatusService from "../../hooks/useStatusService";
+import baseService from "../../services/baseService";
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
@@ -171,8 +172,9 @@ const ProductsPage = () => {
                             Número:
                         </label>
                         <AutoCompleteFilter
-                            service={ProductService}
+                            service={baseService}
                             columnDataBase="number"
+                            model='product'
                             value={selectedProducts}
                             onChange={(selected) => setSelectedProducts(selected)}
                             onBlurColumn="numberFilter"

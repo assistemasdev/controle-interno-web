@@ -70,6 +70,8 @@ const CreateOrganizationPage = () => {
                         country: 'Brasil'
                     }
                 }));
+
+                showNotification('success', 'Endereço preenchido automaticamente!');
             } catch (error) {
                 showNotification('error', error.message);
             } finally {

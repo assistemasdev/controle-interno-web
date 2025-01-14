@@ -6,6 +6,7 @@ import useAutocomplete from "../hooks/useAutocomplete";
 const AutoCompleteFilter = ({
     value,
     service,
+    model,
     columnDataBase,
     onChange,
     onBlurColumn,
@@ -18,8 +19,8 @@ const AutoCompleteFilter = ({
     const [options, setOptions] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [selectedValue, setSelectedValue] = useState([]);
-    const [barcodeBuffer, setBarcodeBuffer] = useState(""); 
-    const { autoCompleteFunction } = useAutocomplete();
+    // const [barcodeBuffer, setBarcodeBuffer] = useState(""); 
+    const { autoCompleteFunction } = useAutocomplete(model);
     const { debouncedFn } = useDebounce(autoCompleteFunction, 500);
 
     const handleInputChange = (value) => {
@@ -42,41 +43,44 @@ const AutoCompleteFilter = ({
         }
     };
 
-    const handleScanComplete = (barcodeString) => {
-        if (!selectedValue.some((item) => item.value === barcodeString)) {
-            const newItem = {
-                column: columnDataBase,
-                [onBlurColumn]: true,
-                value: barcodeString,
-                label: barcodeString,
-            };
-            const updatedValues = [...selectedValue, newItem];
+    // const handleScanComplete = (barcodeString) => {
+    //     if (!selectedValue.some((item) => item.value === barcodeString)) {
+    //         const newItem = {
+    //             column: columnDataBase,
+    //             [onBlurColumn]: true,
+    //             value: barcodeString,
+    //             label: barcodeString,
+    //         };
+    //         const updatedValues = [...selectedValue, newItem];
 
-            setSelectedValue(updatedValues);
+    //         setSelectedValue(updatedValues);
 
-            if (onChange) {
-                onChange(updatedValues, columnDataBase);
-            }
-        }
-        setBarcodeBuffer("");
-        setInputValue('');
-    };
+    //         if (onChange) {
+    //             onChange(updatedValues, columnDataBase);
+    //         }
+    //     }
+    //     setBarcodeBuffer("");
+    //     setInputValue('');
+    // };
 
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === "Enter" && barcodeBuffer.length > 3) {
-                handleScanComplete(barcodeBuffer);
-            } else if (e.key.length === 1) {
-                setBarcodeBuffer((prev) => prev + e.key);
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [barcodeBuffer]);
+    // useEffect(() => {
+    //     const handleKeyDown = (e) => {
+    //         console.log(e.target.tagName)
+    //         // if (document.activeElement.tagName === 'INPUT' && e.key !== 'Enter') return;
+    
+    //         if (e.key === "Enter" && barcodeBuffer.length > 3) {
+    //             handleScanComplete(barcodeBuffer);
+    //         } else if (e.key.length === 1) {
+    //             setBarcodeBuffer((prev) => prev + e.key);
+    //         }
+    //     };
+    
+    //     window.addEventListener("keydown", handleKeyDown);
+    
+    //     return () => {
+    //         window.removeEventListener("keydown", handleKeyDown);
+    //     };
+    // }, [barcodeBuffer]);
 
     const handleBlur = () => {
         if (inputValue && !selectedValue.some((option) => option.label === inputValue)) {

@@ -12,6 +12,7 @@ import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import useCustomerService from "../../hooks/useCustomerService";
+import baseService from "../../services/baseService";
 
 const CostumerPage = () => {
     const { canAccess } = usePermissions();
@@ -164,7 +165,8 @@ const CostumerPage = () => {
                         <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Número:</label>
                         <AutoCompleteFilter
                             value={selectedCustomers.filter((option) => option.column === 'id')}
-                            service={getCustomers}
+                            service={baseService}
+                            model="customer"
                             columnDataBase="id"
                             isMulti={true}
                             onChange={(newSelected) => handleChangeCustomers(newSelected, "id")}
@@ -176,7 +178,8 @@ const CostumerPage = () => {
                         <label htmlFor="name" className='text-dark font-weight-bold mt-1'>Nome:</label>
                         <AutoCompleteFilter
                             value={selectedCustomers.filter((option) => option.column === 'name')}
-                            service={getCustomers}
+                            service={baseService}
+                            model="customer"
                             columnDataBase='name'
                             isMulti={true}
                             onChange={(newSelected) => handleChangeCustomers(newSelected, "name")}

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
@@ -11,6 +10,8 @@ import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
 import useCategoryService from "../../hooks/useCategoryService";
 import useNotification from "../../hooks/useNotification";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import baseService from "../../services/baseService";
 
 const CategoryPage = () => {
     const { canAccess } = usePermissions();
@@ -18,6 +19,7 @@ const CategoryPage = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [categoryToDelete, setCategoryToDelete] = useState(null);
     const [categories, setCategories] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
@@ -42,11 +44,11 @@ const CategoryPage = () => {
         fetchCategories();
     }, []);
 
-    const fetchCategories = useCallback(async (page = 1) => {
+    const fetchCategories = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
         try {
             showLoader();
             
-            const response = await getCategories({ page, perPage: itemsPerPage });
+            const response = await getCategories({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
             
             const filteredCategories = response.data.map(role => ({
                 id: role.id,
@@ -62,6 +64,34 @@ const CategoryPage = () => {
             hideLoader();
         }
     }, [getCategories, itemsPerPage, showLoader, hideLoader]);
+
+    const handleFilterSubmit = useCallback((e) => {
+        e.preventDefault();
+
+        const filledInputs = new Set(
+            selectedCategories.map((option) => option.column)
+        ).size;
+
+        fetchCategories(
+            selectedCategories.filter((option) => option.textFilter === false || (option.column === 'id' && option.numberFilter === false)).map((item) => item.value),
+            selectedCategories.filter((option) => option.textFilter === true && option.column === 'name').map((item) => item.value),
+            selectedCategories.filter((option) => option.numberFilter === true && option.column === 'id').map((item) => item.value),
+            filledInputs
+        );
+    }, [selectedCategories, fetchCategories]);
+
+    const handleChangeOrg = useCallback((newSelected, column) => {
+        setSelectedCategories((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
+    }, []);
     
     const handleEdit = useCallback((category) => {
         navigate(`/categorias/editar/${category.id}`);
@@ -112,15 +142,35 @@ const CategoryPage = () => {
                     Categorias
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
-                    <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome da Categoria:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome da categoria"
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Número:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="id"
+                            model='category'
+                            value={selectedCategories.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeOrg(selected, 'id')}
+                            onBlurColumn="numberFilter"
+                            placeholder="Filtre os grupos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='category'
+                            value={selectedCategories.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeOrg(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os grupos pelo nome"
+                            isMulti
                         />
                     </div>
                     <div className="form-group gap-2">

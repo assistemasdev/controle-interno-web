@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import MyAlert from "../../components/MyAlert";
-import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import { CircularProgress } from '@mui/material';
@@ -9,6 +8,9 @@ import DynamicTable from "../../components/DynamicTable";
 import RoleService from "../../services/RoleService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { PAGINATION } from "../../constants/pagination";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import baseService from "../../services/baseService";
 
 const RolePage = () => {
     const { canAccess } = usePermissions();
@@ -19,6 +21,10 @@ const RolePage = () => {
     const [roles, setRoles] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [selectedRoles, setSelectedRoles] = useState([]);
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         setMessage(null);
@@ -31,26 +37,55 @@ const RolePage = () => {
         setName('');
     };
 
-    const fetchRoles = async () => {
+
+    const fetchRoles = async (id, name, idLike, filledInputs, page = 1) => {
         try {
             setLoading(true);
         
-            const response = await RoleService.getRoles(navigate);
-            const result = response.result.data
-            const filteredRoles = result.map(role => ({
+            const response = await RoleService.getRoles({ id, name, idLike, filledInputs, page, perPage: itemsPerPage }, navigate);
+            const result = response.result
+            const filteredRoles = result.data.map(role => ({
                 id: role.id,
                 name: role.name
             }));
         
             setRoles(filteredRoles);
+            setCurrentPage(result.current_page);
+            setTotalPages(result.last_page);
         } catch (error) {
-            setError('Erro ao carregar aplicações');
+            setError('Erro ao carregar cargos');
             console.error(error);
         } finally {
             setLoading(false);
         }
     };
+
+    const handleFilterSubmit = (e) => {
+        e.preventDefault();
+
+        const filledInputs = new Set(selectedRoles.map((option) => option.column)).size;
+
+        fetchRoles(
+            selectedRoles.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
+            selectedRoles.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
+            selectedRoles.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
+            filledInputs
+        );
+    };
     
+    const handleChangeRoles = useCallback((newSelected, column) => {
+        setSelectedRoles((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
+    }, []);
+
     useEffect(() => {
         fetchRoles();
     }, []);
@@ -78,16 +113,35 @@ const RolePage = () => {
                     Cargos
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
-                    {message && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage('')} />}
-                    <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome do Cargo:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do cargo"
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Número:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="id"
+                            model='role'
+                            value={selectedRoles.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeRoles(selected, 'id')}
+                            onBlurColumn="numberFilter"
+                            placeholder="Filtre os cargos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='role'
+                            value={selectedRoles.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeRoles(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os cargos pelo nome"
+                            isMulti
                         />
                     </div>
                     <div className="form-group gap-2">
@@ -118,7 +172,7 @@ const RolePage = () => {
                         <MyAlert notTime={true} severity="error" message={error} />
                     </div>
                     ) : (
-                    <DynamicTable headers={headers} data={roles} actions={actions} />
+                    <DynamicTable headers={headers} data={roles} actions={actions} currentPage={currentPage} totalPages={totalPages} onPageChange={fetchRoles} />
                 )}
             </div>
         </MainLayout>

@@ -11,6 +11,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import baseService from "../../services/baseService";
 
 const GroupPage = () => {
     const { canAccess } = usePermissions();
@@ -27,7 +29,7 @@ const GroupPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-
+    const [selectedGroups, setSelectedGroups] = useState([]);
     const headers = useMemo(() => ['id', 'Nome'], []);
     const actions = useMemo(() => [
         {
@@ -49,10 +51,10 @@ const GroupPage = () => {
         },
     ], [navigate]);
 
-    const fetchGroup = useCallback(async (page = 1) => {
+    const fetchGroup = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
         try {
             showLoader();
-            const response = await fetchAllGroups({ page, perPage: itemsPerPage });
+            const response = await fetchAllGroups({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
             setGroups(response.data.map(group => ({
                 id: group.id,
                 name: group.name,
@@ -81,6 +83,34 @@ const GroupPage = () => {
         setName('');
     }, []);
 
+    const handleFilterSubmit = useCallback((e) => {
+        e.preventDefault();
+
+        const filledInputs = new Set(
+            selectedGroups.map((option) => option.column)
+        ).size;
+
+        fetchGroup(
+            selectedGroups.filter((option) => option.textFilter === false || (option.column === 'id' && option.numberFilter === false)).map((item) => item.value),
+            selectedGroups.filter((option) => option.textFilter === true && option.column === 'name').map((item) => item.value),
+            selectedGroups.filter((option) => option.numberFilter === true && option.column === 'id').map((item) => item.value),
+            filledInputs
+        );
+    }, [selectedGroups, fetchGroup]);
+
+    const handleChangeGroup = useCallback((newSelected, column) => {
+        setSelectedGroups((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
+    }, []);
+
     const confirmDelete = useCallback(async () => {
         try {
             showLoader();
@@ -101,18 +131,39 @@ const GroupPage = () => {
                     Grupos
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome do Grupo:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do grupo"
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Número:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="id"
+                            model='type'
+                            value={selectedGroups.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeGroup(selected, 'id')}
+                            onBlurColumn="numberFilter"
+                            placeholder="Filtre os grupos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='type'
+                            value={selectedGroups.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeGroup(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os grupos pelo nome"
+                            isMulti
                         />
                     </div>
                     <div className="form-group gap-2">
+                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
                         <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
                 </form>

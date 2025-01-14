@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
@@ -10,12 +9,15 @@ import { faEdit, faTrash, faLayerGroup } from '@fortawesome/free-solid-svg-icons
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import baseService from "../../services/baseService";
 
 const TypePage = () => {
     const { canAccess } = usePermissions();
     const { fetchTypes, deleteType } = useTypeService();
     const { showLoader, hideLoader } = useLoader();
     const [name, setName] = useState('');
+    const [selectedTypes, setSelectedTypes] = useState([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [typeToDelete, setTypeToDelete] = useState(null);
     const [types, setTypes] = useState([]);
@@ -36,10 +38,10 @@ const TypePage = () => {
         setName('');
     }, []);
 
-    const loadTypes = useCallback(async (page = 1) => {
+    const loadTypes = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
         showLoader();
         try {
-            const result = await fetchTypes({ page, perPage: itemsPerPage });
+            const result = await fetchTypes({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
             setTypes(result.data.map((type) => ({
                 id: type.id,
                 name: type.name
@@ -67,6 +69,32 @@ const TypePage = () => {
     const handleViewGroups = useCallback((type) => {
         navigate(`/tipos/${type.id}/grupos/associar`);
     }, [navigate]);
+
+    const handleFilterSubmit = (e) => {
+        e.preventDefault();
+
+        const filledInputs = new Set(selectedTypes.map((option) => option.column)).size;
+
+        loadTypes(
+            selectedTypes.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
+            selectedTypes.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
+            selectedTypes.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
+            filledInputs
+        );
+    };
+
+    const handleChangeCustomers = useCallback((newSelected, column) => {
+        setSelectedTypes((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
+    }, []);
 
     const confirmDelete = useCallback(async () => {
         showLoader();
@@ -112,15 +140,35 @@ const TypePage = () => {
                     Tipos
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome do Tipo:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do tipo"
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Número:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="id"
+                            model='type'
+                            value={selectedTypes.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
+                            onBlurColumn="numberFilter"
+                            placeholder="Filtre os tipos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='type'
+                            value={selectedTypes.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os tipos pelo nome"
+                            isMulti
                         />
                     </div>
                     <div className="form-group gap-2">

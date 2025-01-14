@@ -1,5 +1,7 @@
 import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
+import qs from 'qs';
+import { buildDynamicFilters } from "../utils/filterUtils";
 
 const OrganizationService = {
     async getByApplicationId(applicationId, navigate) {
@@ -28,9 +30,15 @@ const OrganizationService = {
         }
     },
 
-    async getAll(navigate) {
+    async getAll(data ,navigate) {
+        const query = qs.stringify({
+            filters: buildDynamicFilters(data),
+            page:data.page, 
+            perPage: data.perPage
+        }, { encode: false });
+        
         try {
-            const response = await api.get(`/organizations/`);
+            const response = await api.get(`/organizations/?${query}`);
             return {
                 message: response.data.message,
                 result: response.data.result,

@@ -1,5 +1,7 @@
 import api from "../services/api";
 import handleError from "../utils/errorHandler"; 
+import qs from 'qs';
+import { buildDynamicFilters } from "../utils/filterUtils";
 
 const RoleService = {
     async getRolesUser(userId, navigate = null) {
@@ -28,9 +30,14 @@ const RoleService = {
         }
     },
 
-    async getRoles(navigate) {
+    async getRoles(data, navigate) {
+        const query = qs.stringify({
+            filters: buildDynamicFilters(data),
+            page:data.page, 
+            perPage: data.perPage
+        }, { encode: false });
         try {
-            const response = await api.get(`/roles`);
+            const response = await api.get(`/roles/?${query}`);
             return {
                 message: response.data.message,
                 status: response.status,

@@ -11,6 +11,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faLink } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
+import baseService from "../../services/baseService";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 
 const UnitPage = () => {
     const { canAccess } = usePermissions();
@@ -19,7 +21,7 @@ const UnitPage = () => {
     const { showNotification } = useNotification();
     const navigate = useNavigate();
     const location = useLocation();
-
+    const [selectedUnits, setSelectedUnits] = useState([]);
     const [name, setName] = useState('');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [unitToDelete, setUnitToDelete] = useState(null);
@@ -56,10 +58,10 @@ const UnitPage = () => {
         }
     ], [navigate]);
 
-    const fetchUnitList = useCallback(async (page = 1) => {
+    const fetchUnitList = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
         try {
             showLoader();
-            const result = await fetchUnits({ page, perPage: itemsPerPage });
+            const result = await fetchUnits({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
             setUnits(result.data.map((unit) => ({
                 id: unit.id,
                 name: unit.name,
@@ -99,6 +101,32 @@ const UnitPage = () => {
         }
     }, [unitToDelete, deleteUnit, fetchUnitList, showLoader, hideLoader, showNotification]);
 
+    const handleFilterSubmit = (e) => {
+        e.preventDefault();
+
+        const filledInputs = new Set(selectedUnits.map((option) => option.column)).size;
+
+        fetchUnitList(
+            selectedUnits.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
+            selectedUnits.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
+            selectedUnits.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
+            filledInputs
+        );
+    };
+    
+    const handleChangeUnits = useCallback((newSelected, column) => {
+        setSelectedUnits((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
+    }, []);
+
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
@@ -106,18 +134,39 @@ const UnitPage = () => {
                     Unidades
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome da Unidade:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome da unidade"
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Número:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="id"
+                            model='unit'
+                            value={selectedUnits.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeUnits(selected, 'id')}
+                            onBlurColumn="numberFilter"
+                            placeholder="Filtre os tipos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='unit'
+                            value={selectedUnits.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeUnits(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os tipos pelo nome"
+                            isMulti
                         />
                     </div>
                     <div className="form-group gap-2">
+                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
                         <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
                 </form>

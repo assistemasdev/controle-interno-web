@@ -12,9 +12,9 @@ const useOrganizationService = (navigate) => {
         setFormErrors({});
     }, []);
 
-    const fetchAll = useCallback(async () => {
+    const fetchAll = useCallback(async (params) => {
         try {
-            const response = await OrganizationService.getAll(navigate);
+            const response = await OrganizationService.getAll(params, navigate);
             return response.result;
         } catch (error) {
             handleError(error, 'Erro ao carregar organizações.');

@@ -10,6 +10,8 @@ import useLoader from '../../hooks/useLoader';
 import useNotification from "../../hooks/useNotification";
 import useOrganizationService from "../../hooks/useOrganizationService";
 import { PAGINATION } from '../../constants/pagination';
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import baseService from "../../services/baseService";
 
 const OrganizationPage = () => {
     const { canAccess } = usePermissions();
@@ -20,6 +22,7 @@ const OrganizationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchAll } = useOrganizationService(navigate);
+    const [selectedOrgs, setSelectedOrgs] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
@@ -35,11 +38,11 @@ const OrganizationPage = () => {
         setName('');
     };
 
-    const fetchOrganizations = useCallback(async (page = 1) => {
+    const fetchOrganizations = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
         try {
             showLoader();
         
-            const response = await fetchAll();
+            const response = await fetchAll({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
             const filteredOrganizations = response.data.map(organization => ({
                 id: organization.id,
                 name: organization.name,
@@ -60,6 +63,34 @@ const OrganizationPage = () => {
     
     useEffect(() => {
         fetchOrganizations();
+    }, []);
+
+    const handleFilterSubmit = useCallback((e) => {
+        e.preventDefault();
+
+        const filledInputs = new Set(
+            selectedOrgs.map((option) => option.column)
+        ).size;
+
+        fetchOrganizations(
+            selectedOrgs.filter((option) => option.textFilter === false || (option.column === 'id' && option.numberFilter === false)).map((item) => item.value),
+            selectedOrgs.filter((option) => option.textFilter === true && option.column === 'name').map((item) => item.value),
+            selectedOrgs.filter((option) => option.numberFilter === true && option.column === 'id').map((item) => item.value),
+            filledInputs
+        );
+    }, [selectedOrgs, fetchOrganizations]);
+
+    const handleChangeOrg = useCallback((newSelected, column) => {
+        setSelectedOrgs((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
     }, []);
 
     const handleEdit = useCallback((organization) => {
@@ -96,23 +127,42 @@ const OrganizationPage = () => {
                     Organizações
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={() => console.log('oi')}>
-                    <div className="form-group col-md-12">
-                        <InputField
-                            label='Nome da Organização:'
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome da organização"
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Número:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="id"
+                            model='organization'
+                            value={selectedOrgs.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeOrg(selected, 'id')}
+                            onBlurColumn="numberFilter"
+                            placeholder="Filtre os grupos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='organization'
+                            value={selectedOrgs.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeOrg(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os grupos pelo nome"
+                            isMulti
                         />
                     </div>
                     <div className="form-group gap-2">
                         <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
+                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
                 </form>
-
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
                         Lista de Organizações

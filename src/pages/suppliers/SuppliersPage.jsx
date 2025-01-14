@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -11,6 +11,9 @@ import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import useSupplierService from "../../hooks/useSupplierService";
+import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import baseService from "../../services/baseService";
+import { maskCpfCnpj } from "../../utils/maskUtils";
 
 const SuppliersPage = () => {
     const { canAccess } = usePermissions();
@@ -19,19 +22,19 @@ const SuppliersPage = () => {
     const { showNotification } = useNotification();
     const { fetchSuppliers, deleteSupplier } = useSupplierService(navigate);
 
-    const [name, setName] = React.useState('');
-    const [suppliers, setSuppliers] = React.useState([]);
-    const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-    const [supplierToDelete, setSupplierToDelete] = React.useState(null);
+    const [name, setName] = useState('');
+    const [suppliers, setSuppliers] = useState([]);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [supplierToDelete, setSupplierToDelete] = useState(null);
+    const [selectedSuppliers, setSelectedSuppliers] = useState([]);
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
-    const [currentPage, setCurrentPage] = React.useState(PAGINATION.DEFAULT_PAGE);
-    const [itemsPerPage, setItemsPerPage] = React.useState(PAGINATION.DEFAULT_PER_PAGE);
-    const [totalPages, setTotalPages] = React.useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-
-    const fetchSuppliersData = useCallback(async (page = 1) => {
+    const fetchSuppliersData = useCallback(async (id, name, filledInputs, page = 1) => {
         showLoader();
         try {
-            const response = await fetchSuppliers({ page, perPage: itemsPerPage, name });
+            const response = await fetchSuppliers({ id, name, filledInputs, page, perPage: itemsPerPage, name });
             const formattedSuppliers = response.data.map(supplier => {
                 const numericValue = supplier.cpf_cnpj.replace(/\D/g, '');
                 return {
@@ -83,9 +86,34 @@ const SuppliersPage = () => {
         }
     }, [deleteSupplier, supplierToDelete, fetchSuppliersData, showLoader, hideLoader, showNotification]);
 
+    const handleChangeCustomers = useCallback((newSelected, column) => {
+        setSelectedSuppliers((prev) => {
+            if (!newSelected.length) {
+                return prev.filter((option) => option.column !== column);
+            }
+
+            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
+
+            const filtered = prev.filter((option) => option.column !== column);
+            return [...filtered, ...newSelectedArray];
+        });
+    }, []);
+
     const handleClearFilters = () => {
         setName('');
         fetchSuppliersData();
+    };
+
+    const handleFilterSubmit = (e) => {
+        e.preventDefault();
+
+        const filledInputs = new Set(selectedSuppliers.map((option) => option.column)).size;
+
+        fetchSuppliersData(
+            selectedSuppliers.filter((supplier) => !supplier.textFilter).map((supplier) => supplier.value),
+            selectedSuppliers.filter((supplier) => supplier.textFilter).map((supplier) => supplier.value),
+            filledInputs
+        );
     };
 
     const headers = ['ID', 'Apelido', 'Nome', 'CPF/CNPJ'];
@@ -120,24 +148,42 @@ const SuppliersPage = () => {
                     Fornecedores
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    <div className="form-group col-md-12">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">Nome:</label>
-                        <input
-                            type="text"
-                            id="name"
-                            className="form-control"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Digite o nome do fornecedor"
+                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='supplier'
+                            value={selectedSuppliers.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os fornecedores pelo nome"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            CPF/CNPJ:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="cpf_cnpj"
+                            model='supplier'
+                            value={selectedSuppliers.filter((option) => option.column === 'cpf_cnpj')}
+                            onChange={(selected) => handleChangeCustomers(selected, 'cpf_cnpj')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os fornecedores pelo cpf/cnpj"
+                            isMulti
                         />
                     </div>
                     <div className="form-group gap-2">
                         <Button
-                            type="button"
+                            type="submit"
                             text="Filtrar"
                             className="btn btn-blue-light fw-semibold m-1"
-                            onClick={() => fetchSuppliersData(1)}
                         />
                         <Button
                             type="button"
