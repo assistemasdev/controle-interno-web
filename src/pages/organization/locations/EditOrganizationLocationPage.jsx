@@ -13,7 +13,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const EditOrganizationLocationPage = () => {
     const navigate = useNavigate();
-    const { applicationId, organizationId, addressId, locationId } = useParams(); 
+    const { organizationId, addressId, locationId } = useParams(); 
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchOrganizationLocationById, updateOrganizationLocation, formErrors } = useOrganizationService(navigate);
@@ -50,7 +50,7 @@ const EditOrganizationLocationPage = () => {
     };
 
     const handleBack = () => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${addressId}/localizacoes`);
+        navigate(`/organizacoes/detalhes/${organizationId}/enderecos/${addressId}/localizacoes`);
     };
 
     return (

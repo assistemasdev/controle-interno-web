@@ -4,22 +4,25 @@ import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faEye  } from '@fortawesome/free-solid-svg-icons';
 import useLoader from '../../hooks/useLoader';
 import useNotification from "../../hooks/useNotification";
 import useOrganizationService from "../../hooks/useOrganizationService";
+import { PAGINATION } from '../../constants/pagination';
 
 const OrganizationPage = () => {
     const { canAccess } = usePermissions();
-    const { applicationId } = useParams();
     const [name, setName] = useState('');
     const [organizations, setOrganizations] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchOrganizationsByApplicationId } = useOrganizationService(navigate);
+    const { fetchAll } = useOrganizationService(navigate);
+    const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -36,15 +39,16 @@ const OrganizationPage = () => {
         try {
             showLoader();
         
-            const response = await fetchOrganizationsByApplicationId(applicationId);
-
-            const filteredOrganizations = response.map(organization => ({
+            const response = await fetchAll();
+            const filteredOrganizations = response.data.map(organization => ({
                 id: organization.id,
                 name: organization.name,
                 color: organization.color,
                 active: organization.active == true ? 'Sim' : 'Não'
             }));
             
+            setCurrentPage(response.current_page)
+            setTotalPages(response.last_page);
             setOrganizations(filteredOrganizations);
         } catch (error) {
             showNotification('error','Erro ao carregar organizações');
@@ -52,19 +56,19 @@ const OrganizationPage = () => {
         } finally {
             hideLoader();
         }
-    },[showLoader, fetchOrganizationsByApplicationId, showNotification, hideLoader]);
+    },[showLoader, fetchAll, showNotification, hideLoader]);
     
     useEffect(() => {
         fetchOrganizations();
-    }, [applicationId]);
+    }, []);
 
     const handleEdit = useCallback((organization) => {
-        navigate(`/orgaos/editar/${applicationId}/${organization.id}`);
-    }, [navigate, applicationId]);
+        navigate(`/organizacoes/editar/${organization.id}`);
+    }, [navigate, ]);
 
     const handleDetails = useCallback((organization) => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organization.id}`);
-    }, [navigate, applicationId])
+        navigate(`/organizacoes/detalhes/${organization.id}`);
+    }, [navigate, ])
 
     const headers = useMemo(() => ['id', 'Nome', 'Cor', 'Ativo'], []);
 
@@ -117,12 +121,19 @@ const OrganizationPage = () => {
                         <Button
                         text="Nova Organização"
                         className="btn btn-blue-light fw-semibold"
-                        link={`/orgaos/criar/${applicationId}`}
+                        link={`/organizacoes/criar/`}
                         />
                     )}
                 </div>
 
-                <DynamicTable headers={headers} data={organizations} actions={actions} />
+                <DynamicTable 
+                    headers={headers} 
+                    data={organizations} 
+                    actions={actions} 
+                    currentPage={currentPage} 
+                    totalPages={totalPages} 
+                    onPageChange={fetchOrganizations}
+                />
 
             </div>
         </MainLayout>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrashAlt, faBuilding } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import DynamicTable from '../../components/DynamicTable';
 import Button from '../../components/Button';
@@ -105,6 +105,10 @@ const UsersPage = () => {
         setOpenDeleteModal(false);  
     };
 
+    const handleViewOrganizationUsers = (user) => {
+        navigate(`/usuarios/organizacoes/${user.id}`)
+    }
+
     const headers = ['id', 'Nome', 'E-mail'];
 
     const actions = [
@@ -121,6 +125,13 @@ const UsersPage = () => {
             buttonClass: 'btn-danger',
             permission: 'delete users',
             onClick: handleDelete,
+        },
+        {
+            icon: faBuilding,
+            title: 'Organizações do usuário',
+            buttonClass: 'btn-success',
+            permission: 'Listar organizações de usuários',
+            onClick: handleViewOrganizationUsers,
         },
     ];
 

@@ -8,7 +8,6 @@ import { useOrgan } from '../hooks/useOrgan';
 import { useAuth } from '../hooks/useAuth';
 import { useApplication } from '../hooks/useApplication';
 import { usePermissions } from '../hooks/usePermissions';
-import UserOrganizationService from '../services/UserOrganizationService';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
@@ -16,6 +15,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../assets/styles/sb-admin-2.min.css';
 import '../assets/styles/custom-styles.css'; 
 import OrganCard from '../components/organ/OrganCard';
+import useUserService from '../hooks/useUserService';
+import useLoader from '../hooks/useLoader';
 
 const CompanySelection = () => {
     const { selectOrgan } = useOrgan();
@@ -26,59 +27,50 @@ const CompanySelection = () => {
     const navigate = useNavigate();
     const [options, setOptions] = useState([]);
     const [selectedOption, setSelectedOption] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { getUserApplicationOrganizations } = useUserService(navigate);
+    const { showLoader, hideLoader } = useLoader();
 
     useEffect(() => {
         const fetchOrgans = async () => {
 
         if (user && selectedApplication) {
             try {
-            setLoading(true);
-            const response = await UserOrganizationService.getOrganizationsByUserAndApplication(
-                user.id,
-                selectedApplication.id,
-                navigate
-            );
-            
-            const { message, result, status } = response;
+                showLoader();
+                const response = await getUserApplicationOrganizations(
+                    user.id,
+                    selectedApplication.id,            );
 
-            if (status == 200 && (!result || !result == null)) {
-                setMessage(message)
-                return;
-            }
-
-            if (status == 200 && result) {
-                const formattedOrgans = result
-                .filter(organ => organ.active)  
-                .map((organ) => ({
-                    ...organ,
-                    color: organ.color || "#cccccc", 
-                    name: organ.name || "Sem nome",   
-                }));
+                    const formattedOrgans = response.data
+                    .filter(organ => organ.active)  
+                    .map((organ) => ({
+                        ...organ,
+                        color: organ.color || "#cccccc", 
+                        name: organ.name || "Sem nome",   
+                    })
+                );
 
                 const hasAdminRole = UserHasRole(['Super Admin', 'Admin'], userRoles);
                 
                 if (hasAdminRole) {
-                const adminOrgan = {
-                    id: "admin",
-                    name: "Admin",
-                    color: "#dc143c", 
-                };
-                
-                const organsWithAdmin = [...formattedOrgans, adminOrgan];
-                setOptions(organsWithAdmin);
-                setSelectedOption(organsWithAdmin.length > 0 ? organsWithAdmin[0] : null);
+                    const adminOrgan = {
+                        id: "admin",
+                        name: "Admin",
+                        color: "#dc143c", 
+                    };
+                    
+                    const organsWithAdmin = [...formattedOrgans, adminOrgan];
+                    setOptions(organsWithAdmin);
+                    setSelectedOption(organsWithAdmin.length > 0 ? organsWithAdmin[0] : null);
                 } else {
-                setOptions(formattedOrgans);
-                setSelectedOption(formattedOrgans.length > 0 ? formattedOrgans[0] : null);
+                    setOptions(formattedOrgans);
+                    setSelectedOption(formattedOrgans.length > 0 ? formattedOrgans[0] : null);
                 }
                 return;
-            }
             } catch (error) {
-            console.error("Erro ao buscar órgãos:", error);
-            setOptions([]);
+                console.error("Erro ao buscar órgãos:", error);
+                setOptions([]);
             } finally {
-            setLoading(false);
+                hideLoader();
             }
         }
         };
@@ -111,9 +103,7 @@ const CompanySelection = () => {
                             <h1 className="h4 font-color-blue-light">Selecione um órgão!</h1>
                         </div>
 
-                        {loading ? (
-                            <div className="text-center">Carregando órgãos...</div>
-                        ) : options.length > 0 ? (
+                        {options.length > 0 ? (
                             <Swiper
                                 modules={[EffectCoverflow, Navigation]}
                                 effect="coverflow"
@@ -146,17 +136,17 @@ const CompanySelection = () => {
                         <div className="row mt-3 g-2 justify-content-center">
                             <div className="col-12 col-md-6 d-flex justify-content-center">
                                 <Button
-                                text="Voltar"
+                                text="Avançar"
                                 className="btn btn-blue-light w-100"
-                                onClick={handleBack}
+                                onClick={handleAdvance}
+                                disabled={!selectedOption}
                                 />
                             </div>
                             <div className="col-12 col-md-6 d-flex justify-content-center">
                                 <Button
-                                text="Avançar"
+                                text="Voltar"
                                 className="btn btn-blue-light w-100"
-                                onClick={handleAdvance}
-                                disabled={!selectedOption || loading}
+                                onClick={handleBack}
                                 />
                             </div>
                         </div>

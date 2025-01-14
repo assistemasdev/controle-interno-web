@@ -92,6 +92,7 @@ import EditCustomerLocationPage from "../pages/costumer/locations/EditCustomerLo
 import DetailsCustomerLocationPage from "../pages/costumer/locations/DetailsOrganizationLocationPage";
 import EditProductPage from "../pages/products/EditProductPage";
 import DetailsProductPage from "../pages/products/DetailsProductPage";
+import UserOrganizationsPage from "../pages/users/organizations/UserOrganizationsPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -132,6 +133,10 @@ const AppRoutesContent = () => {
             path: "/usuarios/perfil/:id",
             element: <PrivateRoute element={PerfilUserPage} />,
         },
+        {
+            path: "/usuarios/organizacoes/:id",
+            element: <PrivateRoute element={UserOrganizationsPage} />,
+        },
     ];
 
     const organizationRoutes = [
@@ -140,47 +145,47 @@ const AppRoutesContent = () => {
             element: <PrivateRoute element={CompanySelection} />,
         },
         {
-            path: "/orgaos/:applicationId",
+            path: "/organizacoes/dashboard",
             element: <PrivateRoute element={OrganizationPage} />,
         },
         {
-            path: "/orgaos/criar/:applicationId",
+            path: "/organizacoes/criar/",
             element: <PrivateRoute element={CreateOrganizationPage} />,
         },
         {
-            path: "/orgaos/editar/:applicationId/:organizationId",
+            path: "/organizacoes/editar/:organizationId",
             element: <PrivateRoute element={EditOrganizationPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId",
+            path: "/organizacoes/detalhes/:organizationId",
             element: <PrivateRoute element={OrganizationDetailsPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/adicionar",
+            path: "/organizacoes/detalhes/:organizationId/enderecos/adicionar",
             element: <PrivateRoute element={CreateOrganizationAddressPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/editar/:addressId",
+            path: "/organizacoes/detalhes/:organizationId/enderecos/editar/:addressId",
             element: <PrivateRoute element={EditOrganizationAddressPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/detalhes/:addressId",
+            path: "/organizacoes/detalhes/:organizationId/enderecos/detalhes/:addressId",
             element: <PrivateRoute element={OrganizationAddressDetailsPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes",
+            path: "/organizacoes/detalhes/:organizationId/enderecos/:addressId/localizacoes",
             element: <PrivateRoute element={LocationOrganizationPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes/adicionar",
+            path: "/organizacoes/detalhes/:organizationId/enderecos/:addressId/localizacoes/adicionar",
             element: <PrivateRoute element={CreateOrganizationLocationPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes/editar/:locationId",
+            path: "/organizacoes/detalhes/:organizationId/enderecos/:addressId/localizacoes/editar/:locationId",
             element: <PrivateRoute element={EditOrganizationLocationPage} />,
         },
         {
-            path: "/orgaos/detalhes/:applicationId/:organizationId/enderecos/:addressId/localizacoes/detalhes/:locationId",
+            path: "/organizacoes/detalhes/:organizationId/enderecos/:addressId/localizacoes/detalhes/:locationId",
             element: <PrivateRoute element={DetailsOrganizationLocationPage} />,
         }
     ];

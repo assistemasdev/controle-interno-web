@@ -23,6 +23,71 @@ const UserService = {
         }
     },
 
+    async getUserApplications(userId, navigate) {
+        try {
+            const response = await api.get(`/users/${userId}/applications`)
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            }
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+
+    async getAllUserAppOrganizations(userId, applicationId, navigate) {
+        try {
+            const response = await api.get(`/users/${userId}/applications/${applicationId}/organizations`)
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            }
+        } catch (error) {
+            return handleError(error, navigate)
+        }
+    },
+
+    async getUserOrganizations(userId, navigate) {
+        try {
+            const response = await api.get(`/users/${userId}/organizations`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            }
+        } catch (error) {
+            return handleError(error, navigate);
+        }
+    },
+
+    async getUserAppsAndOrgs(userId, navigate) {
+        try {
+            const response = await api.get(`/users/${userId}/applications/organizations`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            }
+        } catch (error) {
+            return handleError(error, navigate);
+        }
+    },
+
+    async syncMultipleUserAppOrganizations(userId, data, navigate) {
+        try {
+            const response = await api.post(`/users/${userId}/applications`, {applications_organizations:data});
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
+            }
+        } catch (error) {
+            return handleError(error, navigate);
+        }
+    },
+
     async getById(id, navigate) {
         try {
             const response = await api.get(`/users/${id}`);

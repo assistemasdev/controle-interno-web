@@ -15,7 +15,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const EditOrganizationAddressPage = () => {
     const navigate = useNavigate();
-    const { applicationId, organizationId, addressId } = useParams();
+    const { organizationId, addressId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchOrganizationAddressById, updateOrganizationAddress, formErrors } = useOrganizationService(navigate);
@@ -96,15 +96,15 @@ const EditOrganizationAddressPage = () => {
         } finally {
             hideLoader();
         }
-    }, [updateOrganizationAddress, organizationId, addressId, navigate, applicationId, showLoader, hideLoader, showNotification]);
+    }, [updateOrganizationAddress, organizationId, addressId, navigate , showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchData();
     }, [organizationId, addressId]);
 
     const handleBack = useCallback(() => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}`);
-    }, [navigate, applicationId, organizationId]);
+        navigate(`/organizacoes/detalhes/${organizationId}`);
+    }, [navigate, , organizationId]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -14,7 +14,7 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const EditOrganizationPage = () => {
     const navigate = useNavigate();
-    const { applicationId, organizationId } = useParams();
+    const { organizationId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchOrganizationById, updateOrganization, formErrors } = useOrganizationService(navigate);
@@ -58,15 +58,6 @@ const EditOrganizationPage = () => {
             try {
                 const response = await fetchOrganizationById(organizationId);
 
-                if (response.application_id != applicationId) {
-                    navigate('/aplicacoes/dashboard', {
-                        state: {
-                            type: 'error',
-                            message: 'A organização não pertence a esta aplicação. Verifique e tente novamente.',
-                        },
-                    });
-                    return;
-                }
                 formatData(response, editOrganizationFields)
                 setFormData(prev => ({
                     ...prev,
@@ -81,7 +72,7 @@ const EditOrganizationPage = () => {
         };
 
         fetchData();
-    }, [applicationId, organizationId]);
+    }, [organizationId]);
 
     const handleSubmit = useCallback(async () => {
         showLoader();
@@ -93,11 +84,11 @@ const EditOrganizationPage = () => {
         } finally {
             hideLoader();
         }
-    }, [formData, updateOrganization, organizationId, applicationId, navigate, showLoader, hideLoader, showNotification]);
+    }, [formData, updateOrganization, organizationId , navigate, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
-        navigate(`/orgaos/${applicationId}`);
-    }, [navigate, applicationId]);
+        navigate(`/organizacoes/dashboard`);
+    }, [navigate, ]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">

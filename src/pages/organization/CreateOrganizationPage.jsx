@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
 import { maskCep, removeMask } from '../../utils/maskUtils';
 import { organizationFields } from '../../constants/forms/organizationFields';
@@ -15,7 +15,6 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const CreateOrganizationPage = () => {
     const navigate = useNavigate();
-    const { applicationId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(organizationFields));
@@ -105,11 +104,11 @@ const CreateOrganizationPage = () => {
         } finally {
             hideLoader();
         }
-    }, [formData, showLoader, hideLoader, showNotification, navigate, applicationId]);
+    }, [formData, showLoader, hideLoader, showNotification, navigate, ]);
 
     const handleBack = useCallback(() => {
-        navigate(`/orgaos/${applicationId}`);
-    }, [navigate, applicationId]);
+        navigate(`/organizacoes/dashboard`);
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">

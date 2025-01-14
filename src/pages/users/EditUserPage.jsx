@@ -145,6 +145,7 @@ const EditUserPage = () => {
 
                 <Form
                     onSubmit={handleSubmit}
+                    initialFormData={formData}
                     textSubmit="Atualizar Usuário"
                     textLoadingSubmit="Atualizando..."
                     handleBack={handleBack}

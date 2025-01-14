@@ -18,7 +18,7 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 
 const OrganizationDetailsPage = () => {
     const navigate = useNavigate();
-    const { applicationId, organizationId } = useParams();
+    const { organizationId } = useParams();
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
@@ -93,7 +93,7 @@ const OrganizationDetailsPage = () => {
             title: 'Editar Endereço',
             buttonClass: 'btn-primary',
             permission: 'Atualizar endereço da organização',
-            onClick: (address) => navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/editar/${address.id}`),
+            onClick: (address) => navigate(`/organizacoes/detalhes/${organizationId}/enderecos/editar/${address.id}`),
         },
         {
             icon: faTrash,
@@ -110,17 +110,17 @@ const OrganizationDetailsPage = () => {
             title: 'Ver Detalhes',
             buttonClass: 'btn-info',
             permission: 'Visualizar detalhes do endereço',
-            onClick: (address) => navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/detalhes/${address.id}`),
+            onClick: (address) => navigate(`/organizacoes/detalhes/${organizationId}/enderecos/detalhes/${address.id}`),
         },
         {
             icon: faMapMarkerAlt,
             title: 'Ver Localizações',
             buttonClass: 'btn-warning',
             permission: 'Listar endereços de organizações',
-            onClick: (address) => navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${address.id}/localizacoes`),
+            onClick: (address) => navigate(`/organizacoes/detalhes/${organizationId}/enderecos/${address.id}/localizacoes`),
         },
         
-    ], [navigate, applicationId, organizationId]);
+    ], [navigate, organizationId]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -139,7 +139,7 @@ const OrganizationDetailsPage = () => {
                                 <Button
                                     text="Adicionar Endereço"
                                     className="btn btn-blue-light fw-semibold"
-                                    link={`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/adicionar`}
+                                    link={`/organizacoes/detalhes/${organizationId}/enderecos/adicionar`}
                                 />
                             )}
                         </div>
@@ -155,7 +155,7 @@ const OrganizationDetailsPage = () => {
                         />
 
                         <div className="mt-3 d-flex gap-2">
-                            <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={() => navigate('/orgaos/')} />
+                            <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={() => navigate('/organizacoes/')} />
                         </div>
                     </>
                 </div>

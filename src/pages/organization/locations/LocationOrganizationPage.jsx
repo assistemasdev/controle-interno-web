@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import MyAlert from "../../../components/MyAlert";
 import DynamicTable from "../../../components/DynamicTable";
 import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
-import { CircularProgress } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import { faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
@@ -16,7 +14,7 @@ import { PAGINATION } from "../../../constants/pagination";
 const LocationOrganizationPage = () => {
     const { canAccess } = usePermissions();
     const navigate = useNavigate();
-    const { applicationId, organizationId, addressId } = useParams();
+    const { organizationId, addressId } = useParams();
     const {
         fetchOrganizationLocations,
         deleteOrganizationLocation,
@@ -65,11 +63,11 @@ const LocationOrganizationPage = () => {
     }, [organizationId, addressId]);
 
     const handleEdit = (location) => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${addressId}/localizacoes/editar/${location.id}`);
+        navigate(`/organizacoes/detalhes/${organizationId}/enderecos/${addressId}/localizacoes/editar/${location.id}`);
     };
 
     const handleDetails = (location) => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${addressId}/localizacoes/detalhes/${location.id}`);
+        navigate(`/organizacoes/detalhes/${organizationId}/enderecos/${addressId}/localizacoes/detalhes/${location.id}`);
     };
 
     const handleDelete = (location) => {
@@ -132,7 +130,7 @@ const LocationOrganizationPage = () => {
                         <Button
                             text="Nova Localização"
                             className="btn btn-blue-light fw-semibold"
-                            link={`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${addressId}/localizacoes/adicionar`}
+                            link={`/organizacoes/detalhes/${organizationId}/enderecos/${addressId}/localizacoes/adicionar`}
                         />
                     )}
                 </div>

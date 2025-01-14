@@ -11,7 +11,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const CreateOrganizationLocationPage = () => {
     const navigate = useNavigate();
-    const { applicationId, organizationId, addressId } = useParams(); 
+    const { organizationId, addressId } = useParams(); 
     const { addOrganizationLocation, formErrors } = useOrganizationService(navigate);
     const { formData, resetForm, handleChange } = useForm(setDefaultFieldValues(locationFields));
 
@@ -27,7 +27,7 @@ const CreateOrganizationLocationPage = () => {
     };
 
     const handleBack = () => {
-        navigate(`/orgaos/detalhes/${applicationId}/${organizationId}/enderecos/${addressId}/localizacoes`);
+        navigate(`/organizacoes/detalhes/${organizationId}/enderecos/${addressId}/localizacoes`);
     };
 
     return (

@@ -8,43 +8,42 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow, Navigation } from "swiper/modules";
 import { useApplication } from "../hooks/useApplication";
 import { useNavigate } from "react-router-dom";
-import ApplicationService from "../services/ApplicationService";
 import { useAuth } from "../hooks/useAuth";
 import ApplicationCard from '../components/application/ApplicationCard';
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
+import useUserService from "../hooks/useUserService";
+import useLoader from "../hooks/useLoader";
+import useNotification from "../hooks/useNotification";
 
 const ApplicationSelection = () => {
     const { selectApplication } = useApplication();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const navigate = useNavigate();
-
     const [applications, setApplications] = useState([]);
     const [selectedApplication, setSelectedApplication] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { getUserApplications} = useUserService(navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
 
     useEffect(() => {
         const fetchApplications = async () => {
-        try {
-            const response = await ApplicationService.getAll(navigate);
-            if (response) {
-                setApplications(response.result.data);
-                setSelectedApplication(response.result.data[0]);
-            } else {
-                setError("Nenhuma aplicação disponível.");
+            try {
+                showLoader();
+                const response = await getUserApplications(user.id);
+                setApplications(response.data);
+                setSelectedApplication(response.data[0]);
+            } catch (error) {
+                showNotification("error", "Erro ao carregar as aplicações.");
+                console.error("Erro ao buscar aplicações:", error);
+            } finally {
+                hideLoader();
             }
-        } catch (error) {
-            setError("Erro ao carregar as aplicações.");
-            console.error("Erro ao buscar aplicações:", error);
-        } finally {
-            setLoading(false);
-        }
         };
 
         fetchApplications();
-    }, []);
+    }, [user]);
 
     const handleSlideChange = (swiper) => {
         const selected = applications[swiper.activeIndex] || null;
@@ -53,8 +52,8 @@ const ApplicationSelection = () => {
 
     const handleAdvance = () => {
         if (selectedApplication) {
-        selectApplication(selectedApplication);
-        navigate("/orgaos");
+            selectApplication(selectedApplication);
+            navigate("/orgaos");
         }
     };
 
@@ -72,39 +71,34 @@ const ApplicationSelection = () => {
                             <h1 className="h4 font-color-blue-light">Selecione uma aplicação!</h1>
                         </div>
 
-                        {loading ? (
-                            <div className="text-center">Carregando aplicações...</div>
-                        ) : error ? (
-                            <div className="text-center py-4">
-                                <p className="text-muted mb-3">{error}</p>
-                            </div>
-                        ) : applications.length > 0 ? (
-                            <Swiper
-                                modules={[EffectCoverflow, Navigation]}
-                                effect="coverflow"
-                                grabCursor
-                                centeredSlides
-                                slidesPerView={1}
-                                coverflowEffect={{
-                                rotate: 50,
-                                stretch: 0,
-                                depth: 100,
-                                modifier: 1,
-                                slideShadows: true,
-                                }}
-                                navigation
-                                className="mb-4"
-                                onSlideChange={handleSlideChange}
-                            >
-                                {applications
-                                    .filter(option => option.active)  
-                                    .map((option, index) => (
-                                        <SwiperSlide key={index}>
-                                        <ApplicationCard option={option} />
-                                        </SwiperSlide>
-                                    ))
-                                }
-                            </Swiper>
+                        {
+                            applications.length > 0 ? (
+                                <Swiper
+                                    modules={[EffectCoverflow, Navigation]}
+                                    effect="coverflow"
+                                    grabCursor
+                                    centeredSlides
+                                    slidesPerView={1}
+                                    coverflowEffect={{
+                                    rotate: 50,
+                                    stretch: 0,
+                                    depth: 100,
+                                    modifier: 1,
+                                    slideShadows: true,
+                                    }}
+                                    navigation
+                                    className="mb-4"
+                                    onSlideChange={handleSlideChange}
+                                >
+                                    {applications
+                                        .filter(option => option.active)  
+                                        .map((option, index) => (
+                                            <SwiperSlide key={index}>
+                                            <ApplicationCard option={option} />
+                                            </SwiperSlide>
+                                        ))
+                                    }
+                                </Swiper>
                         ) : (
                             <div className="text-center py-4">
                                 <p className="text-muted mb-3">Nenhuma aplicação disponível.</p>
@@ -114,17 +108,17 @@ const ApplicationSelection = () => {
                         <div className="row mt-3 g-2 justify-content-center">
                             <div className="col-12 col-md-6 d-flex justify-content-center">
                                 <Button
-                                text="Voltar"
+                                text="Avançar"
                                 className="btn btn-blue-light w-100"
-                                onClick={handleBack}
+                                onClick={handleAdvance}
+                                disabled={!selectedApplication}
                                 />
                             </div>
                             <div className="col-12 col-md-6 d-flex justify-content-center">
                                 <Button
-                                text="Avançar"
+                                text="Voltar"
                                 className="btn btn-blue-light w-100"
-                                onClick={handleAdvance}
-                                disabled={!selectedApplication || loading}
+                                onClick={handleBack}
                                 />
                             </div>
                         </div>

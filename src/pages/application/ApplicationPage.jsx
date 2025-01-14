@@ -80,14 +80,7 @@ const ApplicationPage = () => {
             buttonClass: 'btn-primary',
             permission: 'update application',
             onClick: handleEdit,
-        },
-        {
-            icon: faBuilding,
-            title: 'Ver Órgãos da Aplicação',
-            buttonClass: 'btn-info',
-            permission: 'view application organs',
-            onClick: handleViewOrgans,
-        },
+        }
     ], [handleEdit, handleViewOrgans]);
 
     return (

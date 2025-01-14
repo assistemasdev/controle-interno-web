@@ -12,12 +12,22 @@ const useOrganizationService = (navigate) => {
         setFormErrors({});
     }, []);
 
+    const fetchAll = useCallback(async () => {
+        try {
+            const response = await OrganizationService.getAll(navigate);
+            return response.result;
+        } catch (error) {
+            handleError(error, 'Erro ao carregar organizações.');
+            throw error;
+        }
+    }, [handleError, navigate])
+
     const fetchOrganizationAddresses = useCallback(async (organizationId) => {
         try {
             const response = await OrganizationService.allOrganizationAddresses(organizationId, navigate);
             return response.result;
         } catch (error) {
-            // handleError(error, 'Erro ao carregar endereços da organização.');
+            handleError(error, 'Erro ao carregar endereços da organização.');
             throw error;
         }
     }, [handleError, navigate]);
@@ -189,6 +199,7 @@ const useOrganizationService = (navigate) => {
     }, [handleError, showNotification]);
     
     return {
+        fetchAll,
         fetchOrganizationAddresses,
         fetchOrganizationAddressById,
         updateOrganizationAddress,

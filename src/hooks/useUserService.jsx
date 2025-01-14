@@ -32,6 +32,55 @@ const useUserService = (navigate) => {
         }
     }, [handleError, navigate]);
 
+    const getUserApplications = useCallback(async (userId) => {
+        try {
+            const response = await UserService.getUserApplications(userId, navigate)
+            return response.result;
+        } catch (error) {
+            handleError(error, 'Erro ao carregar aplicações do usuário.');
+            throw error;
+        }
+    }, [handleError, navigate]);
+
+    const getUserApplicationOrganizations = useCallback(async (userId, applicationId) => {
+        try {
+            const response = await UserService.getAllUserAppOrganizations(userId, applicationId, navigate);
+            return response.result;
+        } catch (error) {
+            handleError(error, 'Erro ao carregar organizações do usuário')
+        }
+    }, [handleError, navigate])
+
+    const syncMultipleUserAppOrganizations = useCallback(async (userId, data) => {
+        try {
+            const response = await UserService.syncMultipleUserAppOrganizations(userId, data,navigate);
+            console.log(response)
+            showNotification('success', response.message);
+            return response.message;
+        } catch (error) {
+            handleError(error, 'Erro ao carregar organizações do usuário')
+            throw error;
+        }
+    }, [handleError, navigate])
+
+    const getUserOrganizations = useCallback(async (userId) => {
+        try {
+            const response = await UserService.getUserOrganizations(userId);
+            return response.result;
+        } catch (error) {
+            handleError(error, 'Erro ao carregar organizações do usuário')
+        }
+    }, [handleError, navigate]);
+
+    const getUserAppsAndOrgs = useCallback(async (userId) => {
+        try {
+            const response = await UserService.getUserAppsAndOrgs(userId);
+            return response.result;
+        } catch (error) {
+            handleError(error, 'Erro ao carregar organizações do usuário')
+        }
+    }, [handleError, navigate])
+
     const updateUser = useCallback(async (id, data) => {
         setLoading(true);
         setFormErrors({});
@@ -94,6 +143,11 @@ const useUserService = (navigate) => {
         updateUser,
         deleteUser,
         createUser,
+        getUserApplications,
+        getUserApplicationOrganizations,
+        getUserOrganizations,
+        syncMultipleUserAppOrganizations,
+        getUserAppsAndOrgs
     };
 };
 

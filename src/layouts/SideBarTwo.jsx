@@ -42,7 +42,8 @@ const SideBarTwo = ({ children }) => {
                     items: [
                         { name: 'Usuários', icon: faUserFriends, to: '/usuarios', requiredPermission: 'show all users' },
                         { name: 'Cargos', icon: faBriefcase, to: '/cargos', requiredPermission: 'Listar cargos' },
-                        { name: 'Aplicações', icon: faDesktop, to: '/aplicacoes/dashboard', requiredPermission: '' },
+                        { name: 'Aplicações', icon: faDesktop, to: '/aplicacoes/dashboard', requiredPermission: 'Listar aplicações' },
+                        { name: 'Organizações', icon: faBuilding, to: '/organizacoes/dashboard', requiredPermission: 'Listar organizações' },
                         { name: 'Condições', icon: faInfoCircle, to: '/condicoes', requiredPermission: 'Listar condições de produto' },
                         { name: 'Categorias', icon: faFolder, to: '/categorias', requiredPermission: 'Listar categorias de produto' }
                     ].filter(item => canAccess(item.requiredPermission))
