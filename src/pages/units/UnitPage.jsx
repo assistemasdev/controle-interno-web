@@ -85,7 +85,7 @@ const UnitPage = () => {
     }, [location.state]);
 
     const handleClearFilters = useCallback(() => {
-        setName('');
+        window.location.reload();
     }, []);
 
     const confirmDelete = useCallback(async () => {

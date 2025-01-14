@@ -76,6 +76,10 @@ const ProductsPage = () => {
         }
     }, [fetchAllStatus, fetchAllProducts, itemsPerPage, mapStatus, transformProducts, showLoader, hideLoader, showNotification]);
 
+    const handleClearFilters = useCallback(() => {
+        window.location.reload();
+    }, []);
+
     useEffect(() => {
         const initializeData = async () => {
             await fetchData();
@@ -184,6 +188,7 @@ const ProductsPage = () => {
                     </div>
                     <div className="form-group gap-2">
                         <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
+                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
                 </form>
 

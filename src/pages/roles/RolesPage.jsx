@@ -33,10 +33,9 @@ const RolePage = () => {
         }
     }, [location.state]); 
     
-    const handleClearFilters = () => {
-        setName('');
-    };
-
+    const handleClearFilters = useCallback(() => {
+        window.location.reload();
+    }, []);
 
     const fetchRoles = async (id, name, idLike, filledInputs, page = 1) => {
         try {

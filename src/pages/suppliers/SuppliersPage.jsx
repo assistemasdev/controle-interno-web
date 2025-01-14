@@ -13,7 +13,6 @@ import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import useSupplierService from "../../hooks/useSupplierService";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
-import { maskCpfCnpj } from "../../utils/maskUtils";
 
 const SuppliersPage = () => {
     const { canAccess } = usePermissions();
@@ -99,10 +98,9 @@ const SuppliersPage = () => {
         });
     }, []);
 
-    const handleClearFilters = () => {
-        setName('');
-        fetchSuppliersData();
-    };
+    const handleClearFilters = useCallback(() => {
+        window.location.reload();
+    }, []);
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();

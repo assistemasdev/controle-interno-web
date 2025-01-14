@@ -77,6 +77,10 @@ const UsersPage = () => {
             filledInputs
         );
     };
+
+    const handleClearFilters = useCallback(() => {
+        window.location.reload();
+    }, []);
     
     const handleChangeUsers = useCallback((newSelected, column) => {
         setSelectedUsers((prev) => {
@@ -190,6 +194,7 @@ const UsersPage = () => {
 
                     <div className="form-group gap-2">
                         <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
+                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
                     </div>
                 </form>
 

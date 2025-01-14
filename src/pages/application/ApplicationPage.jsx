@@ -85,9 +85,8 @@ const ApplicationPage = () => {
     }, []);
 
     const handleClearFilters = useCallback(() => {
-        setName('');
-        fetchApplications();
-    }, [fetchApplications]);
+        window.location.reload();
+    }, []);
 
     const handleEdit = useCallback((application) => {
         navigate(`/aplicacoes/editar/${application.id}`);
@@ -96,6 +95,7 @@ const ApplicationPage = () => {
     const handleViewOrgans = useCallback((application) => {
         navigate(`/orgaos/${application.id}`);
     }, [navigate]);
+
 
     const headers = useMemo(() => ['id', 'Nome', 'Código de Sessão', 'Ativo'], []);
 

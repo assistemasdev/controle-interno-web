@@ -39,9 +39,9 @@ const ConditionPage = () => {
         }
       }, [location, navigate]);
       
-    const handleClearFilters = () => {
-        setName('');
-    };
+    const handleClearFilters = useCallback(() => {
+        window.location.reload();
+    }, []);
 
     const fetchCondition = useCallback (async (id, name, idLike, filledInputs, page = 1) => {
         try {

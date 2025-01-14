@@ -36,10 +36,10 @@ const CategoryPage = () => {
         }
     }, [location.state, navigate]); 
     
-    const handleClearFilters = () => {
-        setName('');
-    };
-
+    const handleClearFilters = useCallback(() => {
+        window.location.reload();
+    }, []);
+    
     useEffect(() => {
         fetchCategories();
     }, []);

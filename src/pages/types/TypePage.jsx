@@ -35,7 +35,7 @@ const TypePage = () => {
     }, [location.state, navigate]);
 
     const handleClearFilters = useCallback(() => {
-        setName('');
+        window.location.reload();
     }, []);
 
     const loadTypes = useCallback(async (id, name, idLike, filledInputs, page = 1) => {

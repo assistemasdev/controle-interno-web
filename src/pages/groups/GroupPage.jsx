@@ -80,7 +80,7 @@ const GroupPage = () => {
     }, [location.state, navigate]);
 
     const handleClearFilters = useCallback(() => {
-        setName('');
+        window.location.reload();
     }, []);
 
     const handleFilterSubmit = useCallback((e) => {

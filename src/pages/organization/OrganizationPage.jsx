@@ -34,9 +34,9 @@ const OrganizationPage = () => {
         }
     }, [location.state]); 
     
-    const handleClearFilters = () => {
-        setName('');
-    };
+    const handleClearFilters = useCallback(() => {
+        window.location.reload();
+    }, []);
 
     const fetchOrganizations = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
         try {
