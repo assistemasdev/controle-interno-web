@@ -3,24 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import InputField from './InputField';
 import Button from './Button';
 import { useAuth } from '../../hooks/useAuth'; 
-import MyAlert from '../MyAlert';  
-import LoginService from '../../services/LoginService';
 import { useLocation } from 'react-router-dom';
-import RoleService from '../../services/RoleService';
 import PermissionService from '../../services/PermissionService';
 import { usePermissions } from '../../hooks/usePermissions';
 import useNotification from '../../hooks/useNotification';
+import useForm from '../../hooks/useForm';
+import { loginFields } from '../../constants/forms/loginFields';
+import useLoginService from '../../hooks/useLoginService';
+import useRoleService from '../../hooks/useRoleService';
+import usePermissionService from '../../hooks/usePermissionService';
 
 const LoginCard = () => {
     const navigate = useNavigate();  
     const { login } = useAuth();  
     const { addRoles, addPermissions } = usePermissions();
     const location = useLocation();
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const { formData, handleChange } = useForm({ username: '', password: '' })
     const [formErrors, setFormErrors] = useState({ username: '', password: '' }); 
     const { showNotification } = useNotification();
-
+    const { login: loginUser } = useLoginService(navigate);
+    const { fetchRolesUser } = useRoleService(navigate);
+    const { fetchPermissionsForUser } = usePermissionService(navigate)
+    
     useEffect(() => {
         if (location.state?.message) {
             showNotification('error', location.state.message);
@@ -32,55 +36,20 @@ const LoginCard = () => {
         setFormErrors({ username: '', password: '' });
 
         try {
-        const response = await LoginService.login({
-            username,
-            password
-        });
+            const response = await loginUser(formData);
+            login(response.result);
 
-        const { status, data, message, result} = response;
-
-        if (status === 200  && result) {
-            const token = result; 
-            login(token);
             const storedUser = JSON.parse(localStorage.getItem('user'));
+            const userRoles = await fetchRolesUser(storedUser.id);
+            const userPermissions = await fetchPermissionsForUser(storedUser.id);
 
-            try {
-                const userRoles = await RoleService.getRolesUser(storedUser.id, navigate);
-                addRoles(userRoles?.result || []);
-            } catch (error) {
-                showNotification('error', 'error ao buscar cargos do usuário')
-                console.error('Erro ao buscar cargos do usuário', error)
-            }
-
-            try {
-                const userPermissions = await PermissionService.getPermissionUser(storedUser.id, navigate)
-                addPermissions(userPermissions?.result || []);
-            } catch (error) {
-                showNotification('error', 'error ao buscar permissões do usuário')
-                console.error('Erro ao buscar permissões do usuário', error)
-            }
-
+            addRoles(userRoles);
+            addPermissions(userPermissions);
+            
             navigate('/aplicacoes')
-        };
-
-
 
         } catch (error) {
             console.log(error)
-            if (error.status == 422) {
-                setFormErrors({
-                    username: error.data?.username ? error.data.username[0] : '',
-                    password: error.data?.password ? error.data.password[0] : '',
-                });
-                return;
-            }
-
-            if (error.status == 400) {
-                showNotification('error', error.message);
-                return;
-            }
-
-            showNotification('error', 'erro ao realizar login');
         }
     };
 
@@ -96,22 +65,19 @@ const LoginCard = () => {
                                 </div>
 
                                 <form className="user" onSubmit={handleLogin}>
-                                    <InputField
-                                        type="text"
-                                        id="exampleInputUsername"
-                                        placeholder="Insira seu usuário"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        error={formErrors.username}
-                                    />
-                                    <InputField
-                                        type="password"
-                                        id="exampleInputPassword"
-                                        placeholder="Senha"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        error={formErrors.password} 
-                                    />
+                                    {loginFields.map((field) => (
+                                        <div key={field.id}>
+                                            <InputField
+                                                type={field.type}
+                                                id={field.id}
+                                                placeholder={field.placeholder}
+                                                value={formData[field.id]}
+                                                onChange={(e) => handleChange(field.id, e.target.value)}
+                                                error={formErrors[field.id]}
+                                            />
+                                        </div>
+                                    ))}
+  
                                     <Button
                                         text="Login"
                                         className="btn btn-outline-info btn-block"

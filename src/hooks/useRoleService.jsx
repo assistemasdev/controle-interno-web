@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import RoleService from '../services/RoleService';
 import useErrorHandling from './useErrorHandling';
 
-const useRoleService = () => {
+const useRoleService = (navigate = null) => {
     const { handleError } = useErrorHandling();
     const [roles, setRoles] = useState([]);
 
@@ -19,15 +19,25 @@ const useRoleService = () => {
 
     const fetchPermissionsForRole = useCallback(async (roleId) => {
         try {
-            const response = await RoleService.showRolePermissions(roleId);
+            const response = await RoleService.showRolePermissions(roleId, navigate);
             return response.result || [];
         } catch (error) {
             handleError(error, 'Erro ao buscar permissões para o cargo.');
             throw error;
         }
-    }, [handleError]);
+    }, [handleError, navigate]);
 
-    return { roles, fetchRoles, fetchPermissionsForRole };
+    const fetchRolesUser = useCallback(async (userId) => {
+        try {
+            const response = await RoleService.getRolesUser(userId, navigate);
+            return response.result || [];
+        } catch (error) {
+            handleError(error, 'Erro ao buscar cargos do usuário.');
+            throw error;
+        }
+    }, [handleError, navigate])
+
+    return { roles, fetchRoles, fetchPermissionsForRole, fetchRolesUser };
 };
 
 export default useRoleService;
