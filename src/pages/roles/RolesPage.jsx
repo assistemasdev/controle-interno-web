@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import MyAlert from "../../components/MyAlert";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
-import { CircularProgress } from '@mui/material';
 import DynamicTable from "../../components/DynamicTable";
 import RoleService from "../../services/RoleService";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -16,9 +14,9 @@ import useNotification from "../../hooks/useNotification";
 
 const RolePage = () => {
     const { canAccess } = usePermissions();
-    const [roles, setRoles] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [roles, setRoles] = useState([]);
     const [selectedRoles, setSelectedRoles] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -30,47 +28,51 @@ const RolePage = () => {
         if (location.state?.message) {
             showNotification(location.state.type, location.state.message);
         }
-    }, [location.state]); 
-    
+    }, [location.state]);
+
     const handleClearFilters = useCallback(() => {
         window.location.reload();
     }, []);
 
-    const fetchRoles = async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
-        try {
-            showLoader();
-        
-            const response = await RoleService.getRoles({ id, name, idLike, filledInputs, page, perPage: itemsPerPage }, navigate);
-            const result = response.result
-            const filteredRoles = result.data.map(role => ({
-                id: role.id,
-                name: role.name
-            }));
-        
-            setRoles(filteredRoles);
-            setCurrentPage(result.current_page);
-            setTotalPages(result.last_page);
-        } catch (error) {
-            showNotification('error', 'Erro ao carregar cargos');
-            console.error(error);
-        } finally {
-            hideLoader();
-        }
-    };
+    const fetchRoles = useCallback(
+        async ({ id = null, name = null, idLike = null, filledInputs = null, page = 1 } = {}) => {
+            try {
+                showLoader();
+                const response = await RoleService.getRoles({ id, name, idLike, filledInputs, page, perPage: itemsPerPage }, navigate);
+                const result = response.result;
+                const filteredRoles = result.data.map(role => ({
+                    id: role.id,
+                    name: role.name
+                }));
 
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
+                setRoles(filteredRoles);
+                setCurrentPage(result.current_page);
+                setTotalPages(result.last_page);
+            } catch (error) {
+                showNotification('error', 'Erro ao carregar cargos');
+                console.error(error);
+            } finally {
+                hideLoader();
+            }
+        },
+        [itemsPerPage, navigate, showLoader, hideLoader, showNotification]
+    );
 
-        const filledInputs = new Set(selectedRoles.map((option) => option.column)).size;
+    const handleFilterSubmit = useCallback(
+        (e) => {
+            e.preventDefault();
+            const filledInputs = new Set(selectedRoles.map((option) => option.column)).size;
 
-        fetchRoles(
-            selectedRoles.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
-            selectedRoles.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
-            selectedRoles.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
-            filledInputs
-        );
-    };
-    
+            fetchRoles(
+                selectedRoles.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
+                selectedRoles.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
+                selectedRoles.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
+                filledInputs
+            );
+        },
+        [selectedRoles, fetchRoles]
+    );
+
     const handleChangeRoles = useCallback((newSelected, column) => {
         setSelectedRoles((prev) => {
             if (!newSelected.length) {
@@ -78,7 +80,6 @@ const RolePage = () => {
             }
 
             const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
             const filtered = prev.filter((option) => option.column !== column);
             return [...filtered, ...newSelectedArray];
         });
@@ -88,22 +89,27 @@ const RolePage = () => {
         fetchRoles();
     }, []);
 
-    const handleEdit = (application) => {
-        navigate(`/cargos/editar/${application.id}`);
-    };
+    const handleEdit = useCallback(
+        (application) => {
+            navigate(`/cargos/editar/${application.id}`);
+        },
+        [navigate]
+    );
 
-    const headers = ['id', 'Nome'];
+    const headers = useMemo(() => ['id', 'Nome'], []);
+    const actions = useMemo(
+        () => [
+            {
+                icon: faEdit,
+                title: 'Editar Cargos',
+                buttonClass: 'btn-primary',
+                permission: 'update application',
+                onClick: handleEdit
+            }
+        ],
+        [handleEdit]
+    );
 
-    const actions = [
-        {
-            icon: faEdit,
-            title: 'Editar Cargos',
-            buttonClass: 'btn-primary',
-            permission: 'update application',
-            onClick: handleEdit
-        }
-    ];
-    
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
@@ -119,7 +125,7 @@ const RolePage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="id"
-                            model='role'
+                            model="role"
                             value={selectedRoles.filter((option) => option.column === 'id')}
                             onChange={(selected) => handleChangeRoles(selected, 'id')}
                             onBlurColumn="numberFilter"
@@ -134,7 +140,7 @@ const RolePage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="name"
-                            model='role'
+                            model="role"
                             value={selectedRoles.filter((option) => option.column === 'name')}
                             onChange={(selected) => handleChangeRoles(selected, 'name')}
                             onBlurColumn="textFilter"
@@ -153,20 +159,21 @@ const RolePage = () => {
                         Lista de Cargos
                     </div>
                     {canAccess('create role') && (
-                        <Button
-                        text="Nova Cargo"
-                        className="btn btn-blue-light fw-semibold"
-                        link="/cargos/criar"
-                        />
+                        <Button text="Nova Cargo" className="btn btn-blue-light fw-semibold" link="/cargos/criar" />
                     )}
                 </div>
 
-                
-                <DynamicTable headers={headers} data={roles} actions={actions} currentPage={currentPage} totalPages={totalPages} onPageChange={fetchRoles} />
+                <DynamicTable
+                    headers={headers}
+                    data={roles}
+                    actions={actions}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={fetchRoles}
+                />
             </div>
         </MainLayout>
-
-    )
-}
+    );
+};
 
 export default RolePage;

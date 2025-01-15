@@ -4,11 +4,11 @@ import InputField from '../../components/InputField';
 import Button from '../../components/Button'; 
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
-import MyAlert from '../../components/MyAlert';
 import { usePermissions } from '../../hooks/usePermissions';
 import RoleService from '../../services/RoleService';
 import PermissionService from '../../services/PermissionService';
 import Select from 'react-select';  
+import useNotification from '../../hooks/useNotification';
 
 const CreateRolePage = () => {
     const navigate = useNavigate(); 
@@ -18,6 +18,7 @@ const CreateRolePage = () => {
     const [formData, setFormData] = useState({
         name: '',
     });
+    const { showNotification } = useNotification();
 
     const [message, setMessage] = useState({ type: '', text: '' });
     const [formErrors, setFormErrors] = useState({    
@@ -30,14 +31,15 @@ const CreateRolePage = () => {
 
     const fetchPermissions = async () => {
         try {
-        const response = await PermissionService.getPermissions();
-        const formattedPermissions = response.result.data.map(permission => ({
-            value: permission.id,
-            label: permission.name
-        }));
-        setPermissions(formattedPermissions);  
+            const response = await PermissionService.getPermissions();
+            const formattedPermissions = response.result.data.map(permission => ({
+                value: permission.id,
+                label: permission.name
+            }));
+            setPermissions(formattedPermissions);  
         } catch (error) {
-        console.error('Erro ao carregar permissões:', error);
+            console.error('Erro ao carregar permissões:', error);
+            showNotification('error', 'error ao carregar permissões')
         }
     };
 
@@ -53,44 +55,43 @@ const CreateRolePage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setFormErrors({});
-        setMessage({ type: '', text: '' });
         try {
-        const response = await RoleService.create(formData, navigate);
-        const { status, data, message } = response; 
-        
-        if (status === 201) {
-            const permissions = await RoleService.assignPermissionsToRole(response.result.id, {permissions: selectedPermissions}, navigate)
-
-            if ( permissions.status === 200) {
-            setMessage({ type: 'success', text: message });
-            setFormData({
-                name: '',
-            });
-            setSelectedPermissions([]);
-            return;
-            }
+            const response = await RoleService.create(formData, navigate);
+            const { status, data, message } = response; 
             
-            if ( permissions.status !== 200) {
-            setMessage({ type: 'warning', text: 'Cargo foi registrados, mas houve um erro ao atribuir suas permissões' });
-            setFormData({
-                name: '',
-            });
-            setSelectedPermissions([]);
-            return;
+            if (status === 201) {
+                const permissions = await RoleService.assignPermissionsToRole(response.result.id, {permissions: selectedPermissions}, navigate)
+
+                if ( permissions.status === 200) {
+                    showNotification('success', message);
+                    setFormData({
+                        name: '',
+                    });
+                    setSelectedPermissions([]);
+                    return;
+                }
+                
+                if ( permissions.status !== 200) {
+                    showNotification('warning','Cargo foi registrados, mas houve um erro ao atribuir suas permissões');
+                    setFormData({
+                        name: '',
+                    });
+                    setSelectedPermissions([]);
+                    return;
+                }
             }
-        }
+        
+            if (status === 422 && data) {
+                setFormErrors({
+                    name: data.name?.[0] || ''
+                });
+                return;
+            }
     
-        if (status === 422 && data) {
-            setFormErrors({
-            name: data.name?.[0] || ''
-            });
-            return;
-        }
-    
-        setMessage({ type: 'error', text: message || 'Erro ao realizar o cadastro' });
+            showNotification('error','Erro ao realizar o cadastro');
         } catch (error) {
             console.log(error)
-            setMessage({ type: 'error', text: 'Erro ao realizar o cadastro' });
+            showNotification('error', 'Erro ao realizar o cadastro');
         }
     };
 
@@ -106,9 +107,6 @@ const CreateRolePage = () => {
             </div>
 
             <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                {message.text && <MyAlert severity={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />}
-
-
                 <div className="form-row">
                     <div className="d-flex flex-column col-md-12">
                         <InputField
