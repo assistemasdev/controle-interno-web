@@ -38,7 +38,7 @@ const OrganizationPage = () => {
         window.location.reload();
     }, []);
 
-    const fetchOrganizations = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchOrganizations = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1}) => {
         try {
             showLoader();
         

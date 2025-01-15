@@ -51,7 +51,7 @@ const GroupPage = () => {
         },
     ], [navigate]);
 
-    const fetchGroup = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchGroup = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         try {
             showLoader();
             const response = await fetchAllGroups({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });

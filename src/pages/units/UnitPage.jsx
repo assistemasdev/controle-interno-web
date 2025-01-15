@@ -58,7 +58,7 @@ const UnitPage = () => {
         }
     ], [navigate]);
 
-    const fetchUnitList = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchUnitList = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         try {
             showLoader();
             const result = await fetchUnits({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });

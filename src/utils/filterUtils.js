@@ -7,7 +7,6 @@ export function buildDynamicFilters(data) {
     const filters = {};
     const orFilters = []; // Para condições que precisam de OR lógico
     const filledInputs = data.filledInputs || 0; // Total de inputs preenchidos
-    console.log(data)
     Object.entries(data).forEach(([key, value]) => {
         if (key === 'startDate' && value) {
             // Filtrar por data inicial (maior ou igual)

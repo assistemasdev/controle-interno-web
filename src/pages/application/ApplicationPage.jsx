@@ -35,7 +35,7 @@ const ApplicationPage = () => {
     }, [location.state, showNotification, navigate]);
     
 
-    const fetchApplications = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchApplications = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         try {
             showLoader();
             const result = await fetchApplicationsService({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });

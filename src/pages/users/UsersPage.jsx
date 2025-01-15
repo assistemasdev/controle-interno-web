@@ -13,7 +13,6 @@ import AutoCompleteFilter from '../../components/AutoCompleteFilter';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useUserService from '../../hooks/useUserService';
-import UserService from '../../services/UserService';
 import baseService from '../../services/baseService';
 
 const UsersPage = () => {
@@ -37,7 +36,7 @@ const UsersPage = () => {
         }
     }, [location.state, showNotification]);
 
-    const fetchUsers = async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchUsers = async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         try {
             showLoader();
 

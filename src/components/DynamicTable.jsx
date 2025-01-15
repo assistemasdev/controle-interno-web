@@ -97,7 +97,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                 }}
                                 onClick={() => 
                                     {
-                                        onPageChange(page)
+                                        onPageChange({page})
                                     }}
                             >
                                 {page}

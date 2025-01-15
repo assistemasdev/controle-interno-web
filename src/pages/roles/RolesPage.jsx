@@ -37,7 +37,7 @@ const RolePage = () => {
         window.location.reload();
     }, []);
 
-    const fetchRoles = async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchRoles = async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         try {
             setLoading(true);
         

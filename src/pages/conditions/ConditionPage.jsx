@@ -43,7 +43,7 @@ const ConditionPage = () => {
         window.location.reload();
     }, []);
 
-    const fetchCondition = useCallback (async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchCondition = useCallback (async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         try {
             showLoader();
         

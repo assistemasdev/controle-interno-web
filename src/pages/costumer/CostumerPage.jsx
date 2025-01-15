@@ -40,7 +40,7 @@ const CostumerPage = () => {
         window.location.reload();
     }, []);
 
-    const fetchCustomers = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchCustomers = useCallback(async ({id, name, idLike, filledInputs, page = 1} = {}) => {
         showLoader();
         try {
             const result = await getCustomers({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });

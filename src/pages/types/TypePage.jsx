@@ -38,7 +38,7 @@ const TypePage = () => {
         window.location.reload();
     }, []);
 
-    const loadTypes = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
+    const loadTypes = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         showLoader();
         try {
             const result = await fetchTypes({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });

@@ -52,7 +52,7 @@ const ProductsPage = () => {
         }));
     }, []);
 
-    const fetchData = useCallback(async (id, number, filledInputs, page = 1) => {
+    const fetchData = useCallback(async ({id = null, number = null, filledInputs = null, page = 1} = {}) => {
         try {
             showLoader();
             const [statusResponse, productsResponse] = await Promise.all([

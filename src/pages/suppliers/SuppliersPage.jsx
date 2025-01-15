@@ -30,7 +30,7 @@ const SuppliersPage = () => {
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
 
-    const fetchSuppliersData = useCallback(async (id, name, filledInputs, page = 1) => {
+    const fetchSuppliersData = useCallback(async ({id = null, name = null, filledInputs = null, page = 1} = {}) => {
         showLoader();
         try {
             const response = await fetchSuppliers({ id, name, filledInputs, page, perPage: itemsPerPage, name });

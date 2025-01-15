@@ -44,7 +44,7 @@ const CategoryPage = () => {
         fetchCategories();
     }, []);
 
-    const fetchCategories = useCallback(async (id, name, idLike, filledInputs, page = 1) => {
+    const fetchCategories = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         try {
             showLoader();
             
