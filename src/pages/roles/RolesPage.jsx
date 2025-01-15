@@ -11,13 +11,11 @@ import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
+import useLoader from "../../hooks/useLoader";
+import useNotification from "../../hooks/useNotification";
 
 const RolePage = () => {
     const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [error, setError] = useState(null);
-    const [name, setName] = useState('');
-    const [loading, setLoading] = useState(true);
     const [roles, setRoles] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
@@ -25,11 +23,12 @@ const RolePage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const { showLoader, hideLoader } = useLoader();
+    const { showNotification } = useNotification();
 
     useEffect(() => {
-        setMessage(null);
         if (location.state?.message) {
-            setMessage({type:location.state.type, text: location.state.message});
+            showNotification(location.state.type, location.state.message);
         }
     }, [location.state]); 
     
@@ -39,7 +38,7 @@ const RolePage = () => {
 
     const fetchRoles = async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
         try {
-            setLoading(true);
+            showLoader();
         
             const response = await RoleService.getRoles({ id, name, idLike, filledInputs, page, perPage: itemsPerPage }, navigate);
             const result = response.result
@@ -52,10 +51,10 @@ const RolePage = () => {
             setCurrentPage(result.current_page);
             setTotalPages(result.last_page);
         } catch (error) {
-            setError('Erro ao carregar cargos');
+            showNotification('error', 'Erro ao carregar cargos');
             console.error(error);
         } finally {
-            setLoading(false);
+            hideLoader();
         }
     };
 
@@ -162,17 +161,8 @@ const RolePage = () => {
                     )}
                 </div>
 
-                {loading ? (
-                    <div className="d-flex justify-content-center mt-4">
-                        <CircularProgress size={50} />
-                    </div>
-                    ) : error ? (
-                    <div className='mt-3'>
-                        <MyAlert notTime={true} severity="error" message={error} />
-                    </div>
-                    ) : (
-                    <DynamicTable headers={headers} data={roles} actions={actions} currentPage={currentPage} totalPages={totalPages} onPageChange={fetchRoles} />
-                )}
+                
+                <DynamicTable headers={headers} data={roles} actions={actions} currentPage={currentPage} totalPages={totalPages} onPageChange={fetchRoles} />
             </div>
         </MainLayout>
 
