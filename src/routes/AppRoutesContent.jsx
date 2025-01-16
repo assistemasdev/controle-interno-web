@@ -93,6 +93,7 @@ import DetailsCustomerLocationPage from "../pages/costumer/locations/DetailsOrga
 import EditProductPage from "../pages/products/EditProductPage";
 import DetailsProductPage from "../pages/products/DetailsProductPage";
 import UserOrganizationsPage from "../pages/users/organizations/UserOrganizationsPage";
+import CalendarPage from "../pages/contracts/CalendarPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -415,7 +416,13 @@ const AppRoutesContent = () => {
 
 
     ];
-
+    
+    const calendarRoutes = [
+        {
+            path: "/calendario",
+            element: <PrivateRoute element={CalendarPage} />,
+        },
+    ];
 
     return (
 
@@ -469,6 +476,10 @@ const AppRoutesContent = () => {
         ))}
 
         {costumersRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
+        {calendarRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}
         

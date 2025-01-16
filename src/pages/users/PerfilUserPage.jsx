@@ -8,6 +8,7 @@ import useUserService from '../../hooks/useUserService';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import { useAuth } from '../../hooks/useAuth';
 
 const PerfilUserPage = () => {
     const navigate = useNavigate();
@@ -15,13 +16,18 @@ const PerfilUserPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { formErrors, fetchUserById, updateUser } = useUserService(navigate);
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
-                const user = await fetchUserById(id);
-                formatData(user, userProfileFields);
+                if (user.id != id) {
+                    navigate('/dashboard', { state: { type:'error', message: 'Usuário inválido!'}})
+                }
+
+                const userData = await fetchUserById(id);
+                formatData(userData, userProfileFields);
             } catch (error) {
                 console.error('Error fetching user data:', error);
             } finally {

@@ -4,14 +4,15 @@ import DashboardCard from '../components/dashboard/DashboardCard';
 import { faTools, faExchangeAlt, faWrench, faUserPlus } from '@fortawesome/free-solid-svg-icons'; 
 import { useLocation } from 'react-router-dom';
 import useNotification from '../hooks/useNotification';
-
+import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
     const location = useLocation();
     const { showNotification } = useNotification();
-
+    const navigate = useNavigate();
     useEffect(() => {
         if (location.state?.message) {
             showNotification('error', location.state.message);
+            navigate(location.pathname, { replace: true });
         }
     }, [location.state, showNotification]);
 

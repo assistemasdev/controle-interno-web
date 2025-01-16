@@ -63,7 +63,6 @@ const useForm = (initialData) => {
             }, acc);
         }, {});
 
-        console.log(parsedData)
         setFormData(parsedData);
     };
 

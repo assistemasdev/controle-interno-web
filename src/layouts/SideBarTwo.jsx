@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faBriefcase, faBars, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faBriefcase, faBars, faCalendar, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
 import "../assets/styles/sidebar/header.css";
 import "../assets/styles/sidebar/sidebar.css";
 import perfil from "../assets/img/perfil.png";
@@ -66,6 +66,11 @@ const SideBarTwo = ({ children }) => {
                         { name: 'Tipos', icon: faTags, to: '/tipos', requiredPermission: 'Listar tipos de produto' },
                         { name: 'Grupos', icon: faObjectGroup, to: '/grupos', requiredPermission: 'Listar grupos de produto' },
                         { name: 'Unidades', icon: faRuler, to: '/unidades', requiredPermission: 'Listar unidades de medida' }
+                    ].filter(item => canAccess(item.requiredPermission))
+                }, {
+                    title: 'Contratos',
+                    items: [
+                        { name: 'Calendário', icon: faCalendar, to: '/calendario', requiredPermission: '' }
                     ].filter(item => canAccess(item.requiredPermission))
                 }
             ];

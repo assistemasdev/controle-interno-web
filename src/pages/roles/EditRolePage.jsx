@@ -1,44 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import InputField from '../../components/InputField';
-import Button from '../../components/Button';
 import '../../assets/styles/custom-styles.css';
 import RoleService from '../../services/RoleService';
-import PermissionService from '../../services/PermissionService';
-import Select from 'react-select';  
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
+import Form from '../../components/Form';
+import useForm from '../../hooks/useForm';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
+import { roleFields } from '../../constants/forms/roleFields';
+import usePermissionService from '../../hooks/usePermissionService';
+import useRoleService from '../../hooks/useRoleService';
+import FormSection from '../../components/FormSection';
 
 const EditRolePage = () => {
     const navigate = useNavigate();
     const { roleId } = useParams();
-    const [formErrors, setFormErrors] = useState({ name: '' });
-    const [formData, setFormData] = useState({
-        name: '',
-    });
-
+    const { formData, formatData, handleChange } = useForm(setDefaultFieldValues(roleFields));
     const [permissions, setPermissions] = useState([]);
-    const [selectedPermissions, setSelectedPermissions] = useState([]);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
-
-    const handlePermissionChange = (selectedOptions) => {
-        setSelectedPermissions(selectedOptions ? selectedOptions.map(option => option.value) : []);
-    };
+    const { fetchPermissions } = usePermissionService();
+    const {  fetchPermissionsForRole, fetchRoleById, updateRole, updateRolePermissions, formErrors } = useRoleService(navigate);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 showLoader();
-                await fetchRole();
-                await fetchPermissions();
-                await fetchPermissionsRoles();
+                const [responseRole, responseRolePermissions, responsePermissions] = await Promise.all([
+                    fetchRoleById(roleId),
+                    fetchPermissionsForRole(roleId),
+                    fetchPermissions()
+                ]);
+
+                const formattedPermissions = responsePermissions.map(permission => ({
+                    value: permission.id,
+                    label: permission.name
+                }));
+                
+                setPermissions(formattedPermissions);  
+
+                const responseAll = {
+                    name: responseRole.name,
+                    permissions: responseRolePermissions.map((option) => option.id)
+                }
+
+                formatData(responseAll, roleFields);
+                
             } catch (error) {
                 console.error('Erro ao carregar os dados:', error);
             } finally {
@@ -49,85 +57,33 @@ const EditRolePage = () => {
         fetchData();
     }, [roleId])
 
-
-    const fetchRole = async () => {
-        try {
-            const response = await RoleService.getById(roleId, navigate);
-            const role = response.result;
-
-            setFormData({
-                name: role.name,
-                session_code: role.session_code,
-                active: role.active
-            });
-
-        } catch (error) {
-            showNotification('error', 'Erro ao buscar cargo');
-            console.error(error);
-        } 
+    const getOptions = (fieldId) => {
+        switch (fieldId) {
+            case "permissions":
+                return permissions || [];
+            default:
+                return [];
+        }
     };
 
-    const fetchPermissionsRoles = async () => {
-        try {
-            const response = await RoleService.showRolePermissions(roleId,navigate);
-            const permissionsFromRole = response.result
-
-            setSelectedPermissions((prevPermissions) => {
-                const updatedPermissions = [...prevPermissions];
-                permissionsFromRole.forEach((permission) => {
-                if (!updatedPermissions.includes(permission.id)) {
-                    updatedPermissions.push(permission.id);  
-                }
-                });
-                return updatedPermissions;
-            });
-        } catch (error) {
-            showNotification('error', 'Erro ao buscar permissões do cargo');
-            console.error(error);
-        } 
-    }
-
-    const fetchPermissions = async () => {
-        try {
-            const response = await PermissionService.getPermissions(navigate);
-            const formattedPermissions = response.result.data.map(permission => ({
-                value: permission.id,
-                label: permission.name
-            }));
-            setPermissions(formattedPermissions);  
-        } catch (error) {
-            showNotification('error', 'Erro ao buscar permissões');
-            console.error(error);
-        } 
-    }
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setFormErrors({  name: '' });
-
-        try {
-            const response = await RoleService.update(roleId, formData, navigate);
-            if (response.status === 200) {
-                showNotification('success', response.message);
-                return;
+    const getSelectedValue = (fieldId) => {
+        if (fieldId === "permissions") {
+            if (Array.isArray(formData.permissions)) {
+                return permissions.filter((permission) => formData.permissions.includes(permission.value));
             }
-            if (response.status === 200 && selectedPermissions.length > 0) {
-                const responsePermissions = await RoleService.updateRolePermissions(roleId, {permissions: selectedPermissions}, navigate)
-                if (responsePermissions.status === 200) {
-                    showNotification('success', response.message);
-                    return;
-                }
-            }
+            return [];
+        }
+        return null;
+    };
 
+    const handleSubmit = async () => {
+        try {
+            const success = await updateRole(roleId, formData);
+            if (success) {
+                await updateRolePermissions(roleId, {permissions: formData.permissions})
+            }
         } catch (error) {
             console.log(error)
-            if (error.status === 422) {
-                const errors = error.data;
-                setFormErrors({
-                    name: errors?.name ? errors.name[0] : '',
-                });
-                return;
-            }
             showNotification('error', 'Erro ao editar o cargo');
         }
     };
@@ -143,44 +99,27 @@ const EditRolePage = () => {
                     Edição de Cargo
                 </div>
 
-                <form className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleSubmit}>
-                    <>
-                        <div className="form-row">
-                            <div className="d-flex flex-column col-md-12">
-                                <InputField
-                                    label='Nome:'
-                                    type="text"
-                                    id="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    placeholder="Digite o nome do cargo"
-                                    error={formErrors.name}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-group" style={{ marginLeft: '0px' }}>
-                            <label htmlFor="roles" className='text-dark font-weight-bold '>Permissões:</label>
-                            <Select
-                                isMulti
-                                name="permissions"
-                                options={permissions}  
-                                className="basic-multi-select"
-                                classNamePrefix="select"
-                                value={permissions.filter(permission => selectedPermissions.includes(permission.value))}
-                                onChange={handlePermissionChange}  
-                                noOptionsMessage={() => "Nenhuma permissão encontrada"}
-                                placeholder="Selecione as permissões"
+                <Form
+                    initialFormData={formData}
+                    onSubmit={handleSubmit}
+                    textSubmit='Editar'
+                    textLoadingSubmit='Editando...'
+                    handleBack={handleBack}
+                >
+                    {() => (
+                        roleFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleChange}
+                                getOptions={getOptions}
+                                getSelectedValue={getSelectedValue}
+                                formErrors={formErrors}
                             />
-                        </div>
-
-                        <div className="mt-3 d-flex gap-2">
-                            <Button type="submit" text="Atualizar Cargo" className="btn btn-blue-light fw-semibold" />
-                            <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                        </div>
-                    </>
-                    
-                </form>
+                        ))
+                    )}
+                </Form>
             </div>
         </MainLayout>
     );

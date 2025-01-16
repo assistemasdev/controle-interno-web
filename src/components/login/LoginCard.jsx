@@ -4,7 +4,6 @@ import InputField from './InputField';
 import Button from './Button';
 import { useAuth } from '../../hooks/useAuth'; 
 import { useLocation } from 'react-router-dom';
-import PermissionService from '../../services/PermissionService';
 import { usePermissions } from '../../hooks/usePermissions';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
@@ -24,7 +23,7 @@ const LoginCard = () => {
     const { login: loginUser } = useLoginService(navigate);
     const { fetchRolesUser } = useRoleService(navigate);
     const { fetchPermissionsForUser } = usePermissionService(navigate)
-    
+
     useEffect(() => {
         if (location.state?.message) {
             showNotification('error', location.state.message);
@@ -50,6 +49,7 @@ const LoginCard = () => {
 
         } catch (error) {
             console.log(error)
+            showNotification('error', 'erro ao realizar login');
         }
     };
 
