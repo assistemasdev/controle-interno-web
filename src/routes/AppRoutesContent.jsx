@@ -94,6 +94,7 @@ import EditProductPage from "../pages/products/EditProductPage";
 import DetailsProductPage from "../pages/products/DetailsProductPage";
 import UserOrganizationsPage from "../pages/users/organizations/UserOrganizationsPage";
 import CalendarPage from "../pages/contracts/CalendarPage";
+import TypeContractPage from "../pages/contracts/types/TypeContractPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -261,6 +262,25 @@ const AppRoutesContent = () => {
         },
         {
             path: "/tipos/:id/grupos/associar",
+            element: <PrivateRoute element={AttachGroupToTypePage}/>
+        }
+    ];
+
+    const typesContractRoutes = [
+        {
+            path: "/contratos/tipos",
+            element: <PrivateRoute element={TypeContractPage} />,
+        },
+        {
+            path: "/contratos/tipos/criar",
+            element: <PrivateRoute element={CreateTypePage} />,
+        },
+        {
+            path: "/contratos/tipos/editar/:id",
+            element: <PrivateRoute element={EditTypePage}/>
+        },
+        {
+            path: "/contratos/tipos/:id/grupos/associar",
             element: <PrivateRoute element={AttachGroupToTypePage}/>
         }
     ];
@@ -451,6 +471,10 @@ const AppRoutesContent = () => {
             <Route key={index} path={route.path} element={route.element} />
         ))}
 
+        {typesContractRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+        
         {typesRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}

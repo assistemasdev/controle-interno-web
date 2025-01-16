@@ -70,7 +70,8 @@ const SideBarTwo = ({ children }) => {
                 }, {
                     title: 'Contratos',
                     items: [
-                        { name: 'Calendário', icon: faCalendar, to: '/calendario', requiredPermission: '' }
+                        { name: 'Calendário', icon: faCalendar, to: '/calendario', requiredPermission: '' },
+                        { name: 'Tipos', icon: faTags, to: '/contratos/tipos', requiredPermission: '' },
                     ].filter(item => canAccess(item.requiredPermission))
                 }
             ];

@@ -1,6 +1,8 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import '../assets/styles/NestedCheckboxSelector/index.css';
+import Switch from './Switch';
+
 const GenericBox = ({ 
     key,
     item,
@@ -31,24 +33,14 @@ const GenericBox = ({
                         <p className='secundary-title' style={{marginBottom: 0, marginLeft: '5px'}}>Organizações:</p>
                     </div>
                     {subItems.map((subItem) => (
-                        <div className="checkbox-container"  key={subItem.id}>
-                            <div className="label">
-                                <p>
-                                    {subItem.name}
-                                </p>
-                            </div>
-                            <div className="box-switch">
-                                <div className="switch">
-                                    <input
-                                        type="checkbox"
-                                        value={subItem.id}
-                                        onChange={handleChange}
-                                        id={`secundary-${item.id}-${subItem.id}`}
-                                        checked={formData[item.id][subItem.id]}
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                        <Switch
+                            key={subItem.id}
+                            label={subItem.name}
+                            id={`secundary-${item.id}-${subItem.id}`}
+                            value={subItem.id}
+                            onChange={handleChange}
+                            checked={formData[item.id][subItem.id]}
+                        />
                     ))}
                 </div>
                 <div className="box-button">

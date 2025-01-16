@@ -147,6 +147,17 @@
     transition: .4s;
 }
 
+.switch.status input[type="checkbox"]::before {
+    content:'';
+    position: absolute;
+    height: 20px;
+    width: 40px;
+    background-color: #008000!important;
+    border-radius: 32px;
+    transition: .4s;
+}
+
+
 .switch input[type="checkbox"]::after{
     content: '';
     position: absolute;
@@ -164,5 +175,11 @@
 
 .switch input[type="checkbox"]:checked::before{
     background-color: #008000;
+    transition: .4s;
+}
+
+
+.switch.status input[type="checkbox"]:checked::before{
+    background-color: red !important;
     transition: .4s;
 }

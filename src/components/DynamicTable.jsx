@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { useOrgan } from '../hooks/useOrgan';
+import '../assets/styles/NestedCheckboxSelector/index.css';
 
-const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageChange }) => {
+const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageChange, filters ,setFilters }) => {
     const { selectedOrgan } = useOrgan();
     const organColor = selectedOrgan ? selectedOrgan.color : '#343a40';
     const [isCollapsed, setIsCollapsed] = useState(false);
-
     const generatePageNumbers = () => {
         const pages = [];
         for (let i = 1; i <= totalPages; i++) {
@@ -16,6 +16,17 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
         return pages;
     };
 
+    const handleStatus = (status) => {
+        setFilters(prev => ({
+            ...prev,
+            deleted_at: !status
+        }))
+    };
+
+    useEffect(() => {
+        onPageChange(filters);
+    }, [filters])
+
     const toggleCollapse = () => {
         setIsCollapsed((prev) => !prev);
     };
@@ -23,7 +34,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
     return (
         <div className="p-3 mt-2 rounded shadow-sm mb-2 table-background">
             {/* Cabeçalho com Seta */}
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center flex-wrap">
                 <button
                     className="btn btn-sm"
                     style={{ color: organColor }}
@@ -31,6 +42,27 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                 >
                     <FontAwesomeIcon icon={isCollapsed ? faChevronDown : faChevronUp} />
                 </button>
+
+                <div>
+                    <div className="checkbox-container" style={{ width: '150px'}}>
+                        <div className="box-switch">
+                            <div className="switch status">
+                                <input
+                                    type="checkbox"
+                                    value={filters.deleted_at}
+                                    onChange={() => handleStatus(filters.deleted_at)}
+                                    id="active"
+                                    checked={filters.deleted_at}
+                                />
+                            </div>
+                        </div>
+                        <div className="label">
+                            <p className='text-dark font-bold'>
+                                Ativos/Inativos
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Corpo da Tabela */}
@@ -53,16 +85,27 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                             <td className="align-middle" key={idx}>{value}</td>
                                         ))}
                                         <td className="align-middle">
-                                            {actions.map((action, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
-                                                    title={action.title}
-                                                    onClick={() => action.onClick(item)}
-                                                >
-                                                    <FontAwesomeIcon icon={action.icon} />
-                                                </button>
-                                            ))}
+                                            {actions
+                                                .filter(action => {
+                                                    console.log(action, item)
+                                                    if (action.id === 'delete' && item.deleted_at) {
+                                                        return false;
+                                                    }
+                                                    if (action.id === 'activate' && !item.deleted_at) {
+                                                        return false; 
+                                                    }
+                                                    return true; 
+                                                })
+                                                .map((action, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
+                                                        title={action.title}
+                                                        onClick={() => action.onClick(item)}
+                                                    >
+                                                        <FontAwesomeIcon icon={action.icon} />
+                                                    </button>
+                                                ))}
                                         </td>
                                     </tr>
                                 ))
@@ -97,7 +140,10 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                 }}
                                 onClick={() => 
                                     {
-                                        onPageChange({page})
+                                        setFilters(prev => ({
+                                            ...prev,
+                                            page
+                                        }))
                                     }}
                             >
                                 {page}

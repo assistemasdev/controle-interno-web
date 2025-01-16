@@ -45,7 +45,7 @@ const Form = ({
     return (
         <form className={`p-3 rounded shadow-sm ${className}`} onSubmit={handleSubmit}>
             {children({ formData, handleChange: changeHandler })}
-            <div className="mt-2 form-row gap-2">
+            <div className="mt-3 form-row gap-2">
                 <Button
                     type="submit"
                     text={isSubmitting || isPending ? textLoadingSubmit : textSubmit}

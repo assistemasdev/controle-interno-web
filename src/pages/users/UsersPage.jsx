@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { faEdit, faTrashAlt, faBuilding } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrashAlt, faBuilding, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import DynamicTable from '../../components/DynamicTable';
 import Button from '../../components/Button';
@@ -29,6 +29,15 @@ const UsersPage = () => {
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const [selectedUsers, setSelectedUsers] = useState([]);
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
 
     useEffect(() => {
         if (location.state?.message) {
@@ -36,11 +45,10 @@ const UsersPage = () => {
         }
     }, [location.state, showNotification]);
 
-    const fetchUsers = async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
+    const fetchUsers = async (filtersSubmit) => {
         try {
             showLoader();
-
-            const result = await fetchAllUsers({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
+            const result = await fetchAllUsers(filtersSubmit || filters);
 
             const filteredUsers = result.data.map(user => ({
                 id: user.id,
@@ -66,16 +74,42 @@ const UsersPage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-
+    
+        const selectedUserIds = selectedUsers
+            .filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false))
+            .map((type) => type.value);
+    
+        const selectedNames = selectedUsers
+            .filter((type) => type.textFilter === true && type.column === 'name')
+            .map((type) => type.value);
+    
+        const selectedIdLikes = selectedUsers
+            .filter((type) => type.numberFilter === true && type.column === 'id')
+            .map((type) => type.value);
+    
         const filledInputs = new Set(selectedUsers.map((option) => option.column)).size;
-
-        fetchUsers(
-            selectedUsers.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
-            selectedUsers.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
-            selectedUsers.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
-            filledInputs
-        );
+    
+        const previousFilters = filters || {}; 
+    
+        setFilters(prev => ({
+            ...prev,
+            id: selectedUserIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1
+        }));
+    
+        fetchUsers({
+            id: selectedUserIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at
+        });
     };
+    
 
     const handleClearFilters = useCallback(() => {
         window.location.reload();
@@ -93,6 +127,11 @@ const UsersPage = () => {
             return [...filtered, ...newSelectedArray];
         });
     }, []);
+
+    const handleActivate = (user) => {
+        console.log(`Ativando usuário com ID: ${user}`);
+        // Exemplo de chamada a uma API
+    };
 
     const handleEdit = (user) => {
         navigate(`/usuarios/editar/${user.id}`);
@@ -130,6 +169,7 @@ const UsersPage = () => {
 
     const actions = [
         {
+            id: 'edit',
             icon: faEdit,
             title: 'Editar usuário',
             buttonClass: 'btn-primary',
@@ -137,6 +177,7 @@ const UsersPage = () => {
             onClick: handleEdit
         },
         {
+            id: 'delete',
             icon: faTrashAlt,
             title: 'Excluir usuário',
             buttonClass: 'btn-danger',
@@ -144,13 +185,23 @@ const UsersPage = () => {
             onClick: handleDelete,
         },
         {
+            id: 'viewOrganizations',
             icon: faBuilding,
             title: 'Organizações do usuário',
             buttonClass: 'btn-success',
             permission: 'Listar organizações de usuários',
             onClick: handleViewOrganizationUsers,
         },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
+            buttonClass: 'btn-info',
+            permission: 'activate users',
+            onClick: handleActivate,
+        },
     ];
+    
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -216,7 +267,9 @@ const UsersPage = () => {
                     actions={actions} 
                     currentPage={currentPage} 
                     totalPages={totalPages}
-                    onPageChange={fetchUsers} 
+                    onPageChange={fetchUsers}
+                    filters={filters}
+                    setFilters={setFilters}
                 />
 
                 <ConfirmationModal

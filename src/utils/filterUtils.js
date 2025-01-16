@@ -1,12 +1,10 @@
-/**
- * Função utilitária para construir filtros dinâmicos
- * @param {Object} data - Objeto contendo os dados para gerar os filtros
- * @returns {Object} Filtros construídos dinamicamente
- */
 export function buildDynamicFilters(data) {
     const filters = {};
     const orFilters = []; // Para condições que precisam de OR lógico
     const filledInputs = data.filledInputs || 0; // Total de inputs preenchidos
+
+    // Caso `deleted_at` seja vazio, aplica filtro para registros sem `deleted_at`
+    filters.deleted_at = { $eq: null }; 
     Object.entries(data).forEach(([key, value]) => {
         if (key === 'startDate' && value) {
             // Filtrar por data inicial (maior ou igual)
@@ -14,6 +12,9 @@ export function buildDynamicFilters(data) {
         } else if (key === 'endDate' && value) {
             // Filtrar por data final (menor ou igual)
             filters.date = { ...(filters.date || {}), $lte: value };
+        } else if (key === 'deleted_at' && value) {
+            // Filtrar por registros com `deleted_at` preenchido
+            filters.deleted_at = { $ne: null }; // Apenas trazer registros que possuem `deleted_at`
         } else if (Array.isArray(value) && value.length > 0) {
             if (key === 'id' && filledInputs > 1) {
                 // Aplicar $in para IDs
@@ -59,7 +60,6 @@ export function buildDynamicFilters(data) {
         // Usar OR logic apenas se houver um único input preenchido
         filters.$or = orFilters;
     }
-
 
     return filters;
 }

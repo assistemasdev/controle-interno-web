@@ -31,8 +31,8 @@ const UserOrganizationsPage = () => {
         try {
             showLoader();
             const [responseApplications, responseOrganizations, responseUserAppsAndOrgs] = await Promise.all([
-                getApplications(),
-                getOrganizations(),
+                getApplications({}),
+                getOrganizations({}),
                 getUserAppsAndOrgs(id)
             ]);
 
