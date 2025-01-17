@@ -20,7 +20,7 @@ const EditRolePage = () => {
     const [permissions, setPermissions] = useState([]);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchPermissions } = usePermissionService();
+    const { fetchPermissions } = usePermissionService(navigate);
     const {  fetchPermissionsForRole, fetchRoleById, updateRole, updateRolePermissions, formErrors } = useRoleService(navigate);
 
     useEffect(() => {

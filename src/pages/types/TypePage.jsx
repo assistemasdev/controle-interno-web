@@ -14,13 +14,13 @@ import baseService from "../../services/baseService";
 import useNotification from "../../hooks/useNotification";
 
 const TypePage = () => {
+    const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchTypes, deleteType } = useTypeService();
+    const { fetchTypes, deleteType } = useTypeService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedTypes, setSelectedTypes] = useState([]);
     const [types, setTypes] = useState([]);
-    const navigate = useNavigate();
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);

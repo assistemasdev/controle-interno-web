@@ -18,7 +18,7 @@ const EditUserPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { formErrors, fetchUserById, updateUser } = useUserService(navigate);
     const { roles, fetchRoles, fetchPermissionsForRole } = useRoleService();
-    const { permissions, fetchPermissions, fetchPermissionsForUser, updateUserPermissions } = usePermissionService();
+    const { permissions, fetchPermissions, fetchPermissionsForUser, updateUserPermissions } = usePermissionService(navigate);
 
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
 

@@ -2,13 +2,13 @@ import { useState, useCallback } from 'react';
 import TypeService from '../services/TypeService';
 import useNotification from './useNotification';
 
-const useTypeService = () => {
+const useTypeService = (navigate) => {
     const { showNotification } = useNotification();
     const [formErrors, setFormErrors] = useState({});
 
     const fetchTypes = useCallback(async (params) => {
         try {
-            const response = await TypeService.getAll(params);
+            const response = await TypeService.getAll(params, navigate);
             return response.result;
         } catch (error) {
             showNotification('error', error.message || 'Erro ao carregar os tipos.');
@@ -18,7 +18,7 @@ const useTypeService = () => {
 
     const fetchTypeById = useCallback(async (id) => {
         try {
-            const response = await TypeService.getById(id);
+            const response = await TypeService.getById(id, navigate);
             return response.result;
         } catch (error) {
             showNotification('error', error.message || 'Erro ao carregar o tipo.');
@@ -28,7 +28,7 @@ const useTypeService = () => {
 
     const fetchTypeGroups = useCallback(async (id) => {
         try {
-            const response = await TypeService.getGroups(id);
+            const response = await TypeService.getGroups(id, navigate);
             return response.result;
         } catch (error) {
             showNotification('error', error.message || 'Erro ao carregar os grupos do tipo.');
@@ -38,7 +38,7 @@ const useTypeService = () => {
 
     const deleteType = useCallback(async (id) => {
         try {
-            const response = await TypeService.delete(id);
+            const response = await TypeService.delete(id, navigate);
             showNotification('success', response.message || 'Tipo excluído com sucesso.');
         } catch (error) {
             showNotification('error', error.message || 'Erro ao excluir o tipo.');
@@ -49,7 +49,7 @@ const useTypeService = () => {
     const createType = useCallback(async (data) => {
         setFormErrors({}); 
         try {
-            const response = await TypeService.create(data);
+            const response = await TypeService.create(data, navigate);
             showNotification('success', response.message || 'Tipo criado com sucesso.');
             return response;
         } catch (error) {
@@ -65,7 +65,7 @@ const useTypeService = () => {
     const updateType = useCallback(async (id, data) => {
         setFormErrors({});
         try {
-            const response = await TypeService.update(id, data);
+            const response = await TypeService.update(id, data, navigate);
             showNotification('success', response.message || 'Tipo atualizado com sucesso.');
             return response;
         } catch (error) {

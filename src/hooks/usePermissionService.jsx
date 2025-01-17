@@ -3,14 +3,14 @@ import PermissionService from '../services/PermissionService';
 import useErrorHandling from './useErrorHandling';
 import useNotification from './useNotification';
 
-const usePermissionService = () => {
+const usePermissionService = (navigate) => {
     const { handleError } = useErrorHandling();
     const { showNotification } = useNotification();
     const [permissions, setPermissions] = useState([]);
 
     const fetchPermissions = useCallback(async () => {
         try {
-            const response = await PermissionService.getPermissions();
+            const response = await PermissionService.getPermissions(navigate);
             setPermissions(response.result.data);
             return response.result.data;
         } catch (error) {
@@ -21,7 +21,7 @@ const usePermissionService = () => {
 
     const fetchPermissionsForUser = useCallback(async (userId) => {
         try {
-            const response = await PermissionService.getPermissionUser(userId);
+            const response = await PermissionService.getPermissionUser(userId, navigate);
             return response.result || [];
         } catch (error) {
             handleError(error, 'Erro ao carregar permissões do usuário.');
@@ -31,7 +31,7 @@ const usePermissionService = () => {
 
     const updateUserPermissions = useCallback(async (userId, permissions) => {
         try {
-            const response = await PermissionService.updateUserPermissions(userId, { permissions });
+            const response = await PermissionService.updateUserPermissions(userId, { permissions }, navigate);
             showNotification('success', response.message || 'Permissões atualizadas com sucesso!');
             return response.message;
         } catch (error) {
