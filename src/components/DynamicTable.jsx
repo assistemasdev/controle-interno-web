@@ -81,17 +81,24 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                             {data.length > 0 ? (
                                 data.map((item, index) => (
                                     <tr key={index}>
-                                        {Object.values(item).map((value, idx) => (
-                                            <td className="align-middle" key={idx}>{value}</td>
-                                        ))}
+                                        {Object.values(item).map((value, idx) => {
+                                            if (!value.toString().includes('delete')) {
+                                                return (
+                                                <td className="align-middle" key={idx}>
+                                                    {value}
+                                                </td>
+                                                );
+                                            }
+                                            return null;
+                                        })}
                                         <td className="align-middle">
                                             {actions
                                                 .filter(action => {
-                                                    console.log(action, item)
-                                                    if (action.id === 'delete' && item.deleted_at) {
+                                                    const deletedAt = item.deleted_at.split('-')[1];
+                                                    if (action.id === 'delete' && deletedAt != 'null') {
                                                         return false;
                                                     }
-                                                    if (action.id === 'activate' && !item.deleted_at) {
+                                                    if (action.id === 'activate' && deletedAt == 'null') {
                                                         return false; 
                                                     }
                                                     return true; 
@@ -101,7 +108,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                                         key={idx}
                                                         className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
                                                         title={action.title}
-                                                        onClick={() => action.onClick(item)}
+                                                        onClick={() => action.onClick(item, action.id)}
                                                     >
                                                         <FontAwesomeIcon icon={action.icon} />
                                                     </button>

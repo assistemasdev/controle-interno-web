@@ -24,7 +24,7 @@ const UsersPage = () => {
     const { fetchAllUsers, deleteUser } = useUserService(navigate);
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);  
-    const [openDeleteModal, setOpenDeleteModal] = useState(false);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
@@ -38,6 +38,10 @@ const UsersPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
 
     useEffect(() => {
         if (location.state?.message) {
@@ -54,6 +58,7 @@ const UsersPage = () => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
+                deleted_at: 'deleted-' + user.deleted_at
             }));
             
             setUsers(filteredUsers);
@@ -128,37 +133,45 @@ const UsersPage = () => {
         });
     }, []);
 
-    const handleActivate = (user) => {
-        console.log(`Ativando usuário com ID: ${user}`);
-        // Exemplo de chamada a uma API
+    const handleActivate = (user, action) => {
+        setSelectedUser(user); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
     };
 
     const handleEdit = (user) => {
         navigate(`/usuarios/editar/${user.id}`);
     };
 
-    const handleDelete = (user) => {
+    const handleDelete = (user, action) => {
         setSelectedUser(user);  
-        setOpenDeleteModal(true);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
     };
     
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
             await deleteUser(id);
-            setOpenDeleteModal(false);  
+            setOpenModalConfirmation(false);  
             fetchUsers();
         } catch (error) {
             console.log(error);
             showNotification('error', 'Erro ao excluir o usuário');
-            setOpenDeleteModal(false);  
+            setOpenModalConfirmation(false);  
         } finally {
             hideLoader();
         }    
     };
 
-    const handleCancelDelete = () => {
-        setOpenDeleteModal(false);  
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
     };
 
     const handleViewOrganizationUsers = (user) => {
@@ -177,20 +190,20 @@ const UsersPage = () => {
             onClick: handleEdit
         },
         {
-            id: 'delete',
-            icon: faTrashAlt,
-            title: 'Excluir usuário',
-            buttonClass: 'btn-danger',
-            permission: 'delete users',
-            onClick: handleDelete,
-        },
-        {
             id: 'viewOrganizations',
             icon: faBuilding,
             title: 'Organizações do usuário',
             buttonClass: 'btn-success',
             permission: 'Listar organizações de usuários',
             onClick: handleViewOrganizationUsers,
+        },
+        {
+            id: 'delete',
+            icon: faTrashAlt,
+            title: 'Excluir usuário',
+            buttonClass: 'btn-danger',
+            permission: 'delete users',
+            onClick: handleDelete,
         },
         {
             id: 'activate',
@@ -273,10 +286,11 @@ const UsersPage = () => {
                 />
 
                 <ConfirmationModal
-                    open={openDeleteModal}
-                    onClose={handleCancelDelete}
-                    onConfirm={() => handleConfirmDelete(selectedUser.id)}
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedUser.id) : console.log('oi')}
                     itemName={selectedUser ? selectedUser.name : ''}
+                    text={action.text}
                 />
             </div>
         </MainLayout>
