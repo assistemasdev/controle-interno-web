@@ -5,28 +5,41 @@ import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import useTypeService from "../../hooks/useTypeService";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faLayerGroup, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
+import useNotification from "../../hooks/useNotification";
 
 const TypePage = () => {
     const { canAccess } = usePermissions();
     const { fetchTypes, deleteType } = useTypeService();
     const { showLoader, hideLoader } = useLoader();
-    const [name, setName] = useState('');
+    const { showNotification } = useNotification();
     const [selectedTypes, setSelectedTypes] = useState([]);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [typeToDelete, setTypeToDelete] = useState(null);
     const [types, setTypes] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-
+    const [selectedType, setSelectedType] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
     useEffect(() => {
         if (location.state?.message) {
             const { type, text } = location.state.message;
@@ -38,13 +51,14 @@ const TypePage = () => {
         window.location.reload();
     }, []);
 
-    const loadTypes = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
+    const loadTypes = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const result = await fetchTypes({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
+            const result = await fetchTypes(filtersSubmit || filters);
             setTypes(result.data.map((type) => ({
                 id: type.id,
-                name: type.name
+                name: type.name,
+                deleted_at: type.deleted_at ? 'deleted-' + type.deleted_at : 'deleted-null'
             })));
             setTotalPages(result.last_page);
             setCurrentPage(result.current_page);
@@ -61,10 +75,6 @@ const TypePage = () => {
         navigate(`/tipos/editar/${type.id}`);
     }, [navigate]);
 
-    const handleDelete = useCallback((type) => {
-        setTypeToDelete(type);
-        setDeleteModalOpen(true);
-    }, []);
 
     const handleViewGroups = useCallback((type) => {
         navigate(`/tipos/${type.id}/grupos/associar`);
@@ -72,17 +82,42 @@ const TypePage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-
+    
+        const selectedIds = selectedTypes
+            .filter((type) => type.column === 'id' && type.textFilter === false)
+            .map((type) => type.value);
+    
+        const selectedNames = selectedTypes
+            .filter((type) => type.column === 'name' && type.textFilter === true)
+            .map((type) => type.value);
+    
+        const selectedIdLikes = selectedTypes
+            .filter((type) => type.column === 'id' && type.numberFilter === true)
+            .map((type) => type.value);
+    
         const filledInputs = new Set(selectedTypes.map((option) => option.column)).size;
-
-        loadTypes(
-            selectedTypes.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
-            selectedTypes.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
-            selectedTypes.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
-            filledInputs
-        );
+    
+        const previousFilters = filters || {}; 
+    
+        setFilters(prev => ({
+            ...prev,
+            id: selectedIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+        }));
+    
+        loadTypes({
+            id: selectedIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at, 
+        });
     };
-
+    
     const handleChangeCustomers = useCallback((newSelected, column) => {
         setSelectedTypes((prev) => {
             if (!newSelected.length) {
@@ -96,21 +131,48 @@ const TypePage = () => {
         });
     }, []);
 
-    const confirmDelete = useCallback(async () => {
-        showLoader();
+    const handleActivate = (type, action) => {
+        setSelectedType(type); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+
+    const handleDelete = (type, action) => {
+        setSelectedType(type);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleConfirmDelete = async (id) => {
         try {
-            await deleteType(typeToDelete.id);
+            showLoader();
+            await deleteType(id);
+            setOpenModalConfirmation(false);  
             loadTypes();
+        } catch (error) {
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o tipo');
+            setOpenModalConfirmation(false);  
         } finally {
-            setDeleteModalOpen(false);
             hideLoader();
-        }
-    }, [deleteType, typeToDelete, loadTypes, showLoader, hideLoader]);
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
 
     const headers = useMemo(() => ['id', 'Nome'], []);
 
     const actions = useMemo(() => [
         {
+            id:'edit',
             icon: faEdit,
             title: 'Editar Cargos',
             buttonClass: 'btn-primary',
@@ -118,6 +180,15 @@ const TypePage = () => {
             onClick: handleEdit
         },
         {
+            id: 'viewGroups',
+            icon: faLayerGroup,
+            title: 'Ver Grupos do Tipo',
+            buttonClass: 'btn-info',
+            permission: 'Visualizar grupos do tipo',
+            onClick: handleViewGroups
+        },
+        {
+            id: 'delete',
             icon: faTrash,
             title: 'Excluir Tipo',
             buttonClass: 'btn-danger',
@@ -125,12 +196,13 @@ const TypePage = () => {
             onClick: handleDelete
         },
         {
-            icon: faLayerGroup,
-            title: 'Ver Grupos do Tipo',
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
             buttonClass: 'btn-info',
-            permission: 'Visualizar grupos do tipo',
-            onClick: handleViewGroups
-        }
+            permission: 'Atualizar tipos de produto',
+            onClick: handleActivate,
+        },
     ], [handleEdit, handleDelete, handleViewGroups]);
 
     return (
@@ -197,13 +269,16 @@ const TypePage = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={loadTypes}
+                    filters={filters}
+                    setFilters={setFilters}
                 />
 
                 <ConfirmationModal
-                    open={deleteModalOpen}
-                    onClose={() => setDeleteModalOpen(false)}
-                    onConfirm={confirmDelete}
-                    itemName={typeToDelete ? typeToDelete.name : ''}
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedType.id) : console.log('oi')}
+                    itemName={selectedType ? selectedType.name : ''}
+                    text={action.text}
                 />
             </div>
         </MainLayout>

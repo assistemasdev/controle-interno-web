@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
@@ -8,24 +7,39 @@ import useApplicationService from "../../hooks/useApplicationService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faBuilding } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrashAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { PAGINATION } from "../../constants/pagination";
 import baseService from "../../services/baseService";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import ConfirmationModal from "../../components/modals/ConfirmationModal";
 
 const ApplicationPage = () => {
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchApplications: fetchApplicationsService } = useApplicationService();
     const navigate = useNavigate();
+    const { fetchApplications: fetchApplicationsService, deleteApplication } = useApplicationService(navigate);
     const location = useLocation();
     const [selectedApplications, setSelectedApplications] = useState([]);
-    const [name, setName] = useState('');
     const [applications, setApplications] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [selectedApplication, setSelectedApplication] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        idlike: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
 
     useEffect(() => {
         if (location.state?.message) {
@@ -35,15 +49,15 @@ const ApplicationPage = () => {
     }, [location.state, showNotification, navigate]);
     
 
-    const fetchApplications = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
+    const fetchApplications = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-            const result = await fetchApplicationsService({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
+            const result = await fetchApplicationsService(filtersSubmit || filters);
             setApplications(result.data.map(app => ({
                 id: app.id,
                 name: app.name,
                 sessionCode: app.session_code,
-                active: app.active ? 'Sim' : 'Não',
+                deleted_at: app.deleted_at ? 'deleted-' + app.deleted_at : 'deleted-null'
             })));
             setCurrentPage(result.current_page);
             setTotalPages(result.last_page);
@@ -52,7 +66,7 @@ const ApplicationPage = () => {
         } finally {
             hideLoader();
         }
-    }, [fetchApplicationsService, itemsPerPage, name, showLoader, hideLoader, showNotification]);
+    }, [fetchApplicationsService, itemsPerPage, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchApplications();
@@ -60,16 +74,42 @@ const ApplicationPage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-
+    
+        const selectedIdLikes = selectedApplications
+            .filter((type) => type.numberFilter === true && type.column === 'id')
+            .map((type) => type.value);
+    
+        const selectedNames = selectedApplications
+            .filter((type) => type.textFilter === true && type.column === 'name')
+            .map((type) => type.value);
+    
+        const selectedApplicationIds = selectedApplications
+            .filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false))
+            .map((type) => type.value);
+    
         const filledInputs = new Set(selectedApplications.map((option) => option.column)).size;
 
-        fetchApplications(
-            selectedApplications.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
-            selectedApplications.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
-            selectedApplications.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
-            filledInputs
-        );
+        const previousFilters = filters || {}; 
+
+        setFilters(prev => ({
+            ...prev,
+            id: selectedApplicationIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1
+        }));
+    
+        fetchApplications({
+            id: selectedApplicationIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at
+        });
     };
+    
     
     const handleChangeApplications = useCallback((newSelected, column) => {
         setSelectedApplications((prev) => {
@@ -96,17 +136,70 @@ const ApplicationPage = () => {
         navigate(`/orgaos/${application.id}`);
     }, [navigate]);
 
+    const handleActivate = (application, action) => {
+        setSelectedApplication(application); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
+    };
 
-    const headers = useMemo(() => ['id', 'Nome', 'Código de Sessão', 'Ativo'], []);
+    const handleDelete = (application, action) => {
+        setSelectedApplication(application);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+
+    const handleConfirmDelete = async (id) => {
+        try {
+            showLoader();
+            await deleteApplication(id);
+            setOpenModalConfirmation(false);  
+            fetchApplications();
+        } catch (error) {
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
+        } finally {
+            hideLoader();
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
+
+
+    const headers = useMemo(() => ['id', 'Nome', 'Código de Sessão'], []);
 
     const actions = useMemo(() => [
         {
             icon: faEdit,
             title: 'Editar Aplicação',
             buttonClass: 'btn-primary',
-            permission: 'update application',
+            permission: 'Atualizar aplicações',
             onClick: handleEdit,
-        }
+        },
+        {
+            id: 'delete',
+            icon: faTrashAlt,
+            title: 'Excluir aplicações',
+            buttonClass: 'btn-danger',
+            permission: 'delete applications',
+            onClick: handleDelete,
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
+            buttonClass: 'btn-info',
+            permission: 'Atualizar aplicações',
+            onClick: handleActivate,
+        },
     ], [handleEdit, handleViewOrgans]);
 
     return (
@@ -166,8 +259,17 @@ const ApplicationPage = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={fetchApplications}
+                    filters={filters}
+                    setFilters={setFilters}
                 />
                 
+                <ConfirmationModal
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedApplication.id) : console.log('oi')}
+                    itemName={selectedApplication ? selectedApplication.name : ''}
+                    text={action.text}
+                />
             </div>
         </MainLayout>
     );

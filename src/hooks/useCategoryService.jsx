@@ -43,7 +43,7 @@ const useCategoryService = (navigate) => {
         try {
             const response = await CategoryService.create(data, navigate);
             showNotification('success', response.message);
-            return response.result;
+            return response.message;
         } catch (error) {
             if (error.status === 422) {
                 setFormErrors({

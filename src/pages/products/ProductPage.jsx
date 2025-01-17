@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import MyAlert from "../../components/MyAlert";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
-import ProductService from "../../services/ProductService";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faTrash, faEye, faUndo } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
@@ -18,21 +16,33 @@ import baseService from "../../services/baseService";
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
-    const [products, setProducts] = useState([]);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [productToDelete, setProductToDelete] = useState(null);
+    const [products, setProducts] = useState([]);;
     const [statusOptions, setStatusOptions] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const { fetchAllProducts } = useProductService(navigate);
+    const { fetchAllProducts, deleteProduct } = useProductService(navigate);
     const { fetchAllStatus } = useStatusService(navigate);
     const { hideLoader, showLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedProducts, setSelectedProducts] = useState([]);
-    
+    const [selectedProduct, setSelectedProduct] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        number: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
+
     useEffect(() => {
         if (location.state?.message) {
             showNotification('error', location.state.message );
@@ -52,12 +62,12 @@ const ProductsPage = () => {
         }));
     }, []);
 
-    const fetchData = useCallback(async ({id = null, number = null, filledInputs = null, page = 1} = {}) => {
+    const fetchData = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
             const [statusResponse, productsResponse] = await Promise.all([
                 fetchAllStatus(),
-                fetchAllProducts({ number, id, filledInputs, page, perPage: itemsPerPage }),
+                fetchAllProducts(filtersSubmit || filters),
             ]);
     
             const statusMap = mapStatus(statusResponse.data);
@@ -92,51 +102,84 @@ const ProductsPage = () => {
         navigate(`/produtos/editar/${product.id}`);
     };
 
-    const handleDelete = (product) => {
-        setProductToDelete(product);
-        setDeleteModalOpen(true);
-    };
-
     const handleViewDetails = (product) => {
         navigate(`/produtos/detalhes/${product.id}`);
     };
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-
+    
+        const selectedIds = selectedProducts
+            .filter((product) => product.column === 'id' && !product.numberFilter)
+            .map((product) => product.value);
+    
+        const selectedNumbers = selectedProducts
+            .filter((product) => product.column === 'number' && product.numberFilter)
+            .map((product) => product.value);
+    
         const filledInputs = new Set(selectedProducts.map((option) => option.column)).size;
-
-        fetchData(
-            selectedProducts.filter((product) => !product.numberFilter).map((product) => product.value),
-            selectedProducts.filter((product) => product.numberFilter).map((product) => product.value),
-            filledInputs
-        );
+    
+        const previousFilters = filters || {};
+    
+        setFilters(prev => ({
+            ...prev,
+            id: selectedIds,
+            number: selectedNumbers,
+            filledInputs,
+            page: 1, 
+        }));
+    
+        fetchData({
+            id: selectedIds,
+            number: selectedNumbers,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at,
+        });
+    };
+    
+    const handleActivate = (user, action) => {
+        setSelectedProduct(user); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
     };
 
-    const confirmDelete = async () => {
+    const handleDelete = (user, action) => {
+        setSelectedProduct(user);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            const response = await ProductService.delete(productToDelete.id);
-
-            if (response.status === 200) {
-                showNotification('success', response.message)
-                fetchData();
-            }
+            await deleteProduct(id);
+            setOpenModalConfirmation(false);  
+            fetchAllProducts();
         } catch (error) {
-            const errorMessage =
-                error.response?.data?.error || error.message || "Erro ao excluir o produto";
-            showNotification('error', errorMessage);
-            console.error("Erro ao excluir produto:", error);
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
         } finally {
-            setDeleteModalOpen(false);
             hideLoader();
-        }
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
     };
 
     const headers = ["Id", "Nome", "Número", "Status"];
 
     const actions = [
         {
+            id:'edit',
             icon: faEdit,
             title: "Editar Produto",
             buttonClass: "btn-primary",
@@ -144,6 +187,15 @@ const ProductsPage = () => {
             onClick: handleEdit,
         },
         {
+            id:'details',
+            icon: faEye,
+            title: "Ver Detalhes",
+            buttonClass: "btn-info",
+            permission: "Ver produtos",
+            onClick: handleViewDetails,
+        },
+        {
+            id:'delete',
             icon: faTrash,
             title: "Excluir Produto",
             buttonClass: "btn-danger",
@@ -151,11 +203,12 @@ const ProductsPage = () => {
             onClick: handleDelete,
         },
         {
-            icon: faEye,
-            title: "Ver Detalhes",
-            buttonClass: "btn-info",
-            permission: "Ver produtos",
-            onClick: handleViewDetails,
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
+            buttonClass: 'btn-info',
+            permission: 'Atualizar produtos',
+            onClick: handleActivate,
         },
     ];
 
@@ -211,14 +264,17 @@ const ProductsPage = () => {
                     actions={actions}
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={(page) => fetchData(undefined, undefined, undefined, page)}
+                    onPageChange={fetchData}
+                    setFilters={setFilters}
+                    filters={filters}
                 />
 
                 <ConfirmationModal
-                    open={deleteModalOpen}
-                    onClose={() => setDeleteModalOpen(false)}
-                    onConfirm={confirmDelete}
-                    itemName={productToDelete ? productToDelete.name : ""}
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedProduct.id) : console.log('oi')}
+                    itemName={selectedProduct ? selectedProduct.name : ''}
+                    text={action.text}
                 />
             </div>
         </MainLayout>

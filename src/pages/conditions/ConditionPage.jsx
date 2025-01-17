@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import MyAlert from "../../components/MyAlert";
-import InputField from "../../components/InputField";
+
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrashAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import useConditionService from "../../hooks/useConditionService";
@@ -17,10 +16,6 @@ import baseService from "../../services/baseService";
 
 const ConditionPage = () => {
     const { canAccess } = usePermissions();
-    const [message, setMessage] = useState(null);
-    const [name, setName] = useState('');
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [conditionToDelete, setConditionToDelete] = useState(null);
     const [conditions, setConditions] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
@@ -31,6 +26,21 @@ const ConditionPage = () => {
     const { fetchConditions, deleteCondition } = useConditionService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
+    const [selectedCondition, setSelectedCondition] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
 
     useEffect(() => {
         if (location.state?.message) {
@@ -43,15 +53,16 @@ const ConditionPage = () => {
         window.location.reload();
     }, []);
 
-    const fetchCondition = useCallback (async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
+    const fetchCondition = useCallback (async (filtersSubmit) => {
         try {
             showLoader();
         
-            const response = await fetchConditions({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
+            const response = await fetchConditions(filtersSubmit || filters);
 
-            const filteredCondition = response.data.map(role => ({
-                id: role.id,
-                name: role.name
+            const filteredCondition = response.data.map(condition => ({
+                id: condition.id,
+                name: condition.name,
+                deleted_at: condition.deleted_at ? 'deleted-' + condition.deleted_at : 'deleted-null'
             }));
         
             setConditions(filteredCondition);
@@ -72,18 +83,42 @@ const ConditionPage = () => {
 
     const handleFilterSubmit = useCallback((e) => {
         e.preventDefault();
-
-        const filledInputs = new Set(
-            selectedConditions.map((option) => option.column)
-        ).size;
-
-        fetchCondition(
-            selectedConditions.filter((option) => option.textFilter === false || (option.column === 'id' && option.numberFilter === false)).map((item) => item.value),
-            selectedConditions.filter((option) => option.textFilter === true && option.column === 'name').map((item) => item.value),
-            selectedConditions.filter((option) => option.numberFilter === true && option.column === 'id').map((item) => item.value),
-            filledInputs
-        );
-    }, [selectedConditions, fetchCondition]);
+    
+        const selectedCondIds = selectedConditions
+            .filter((condition) => condition.textFilter === false || (condition.column === 'id' && condition.numberFilter === false))
+            .map((condition) => condition.value);
+    
+        const selectedNames = selectedConditions
+            .filter((condition) => condition.textFilter === true && condition.column === 'name')
+            .map((condition) => condition.value);
+    
+        const selectedIdLikes = selectedConditions
+            .filter((condition) => condition.numberFilter === true && condition.column === 'id')
+            .map((condition) => condition.value);
+    
+        const filledInputs = new Set(selectedConditions.map((option) => option.column)).size;
+    
+        const previousFilters = filters || {}; 
+    
+        setFilters(prev => ({
+            ...prev,
+            id: selectedCondIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1
+        }));
+    
+        fetchCondition({
+            id: selectedCondIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at
+        });
+    }, [selectedConditions, fetchCondition, setFilters]);
+    
 
     const handleChangeOrg = useCallback((newSelected, column) => {
         setSelectedConditions((prev) => {
@@ -102,26 +137,43 @@ const ConditionPage = () => {
         navigate(`/condicoes/editar/${condition.id}`);
     }, []);
 
-    const handleDelete = useCallback((condition) => {
-        setConditionToDelete(condition);
-        setDeleteModalOpen(true);
-    },[]);
-
-    const confirmDelete = useCallback(async () => {
+    const handleActivate = (condition, action) => {
+        setSelectedCondition(condition); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleDelete = (condition, action) => {
+        setSelectedCondition(condition);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteCondition(conditionToDelete.id);
-            fetchCondition();
-            return;
+            await deleteCondition(id);
+            setOpenModalConfirmation(false);  
+            fetchConditions();
         } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao excluir condição';
-            showNotification('error', errorMessage);
-            console.error(error);
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
         } finally {
-            setDeleteModalOpen(false);
             hideLoader();
-        }
-    }, [showLoader, hideLoader, fetchCondition, showNotification, deleteCondition, conditionToDelete]);
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
+
 
     const headers = useMemo(() => ['id', 'Nome'], []);
 
@@ -134,12 +186,21 @@ const ConditionPage = () => {
             onClick: handleEdit
         },
         {
-            icon: faTrash,
-            title: 'Excluir Categoria',
+            id: 'delete',
+            icon: faTrashAlt,
+            title: 'Excluir usuário',
             buttonClass: 'btn-danger',
             permission: 'Excluir condições de produto',
-            onClick: handleDelete
-        }
+            onClick: handleDelete,
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
+            buttonClass: 'btn-info',
+            permission: 'Atualizar condições de produto',
+            onClick: handleActivate,
+        },
     ], [handleDelete, handleEdit]);
     
     return (
@@ -199,7 +260,6 @@ const ConditionPage = () => {
                     )}
                 </div>
 
-                
                 <DynamicTable 
                     headers={headers} 
                     data={conditions} 
@@ -207,14 +267,16 @@ const ConditionPage = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={fetchCondition}
+                    filters={filters}
+                    setFilters={setFilters}
                 />
                 
-
                 <ConfirmationModal
-                    open={deleteModalOpen}
-                    onClose={() => setDeleteModalOpen(false)}
-                    onConfirm={confirmDelete}
-                    itemName={conditionToDelete ? conditionToDelete.name : ''}
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedCondition.id) : console.log('oi')}
+                    itemName={selectedCondition ? selectedCondition.name : ''}
+                    text={action.text}
                 />
             </div>
         </MainLayout>

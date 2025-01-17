@@ -8,7 +8,7 @@ import useUnitService from "../../hooks/useUnitService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faLink } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrashAlt, faUndo, faLink } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import baseService from "../../services/baseService";
@@ -22,50 +22,35 @@ const UnitPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedUnits, setSelectedUnits] = useState([]);
-    const [name, setName] = useState('');
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [unitToDelete, setUnitToDelete] = useState(null);
     const [units, setUnits] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [selectedUser, setSelectedUser] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
 
-    const headers = useMemo(() => ['id', 'Nome', 'Abreviação'], []);
-    const actions = useMemo(() => [
-        {
-            icon: faEdit,
-            title: 'Editar Unidade',
-            buttonClass: 'btn-primary',
-            permission: 'Atualizar tipos de produto',
-            onClick: (unit) => navigate(`/unidades/editar/${unit.id}`),
-        },
-        {
-            icon: faTrash,
-            title: 'Excluir Unidade',
-            buttonClass: 'btn-danger',
-            permission: 'Excluir tipos de produto',
-            onClick: (unit) => {
-                setUnitToDelete(unit);
-                setDeleteModalOpen(true);
-            },
-        },
-        {
-            icon: faLink, 
-            title: 'Ver unidades relacionadas',
-            buttonClass: 'btn-info',
-            permission: 'Listar unidades de medida relacionadas',
-            onClick: (unit) => navigate(`/unidades/${unit.id}/relacionadas/criar`),
-        }
-    ], [navigate]);
-
-    const fetchUnitList = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
+    const fetchUnitList = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-            const result = await fetchUnits({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
+            const result = await fetchUnits(filtersSubmit || filters);
             setUnits(result.data.map((unit) => ({
                 id: unit.id,
                 name: unit.name,
                 abbreviation: unit.abbreviation,
+                deleted_at: unit.deleted_at ? 'deleted-' + unit.deleted_at : 'deleted-null'
             })));
             setCurrentPage(result.current_page);
             setTotalPages(result.last_page);
@@ -88,31 +73,81 @@ const UnitPage = () => {
         window.location.reload();
     }, []);
 
-    const confirmDelete = useCallback(async () => {
+    const handleActivate = (user, action) => {
+        setSelectedUser(user); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+
+    const handleDelete = (user, action) => {
+        setSelectedUser(user);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteUnit(unitToDelete.id);
+            await deleteUnit(id);
+            setOpenModalConfirmation(false);  
             fetchUnitList();
         } catch (error) {
-            showNotification('error', 'Erro ao excluir unidade.');
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
         } finally {
-            setDeleteModalOpen(false);
             hideLoader();
-        }
-    }, [unitToDelete, deleteUnit, fetchUnitList, showLoader, hideLoader, showNotification]);
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-
+    
+        const selectedIds = selectedUnits
+            .filter((type) => type.column === 'id' && type.textFilter === false)
+            .map((type) => type.value);
+    
+        const selectedNames = selectedUnits
+            .filter((type) => type.column === 'name' && type.textFilter === true)
+            .map((type) => type.value);
+    
+        const selectedIdLikes = selectedUnits
+            .filter((type) => type.column === 'id' && type.numberFilter === true)
+            .map((type) => type.value);
+    
         const filledInputs = new Set(selectedUnits.map((option) => option.column)).size;
-
-        fetchUnitList(
-            selectedUnits.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
-            selectedUnits.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
-            selectedUnits.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
-            filledInputs
-        );
+    
+        const previousFilters = filters || {};
+    
+        setFilters((prev) => ({
+            ...prev,
+            id: selectedIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1, 
+        }));
+    
+        fetchUnitList({
+            id: selectedIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at,
+        });
     };
+    
     
     const handleChangeUnits = useCallback((newSelected, column) => {
         setSelectedUnits((prev) => {
@@ -126,6 +161,42 @@ const UnitPage = () => {
             return [...filtered, ...newSelectedArray];
         });
     }, []);
+
+    const headers = useMemo(() => ['id', 'Nome', 'Abreviação'], []);
+    const actions = useMemo(() => [
+        {
+            id:'edit',
+            icon: faEdit,
+            title: 'Editar Unidade',
+            buttonClass: 'btn-primary',
+            permission: 'Atualizar tipos de produto',
+            onClick: (unit) => navigate(`/unidades/editar/${unit.id}`),
+        },
+        {
+            id:'viewUnitsRelated',
+            icon: faLink, 
+            title: 'Ver unidades relacionadas',
+            buttonClass: 'btn-info',
+            permission: 'Listar unidades de medida relacionadas',
+            onClick: (unit) => navigate(`/unidades/${unit.id}/relacionadas/criar`),
+        },
+        {
+            id: 'delete',
+            icon: faTrashAlt,
+            title: 'Excluir usuário',
+            buttonClass: 'btn-danger',
+            permission: 'Excluir tipos de produto',
+            onClick: handleDelete,
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
+            buttonClass: 'btn-info',
+            permission: 'activate users',
+            onClick: handleActivate,
+        },
+    ], [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -191,13 +262,16 @@ const UnitPage = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={fetchUnitList}
+                    filters={filters}
+                    setFilters={setFilters}
                 />
 
                 <ConfirmationModal
-                    open={deleteModalOpen}
-                    onClose={() => setDeleteModalOpen(false)}
-                    onConfirm={confirmDelete}
-                    itemName={unitToDelete ? unitToDelete.name : ''}
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedUser.id) : console.log('oi')}
+                    itemName={selectedUser ? selectedUser.name : ''}
+                    text={action.text}
                 />
             </div>
         </MainLayout>

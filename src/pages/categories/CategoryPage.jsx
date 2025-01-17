@@ -4,7 +4,7 @@ import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
@@ -15,9 +15,6 @@ import baseService from "../../services/baseService";
 
 const CategoryPage = () => {
     const { canAccess } = usePermissions();
-    const [name, setName] = useState('');
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [categoryToDelete, setCategoryToDelete] = useState(null);
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const navigate = useNavigate();
@@ -28,6 +25,21 @@ const CategoryPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { fetchCategories: getCategories, deleteCategory } = useCategoryService(navigate);
     const { showNotification } = useNotification();
+    const [selectedCategory, setSelectedCategory] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
 
     useEffect(() => {
         if (location.state?.message) {
@@ -44,15 +56,16 @@ const CategoryPage = () => {
         fetchCategories();
     }, []);
 
-    const fetchCategories = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1} = {}) => {
+    const fetchCategories = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
             
-            const response = await getCategories({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
+            const response = await getCategories(filtersSubmit || filters);
             
-            const filteredCategories = response.data.map(role => ({
-                id: role.id,
-                name: role.name,
+            const filteredCategories = response.data.map(category => ({
+                id: category.id,
+                name: category.name,
+                deleted_at: category.deleted_at ? 'deleted-' + category.deleted_at : 'deleted-null'
             }));
             
             setCategories(filteredCategories);
@@ -67,19 +80,42 @@ const CategoryPage = () => {
 
     const handleFilterSubmit = useCallback((e) => {
         e.preventDefault();
-
-        const filledInputs = new Set(
-            selectedCategories.map((option) => option.column)
-        ).size;
-
-        fetchCategories(
-            selectedCategories.filter((option) => option.textFilter === false || (option.column === 'id' && option.numberFilter === false)).map((item) => item.value),
-            selectedCategories.filter((option) => option.textFilter === true && option.column === 'name').map((item) => item.value),
-            selectedCategories.filter((option) => option.numberFilter === true && option.column === 'id').map((item) => item.value),
-            filledInputs
-        );
-    }, [selectedCategories, fetchCategories]);
-
+    
+        const selectedCatIds = selectedCategories
+            .filter((condition) => condition.textFilter === false || (condition.column === 'id' && condition.numberFilter === false))
+            .map((condition) => condition.value);
+    
+        const selectedNames = selectedCategories
+            .filter((condition) => condition.textFilter === true && condition.column === 'name')
+            .map((condition) => condition.value);
+    
+        const selectedIdLikes = selectedCategories
+            .filter((condition) => condition.numberFilter === true && condition.column === 'id')
+            .map((condition) => condition.value);
+    
+        const filledInputs = new Set(selectedCategories.map((option) => option.column)).size;
+    
+        const previousFilters = filters || {}; 
+    
+        setFilters(prev => ({
+            ...prev,
+            id: selectedCatIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1
+        }));
+    
+        fetchCategories({
+            id: selectedCatIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at
+        });
+    }, [selectedCategories, fetchCategories, setFilters]);
+    
     const handleChangeOrg = useCallback((newSelected, column) => {
         setSelectedCategories((prev) => {
             if (!newSelected.length) {
@@ -97,29 +133,48 @@ const CategoryPage = () => {
         navigate(`/categorias/editar/${category.id}`);
     }, [navigate]);
     
-    const handleDelete = useCallback((category) => {
-        setCategoryToDelete(category);
-        setDeleteModalOpen(true);
-    }, []);
+    const handleActivate = (category, action) => {
+        setSelectedCategory(category); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
+    };
     
-    const confirmDelete = useCallback(async () => {
+    const handleDelete = (category, action) => {
+        setSelectedCategory(category);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteCategory(categoryToDelete.id);
+            await deleteCategory(id);
+            setOpenModalConfirmation(false);  
             fetchCategories();
         } catch (error) {
-            console.error(error);
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
         } finally {
-            setDeleteModalOpen(false);
             hideLoader();
-        }
-    }, [categoryToDelete, deleteCategory, fetchCategories, showLoader, hideLoader]);
-    
+        }    
+    };
 
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
+    
     const headers = useMemo(() => ['id', 'Nome'], []);
 
     const actions = useMemo(() => [
         {
+            id: 'edit',
             icon: faEdit,
             title: 'Editar Categoria',
             buttonClass: 'btn-primary',
@@ -127,12 +182,21 @@ const CategoryPage = () => {
             onClick: handleEdit
         },
         {
+            id: 'delete',
             icon: faTrash,
             title: 'Excluir Categoria',
             buttonClass: 'btn-danger',
             permission: 'Excluir categorias de produto',
             onClick: handleDelete
-        }
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
+            buttonClass: 'btn-info',
+            permission: 'Atualizar categorias de produto',
+            onClick: handleActivate,
+        },
     ], [handleDelete, handleEdit]);
     
     return (
@@ -200,14 +264,17 @@ const CategoryPage = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={fetchCategories}
+                    filters={filters}
+                    setFilters={setFilters}
                 />
                 
 
                 <ConfirmationModal
-                    open={deleteModalOpen}
-                    onClose={() => setDeleteModalOpen(false)}
-                    onConfirm={confirmDelete}
-                    itemName={categoryToDelete ? categoryToDelete.name : ''}
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedCategory.id) : console.log('oi')}
+                    itemName={selectedCategory ? selectedCategory.name : ''}
+                    text={action.text}
                 />
             </div>
         </MainLayout>

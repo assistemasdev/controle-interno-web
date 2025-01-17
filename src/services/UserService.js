@@ -10,7 +10,6 @@ const UserService = {
             page:data.page, 
             perPage: data.perPage
         }, { encode: false });
-
         try {
             const response = await api.get(`/users/?${query}`);
             return {

@@ -4,7 +4,7 @@ import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import { useNavigate } from "react-router-dom";
-import { faEdit, faTrash, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
@@ -29,20 +29,37 @@ const SuppliersPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [selectedUser, setSelectedUser] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
 
-    const fetchSuppliersData = useCallback(async ({id = null, name = null, filledInputs = null, page = 1} = {}) => {
+    const fetchSuppliersData = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchSuppliers({ id, name, filledInputs, page, perPage: itemsPerPage, name });
+            const response = await fetchSuppliers(filtersSubmit || filters);
             const formattedSuppliers = response.data.map(supplier => {
                 const numericValue = supplier.cpf_cnpj.replace(/\D/g, '');
                 return {
                     id: supplier.id,
                     alias: supplier.alias,
                     name: supplier.name,
-                    cpf_cnpj: numericValue.length <= 11 ? maskCpf(numericValue) : maskCnpj(numericValue)
+                    cpf_cnpj: numericValue.length <= 11 ? maskCpf(numericValue) : maskCnpj(numericValue),
+                    deleted_at: supplier.deleted_at ? 'deleted-' + supplier.deleted_at : 'deleted-null'
                 };
             });
+
             setSuppliers(formattedSuppliers);
             setTotalPages(response.last_page);
             setCurrentPage(response.current_page);
@@ -66,24 +83,42 @@ const SuppliersPage = () => {
         navigate(`/fornecedores/detalhes/${supplier.id}`);
     };
 
-    const handleDelete = (supplier) => {
-        setSupplierToDelete(supplier);
-        setDeleteModalOpen(true);
+    const handleActivate = (user, action) => {
+        setSelectedUser(user); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
     };
 
-    const confirmDelete = useCallback(async () => {
-        showLoader();
+    const handleDelete = (user, action) => {
+        setSelectedUser(user);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleConfirmDelete = async (id) => {
         try {
-            await deleteSupplier(supplierToDelete.id);
-            setDeleteModalOpen(false);
+            showLoader();
+            await deleteSupplier(id);
+            setOpenModalConfirmation(false);  
             fetchSuppliersData();
         } catch (error) {
-            console.log(error)
-            showNotification("error", "Erro ao excluir o fornecedor.");
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
         } finally {
             hideLoader();
-        }
-    }, [deleteSupplier, supplierToDelete, fetchSuppliersData, showLoader, hideLoader, showNotification]);
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
 
     const handleChangeCustomers = useCallback((newSelected, column) => {
         setSelectedSuppliers((prev) => {
@@ -104,19 +139,49 @@ const SuppliersPage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
+    
+        const selectedIds = selectedSuppliers
+            .filter((supplier) => supplier.column === 'id' && !supplier.textFilter)
+            .map((supplier) => supplier.value);
+    
+        const selectedNames = selectedSuppliers
+            .filter((supplier) => supplier.column === 'name' && supplier.textFilter)
+            .map((supplier) => supplier.value);
 
+        const selectedIdLikes = selectedSuppliers
+            .filter((type) => type.textFilter === true && type.column === 'id')
+            .map((type) => type.value);
+
+    
         const filledInputs = new Set(selectedSuppliers.map((option) => option.column)).size;
-
-        fetchSuppliersData(
-            selectedSuppliers.filter((supplier) => !supplier.textFilter).map((supplier) => supplier.value),
-            selectedSuppliers.filter((supplier) => supplier.textFilter).map((supplier) => supplier.value),
-            filledInputs
-        );
+    
+        const previousFilters = filters || {}; 
+    
+        setFilters(prev => ({
+            ...prev,
+            id: selectedIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1, 
+        }));
+    
+        fetchSuppliersData({
+            id: selectedIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            perPage: previousFilters.perPage, 
+            deleted_at: previousFilters.deleted_at, 
+        });
     };
+    
 
     const headers = ['ID', 'Apelido', 'Nome', 'CPF/CNPJ'];
     const actions = [
         {
+            id: 'edit',
             icon: faEdit,
             title: 'Editar Fornecedor',
             buttonClass: 'btn-primary',
@@ -124,6 +189,15 @@ const SuppliersPage = () => {
             onClick: handleEdit
         },
         {
+            id:'details',
+            icon: faEye,
+            title: 'Ver Detalhes',
+            buttonClass: 'btn-info',
+            permission: 'Ver fornecedores',
+            onClick: handleViewDetails
+        },
+        {
+            id:'delete',
             icon: faTrash,
             title: 'Excluir Fornecedor',
             buttonClass: 'btn-danger',
@@ -131,12 +205,13 @@ const SuppliersPage = () => {
             onClick: handleDelete
         },
         {
-            icon: faEye,
-            title: 'Ver Detalhes',
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
             buttonClass: 'btn-info',
-            permission: 'Ver fornecedores',
-            onClick: handleViewDetails
-        }
+            permission: 'Atualizar fornecedores',
+            onClick: handleActivate,
+        },
     ];
 
     return (
@@ -212,14 +287,17 @@ const SuppliersPage = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={fetchSuppliersData}
+                    filters={filters}
+                    setFilters={setFilters}
                 />
             </div>
 
             <ConfirmationModal
-                open={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                itemName={supplierToDelete ? supplierToDelete.name : ''}
+                open={openModalConfirmation}
+                onClose={handleCancelConfirmation}
+                onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedUser.id) : console.log('oi')}
+                itemName={selectedUser ? selectedUser.name : ''}
+                text={action.text}
             />
         </MainLayout>
     );

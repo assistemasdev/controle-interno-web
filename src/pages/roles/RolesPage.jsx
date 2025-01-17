@@ -5,12 +5,14 @@ import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import RoleService from "../../services/RoleService";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrashAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
+import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import useRoleService from "../../hooks/useRoleService";
 
 const RolePage = () => {
     const { canAccess } = usePermissions();
@@ -23,6 +25,22 @@ const RolePage = () => {
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
+    const [selectedRole, setSelectedRole] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const { fetchRoles: getRoles, deleteRole} = useRoleService(navigate);
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
 
     useEffect(() => {
         if (location.state?.message) {
@@ -35,19 +53,19 @@ const RolePage = () => {
     }, []);
 
     const fetchRoles = useCallback(
-        async ({ id = null, name = null, idLike = null, filledInputs = null, page = 1 } = {}) => {
+        async (filtersSubmit) => {
             try {
                 showLoader();
-                const response = await RoleService.getRoles({ id, name, idLike, filledInputs, page, perPage: itemsPerPage }, navigate);
-                const result = response.result;
-                const filteredRoles = result.data.map(role => ({
+                const response = await getRoles(filtersSubmit || filters);
+                const filteredRoles = response.data.map(role => ({
                     id: role.id,
-                    name: role.name
+                    name: role.name,
+                    deleted_at: role.deleted_at ? 'deleted-' + role.deleted_at : 'deleted-null'
                 }));
 
                 setRoles(filteredRoles);
-                setCurrentPage(result.current_page);
-                setTotalPages(result.last_page);
+                setCurrentPage(response.current_page);
+                setTotalPages(response.last_page);
             } catch (error) {
                 showNotification('error', 'Erro ao carregar cargos');
                 console.error(error);
@@ -61,18 +79,47 @@ const RolePage = () => {
     const handleFilterSubmit = useCallback(
         (e) => {
             e.preventDefault();
+    
             const filledInputs = new Set(selectedRoles.map((option) => option.column)).size;
-
+    
+            const selectedRoleIds = selectedRoles
+                .filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false))
+                .map((type) => type.value);
+    
+            const selectedRoleNames = selectedRoles
+                .filter((type) => type.textFilter === true && type.column === 'name')
+                .map((type) => type.value);
+    
+            const selectedRoleIdLikes = selectedRoles
+                .filter((type) => type.numberFilter === true && type.column === 'id')
+                .map((type) => type.value);
+    
+            const previousFilters = filters || {}; 
+    
+            setFilters(prev => ({
+                ...prev,
+                id: selectedRoleIds,
+                name: selectedRoleNames,
+                idLike: selectedRoleIdLikes,
+                filledInputs,
+                page: 1
+            }));
+    
             fetchRoles(
-                selectedRoles.filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false)).map((type) => type.value),
-                selectedRoles.filter((type) => type.textFilter === true && type.column === 'name').map((type) => type.value),
-                selectedRoles.filter((type) => type.numberFilter === true && type.column === 'id').map((type) => type.value),
-                filledInputs
+                {
+                    id: selectedRoleIds,         
+                    name: selectedRoleNames,       
+                    idLike: selectedRoleIdLikes,     
+                    filledInputs,
+                    page: 1,         
+                    deleted_at:previousFilters.deleted_at 
+                }
+
             );
         },
-        [selectedRoles, fetchRoles]
+        [selectedRoles, fetchRoles, filters, setFilters] 
     );
-
+    
     const handleChangeRoles = useCallback((newSelected, column) => {
         setSelectedRoles((prev) => {
             if (!newSelected.length) {
@@ -96,6 +143,44 @@ const RolePage = () => {
         [navigate]
     );
 
+    const handleActivate = (role, action) => {
+        setSelectedRole(role); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+
+    const handleDelete = (role, action) => {
+        setSelectedRole(role);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+
+    const handleConfirmDelete = async (id) => {
+        try {
+            showLoader();
+            await deleteRole(id);
+            setOpenModalConfirmation(false);  
+            fetchRoles();
+        } catch (error) {
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
+        } finally {
+            hideLoader();
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
+
+
     const headers = useMemo(() => ['id', 'Nome'], []);
     const actions = useMemo(
         () => [
@@ -103,9 +188,25 @@ const RolePage = () => {
                 icon: faEdit,
                 title: 'Editar Cargos',
                 buttonClass: 'btn-primary',
-                permission: 'update application',
+                permission: 'Atualizar cargos',
                 onClick: handleEdit
-            }
+            },
+            {
+                id: 'delete',
+                icon: faTrashAlt,
+                title: 'Excluir usuário',
+                buttonClass: 'btn-danger',
+                permission: 'Excluir cargos',
+                onClick: handleDelete,
+            },
+            {
+                id: 'activate',
+                icon: faUndo,
+                title: 'Ativar usuário',
+                buttonClass: 'btn-info',
+                permission: 'Atualizar cargos',
+                onClick: handleActivate,
+            },
         ],
         [handleEdit]
     );
@@ -170,6 +271,16 @@ const RolePage = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={fetchRoles}
+                    filters={filters}
+                    setFilters={setFilters}
+                />
+
+                <ConfirmationModal
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedRole.id) : console.log('oi')}
+                    itemName={selectedRole ? selectedRole.name : ''}
+                    text={action.text}
                 />
             </div>
         </MainLayout>

@@ -33,7 +33,7 @@ const useCustomerService = (navigate) => {
         try {
             const response = await CustomerService.create(data, navigate);
             showNotification('success', response.message || 'Cliente criado com sucesso.');
-            return response.result;
+            return response.message;
         } catch (error) {
             if (error.status === 422) {
                 setFormErrors(error.data || {});

@@ -13,11 +13,11 @@ const useRoleService = (navigate = null) => {
         setFormErrors({});
     }, []);
 
-    const fetchRoles = useCallback(async () => {
+    const fetchRoles = useCallback(async (params = {}) => {
         try {
-            const response = await RoleService.getRoles();
+            const response = await RoleService.getRoles(params);
             setRoles(response.result.data);
-            return response.result.data;
+            return response.result;
         } catch (error) {
             handleError(error, 'Erro ao carregar cargos.');
             throw error;
@@ -102,7 +102,19 @@ const useRoleService = (navigate = null) => {
         }
     }, [clearFormErrors, handleError, navigate, showNotification]);
 
-    return { roles, fetchRoles, fetchPermissionsForRole, fetchRolesUser, createRole, formErrors, fetchRoleById, updateRole, updateRolePermissions };
+    const deleteRole = useCallback(async (id) => {
+        try {
+            const response = await RoleService.delete(id, navigate);
+            showNotification('success', response.message || 'Cargo excluído com sucesso!');
+            return response;
+        } catch (error) {
+            handleError(error, 'Erro ao excluir o cargo.');
+            throw error;
+        }
+    }, [handleError, navigate, showNotification]);
+
+
+    return { roles, fetchRoles, fetchPermissionsForRole, fetchRolesUser, createRole, formErrors, fetchRoleById, updateRole, updateRolePermissions, deleteRole };
 };
 
 export default useRoleService;

@@ -4,7 +4,7 @@ import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { maskCpf, maskCnpj } from "../../utils/maskUtils";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
@@ -17,8 +17,6 @@ import baseService from "../../services/baseService";
 const CostumerPage = () => {
     const { canAccess } = usePermissions();
     const [customers, setCustomers] = useState([]);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [customerToDelete, setCustomerToDelete] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedCustomers, setSelectedCustomers] = useState([]);
@@ -28,6 +26,21 @@ const CostumerPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchCustomers: getCustomers, deleteCustomer } = useCustomerService(navigate);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
 
     useEffect(() => {
         if (location.state?.message) {
@@ -40,19 +53,20 @@ const CostumerPage = () => {
         window.location.reload();
     }, []);
 
-    const fetchCustomers = useCallback(async ({id, name, idLike, filledInputs, page = 1} = {}) => {
+    const fetchCustomers = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const result = await getCustomers({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
+            const result = await getCustomers(filtersSubmit || filters);
 
-            const filteredCustomers = result.data.map(supplier => {
-                const numericValue = supplier.cpf_cnpj.replace(/\D/g, '');
+            const filteredCustomers = result.data.map(customer => {
+                const numericValue = customer.cpf_cnpj.replace(/\D/g, '');
 
                 return {
-                    id: supplier.id,
-                    alias: supplier.alias,
-                    name: supplier.name,
-                    cpf_cnpj: numericValue.length <= 11 ? maskCpf(numericValue) : maskCnpj(numericValue)
+                    id: customer.id,
+                    alias: customer.alias,
+                    name: customer.name,
+                    cpf_cnpj: numericValue.length <= 11 ? maskCpf(numericValue) : maskCnpj(numericValue),
+                    deleted_at: customer.deleted_at ? 'deleted-' + customer.deleted_at : 'deleted-null'
                 };
             });
 
@@ -74,18 +88,42 @@ const CostumerPage = () => {
 
     const handleFilterSubmit = useCallback((e) => {
         e.preventDefault();
-
-        const filledInputs = new Set(
-            selectedCustomers.map((option) => option.column)
-        ).size;
-
-        fetchCustomers(
-            selectedCustomers.filter((option) => option.textFilter === false || (option.column === 'id' && option.numberFilter === false)).map((item) => item.value),
-            selectedCustomers.filter((option) => option.textFilter === true && option.column === 'name').map((item) => item.value),
-            selectedCustomers.filter((option) => option.numberFilter === true && option.column === 'id').map((item) => item.value),
-            filledInputs
-        );
-    }, [selectedCustomers, fetchCustomers]);
+    
+        const selectedCustIds = selectedCustomers
+            .filter((condition) => condition.textFilter === false || (condition.column === 'id' && condition.numberFilter === false))
+            .map((condition) => condition.value);
+    
+        const selectedNames = selectedCustomers
+            .filter((condition) => condition.textFilter === true && condition.column === 'name')
+            .map((condition) => condition.value);
+    
+        const selectedIdLikes = selectedCustomers
+            .filter((condition) => condition.numberFilter === true && condition.column === 'id')
+            .map((condition) => condition.value);
+    
+        const filledInputs = new Set(selectedCustomers.map((option) => option.column)).size;
+    
+        const previousFilters = filters || {}; 
+    
+        setFilters(prev => ({
+            ...prev,
+            id: selectedCustIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1
+        }));
+    
+        fetchCustomers({
+            id: selectedCustIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at
+        });
+    }, [selectedCustomers, fetchCustomers, setFilters]);
+    
 
     const handleChangeCustomers = useCallback((newSelected, column) => {
         setSelectedCustomers((prev) => {
@@ -104,33 +142,53 @@ const CostumerPage = () => {
         navigate(`/clientes/editar/${customer.id}`);
     }, [navigate]);
 
-    const handleDelete = useCallback((customer) => {
-        setCustomerToDelete(customer);
-        setDeleteModalOpen(true);
-    }, []);
-
+    
     const handleViewDetails = useCallback((customer) => {
         navigate(`/clientes/detalhes/${customer.id}`);
     }, [navigate]);
-
-    const confirmDelete = useCallback(async () => {
-        showLoader();
+    
+    const handleActivate = (customer, action) => {
+        setSelectedCustomer(customer); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleDelete = (customer, action) => {
+        setSelectedCustomer(customer);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleConfirmDelete = async (id) => {
         try {
-            await deleteCustomer(customerToDelete.id);
+            showLoader();
+            await deleteCustomer(id);
+            setOpenModalConfirmation(false);  
             fetchCustomers();
         } catch (error) {
-            showNotification('error', 'Erro ao excluir o cliente');
-            console.error(error);
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
         } finally {
-            setDeleteModalOpen(false);
             hideLoader();
-        }
-    }, [deleteCustomer, customerToDelete, fetchCustomers, showNotification, showLoader, hideLoader]);
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
 
     const headers = useMemo(() => ['id', 'Apelido', 'Nome', 'CPF/CPNPJ'], []);
 
     const actions = useMemo(() => [
         {
+            id: 'edit',
             icon: faEdit,
             title: 'Editar Fornecedor',
             buttonClass: 'btn-primary',
@@ -138,19 +196,30 @@ const CostumerPage = () => {
             onClick: handleEdit
         },
         {
+            id: 'details',
+            icon: faEye,
+            title: 'Ver Detalhes',
+            buttonClass: 'btn-info',
+            permission: 'Ver clientes',
+            onClick: handleViewDetails
+        },
+        {
+            id: 'delete',
             icon: faTrash,
             title: 'Excluir Fornecedor',
             buttonClass: 'btn-danger',
             permission: 'Excluir clientes',
             onClick: handleDelete
         },
+        ,
         {
-            icon: faEye,
-            title: 'Ver Detalhes',
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
             buttonClass: 'btn-info',
-            permission: 'Ver clientes',
-            onClick: handleViewDetails
-        }
+            permission: 'Atualizar clientes',
+            onClick: handleActivate,
+        },
     ], [handleEdit, handleDelete, handleViewDetails]);
 
     return (
@@ -213,15 +282,18 @@ const CostumerPage = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={fetchCustomers}
+                    filters={filters}
+                    setFilters={setFilters}
                 />
 
             </div>
             <ConfirmationModal
-                open={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                itemName={customerToDelete ? customerToDelete.name : ''}
-            />
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedCustomer.id) : console.log('oi')}
+                    itemName={selectedCustomer ? selectedCustomer.name : ''}
+                    text={action.text}
+                />
         </MainLayout>
     );
 };

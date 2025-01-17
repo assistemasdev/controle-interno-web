@@ -197,6 +197,17 @@ const useOrganizationService = (navigate) => {
             throw error;
         }
     }, [handleError, showNotification]);
+
+    const deleteOrganization = useCallback(async (organizationId) => {
+        try {
+            const response = await OrganizationService.delete(organizationId, navigate);
+            showNotification('success', response.message || 'Organização excluída com sucesso.');
+            return response.message;
+        } catch (error) {
+            handleError(error, 'Erro ao excluir Organização.');
+            throw error;
+        }
+    }, [handleError, navigate, showNotification]);
     
     return {
         fetchAll,
@@ -214,7 +225,8 @@ const useOrganizationService = (navigate) => {
         addOrganizationAddress,
         addOrganizationLocation,
         updateOrganizationLocation,
-        deleteOrganizationLocation
+        deleteOrganizationLocation,
+        deleteOrganization
     };
 };
 

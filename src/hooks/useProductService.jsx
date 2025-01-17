@@ -6,7 +6,6 @@ import ProductService from '../services/ProductService';
 const useProductService = (navigate) => {
     const { handleError } = useErrorHandling();
     const { showNotification } = useNotification();
-    const [products, setProducts] = useState([]);
     const [formErrors, setFormErrors] = useState({});
     const [loading, setLoading] = useState(false);
 
@@ -132,6 +131,17 @@ const useProductService = (navigate) => {
         }
     }, [handleError, navigate]);
 
+    const deleteProduct = useCallback(async (id) => {
+        try {
+            const response = await ProductService.delete(id, navigate);
+            showNotification('success', response.message || 'Produto excluído com sucesso!');
+            return response;
+        } catch (error) {
+            handleError(error, 'Erro ao excluir o produto.');
+            throw error;
+        }
+    }, [handleError, navigate, showNotification]);
+
     return {
         fetchAllProducts,
         createProduct,
@@ -140,7 +150,8 @@ const useProductService = (navigate) => {
         fetchLocations,
         formErrors,
         fetchProductById,
-        fetchProductGroups
+        fetchProductGroups,
+        deleteProduct
     };
 };
 

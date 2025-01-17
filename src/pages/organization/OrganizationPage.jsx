@@ -1,32 +1,45 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faEye  } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrashAlt, faUndo, faEye } from '@fortawesome/free-solid-svg-icons';
 import useLoader from '../../hooks/useLoader';
 import useNotification from "../../hooks/useNotification";
 import useOrganizationService from "../../hooks/useOrganizationService";
 import { PAGINATION } from '../../constants/pagination';
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
+import ConfirmationModal from "../../components/modals/ConfirmationModal";
 
 const OrganizationPage = () => {
     const { canAccess } = usePermissions();
-    const [name, setName] = useState('');
     const [organizations, setOrganizations] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchAll } = useOrganizationService(navigate);
+    const { fetchAll, deleteOrganization } = useOrganizationService(navigate);
     const [selectedOrgs, setSelectedOrgs] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-
+    const [selectedOrg, setSelectedOrg] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const [filters, setFilters] = useState({
+        id: '',
+        name: '',
+        id: '',
+        filledInputs: '',
+        deleted_at: false,
+        page: 1,
+        perPage:itemsPerPage
+    })
+    const [action, setAction] = useState({
+        action: '',
+        text: '',
+    });
     useEffect(() => {
         if (location.state?.message) {
             showNotification(location.state.type, location.state.message);
@@ -38,16 +51,16 @@ const OrganizationPage = () => {
         window.location.reload();
     }, []);
 
-    const fetchOrganizations = useCallback(async ({id = null, name = null, idLike = null, filledInputs = null, page = 1}) => {
+    const fetchOrganizations = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
         
-            const response = await fetchAll({ id, name, idLike, filledInputs, page, perPage: itemsPerPage });
+            const response = await fetchAll(filtersSubmit || filters);
             const filteredOrganizations = response.data.map(organization => ({
                 id: organization.id,
                 name: organization.name,
                 color: organization.color,
-                active: organization.active == true ? 'Sim' : 'Não'
+                deleted_at: organization.deleted_at ? 'deleted-' + organization.deleted_at : 'deleted-null'
             }));
             
             setCurrentPage(response.current_page)
@@ -67,17 +80,40 @@ const OrganizationPage = () => {
 
     const handleFilterSubmit = useCallback((e) => {
         e.preventDefault();
+    
+        const selectedOrgIds = selectedOrgs
+            .filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false))
+            .map((type) => type.value);
+    
+        const selectedNames = selectedOrgs
+            .filter((type) => type.textFilter === true && type.column === 'name')
+            .map((type) => type.value);
+    
+        const selectedIdLikes = selectedOrgs
+            .filter((type) => type.numberFilter === true && type.column === 'id')
+            .map((type) => type.value);
+    
+        const filledInputs = new Set(selectedOrgs.map((option) => option.column)).size;
+    
+        const previousFilters = filters || {}; 
+    
+        setFilters(prev => ({
+            ...prev,
+            id: selectedOrgIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1
+        }));
 
-        const filledInputs = new Set(
-            selectedOrgs.map((option) => option.column)
-        ).size;
-
-        fetchOrganizations(
-            selectedOrgs.filter((option) => option.textFilter === false || (option.column === 'id' && option.numberFilter === false)).map((item) => item.value),
-            selectedOrgs.filter((option) => option.textFilter === true && option.column === 'name').map((item) => item.value),
-            selectedOrgs.filter((option) => option.numberFilter === true && option.column === 'id').map((item) => item.value),
-            filledInputs
-        );
+        fetchOrganizations({
+            id: selectedOrgIds,
+            name: selectedNames,
+            idLike: selectedIdLikes,
+            filledInputs,
+            page: 1,
+            deleted_at: previousFilters.deleted_at
+        });
     }, [selectedOrgs, fetchOrganizations]);
 
     const handleChangeOrg = useCallback((newSelected, column) => {
@@ -101,7 +137,44 @@ const OrganizationPage = () => {
         navigate(`/organizacoes/detalhes/${organization.id}`);
     }, [navigate, ])
 
-    const headers = useMemo(() => ['id', 'Nome', 'Cor', 'Ativo'], []);
+    const handleActivate = (user, action) => {
+        setSelectedOrg(user); 
+        setAction({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleDelete = (user, action) => {
+        setSelectedOrg(user);  
+        setAction({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmation(true);  
+    };
+    
+    const handleConfirmDelete = async (id) => {
+        try {
+            showLoader();
+            await deleteOrganization(id);
+            setOpenModalConfirmation(false);  
+            fetchOrganizations();
+        } catch (error) {
+            console.log(error);
+            showNotification('error', 'Erro ao excluir o usuário');
+            setOpenModalConfirmation(false);  
+        } finally {
+            hideLoader();
+        }    
+    };
+
+    const handleCancelConfirmation = () => {
+        setOpenModalConfirmation(false);  
+    };
+
+    const headers = useMemo(() => ['id', 'Nome', 'Cor'], []);
 
     const actions = useMemo(() => [
         {
@@ -117,7 +190,23 @@ const OrganizationPage = () => {
             buttonClass: 'btn-info',
             permission: 'Ver organizações',
             onClick: handleDetails
-        }
+        },
+        {
+            id: 'delete',
+            icon: faTrashAlt,
+            title: 'Excluir usuário',
+            buttonClass: 'btn-danger',
+            permission: 'Excluir organizações',
+            onClick: handleDelete,
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar usuário',
+            buttonClass: 'btn-info',
+            permission: 'Atualizar organizações',
+            onClick: handleActivate,
+        },
     ], [handleEdit, handleDetails]);
     
     return (
@@ -183,6 +272,16 @@ const OrganizationPage = () => {
                     currentPage={currentPage} 
                     totalPages={totalPages} 
                     onPageChange={fetchOrganizations}
+                    filters={filters}
+                    setFilters={setFilters}
+                />
+
+                <ConfirmationModal
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOrg.id) : console.log('oi')}
+                    itemName={selectedOrg ? selectedOrg.name : ''}
+                    text={action.text}
                 />
 
             </div>

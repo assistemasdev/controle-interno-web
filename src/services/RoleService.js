@@ -36,8 +36,10 @@ const RoleService = {
             page:data.page, 
             perPage: data.perPage
         }, { encode: false });
+        console.log(query)
         try {
             const response = await api.get(`/roles/?${query}`);
+            console.log(response)
             return {
                 message: response.data.message,
                 status: response.status,
@@ -81,6 +83,19 @@ const RoleService = {
                 message: response.data.message,
                 status: response.status,
                 result: response.data.result
+            };
+        } catch (error) {
+            return handleError(error, navigate); 
+        }
+    },
+
+    async delete(roleId, navigate) {
+        try {
+            const response = await api.delete(`/roles/${roleId}`);
+            return {
+                message: response.data.message,
+                result: response.data.result,
+                status: response.status
             };
         } catch (error) {
             return handleError(error, navigate); 

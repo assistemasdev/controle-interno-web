@@ -23,12 +23,12 @@ const UsersPage = () => {
     const { showNotification } = useNotification();
     const { fetchAllUsers, deleteUser } = useUserService(navigate);
     const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const [selectedUsers, setSelectedUsers] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);  
+    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -58,7 +58,7 @@ const UsersPage = () => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                deleted_at: 'deleted-' + user.deleted_at
+                deleted_at: user.deleted_at ? 'deleted-' + user.deleted_at : 'deleted-null'
             }));
             
             setUsers(filteredUsers);
@@ -133,6 +133,11 @@ const UsersPage = () => {
         });
     }, []);
 
+    
+    const handleEdit = (user) => {
+        navigate(`/usuarios/editar/${user.id}`);
+    };
+    
     const handleActivate = (user, action) => {
         setSelectedUser(user); 
         setAction({
@@ -140,10 +145,6 @@ const UsersPage = () => {
             text:'Você tem certeza que deseja ativar: '
         })
         setOpenModalConfirmation(true);  
-    };
-
-    const handleEdit = (user) => {
-        navigate(`/usuarios/editar/${user.id}`);
     };
 
     const handleDelete = (user, action) => {
@@ -215,7 +216,6 @@ const UsersPage = () => {
         },
     ];
     
-
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
