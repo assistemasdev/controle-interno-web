@@ -15,7 +15,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../assets/styles/sb-admin-2.min.css';
 import '../assets/styles/custom-styles.css'; 
 import OrganCard from '../components/organ/OrganCard';
-import useUserService from '../hooks/useUserService';
+import useUserService from '../hooks/services/useUserService';
 import useLoader from '../hooks/useLoader';
 
 const CompanySelection = () => {

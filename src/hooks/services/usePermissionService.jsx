@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import PermissionService from '../services/PermissionService';
-import useErrorHandling from './useErrorHandling';
-import useNotification from './useNotification';
+import PermissionService from '../../services/PermissionService';
+import useErrorHandling from '../useErrorHandling';
+import useNotification from '../useNotification';
 
 const usePermissionService = (navigate) => {
     const { handleError } = useErrorHandling();

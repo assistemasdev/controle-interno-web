@@ -4,20 +4,20 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import useTypeService from '../../hooks/useTypeService';
 import useForm from '../../hooks/useForm';
 import { typeFields } from '../../constants/forms/typeFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateTypePage = () => {
     const navigate = useNavigate();
-    const { createType, formErrors } = useTypeService();
-
+    const { create, formErrors } = useBaseService(entities.types, navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(typeFields));
 
     const handleSubmit = async () => {
         try {
-            const success = await createType(formData);
+            const success = await create(formData);
             if (success) {
                 resetForm();
             }

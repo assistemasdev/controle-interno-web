@@ -10,7 +10,7 @@ import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
 import useNotification from "../../../hooks/useNotification";
-import useCustomerService from "../../../hooks/useCustomerService";
+import useCustomerService from "../../../hooks/services/useCustomerService";
 
 const LocationCustomerPage = () => {
     const { canAccess } = usePermissions();

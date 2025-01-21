@@ -3,17 +3,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
-import useGroupService from '../../hooks/useGroupService';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { groupFields } from '../../constants/forms/groupFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditGroupPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { getById, updateGroup, formErrors } = useGroupService(navigate);
+    const { fetchById, update, formErrors } = useBaseService(entities.groups, navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(groupFields));
@@ -21,14 +22,14 @@ const EditGroupPage = () => {
     const fetchGroup = useCallback(async () => {
         try {
             showLoader();
-            const response = await getById(id);
+            const response = await fetchById(id);
             formatData(response, groupFields);
         } catch (error) {
-            showNotification('error', 'Erro ao carregar os dados do grupo.');
+            console.log(error)
         } finally {
             hideLoader();
         }
-    }, [id, getById, setFormData, showLoader, hideLoader, showNotification]);
+    }, [id, fetchById, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchGroup();
@@ -37,7 +38,7 @@ const EditGroupPage = () => {
     const handleSubmit = async () => {
         try {
             showLoader();
-            await updateGroup(id, formData);
+            await update(id, formData);
         } catch (error) {
             console.log(error)
         } finally {

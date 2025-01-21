@@ -4,30 +4,31 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { productFields } from "../../constants/forms/productFields";
 import useNotification from '../../hooks/useNotification';
-import useProductService from '../../hooks/useProductService';
+import useProductService from '../../hooks/services/useProductService';
 import useLoader from '../../hooks/useLoader';
-import useSupplierService from '../../hooks/useSupplierService';
-import useConditionService from '../../hooks/useConditionService';
-import useCategoryService from '../../hooks/useCategoryService';
-import useOrganizationService from '../../hooks/useOrganizationService';
-import useTypeGroupsService from '../../hooks/useTypeGroupsService';
+import useSupplierService from '../../hooks/services/useSupplierService';
+import useOrganizationService from '../../hooks/services/useOrganizationService';
+import useTypeGroupsService from '../../hooks/services/useTypeGroupsService';
 import useForm from '../../hooks/useForm';
 import { useNavigate, useParams } from 'react-router-dom';
 import TypeService from '../../services/TypeService';
-import OrganizationService from '../../services/OrganizationService';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditProductPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-
     const { showNotification } = useNotification();
-    const { fetchProductById, fetchProductGroups, updateProduct, formErrors } = useProductService(navigate);
+    const { fetchProductGroups } = useProductService(navigate);
     const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
     const { fetchSuppliers } = useSupplierService(navigate);
-    const { fetchConditions } = useConditionService(navigate);
-    const { fetchCategories } = useCategoryService(navigate);
     const { fetchTypeGroups } = useTypeGroupsService(navigate);
+    const { fetchAll: fetchOrganizations } = useBaseService(entities.organizations, navigate);
+    const { fetchAll: fetchConditions } = useBaseService(entities.conditions, navigate);
+    const { fetchAll: fetchCategories } = useBaseService(entities.categories, navigate);
+    const { fetchById, update, formErrors } = useBaseService(entities.products, navigate);
+
     const { showLoader, hideLoader } = useLoader();
 
     const {
@@ -47,7 +48,7 @@ const EditProductPage = () => {
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
     const [selectedOrganizationId, setSelectedOrganizationId] = useState();
-
+    
     useEffect(() => {
         initializeData(productFields);
 
@@ -63,11 +64,11 @@ const EditProductPage = () => {
                     typeResponse,
                     productGroups
                 ] = await Promise.all([
-                    fetchProductById(id),
-                    OrganizationService.getAll(navigate),
+                    fetchById(id),
+                    fetchOrganizations(),
                     fetchSuppliers(),
-                    fetchConditions({}),
-                    fetchCategories({}),
+                    fetchConditions(),
+                    fetchCategories(),
                     TypeService.getAll(navigate),
                     fetchProductGroups(id)
                 ]);
@@ -98,7 +99,7 @@ const EditProductPage = () => {
 
                 setSelectedOrganizationId(product.current_organization_id)
 
-                formatData({product:product}, productFields)
+                formatData({product:product.result}, productFields)
 
                 setFormData({
                     product: {
@@ -161,9 +162,9 @@ const EditProductPage = () => {
     const handleSubmit = async (data) => {
         try {
             showLoader();
-            await updateProduct(id, data);
+            await update(id, data);
         } catch (error) {
-            showNotification('error', 'Erro ao atualizar o produto.');
+            console.log(error)
         } finally {
             hideLoader();
         }

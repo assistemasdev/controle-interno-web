@@ -4,16 +4,18 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import useGroupService from '../../hooks/useGroupService';
+import useGroupService from '../../hooks/services/useGroupService';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import { groupFields } from '../../constants/forms/groupFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateGroupPage = () => {
     const navigate = useNavigate();
-    const { createGroup, formErrors } = useGroupService(navigate);
+    const { create, formErrors } = useBaseService(entities.groups, navigate);
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(groupFields));
@@ -21,7 +23,7 @@ const CreateGroupPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            const success = await createGroup(formData);
+            const success = await create(formData);
             if (success) {
                 resetForm();
             }
@@ -30,7 +32,7 @@ const CreateGroupPage = () => {
         } finally {
             hideLoader();
         }
-    }, [createGroup, formData, navigate, showLoader, hideLoader, showNotification]);
+    }, [create, formData, navigate, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate('/grupos');

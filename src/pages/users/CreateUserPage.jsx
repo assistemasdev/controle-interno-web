@@ -1,23 +1,23 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
-import useUserService from '../../hooks/useUserService';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities'
 const CreateUserPage = () => {
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
-    const { formErrors, createUser } = useUserService(navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(userProfileFields));
-
+    const { formErrors, create} = useBaseService(entities.users, navigate)
     const handleSubmit = async () => {
         showLoader();
         try {
-            const success = await createUser(formData);
+            const success = await create(formData);
             if (success) {
                 resetForm();
             }

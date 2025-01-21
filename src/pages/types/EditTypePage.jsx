@@ -4,16 +4,17 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import useTypeService from '../../hooks/useTypeService';
 import useForm from '../../hooks/useForm';
 import useLoader from '../../hooks/useLoader';
 import { typeFields } from '../../constants/forms/typeFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditTypePage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchTypeById, updateType, formErrors } = useTypeService();
+    const { fetchById, update, formErrors } = useBaseService(entities.types, navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(typeFields));
 
@@ -21,8 +22,8 @@ const EditTypePage = () => {
         const fetchData = async () => {
             showLoader();
             try {
-                const typeData = await fetchTypeById(id);
-                formatData(typeData, typeFields);
+                const typeData = await fetchById(id);
+                formatData(typeData.result, typeFields);
             } catch (error) {
                 console.log(error)
             } finally {
@@ -36,7 +37,7 @@ const EditTypePage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await updateType(id, formData);
+            await update(id, formData);
         } catch (error) {
             console.error('Erro ao atualizar o tipo:', error);
         } finally {

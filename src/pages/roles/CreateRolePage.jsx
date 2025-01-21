@@ -2,24 +2,23 @@ import React, { useEffect, useState, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
-import PermissionService from '../../services/PermissionService';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import { roleFields } from '../../constants/forms/roleFields';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
-import useRoleService from '../../hooks/useRoleService';
-import usePermissionService from '../../hooks/usePermissionService';
+import usePermissionService from '../../hooks/services/usePermissionService';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateRolePage = () => {
     const navigate = useNavigate(); 
     const [permissions, setPermissions] = useState([]);
     const { formData, setFormData, resetForm, handleChange } = useForm(setDefaultFieldValues(roleFields));
     const { showNotification } = useNotification();
-    const { createRole, formErrors } = useRoleService(navigate);
     const { fetchPermissions: getPermissions } = usePermissionService(navigate);
-
+    const { formErrors, create} = useBaseService(entities.roles, navigate);
     useEffect(() => { 
         fetchPermissions();
     }, [])
@@ -83,13 +82,12 @@ const CreateRolePage = () => {
 
     const handleSubmit = async () => {
         try {
-            const success = await createRole(formData);
+            const success = await create(formData);
             if (success) {
                 resetForm();
             }
         } catch (error) {
             console.log(error)
-            showNotification('error', 'Erro ao realizar o cadastro');
         }
     };
 

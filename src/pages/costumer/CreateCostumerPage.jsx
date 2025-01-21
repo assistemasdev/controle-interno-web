@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -7,16 +7,17 @@ import '../../assets/styles/custom-styles.css';
 import { customerFields } from '../../constants/forms/customerFields';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
-import useCustomerService from '../../hooks/useCustomerService';
 import { maskCep, removeMask } from '../../utils/maskUtils';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateCustomerPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { createCustomer, formErrors } = useCustomerService(navigate);
+    const { create, formErrors } = useBaseService(entities.customers, navigate);
     const { formData, handleChange, setFormData, initializeData, resetForm } = useForm(setDefaultFieldValues(customerFields));
 
     
@@ -84,7 +85,7 @@ const CreateCustomerPage = () => {
                     }
                 };
         try {
-            const success = await createCustomer(sanitizedData);
+            const success = await create(sanitizedData);
             if (success) {
                 resetForm();
             }
@@ -94,7 +95,7 @@ const CreateCustomerPage = () => {
         } finally {
             hideLoader();
         }
-    }, [createCustomer, formData, showLoader, hideLoader, showNotification, initializeData]);
+    }, [create, formData, showLoader, hideLoader, showNotification, initializeData]);
 
     const handleBack = useCallback(() => {
         navigate('/clientes/');

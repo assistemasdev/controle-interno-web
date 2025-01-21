@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
@@ -8,27 +8,27 @@ import useForm from '../../../hooks/useForm';
 import { contactFields } from '../../../constants/forms/contactFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
-import useCustomerService from '../../../hooks/useCustomerService';
+import useCustomerService from '../../../hooks/services/useCustomerService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useContactService from '../../../hooks/services/useContactService';
+import { entities } from '../../../constants/entities';
 
 const CreateCustomerContactPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
-    const { showNotification } = useNotification();
     const { formData, resetForm, handleChange } = useForm(setDefaultFieldValues(contactFields));
-    const { createContact, formErrors } = useCustomerService(navigate);
+    const { create, formErrors } = useContactService(entities.customers, id,navigate);
 
     const handleSubmit = async () => {
         showLoader()
         try {
-            const success = await createContact(id, formData);
+            const success = await create(formData);
             if (success) {
                 resetForm();
             }
         } catch (error) {
             console.error(error);
-            showNotification('error', 'Erro ao criar contato');
         } finally {
             hideLoader();
         }

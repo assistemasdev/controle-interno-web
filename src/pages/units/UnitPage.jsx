@@ -4,7 +4,7 @@ import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
-import useUnitService from "../../hooks/useUnitService";
+import useUnitService from "../../hooks/services/useUnitService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -13,13 +13,16 @@ import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import baseService from "../../services/baseService";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const UnitPage = () => {
     const { canAccess } = usePermissions();
-    const { fetchUnits, deleteUnit } = useUnitService();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const navigate = useNavigate();
+    const { fetchAll, remove } = useBaseService(entities.units, navigate);
     const location = useLocation();
     const [selectedUnits, setSelectedUnits] = useState([]);
     const [units, setUnits] = useState([]);
@@ -45,7 +48,7 @@ const UnitPage = () => {
     const fetchUnitList = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-            const result = await fetchUnits(filtersSubmit || filters);
+            const result = await fetchAll(filtersSubmit || filters);
             setUnits(result.data.map((unit) => ({
                 id: unit.id,
                 name: unit.name,
@@ -55,11 +58,11 @@ const UnitPage = () => {
             setCurrentPage(result.current_page);
             setTotalPages(result.last_page);
         } catch (error) {
-            showNotification('error', 'Erro ao carregar unidades.');
+            console.log(error)
         } finally {
             hideLoader();
         }
-    }, [fetchUnits, itemsPerPage, showLoader, hideLoader, showNotification]);
+    }, [fetchAll, itemsPerPage, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -94,12 +97,11 @@ const UnitPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteUnit(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             fetchUnitList();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();
@@ -113,20 +115,10 @@ const UnitPage = () => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
     
-        const selectedIds = selectedUnits
-            .filter((type) => type.column === 'id' && type.textFilter === false)
-            .map((type) => type.value);
-    
-        const selectedNames = selectedUnits
-            .filter((type) => type.column === 'name' && type.textFilter === true)
-            .map((type) => type.value);
-    
-        const selectedIdLikes = selectedUnits
-            .filter((type) => type.column === 'id' && type.numberFilter === true)
-            .map((type) => type.value);
-    
+        const selectedIds = buildFilteredArray(selectedUnits, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedUnits, 'name', 'textFilter', true);
+        const selectedIdLikes = buildFilteredArray(selectedUnits, 'id', 'numberFilter', true);
         const filledInputs = new Set(selectedUnits.map((option) => option.column)).size;
-    
         const previousFilters = filters || {};
     
         setFilters((prev) => ({

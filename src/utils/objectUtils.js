@@ -16,3 +16,17 @@ export const setDefaultFieldValues = (sections) => {
         }, acc)
     }, {});
 };
+
+export const formatResponse = (message, status, result) => {
+    return {
+        message,
+        status,
+        result
+    }
+};
+
+export const removeEmptyValues = (obj) => {
+    return Object.fromEntries(
+        Object.entries(obj).filter(([key, value]) => value !== null && value !== '')
+    );
+};

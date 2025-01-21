@@ -8,16 +8,18 @@ import useForm from '../../../hooks/useForm';
 import { contactFields } from '../../../constants/forms/contactFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
-import useCustomerService from '../../../hooks/useCustomerService';
+import useCustomerService from '../../../hooks/services//useCustomerService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useContactService from '../../../hooks/services/useContactService';
+import { entities } from '../../../constants/entities';
 
 const EditCustomerContactPage = () => {
     const navigate = useNavigate();
     const { id, contactId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(contactFields));
-    const { fetchCustomerContact, updateContact, formErrors } = useCustomerService(navigate);
+    const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(contactFields));
+    const { fetchById, update, formErrors } = useContactService(entities.customers, id, navigate);
 
     useEffect(() => {
         fetchContact();
@@ -26,10 +28,9 @@ const EditCustomerContactPage = () => {
     const fetchContact = async () => {
         try {
             showLoader();
-            const response = await fetchCustomerContact(id, contactId);
-            formatData(response, contactFields)
+            const response = await fetchById(contactId);
+            formatData(response.result, contactFields)
         } catch (error) {
-            showNotification('error', 'Erro ao carregar os dados do contato');
             console.error(error);
         } finally {
             hideLoader(false);
@@ -38,10 +39,9 @@ const EditCustomerContactPage = () => {
 
     const handleSubmit = async () => {
         try {
-            await updateContact(id, contactId, formData);
+            await update(contactId, formData);
         } catch (error) {
             console.error(error);
-            showNotification('error', 'Erro ao atualizar contato');
         }
     };
 

@@ -3,7 +3,6 @@ import MainLayout from "../../layouts/MainLayout";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
-import useApplicationService from "../../hooks/useApplicationService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -12,13 +11,16 @@ import { PAGINATION } from "../../constants/pagination";
 import baseService from "../../services/baseService";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const ApplicationPage = () => {
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const navigate = useNavigate();
-    const { fetchApplications: fetchApplicationsService, deleteApplication } = useApplicationService(navigate);
+    const { fetchAll, remove } = useBaseService(entities.applications, navigate);
     const location = useLocation();
     const [selectedApplications, setSelectedApplications] = useState([]);
     const [applications, setApplications] = useState([]);
@@ -52,21 +54,21 @@ const ApplicationPage = () => {
     const fetchApplications = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-            const result = await fetchApplicationsService(filtersSubmit || filters);
-            setApplications(result.data.map(app => ({
+            const response = await fetchAll(filtersSubmit || filters);
+            setApplications(response.result.data.map(app => ({
                 id: app.id,
                 name: app.name,
                 sessionCode: app.session_code,
                 deleted_at: app.deleted_at ? 'deleted-' + app.deleted_at : 'deleted-null'
             })));
-            setCurrentPage(result.current_page);
-            setTotalPages(result.last_page);
+            setCurrentPage(response.result.current_page);
+            setTotalPages(response.result.last_page);
         } catch (error) {
-            showNotification('error', error.message || 'Erro ao carregar aplicações.');
+            console.log(error)
         } finally {
             hideLoader();
         }
-    }, [fetchApplicationsService, itemsPerPage, showLoader, hideLoader, showNotification]);
+    }, [fetchAll, itemsPerPage, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchApplications();
@@ -75,20 +77,10 @@ const ApplicationPage = () => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
     
-        const selectedIdLikes = selectedApplications
-            .filter((type) => type.numberFilter === true && type.column === 'id')
-            .map((type) => type.value);
-    
-        const selectedNames = selectedApplications
-            .filter((type) => type.textFilter === true && type.column === 'name')
-            .map((type) => type.value);
-    
-        const selectedApplicationIds = selectedApplications
-            .filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false))
-            .map((type) => type.value);
-    
+        const selectedIdLikes = buildFilteredArray(selectedApplications, 'id', 'numberFilter', true);
+        const selectedNames = buildFilteredArray(selectedApplications, 'id', 'textFilter', true);
+        const selectedApplicationIds = buildFilteredArray(selectedApplications, 'id', 'numberFilter', false);
         const filledInputs = new Set(selectedApplications.map((option) => option.column)).size;
-
         const previousFilters = filters || {}; 
 
         setFilters(prev => ({
@@ -157,12 +149,11 @@ const ApplicationPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteApplication(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             fetchApplications();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();

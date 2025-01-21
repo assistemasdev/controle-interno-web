@@ -1,45 +1,52 @@
 const handleError = (error, navigate = null) => {
+    console.log('oi')
+    console.log("Erro capturado:", error);
+
     if (error.response) {
-        console.log(error);
         console.error("Erro da API:", error.response.data);
 
-        if (error.response.status === 401 && navigate) {
-            localStorage.clear();
-            document.documentElement.style.setProperty('--primary-color', '#4da8ff');
-            navigate('/login', { state: { message: 'Usuário não autenticado.' } });
-        }
+        const status = error.response.status;
 
-        if (error.response.status === 403 && navigate) {
-            navigate('/dashboard', { state: { message: error.response.data.message } });
+        if (status === 401) {
+            localStorage.clear();
+            navigate('/login', { state: { message: 'Usuário não autenticado.' } });
+        } else if (status === 403) {
+            navigate('/dashboard', { state: { message: error.response.data.message || 'Acesso negado.' } });
+        } else if (status === 404) {
+            navigate('/404', { state: { message: 'Recurso não encontrado.' } });
+        } else if (status === 400) {
+            throw {
+                success: false,
+                message: "Solicitação inválida.",
+                status,
+                data: error.response.data.errors || null,
+            };
+        } else if (status === 422) {
+            const errorObject = Object.entries(error.response.data.errors).reduce((acc, [key, value]) => {
+                acc[key] = value[0];
+                return acc;
+            }, {});
+
+            throw {
+                success: false,
+                message: "Erro de validação.",
+                status,
+                data: errorObject || null,
+            };
+        } else {
+            throw {
+                success: false,
+                message: "Erro ao processar a solicitação.",
+                status,
+                data: error.response.data.errors || null,
+            };
         }
-        
-        const customError = {
-            success: false,
-            message: error.response.data.message || "Erro ao processar a solicitação.",
-            status: error.response.status,
-            data: error.response.data.errors,
-        };
-        throw customError; 
     } else if (error.request) {
         console.error("Sem resposta do servidor:", error.request);
-
-        const customError = {
-            success: false,
-            message: "Sem resposta do servidor. Verifique sua conexão.",
-            status: null,
-            data: null,
-        };
-        throw customError; 
+        throw { success: false, message: "Sem resposta do servidor." };
     } else {
         console.error("Erro desconhecido:", error.message);
-
-        const customError = {
-            success: false,
-            message: error.message || "Erro desconhecido ocorreu.",
-            status: null,
-            data: null,
-        };
-        throw customError; 
+        throw { success: false, message: "Erro desconhecido." };
     }
 };
 

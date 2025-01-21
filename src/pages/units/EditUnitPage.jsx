@@ -5,17 +5,18 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import '../../assets/styles/custom-styles.css';
 import { unitFields } from '../../constants/forms/unitFields';
-import useUnitService from '../../hooks/useUnitService';
+import useUnitService from '../../hooks/services/useUnitService';
 import useForm from '../../hooks/useForm';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
-import { set } from 'lodash';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditUnitPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { getUnitById, updateUnit, formErrors } = useUnitService(navigate);
+    const { fetchById, update, formErrors } = useBaseService(entities.units,navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(unitFields));
@@ -24,7 +25,7 @@ const EditUnitPage = () => {
         const fetchUnitData = async () => {
             try {
                 showLoader();
-                const unit = await getUnitById(id);
+                const unit = await fetchById(id);
                 formatData(unit, unitFields);
             } catch (error) {
                 console.log(error)
@@ -39,13 +40,13 @@ const EditUnitPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await updateUnit(id, formData);
+            await update(id, formData);
         } catch (error) {
             console.log(error)
         } finally {
             hideLoader();
         }
-    }, [id, formData, updateUnit, showLoader, hideLoader, showNotification, navigate]);
+    }, [id, formData, update, showLoader, hideLoader, showNotification, navigate]);
 
     const handleBack = useCallback(() => {
         navigate('/unidades');

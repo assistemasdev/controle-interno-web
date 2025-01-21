@@ -5,7 +5,7 @@ import '../../../assets/styles/custom-styles.css';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
-import useCustomerService from '../../../hooks/useCustomerService';
+import useCustomerService from '../../../hooks/services/useCustomerService';
 import { locationFields } from '../../../constants/forms/locationFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';

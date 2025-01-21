@@ -3,7 +3,6 @@ import MainLayout from "../../layouts/MainLayout";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
-import useTypeService from "../../hooks/useTypeService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faLayerGroup, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
@@ -12,11 +11,14 @@ import useLoader from "../../hooks/useLoader";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
 import useNotification from "../../hooks/useNotification";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const TypePage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchTypes, deleteType } = useTypeService(navigate);
+    const { fetchAll, remove } = useBaseService(entities.types, navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedTypes, setSelectedTypes] = useState([]);
@@ -40,6 +42,7 @@ const TypePage = () => {
         action: '',
         text: '',
     });
+
     useEffect(() => {
         if (location.state?.message) {
             const { type, text } = location.state.message;
@@ -54,18 +57,18 @@ const TypePage = () => {
     const loadTypes = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const result = await fetchTypes(filtersSubmit || filters);
-            setTypes(result.data.map((type) => ({
+            const response = await fetchAll(filtersSubmit || filters);
+            setTypes(response.result.data.map((type) => ({
                 id: type.id,
                 name: type.name,
                 deleted_at: type.deleted_at ? 'deleted-' + type.deleted_at : 'deleted-null'
             })));
-            setTotalPages(result.last_page);
-            setCurrentPage(result.current_page);
+            setTotalPages(response.result.last_page);
+            setCurrentPage(response.result.current_page);
         } finally {
             hideLoader();
         }
-    }, [fetchTypes, itemsPerPage, showLoader, hideLoader]);
+    }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
     useEffect(() => {
         loadTypes();
@@ -83,18 +86,9 @@ const TypePage = () => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
     
-        const selectedIds = selectedTypes
-            .filter((type) => type.column === 'id' && type.textFilter === false)
-            .map((type) => type.value);
-    
-        const selectedNames = selectedTypes
-            .filter((type) => type.column === 'name' && type.textFilter === true)
-            .map((type) => type.value);
-    
-        const selectedIdLikes = selectedTypes
-            .filter((type) => type.column === 'id' && type.numberFilter === true)
-            .map((type) => type.value);
-    
+        const selectedIds = buildFilteredArray(selectedTypes, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedTypes, 'name', 'textFilter', true);
+        const selectedIdLikes = buildFilteredArray(selectedTypes, 'id', 'numberFilter', true);
         const filledInputs = new Set(selectedTypes.map((option) => option.column)).size;
     
         const previousFilters = filters || {}; 
@@ -152,12 +146,11 @@ const TypePage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteType(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             loadTypes();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o tipo');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();

@@ -10,15 +10,16 @@ import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import colorToHex from '../../utils/colorToHex';
-import useOrganizationService from '../../hooks/useOrganizationService';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateOrganizationPage = () => {
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(organizationFields));
-    const { createOrganization, formErrors } = useOrganizationService(navigate);
+    const { create, formErrors } = useBaseService(entities.organizations,navigate);
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
         if (fieldId === 'address.zip') {
@@ -96,13 +97,12 @@ const CreateOrganizationPage = () => {
 
         showLoader();
         try {
-            const success = await createOrganization(sanitizedData);
+            const success = await create(sanitizedData);
             if (success) {
                 resetForm();
             }
         } catch (error) {
             console.log(error)
-            showNotification('error', 'Erro ao realizar o cadastro.');
         } finally {
             hideLoader();
         }

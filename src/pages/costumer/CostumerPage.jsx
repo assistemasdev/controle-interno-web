@@ -11,8 +11,10 @@ import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
-import useCustomerService from "../../hooks/useCustomerService";
 import baseService from "../../services/baseService";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const CostumerPage = () => {
     const { canAccess } = usePermissions();
@@ -25,7 +27,7 @@ const CostumerPage = () => {
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchCustomers: getCustomers, deleteCustomer } = useCustomerService(navigate);
+    const { fetchAll, remove } = useBaseService(entities.customers ,navigate);
     const [selectedCustomer, setSelectedCustomer] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
@@ -56,9 +58,8 @@ const CostumerPage = () => {
     const fetchCustomers = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const result = await getCustomers(filtersSubmit || filters);
-
-            const filteredCustomers = result.data.map(customer => {
+            const response = await fetchAll(filtersSubmit || filters);
+            const filteredCustomers = response.result.data.map(customer => {
                 const numericValue = customer.cpf_cnpj.replace(/\D/g, '');
 
                 return {
@@ -71,16 +72,14 @@ const CostumerPage = () => {
             });
 
             setCustomers(filteredCustomers);
-            setTotalPages(result.last_page);
-            setCurrentPage(result.current_page);
+            setTotalPages(response.result.last_page);
+            setCurrentPage(response.result.current_page);
         } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar clientes';
-            showNotification('error', errorMessage);
             console.error("Erro capturado no fetchCustomers:", error);
         } finally {
             hideLoader();
         }
-    }, [getCustomers, itemsPerPage, showLoader, hideLoader, showNotification]);
+    }, [fetchAll, itemsPerPage, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchCustomers();
@@ -89,18 +88,9 @@ const CostumerPage = () => {
     const handleFilterSubmit = useCallback((e) => {
         e.preventDefault();
     
-        const selectedCustIds = selectedCustomers
-            .filter((condition) => condition.textFilter === false || (condition.column === 'id' && condition.numberFilter === false))
-            .map((condition) => condition.value);
-    
-        const selectedNames = selectedCustomers
-            .filter((condition) => condition.textFilter === true && condition.column === 'name')
-            .map((condition) => condition.value);
-    
-        const selectedIdLikes = selectedCustomers
-            .filter((condition) => condition.numberFilter === true && condition.column === 'id')
-            .map((condition) => condition.value);
-    
+        const selectedCustIds = buildFilteredArray(selectedCustomers, 'id', 'numberFilter', false);
+        const selectedNames = buildFilteredArray(selectedCustomers, 'name', 'textFilter', false);
+        const selectedIdLikes = buildFilteredArray(selectedCustomers, 'id', 'textFilter', true);
         const filledInputs = new Set(selectedCustomers.map((option) => option.column)).size;
     
         const previousFilters = filters || {}; 
@@ -168,12 +158,11 @@ const CostumerPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteCustomer(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             fetchCustomers();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();

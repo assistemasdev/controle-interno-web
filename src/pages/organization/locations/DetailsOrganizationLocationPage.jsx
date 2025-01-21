@@ -4,7 +4,7 @@ import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
 import Button from '../../../components/Button';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
-import useOrganizationService from '../../../hooks/useOrganizationService';
+import useOrganizationService from '../../../hooks/services/useOrganizationService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import { locationFields } from '../../../constants/forms/locationFields';

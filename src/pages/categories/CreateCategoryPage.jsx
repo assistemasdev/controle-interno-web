@@ -2,21 +2,21 @@ import React from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import Form from '../../components/Form';
-import useCategoryService from '../../hooks/useCategoryService';
 import { categoryFields } from '../../constants/forms/categoryFields';
 import FormSection from '../../components/FormSection';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateCategoryPage = () => {
     const navigate = useNavigate();
-    const { createCategory, formErrors } = useCategoryService(navigate);
-
+    const { create, formErrors } = useBaseService(entities.categories, navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(categoryFields));
 
     const handleSubmit = async () => {
         try {
-            const success = await createCategory(formData); 
+            const success = await create(formData); 
             if (success) {
                 resetForm(); 
             }

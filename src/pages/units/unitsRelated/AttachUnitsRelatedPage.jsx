@@ -5,15 +5,19 @@ import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import '../../../assets/styles/custom-styles.css';
 import { unitAssociationFields } from '../../../constants/forms/unitFields';
-import useUnitService from '../../../hooks/useUnitService';
+import useUnitService from '../../../hooks/services/useUnitService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useBaseService from '../../../hooks/services/useBaseService';
+import { entities } from '../../../constants/entities';
+
 const AttachUnitsRelatedPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchUnits, fetchAttachedUnits, syncRelatedUnits, formErrors } = useUnitService(navigate);
+    const { fetchAll } = useBaseService(entities.units, navigate)
+    const { fetchAttachedUnits, syncRelatedUnits, formErrors } = useUnitService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData } = useForm(setDefaultFieldValues(unitAssociationFields));
@@ -24,7 +28,7 @@ const AttachUnitsRelatedPage = () => {
             showLoader();
 
             const [allUnits, attachedUnits] = await Promise.all([
-                fetchUnits({}),
+                fetchAll({}),
                 fetchAttachedUnits(id),
             ]);
             
@@ -41,7 +45,7 @@ const AttachUnitsRelatedPage = () => {
         } finally {
             hideLoader();
         }
-    }, [id, fetchUnits, fetchAttachedUnits, setFormData, showLoader, hideLoader, showNotification]);
+    }, [id, fetchAll, fetchAttachedUnits, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchData();

@@ -2,23 +2,24 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
-
 import { addressFields } from '../../../constants/forms/addressFields';
 import FormSection from '../../../components/FormSection';
 import Form from '../../../components/Form';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
-import useOrganizationService from '../../../hooks/useOrganizationService';
+import useOrganizationService from '../../../hooks/services/useOrganizationService';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useAddressService from '../../../hooks/services/useAddressService';
+import { entities } from '../../../constants/entities';
 
 const EditOrganizationAddressPage = () => {
     const navigate = useNavigate();
     const { organizationId, addressId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchOrganizationAddressById, updateOrganizationAddress, formErrors } = useOrganizationService(navigate);
+    const { fetchById, update, formErrors } = useAddressService(entities.organizations, organizationId, navigate);
     const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(addressFields));
     
     const handleFieldChange = useCallback((fieldId, value, field) => {
@@ -66,11 +67,11 @@ const EditOrganizationAddressPage = () => {
     const fetchData = useCallback(async () => {
         showLoader();
         try {
-            const response = await fetchOrganizationAddressById(organizationId, addressId);
-            formatData(response, addressFields)
+            const response = await fetchById(addressId);
+            formatData(response.result, addressFields)
             setFormData(prev => ({
                 ...prev,
-                zip: maskCep(response.zip)
+                zip: maskCep(response.result.zip)
             }))
         } catch (error) {
             console.log(error);
@@ -78,7 +79,7 @@ const EditOrganizationAddressPage = () => {
         } finally {
             hideLoader();
         }
-    }, [fetchOrganizationAddressById, organizationId, addressId, showLoader, hideLoader, navigate, showNotification, setFormData]);
+    }, [fetchById, organizationId, addressId, showLoader, hideLoader, navigate, showNotification, setFormData]);
 
     const handleSubmit = useCallback(async (data) => {
         showLoader();
@@ -89,14 +90,14 @@ const EditOrganizationAddressPage = () => {
         };
 
         try {
-            await updateOrganizationAddress(organizationId, addressId, sanitizedData);
+            await update(organizationId, addressId, sanitizedData);
         } catch (error) {
             console.log(error);
             showNotification('error', 'Erro ao atualizar o endereço.');
         } finally {
             hideLoader();
         }
-    }, [updateOrganizationAddress, organizationId, addressId, navigate , showLoader, hideLoader, showNotification]);
+    }, [update, organizationId, addressId, navigate , showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchData();

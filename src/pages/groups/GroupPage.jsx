@@ -3,7 +3,6 @@ import MainLayout from "../../layouts/MainLayout";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
-import useGroupService from "../../hooks/useGroupService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -12,6 +11,9 @@ import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const GroupPage = () => {
     const { canAccess } = usePermissions();
@@ -19,11 +21,7 @@ const GroupPage = () => {
     const { showNotification } = useNotification();
     const navigate = useNavigate();
     const location = useLocation();
-    const { fetchAllGroups, deleteGroup } = useGroupService(navigate);
-
-    const [name, setName] = useState('');
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [groupToDelete, setGroupToDelete] = useState(null);
+    const { fetchAll, remove } = useBaseService(entities.groups,navigate);
     const [groups, setGroups] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -48,20 +46,20 @@ const GroupPage = () => {
     const fetchGroup = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-            const response = await fetchAllGroups(filtersSubmit || filters);
-            setGroups(response.data.map(group => ({
+            const response = await fetchAll(filtersSubmit || filters);
+            setGroups(response.result.data.map(group => ({
                 id: group.id,
                 name: group.name,
                 deleted_at: group.deleted_at ? 'deleted-' + group.deleted_at : 'deleted-null'
             })));
-            setCurrentPage(response.current_page);
-            setTotalPages(response.last_page);
+            setCurrentPage(response.result.current_page);
+            setTotalPages(response.result.last_page);
         } catch (error) {
             console.log(error)
         } finally {
             hideLoader();
         }
-    }, [fetchAllGroups, itemsPerPage, showLoader, hideLoader, showNotification]);
+    }, [fetchAll, itemsPerPage, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchGroup();
@@ -81,20 +79,10 @@ const GroupPage = () => {
     const handleFilterSubmit = useCallback((e) => {
         e.preventDefault();
     
-        const selectedIds = selectedGroups
-            .filter((option) => option.column === 'id' && option.textFilter === false)
-            .map((option) => option.value);
-    
-        const selectedNames = selectedGroups
-            .filter((option) => option.column === 'name' && option.textFilter === true)
-            .map((option) => option.value);
-    
-        const selectedIdLikes = selectedGroups
-            .filter((option) => option.column === 'id' && option.numberFilter === true)
-            .map((option) => option.value);
-    
+        const selectedIds = buildFilteredArray(selectedGroups, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedGroups, 'name', 'textFilter', true);
+        const selectedIdLikes = buildFilteredArray(selectedGroups, 'id', 'numberFilter', false);
         const filledInputs = new Set(selectedGroups.map((option) => option.column)).size;
-    
         const previousFilters = filters || {}; 
     
         setFilters((prev) => ({
@@ -151,12 +139,11 @@ const GroupPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteGroup(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             fetchGroup();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();

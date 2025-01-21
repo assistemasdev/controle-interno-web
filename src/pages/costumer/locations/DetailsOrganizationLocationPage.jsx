@@ -8,7 +8,7 @@ import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { locationFields } from '../../../constants/forms/locationFields';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
-import useCustomerService from '../../../hooks/useCustomerService';
+import useCustomerService from '../../../hooks/services/useCustomerService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const DetailsCustomerLocationPage = () => {

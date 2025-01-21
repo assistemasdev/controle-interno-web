@@ -6,7 +6,7 @@ import { usePermissions } from "../../../hooks/usePermissions";
 import { useNavigate, useParams } from "react-router-dom";
 import { faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
-import useOrganizationService from "../../../hooks/useOrganizationService";
+import useOrganizationService from "../../../hooks/services/useOrganizationService";
 import useLoader from "../../../hooks/useLoader";
 import useNotification from "../../../hooks/useNotification";
 import { PAGINATION } from "../../../constants/pagination";

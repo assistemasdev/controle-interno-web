@@ -11,14 +11,16 @@ import useForm from '../../../hooks/useForm';
 import useNotification from '../../../hooks/useNotification';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useAddressService from '../../../hooks/services/useAddressService';
+import { entities } from '../../../constants/entities';
 
 const CostumerAddressDetailsPage = () => {
     const navigate = useNavigate();
     const { id, addressId } = useParams();
-    const { formData, setFormData } = useForm(setDefaultFieldValues(addressFields));
+    const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields));
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-
+    const { fetchById } = useAddressService(entities.customers, id, navigate);
     useEffect(() => {
         fetchAddress();
     }, [id]);
@@ -26,22 +28,15 @@ const CostumerAddressDetailsPage = () => {
     const fetchAddress = useCallback(async () => {
         try {
             showLoader();
-            const response = await CustomerService.showCustomerAddress(id, addressId, navigate);
+            const response = await fetchById(addressId);
             const address = response.result;
+            formatData(address, addressFields);
 
-            setFormData({
-                alias: address.alias || '',
+            setFormData(prev => ({
+                ...prev,
                 zip: maskCep(address.zip || ''),
-                street: address.street || '',
-                number: address.number || '',
-                details: address.details || '',
-                district: address.district || '',
-                city: address.city || '',
-                state: address.state || '',
-                country: address.country || ''
-            });
+            }));
         } catch (error) {
-            showNotification('error', 'Erro ao buscar pelo endereço');
             console.error(error);
         } finally {
             hideLoader();

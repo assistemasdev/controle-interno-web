@@ -1,50 +1,12 @@
 import api from "../services/api";
-import handleError from "../utils/errorHandler"; 
-import qs from 'qs';
-import { buildDynamicFilters } from "../utils/filterUtils";
+import handleError from "../utils/errorHandler";
+import { formatResponse } from "../utils/objectUtils";
 
 const RoleService = {
     async getRolesUser(userId, navigate = null) {
         try {
             const response = await api.get(`/users/${userId}/roles`);
-            return {
-                message: response.data.message,
-                status: response.status,
-                result: response.data.result
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async getById(roleId, navigate = null) {
-        try {
-            const response = await api.get(`/roles/${roleId}`);
-            return {
-                message: response.data.message,
-                status: response.status,
-                result: response.data.result
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async getRoles(data, navigate) {
-        const query = qs.stringify({
-            filters: buildDynamicFilters(data),
-            page:data.page, 
-            perPage: data.perPage
-        }, { encode: false });
-        console.log(query)
-        try {
-            const response = await api.get(`/roles/?${query}`);
-            console.log(response)
-            return {
-                message: response.data.message,
-                status: response.status,
-                result: response.data.result
-            };
+            return formatResponse(response.data.message, response.status, response.data.result);
         } catch (error) {
             return handleError(error, navigate); 
         }
@@ -52,51 +14,8 @@ const RoleService = {
 
     async showRolePermissions(roleId, navigate) {
         try {
-            const response = await api.get(`/roles/${roleId}/permissions`)
-            return {
-                message: response.data.message,
-                status: response.status,
-                result: response.data.result
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async create(data, navigate) {
-        try {
-            const response = await api.post(`/roles/`, data)
-            return {
-                message: response.data.message,
-                status: response.status,
-                result: response.data.result
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async update(roleId, data, navigate) {
-        try {
-            const response = await api.put(`/roles/${roleId}`, data)
-            return {
-                message: response.data.message,
-                status: response.status,
-                result: response.data.result
-            };
-        } catch (error) {
-            return handleError(error, navigate); 
-        }
-    },
-
-    async delete(roleId, navigate) {
-        try {
-            const response = await api.delete(`/roles/${roleId}`);
-            return {
-                message: response.data.message,
-                result: response.data.result,
-                status: response.status
-            };
+            const response = await api.get(`/roles/${roleId}/permissions`);
+            return formatResponse(response.data.message, response.status, response.data.result);
         } catch (error) {
             return handleError(error, navigate); 
         }
@@ -104,24 +23,17 @@ const RoleService = {
 
     async assignPermissionsToRole(id, data, navigate) {
         try {
-            const response = await api.post(`/roles/${id}/permissions`, data)
-            return {
-                message: response.data.message,
-                status: response.status,
-                result: response.data.result
-            };
+            const response = await api.post(`/roles/${id}/permissions`, data);
+            return formatResponse(response.data.message, response.status, response.data.result);
         } catch (error) {
             return handleError(error, navigate); 
         }
     },
+
     async updateRolePermissions(id, data, navigate) {
         try {
-            const response = await api.put(`/roles/${id}/permissions`, data)
-            return {
-                message: response.data.message,
-                status: response.status,
-                result: response.data.result
-            };
+            const response = await api.put(`/roles/${id}/permissions`, data);
+            return formatResponse(response.data.message, response.status, response.data.result);
         } catch (error) {
             return handleError(error, navigate); 
         }

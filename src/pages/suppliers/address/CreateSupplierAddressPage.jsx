@@ -9,16 +9,18 @@ import useNotification from '../../../hooks/useNotification';
 import { addressFields } from '../../../constants/forms/addressFields';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
-import useSupplierService from '../../../hooks/useSupplierService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils'
+import useAddressService from '../../../hooks/services/useAddressService';
+import { entities } from '../../../constants/entities';
+
 const CreateSupplierAddressPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { createSupplierAddress, formErrors } = useSupplierService(navigate);
+    const { create, formErrors } = useAddressService(entities.suppliers, id, navigate);
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(addressFields));
-
+    
     const handleCepChange = useCallback(async (cep) => {
         const value = maskCep(cep);
         const zip = removeMask(value);
@@ -48,7 +50,7 @@ const CreateSupplierAddressPage = () => {
 
                 showNotification('success', 'Endereço preenchido automaticamente!');
             } catch (error) {
-                showNotification('error', error.message);
+                console.log(error)
             } finally {
                 hideLoader();
             }
@@ -72,17 +74,16 @@ const CreateSupplierAddressPage = () => {
         };
     
         try {
-            const success = await createSupplierAddress(id, sanitizedData);
+            const success = await create(sanitizedData);
             if (success) {
                 resetForm();
             }
         } catch (error) {
             console.error(error);
-            showNotification('error', 'Erro ao cadastrar o endereço.'); 
         } finally {
             hideLoader(); 
         }
-    }, [formData, id, createSupplierAddress, showLoader, hideLoader, showNotification, resetForm]);
+    }, [formData, id, create, showLoader, hideLoader, showNotification, resetForm]);
 
     const handleBack = useCallback(() => {
         navigate(`/fornecedores/detalhes/${id}`);

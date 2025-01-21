@@ -8,18 +8,18 @@ import { editOrganizationFields } from '../../constants/forms/organizationFields
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
-import useOrganizationService from '../../hooks/useOrganizationService';
 import colorToHex from '../../utils/colorToHex';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditOrganizationPage = () => {
     const navigate = useNavigate();
     const { organizationId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchOrganizationById, updateOrganization, formErrors } = useOrganizationService(navigate);
     const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
-
+    const { fetchById, update, formErrors } = useBaseService(entities.organizations, navigate)
     const handleFieldChange = useCallback((fieldId, value) => {
         if (fieldId === 'color') {
             const hexColor = colorToHex(value);
@@ -56,15 +56,14 @@ const EditOrganizationPage = () => {
         const fetchData = async () => {
             showLoader();
             try {
-                const response = await fetchOrganizationById(organizationId);
+                const response = await fetchById(organizationId);
 
-                formatData(response, editOrganizationFields)
+                formatData(response.result, editOrganizationFields)
                 setFormData(prev => ({
                     ...prev,
                     active: response.active ? '1' : '0'
                 }))
             } catch (error) {
-                showNotification('error', 'Erro ao carregar a organização.');
                 navigate('/aplicacoes/dashboard');
             } finally {
                 hideLoader();
@@ -77,14 +76,13 @@ const EditOrganizationPage = () => {
     const handleSubmit = useCallback(async () => {
         showLoader();
         try {
-            await updateOrganization(organizationId, formData.organization);
+            await update(organizationId, formData.organization);
         } catch (error) {
             console.log(error)
-            showNotification('error', 'error ao atualizar organização')
         } finally {
             hideLoader();
         }
-    }, [formData, updateOrganization, organizationId , navigate, showLoader, hideLoader, showNotification]);
+    }, [formData, update, organizationId , navigate, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate(`/organizacoes/dashboard`);

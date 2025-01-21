@@ -1,21 +1,22 @@
 import MainLayout from "../../../layouts/MainLayout";
-import useUserService from "../../../hooks/useUserService";
+import useUserService from "../../../hooks/services/useUserService";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Form from "../../../components/Form";
 import useLoader from "../../../hooks/useLoader";
 import useNotification from "../../../hooks/useNotification";
-import useApplicationService from "../../../hooks/useApplicationService";
-import useOrganizationService from "../../../hooks/useOrganizationService";
+import useOrganizationService from "../../../hooks/services/useOrganizationService";
 import '../../../assets/styles/NestedCheckboxSelector/index.css';
 import { faBuilding, faDesktop } from "@fortawesome/free-solid-svg-icons";
 import GenericBox from "../../../components/GenericBox";
+import useBaseService from "../../../hooks/services/useBaseService";
+import { entities } from "../../../constants/entities";
 
 const UserOrganizationsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { getUserAppsAndOrgs, syncMultipleUserAppOrganizations } = useUserService(navigate);
-    const { fetchApplications: getApplications } = useApplicationService(navigate);
+    const { fetchAll: fetchApplications } = useBaseService(entities.applications, navigate);
     const { fetchAll: getOrganizations } = useOrganizationService(navigate);
     const [applications, setApplications] = useState([]);
     const [organizations, setOrganizations] = useState([]);
@@ -31,7 +32,7 @@ const UserOrganizationsPage = () => {
         try {
             showLoader();
             const [responseApplications, responseOrganizations, responseUserAppsAndOrgs] = await Promise.all([
-                getApplications({}),
+                fetchApplications(),
                 getOrganizations({}),
                 getUserAppsAndOrgs(id)
             ]);

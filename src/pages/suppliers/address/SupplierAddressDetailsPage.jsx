@@ -7,29 +7,29 @@ import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { addressFields } from '../../../constants/forms/addressFields';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
-import useSupplierService from '../../../hooks/useSupplierService';
 import { maskCep } from '../../../utils/maskUtils';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useAddressService from '../../../hooks/services/useAddressService';
+import { entities } from '../../../constants/entities';
 
 const SupplierAddressDetailsPage = () => {
     const navigate = useNavigate();
     const { id, addressId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchSupplierAddressById } = useSupplierService(navigate);
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields))
-
+    const { fetchById } = useAddressService(entities.suppliers, id, navigate);
 
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
-                const response = await fetchSupplierAddressById(id, addressId);
-                formatData(response, addressFields);
+                const response = await fetchById(addressId);
+                formatData(response.result, addressFields);
                 setFormData(prev => ({
                     ...prev,
-                    zip: maskCep(response.zip || ''),
+                    zip: maskCep(response.result.zip || ''),
                 }));
             } catch (error) {
                 console.log(error)

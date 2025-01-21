@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import '../../assets/styles/custom-styles.css';
-import RoleService from '../../services/RoleService';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import Form from '../../components/Form';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import { roleFields } from '../../constants/forms/roleFields';
-import usePermissionService from '../../hooks/usePermissionService';
-import useRoleService from '../../hooks/useRoleService';
+import usePermissionService from '../../hooks/services/usePermissionService';
+import useRoleService from '../../hooks/services/useRoleService';
 import FormSection from '../../components/FormSection';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditRolePage = () => {
     const navigate = useNavigate();
@@ -21,14 +22,15 @@ const EditRolePage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { fetchPermissions } = usePermissionService(navigate);
-    const {  fetchPermissionsForRole, fetchRoleById, updateRole, updateRolePermissions, formErrors } = useRoleService(navigate);
+    const {  fetchPermissionsForRole, updateRolePermissions } = useRoleService(navigate);
+    const { fetchById, update, formErrors } = useBaseService(entities.roles, navigate);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 showLoader();
                 const [responseRole, responseRolePermissions, responsePermissions] = await Promise.all([
-                    fetchRoleById(roleId),
+                    fetchById(roleId),
                     fetchPermissionsForRole(roleId),
                     fetchPermissions()
                 ]);
@@ -41,7 +43,7 @@ const EditRolePage = () => {
                 setPermissions(formattedPermissions);  
 
                 const responseAll = {
-                    name: responseRole.name,
+                    name: responseRole.result.name,
                     permissions: responseRolePermissions.map((option) => option.id)
                 }
 
@@ -78,13 +80,12 @@ const EditRolePage = () => {
 
     const handleSubmit = async () => {
         try {
-            const success = await updateRole(roleId, formData);
+            const success = await update(roleId, formData);
             if (success) {
                 await updateRolePermissions(roleId, {permissions: formData.permissions})
             }
         } catch (error) {
             console.log(error)
-            showNotification('error', 'Erro ao editar o cargo');
         }
     };
 

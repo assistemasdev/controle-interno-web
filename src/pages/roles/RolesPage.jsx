@@ -3,7 +3,6 @@ import MainLayout from "../../layouts/MainLayout";
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
-import RoleService from "../../services/RoleService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrashAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { PAGINATION } from "../../constants/pagination";
@@ -12,7 +11,9 @@ import baseService from "../../services/baseService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
-import useRoleService from "../../hooks/useRoleService";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const RolePage = () => {
     const { canAccess } = usePermissions();
@@ -27,7 +28,7 @@ const RolePage = () => {
     const { showNotification } = useNotification();
     const [selectedRole, setSelectedRole] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
-    const { fetchRoles: getRoles, deleteRole} = useRoleService(navigate);
+    const { fetchAll, remove} = useBaseService(entities.roles, navigate);
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -56,18 +57,17 @@ const RolePage = () => {
         async (filtersSubmit) => {
             try {
                 showLoader();
-                const response = await getRoles(filtersSubmit || filters);
-                const filteredRoles = response.data.map(role => ({
+                const response = await fetchAll(filtersSubmit || filters);
+                const filteredRoles = response.result.data.map(role => ({
                     id: role.id,
                     name: role.name,
                     deleted_at: role.deleted_at ? 'deleted-' + role.deleted_at : 'deleted-null'
                 }));
 
                 setRoles(filteredRoles);
-                setCurrentPage(response.current_page);
-                setTotalPages(response.last_page);
+                setCurrentPage(response.result.current_page);
+                setTotalPages(response.result.last_page);
             } catch (error) {
-                showNotification('error', 'Erro ao carregar cargos');
                 console.error(error);
             } finally {
                 hideLoader();
@@ -82,18 +82,9 @@ const RolePage = () => {
     
             const filledInputs = new Set(selectedRoles.map((option) => option.column)).size;
     
-            const selectedRoleIds = selectedRoles
-                .filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false))
-                .map((type) => type.value);
-    
-            const selectedRoleNames = selectedRoles
-                .filter((type) => type.textFilter === true && type.column === 'name')
-                .map((type) => type.value);
-    
-            const selectedRoleIdLikes = selectedRoles
-                .filter((type) => type.numberFilter === true && type.column === 'id')
-                .map((type) => type.value);
-    
+            const selectedRoleIds = buildFilteredArray(selectedRoles, 'id', 'numberFilter', false);
+            const selectedRoleNames = buildFilteredArray(selectedRoles, 'name', 'textFilter', false);
+            const selectedRoleIdLikes = buildFilteredArray(selectedRoles, 'id', 'numberFilter', true);
             const previousFilters = filters || {}; 
     
             setFilters(prev => ({
@@ -117,7 +108,7 @@ const RolePage = () => {
 
             );
         },
-        [selectedRoles, fetchRoles, filters, setFilters] 
+        [selectedRoles, fetchRoles, filters, setFilters, buildFilteredArray] 
     );
     
     const handleChangeRoles = useCallback((newSelected, column) => {
@@ -164,12 +155,11 @@ const RolePage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteRole(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             fetchRoles();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();

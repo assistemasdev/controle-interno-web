@@ -4,20 +4,21 @@ import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
-import useUserService from '../../hooks/useUserService';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import { useAuth } from '../../hooks/useAuth';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
+import { removeEmptyValues } from '../../utils/objectUtils';
 
 const PerfilUserPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
-    const { formErrors, fetchUserById, updateUser } = useUserService(navigate);
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
     const { user } = useAuth();
-
+    const { formErrors, fetchById, update} = useBaseService(entities.users, navigate);
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
@@ -26,8 +27,8 @@ const PerfilUserPage = () => {
                     navigate('/dashboard', { state: { type:'error', message: 'Usuário inválido!'}})
                 }
 
-                const userData = await fetchUserById(id);
-                formatData(userData, userProfileFields);
+                const userData = await fetchById(id);
+                formatData(userData.result, userProfileFields);
             } catch (error) {
                 console.error('Error fetching user data:', error);
             } finally {
@@ -41,7 +42,8 @@ const PerfilUserPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await updateUser(id, formData);
+            const formatData = removeEmptyValues(formData);
+            await update(id, formatData);
         } catch (error) {
             console.error('Error updating user:', error);
         } finally {

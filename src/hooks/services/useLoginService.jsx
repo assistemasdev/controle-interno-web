@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import LoginService from '../services/LoginService';
-import useNotification from './useNotification';
+import LoginService from '../../services/LoginService';
+import useNotification from '../useNotification';
 
 const useLoginService = (navigate) => {
     const { showNotification } = useNotification();

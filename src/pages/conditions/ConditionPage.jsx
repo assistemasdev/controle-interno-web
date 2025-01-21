@@ -8,11 +8,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrashAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
-import useConditionService from "../../hooks/useConditionService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const ConditionPage = () => {
     const { canAccess } = usePermissions();
@@ -23,7 +25,7 @@ const ConditionPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const { fetchConditions, deleteCondition } = useConditionService(navigate);
+    const { fetchAll, remove} = useBaseService(entities.conditions, navigate)
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedCondition, setSelectedCondition] = useState(null);  
@@ -57,25 +59,23 @@ const ConditionPage = () => {
         try {
             showLoader();
         
-            const response = await fetchConditions(filtersSubmit || filters);
+            const response = await fetchAll(filtersSubmit || filters);
 
-            const filteredCondition = response.data.map(condition => ({
+            const filteredCondition = response.result.data.map(condition => ({
                 id: condition.id,
                 name: condition.name,
                 deleted_at: condition.deleted_at ? 'deleted-' + condition.deleted_at : 'deleted-null'
             }));
         
             setConditions(filteredCondition);
-            setTotalPages(response.last_page);
-            setCurrentPage(response.current_page);
+            setTotalPages(response.result.last_page);
+            setCurrentPage(response.result.current_page);
         } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar condições';
-            showNotification('error', errorMessage);
             console.error(error);
         } finally {
             hideLoader();
         }
-    }, [fetchConditions, showLoader, hideLoader, showNotification, itemsPerPage]);
+    }, [fetchAll, showLoader, hideLoader, showNotification, itemsPerPage]);
     
     useEffect(() => {
         fetchCondition();
@@ -84,18 +84,10 @@ const ConditionPage = () => {
     const handleFilterSubmit = useCallback((e) => {
         e.preventDefault();
     
-        const selectedCondIds = selectedConditions
-            .filter((condition) => condition.textFilter === false || (condition.column === 'id' && condition.numberFilter === false))
-            .map((condition) => condition.value);
-    
-        const selectedNames = selectedConditions
-            .filter((condition) => condition.textFilter === true && condition.column === 'name')
-            .map((condition) => condition.value);
-    
-        const selectedIdLikes = selectedConditions
-            .filter((condition) => condition.numberFilter === true && condition.column === 'id')
-            .map((condition) => condition.value);
-    
+        const selectedCondIds = buildFilteredArray(selectedConditions, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedConditions, 'name', 'textFilter', true);
+        const selectedIdLikes = buildFilteredArray(selectedConditions, 'id', 'numberFilter', true);
+
         const filledInputs = new Set(selectedConditions.map((option) => option.column)).size;
     
         const previousFilters = filters || {}; 
@@ -158,12 +150,11 @@ const ConditionPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteCondition(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
-            fetchConditions();
+            fetchCondition();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();
@@ -173,7 +164,6 @@ const ConditionPage = () => {
     const handleCancelConfirmation = () => {
         setOpenModalConfirmation(false);  
     };
-
 
     const headers = useMemo(() => ['id', 'Nome'], []);
 

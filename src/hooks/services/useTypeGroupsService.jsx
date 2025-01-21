@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import useErrorHandling from './useErrorHandling';
-import TypeGroupsService from '../services/TypeGroupsService';
+import useErrorHandling from '../useErrorHandling';
+import TypeGroupsService from '../../services/TypeGroupsService';
 
 const useTypeGroupsService = (navigate) => {
     const { handleError } = useErrorHandling();

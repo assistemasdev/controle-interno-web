@@ -4,24 +4,26 @@ import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
-import useUserService from '../../hooks/useUserService';
 import Select from 'react-select';
 import useLoader from '../../hooks/useLoader';
-import usePermissionService from '../../hooks/usePermissionService';
-import useRoleService from '../../hooks/useRoleService';
+import usePermissionService from '../../hooks/services/usePermissionService';
+import useRoleService from '../../hooks/services/useRoleService';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
+import { removeEmptyValues } from '../../utils/objectUtils';
 
 const EditUserPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
-    const { formErrors, fetchUserById, updateUser } = useUserService(navigate);
-    const { roles, fetchRoles, fetchPermissionsForRole } = useRoleService();
+    const { fetchPermissionsForRole } = useRoleService(navigate);
     const { permissions, fetchPermissions, fetchPermissionsForUser, updateUserPermissions } = usePermissionService(navigate);
-
+    const { formErrors, fetchById, update } = useBaseService(entities.users, navigate)
+    const { fetchAll: fetchRoles } = useBaseService(entities.roles, navigate)
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
-
+    const [roles, setRoles] = useState([]);
     const [selectedRoles, setSelectedRoles] = useState([]);
     const [selectedPermissions, setSelectedPermissions] = useState([]);
     const [oldSelectedRoles, setOldSelectedRoles] = useState([]);
@@ -29,15 +31,16 @@ const EditUserPage = () => {
     const fetchData = useCallback(async () => {
         showLoader();
         try {
-            const user = await fetchUserById(id);
-            formatData(user, userProfileFields);
+            const user = await fetchById(id);
+            formatData(user.result, userProfileFields);
 
-            const [rolesData, permissionsData, userPermissions] = await Promise.all([
+            const [roles, permissionsData, userPermissions] = await Promise.all([
                 fetchRoles(),
                 fetchPermissions(),
                 fetchPermissionsForUser(id),
             ]);
 
+            setRoles(roles.result.data)
             setSelectedPermissions(userPermissions.map((p) => p.id));
 
             const userRoles = user.roles || [];
@@ -48,12 +51,15 @@ const EditUserPage = () => {
         } finally {
             hideLoader();
         }
-    }, [id, fetchUserById, fetchRoles, fetchPermissions, fetchPermissionsForUser, formatData, showLoader, hideLoader]);
+    }, [id, fetchById, fetchRoles, fetchPermissions, fetchPermissionsForUser, formatData, showLoader, hideLoader]);
 
     useEffect(() => {
         fetchData();
     }, [id]);
 
+    useEffect(() => {
+        console.log(roles)
+    }, [roles])
     const handleRoleChange = async (selectedOptions) => {
         const safeSelectedOptions = selectedOptions || [];
         const safeOldSelectedRoles = oldSelectedRoles || [];
@@ -113,7 +119,8 @@ const EditUserPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await updateUser(id, formData);
+            const formatData = removeEmptyValues(formData);
+            await update(id, formatData);
         } catch (error) {
             console.error('Error updating user: ', error);
         } finally {

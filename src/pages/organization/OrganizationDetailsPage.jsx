@@ -10,11 +10,14 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
-import useOrganizationService from '../../hooks/useOrganizationService';
+import useOrganizationService from '../../hooks/services/useOrganizationService';
 import { editOrganizationFields } from '../../constants/forms/organizationFields';
 import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
+import useAddressService from '../../hooks/services/useAddressService';
 
 const OrganizationDetailsPage = () => {
     const navigate = useNavigate();
@@ -22,40 +25,48 @@ const OrganizationDetailsPage = () => {
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const {
-        fetchOrganizationById,
-        fetchOrganizationAddresses,
-        deleteOrganizationAddress,
-    } = useOrganizationService(navigate);
+    const { fetchAll: fetchAllAddresses, remove: removeAddress } = useAddressService(entities.organizations, organizationId, navigate);
+    const { fetchById } = useBaseService(entities.organizations, navigate);
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
     const [addresses, setAddresses] = useState([]);
     const [currentPageAddresses, setCurrentPageAddresses] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPageAddresses, setItemsPerPageAddresses] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPagesAddresses, setTotalPagesAddresses] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [addressToDelete, setAddressToDelete] = useState(null);
+    const [openModalConfirmationAddress, setOpenModalConfirmationAddress] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [filtersAddresses, setFiltersAddresses] = useState({
+        deleted_at:false,
+        page: 1,
+        perPage:itemsPerPageAddresses
+    });
+    const [actionAddress, setActionAddress] = useState({
+        action: '',
+        text: '',
+    });
 
-    const fetchAddresses = useCallback(async (page = 1) => {
+    const fetchAddresses = useCallback(async (filtersSubmit) => {
         try {
-            const response = await fetchOrganizationAddresses(organizationId, { page, perPage: itemsPerPageAddresses });
-            setAddresses(response.data.map((address) => ({
+            const response = await fetchAllAddresses(filtersSubmit || filtersAddresses);
+            setAddresses(response.result.data.map((address) => ({
                 id: address.id,
                 zip: address.zip,
                 street: address.street,
+                deleted_at: address.deleted_at ? 'deleted-' + address.deleted_at : 'deleted-null'
             })));
-            setTotalPagesAddresses(response.last_page);
-            setCurrentPageAddresses(response.current_page);
+            setTotalPagesAddresses(response.result.last_page);
+            setCurrentPageAddresses(response.result.current_page);
         } catch (error) {
+            console.log(error)
             showNotification('error', 'Erro ao carregar endereços.');
         }
-    }, [fetchOrganizationAddresses, itemsPerPageAddresses, organizationId]);
+    }, [fetchAllAddresses, itemsPerPageAddresses, organizationId]);
 
     const fetchData = useCallback(async () => {
         showLoader();
 
         try {
-            const response = await fetchOrganizationById(organizationId);
-            formatData(response, editOrganizationFields)
+            const response = await fetchById(organizationId);
+            formatData(response.result, editOrganizationFields)
             setFormData(prev => ({
                 ...prev,
                 active: response.active ? 'Ativo' : 'Desativado',
@@ -63,25 +74,47 @@ const OrganizationDetailsPage = () => {
 
             await fetchAddresses(currentPageAddresses);
         } catch (error) {
-            showNotification('error', 'Erro ao carregar os dados da organização.');
+            console.log(error)
         } finally {
             hideLoader();
         }
-    }, [fetchOrganizationById, fetchAddresses, currentPageAddresses]);
+    }, [fetchById, fetchAddresses, currentPageAddresses]);
 
-    const confirmDelete = useCallback(async () => {
-        showLoader();
+    const handleActivateAddress = (address, action) => {
+        setSelectedAddress(address); 
+        setActionAddress({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmationAddress(true);  
+    };
+
+    const handleDeleteAddress = (address, action) => {
+        setSelectedAddress(address);  
+        setActionAddress({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmationAddress(true);  
+    };
+    
+    const handleConfirmDeleteAddress = async (id) => {
         try {
-            await deleteOrganizationAddress(organizationId, addressToDelete.id);
-            showNotification('success', 'Endereço excluído com sucesso.');
-            fetchAddresses(currentPageAddresses);
+            showLoader();
+            await removeAddress(id);
+            setOpenModalConfirmationAddress(false);  
+            fetchAddresses();
         } catch (error) {
-            showNotification('error', 'Erro ao excluir endereço.');
+            console.log(error);
+            setOpenModalConfirmationAddress(false);  
         } finally {
-            setDeleteModalOpen(false);
             hideLoader();
-        }
-    }, [deleteOrganizationAddress, addressToDelete, currentPageAddresses, fetchAddresses, organizationId]);
+        }    
+    };
+
+    const handleCancelConfirmationAddress = () => {
+        setOpenModalConfirmationAddress(false);  
+    };
 
     useEffect(() => {
         fetchData();
@@ -89,23 +122,7 @@ const OrganizationDetailsPage = () => {
 
     const actions = useMemo(() => [
         {
-            icon: faEdit,
-            title: 'Editar Endereço',
-            buttonClass: 'btn-primary',
-            permission: 'Atualizar endereço da organização',
-            onClick: (address) => navigate(`/organizacoes/detalhes/${organizationId}/enderecos/editar/${address.id}`),
-        },
-        {
-            icon: faTrash,
-            title: 'Excluir Endereço',
-            buttonClass: 'btn-danger',
-            permission: 'Excluir endereço da organização',
-            onClick: (address) => {
-                setAddressToDelete(address);
-                setDeleteModalOpen(true);
-            },
-        },
-        {
+            id:'viewDetails',
             icon: faEye,
             title: 'Ver Detalhes',
             buttonClass: 'btn-info',
@@ -113,12 +130,29 @@ const OrganizationDetailsPage = () => {
             onClick: (address) => navigate(`/organizacoes/detalhes/${organizationId}/enderecos/detalhes/${address.id}`),
         },
         {
+            id:'viewLocations',
             icon: faMapMarkerAlt,
             title: 'Ver Localizações',
             buttonClass: 'btn-warning',
             permission: 'Listar endereços de organizações',
             onClick: (address) => navigate(`/organizacoes/detalhes/${organizationId}/enderecos/${address.id}/localizacoes`),
         },
+        {
+            id:'edit',
+            icon: faEdit,
+            title: 'Editar Endereço',
+            buttonClass: 'btn-primary',
+            permission: 'Atualizar endereço da organização',
+            onClick: (address) => navigate(`/organizacoes/detalhes/${organizationId}/enderecos/editar/${address.id}`),
+        },
+        {
+            id:'delete',
+            icon: faTrash,
+            title: 'Excluir Endereço',
+            buttonClass: 'btn-danger',
+            permission: 'Excluir endereço da organização',
+            onClick: handleDeleteAddress,
+        }
         
     ], [navigate, organizationId]);
 
@@ -152,6 +186,8 @@ const OrganizationDetailsPage = () => {
                             currentPage={currentPageAddresses}
                             totalPages={totalPagesAddresses}
                             onPageChange={fetchAddresses}
+                            filters={filtersAddresses}
+                            setFilters={setFiltersAddresses}
                         />
 
                         <div className="mt-3 d-flex gap-2">
@@ -162,10 +198,11 @@ const OrganizationDetailsPage = () => {
             </div>
 
             <ConfirmationModal
-                open={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                itemName={addressToDelete ? addressToDelete.street : ''}
+                open={openModalConfirmationAddress}
+                onClose={handleCancelConfirmationAddress}
+                onConfirm={() => actionAddress.action == 'delete'? handleConfirmDeleteAddress(selectedAddress.id) : console.log('oi')}
+                itemName={selectedAddress ? selectedAddress.street : ''}
+                text={actionAddress.text}
             />
         </MainLayout>
     );

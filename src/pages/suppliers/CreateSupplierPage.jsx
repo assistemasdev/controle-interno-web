@@ -1,22 +1,23 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
-import useSupplierService from '../../hooks/useSupplierService';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { createSupplierFields } from '../../constants/forms/supplierFields';
 import { maskCep, removeMask } from '../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateSupplierPage = () => {
     const navigate = useNavigate(); 
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { createSupplier, formErrors } = useSupplierService(navigate);
+    const { create, formErrors } = useBaseService(entities.suppliers, navigate);
     const { formData, setFormData, handleChange, resetForm } = useForm(setDefaultFieldValues(createSupplierFields));
 
     const handleCepChange = useCallback(async (fieldId, value) => {
@@ -71,7 +72,7 @@ const CreateSupplierPage = () => {
         };
 
         try {
-            const success = await createSupplier(sanitizedData);
+            const success = await create(sanitizedData);
             if (success) {
                 resetForm();
             }
@@ -80,7 +81,7 @@ const CreateSupplierPage = () => {
         } finally {
             hideLoader();
         }
-    }, [formData, createSupplier, resetForm, showLoader, hideLoader]);
+    }, [formData, create, resetForm, showLoader, hideLoader]);
 
     const handleBack = useCallback(() => {
         navigate('/fornecedores/');  

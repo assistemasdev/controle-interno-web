@@ -8,11 +8,12 @@ import { faEdit, faTrash, faEye, faUndo } from "@fortawesome/free-solid-svg-icon
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
-import useProductService from "../../hooks/useProductService";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
-import useStatusService from "../../hooks/useStatusService";
+import useStatusService from "../../hooks/services/useStatusService";
 import baseService from "../../services/baseService";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
@@ -23,7 +24,7 @@ const ProductsPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const { fetchAllProducts, deleteProduct } = useProductService(navigate);
+    const { fetchAll, remove } = useBaseService(entities.products,navigate);
     const { fetchAllStatus } = useStatusService(navigate);
     const { hideLoader, showLoader } = useLoader();
     const { showNotification } = useNotification();
@@ -67,7 +68,7 @@ const ProductsPage = () => {
             showLoader();
             const [statusResponse, productsResponse] = await Promise.all([
                 fetchAllStatus(),
-                fetchAllProducts(filtersSubmit || filters),
+                fetchAll(filtersSubmit || filters),
             ]);
     
             const statusMap = mapStatus(statusResponse.data);
@@ -78,13 +79,11 @@ const ProductsPage = () => {
             setCurrentPage(productsResponse.currentPage);
             setTotalPages(productsResponse.last_page);
         } catch (error) {
-            const errorMessage = error.response?.data?.error || error.message || "Erro ao carregar produtos";
-            showNotification('error ', errorMessage);
             console.error("Erro capturado no fetchData:", error);
         } finally {
             hideLoader();
         }
-    }, [fetchAllStatus, fetchAllProducts, itemsPerPage, mapStatus, transformProducts, showLoader, hideLoader, showNotification]);
+    }, [fetchAllStatus, fetchAll, itemsPerPage, mapStatus, transformProducts, showLoader, hideLoader, showNotification]);
 
     const handleClearFilters = useCallback(() => {
         window.location.reload();
@@ -159,12 +158,11 @@ const ProductsPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteProduct(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
-            fetchAllProducts();
+            fetchAll();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();

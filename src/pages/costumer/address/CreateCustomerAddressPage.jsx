@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
-import { usePermissions } from '../../../hooks/usePermissions';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { addressFields } from '../../../constants/forms/addressFields';
-import useCustomerService from '../../../hooks/useCustomerService';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useAddressService from '../../../hooks/services/useAddressService';
+import { entities } from '../../../constants/entities';
 
 const CreateCustomerAddressPage = () => {
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ const CreateCustomerAddressPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, setFormData, resetForm, handleChange } = useForm(setDefaultFieldValues(addressFields));
-    const { createAddress, formErrors } = useCustomerService(navigate);
+    const { create, formErrors } = useAddressService(entities.customers, id, navigate);
 
     const handleFieldChange = (fieldId, value) => {
         if (fieldId == 'zip') {
@@ -30,7 +30,6 @@ const CreateCustomerAddressPage = () => {
     }
 
     const handleCepChange = async (value) => {
-
         const maskedValue = maskCep(value);
 
         setFormData((prev) => ({
@@ -71,11 +70,12 @@ const CreateCustomerAddressPage = () => {
         }
 
         try {
-            await createAddress(id, sanitizedData);
-            resetForm();
+            const success = await create(sanitizedData);
+            if (success) {
+                resetForm();
+            }
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao criar endereço');
         }
     };
 

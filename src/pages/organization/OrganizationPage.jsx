@@ -7,11 +7,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrashAlt, faUndo, faEye } from '@fortawesome/free-solid-svg-icons';
 import useLoader from '../../hooks/useLoader';
 import useNotification from "../../hooks/useNotification";
-import useOrganizationService from "../../hooks/useOrganizationService";
 import { PAGINATION } from '../../constants/pagination';
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
 
 const OrganizationPage = () => {
     const { canAccess } = usePermissions();
@@ -20,7 +21,7 @@ const OrganizationPage = () => {
     const location = useLocation();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchAll, deleteOrganization } = useOrganizationService(navigate);
+    const { fetchAll, remove } = useBaseService(entities.organizations, navigate);
     const [selectedOrgs, setSelectedOrgs] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -36,10 +37,12 @@ const OrganizationPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
+    
     const [action, setAction] = useState({
         action: '',
         text: '',
     });
+
     useEffect(() => {
         if (location.state?.message) {
             showNotification(location.state.type, location.state.message);
@@ -56,18 +59,17 @@ const OrganizationPage = () => {
             showLoader();
         
             const response = await fetchAll(filtersSubmit || filters);
-            const filteredOrganizations = response.data.map(organization => ({
+            const filteredOrganizations = response.result.data.map(organization => ({
                 id: organization.id,
                 name: organization.name,
                 color: organization.color,
                 deleted_at: organization.deleted_at ? 'deleted-' + organization.deleted_at : 'deleted-null'
             }));
             
-            setCurrentPage(response.current_page)
-            setTotalPages(response.last_page);
+            setCurrentPage(response.result.current_page)
+            setTotalPages(response.result.last_page);
             setOrganizations(filteredOrganizations);
         } catch (error) {
-            showNotification('error','Erro ao carregar organizações');
             console.error(error);
         } finally {
             hideLoader();
@@ -158,12 +160,11 @@ const OrganizationPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteOrganization(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             fetchOrganizations();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();

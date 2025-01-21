@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import useErrorHandling from './useErrorHandling';
-import useNotification from './useNotification';
-import StatusService from '../services/StatusService';
+import useErrorHandling from '../useErrorHandling';
+import useNotification from '../useNotification';
+import StatusService from '../../services/StatusService';
 
 const useStatusService = (navigate) => {
     const { handleError } = useErrorHandling();

@@ -5,29 +5,27 @@ import '../../../assets/styles/custom-styles.css';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { contactFields } from '../../../constants/forms/contactFields';
-import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
-import useSupplierService from '../../../hooks/useSupplierService';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useContactService from '../../../hooks/services/useContactService';
+import { entities } from '../../../constants/entities';
 
 const EditSupplierContactPage = () => {
     const navigate = useNavigate();
     const { supplierId, contactId } = useParams();
-    const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { fetchSupplierContactById, updateSupplierContact, formErrors } = useSupplierService(navigate);
+    const { fetchById, update, formErrors } = useContactService(entities.suppliers, supplierId, navigate);
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(contactFields));
 
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
-                const contact = await fetchSupplierContactById(supplierId, contactId);
-                formatData(contact, contactFields)
+                const contact = await fetchById(contactId);
+                formatData(contact.result, contactFields)
             } catch (error) {
                 console.error(error);
-                showNotification('error', 'Erro ao carregar os dados do contato.');
             } finally {
                 hideLoader();
             }
@@ -39,10 +37,9 @@ const EditSupplierContactPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await updateSupplierContact(supplierId, contactId, formData);
+            await update(contactId, formData);
         } catch (error) {
             console.error(error);
-            showNotification('error', 'Erro ao atualizar contato.');
         } finally {
             hideLoader();
         }

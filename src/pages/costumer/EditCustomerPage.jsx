@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -7,32 +7,32 @@ import '../../assets/styles/custom-styles.css';
 import { editCustomerFields  } from '../../constants/forms/customerFields';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
-import useCustomerService from '../../hooks/useCustomerService';
 import useForm from '../../hooks/useForm';
 import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditCustomerPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { fetchCustomerById, updateCustomer, formErrors } = useCustomerService(navigate);
+    const { fetchById, update, formErrors } = useBaseService(entities.customers, navigate);
     const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(editCustomerFields));
 
     useEffect(() => {
         const fetchCustomerData = async () => {
             showLoader();
             try {
-                const response = await fetchCustomerById(id);
-                formatData(response, editCustomerFields)
+                const response = await fetchById(id);
+                formatData(response.result, editCustomerFields)
                 setFormData(prev => ({
                     ...prev,
-                    cpf_cnpj: maskCpfCnpj(response.cpf_cnpj)
+                    cpf_cnpj: maskCpfCnpj(response.result.cpf_cnpj)
                 }))
             } catch (error) {
                 console.log(error)
-                showNotification('error', error.message || 'Erro ao buscar cliente.');
             } finally {
                 hideLoader();
             }
@@ -57,14 +57,13 @@ const EditCustomerPage = () => {
         };
 
         try {
-            await updateCustomer(id, sanitizedData);
+            await update(id, sanitizedData);
         } catch (error) {
             console.log(error)
-            showNotification('error', 'Erro ao atualizar cliente.');
         } finally {
             hideLoader();
         }
-    }, [formData, updateCustomer, id, navigate, showLoader, hideLoader, showNotification]);
+    }, [formData, update, id, navigate, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate('/clientes/');

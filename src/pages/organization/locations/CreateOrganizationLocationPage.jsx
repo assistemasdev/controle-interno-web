@@ -5,7 +5,7 @@ import '../../../assets/styles/custom-styles.css';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { locationFields } from '../../../constants/forms/locationFields';
-import useOrganizationService from '../../../hooks/useOrganizationService';
+import useOrganizationService from '../../../hooks/services/useOrganizationService';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 

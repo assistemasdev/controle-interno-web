@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { usePermissions } from "../hooks/usePermissions";
 import useLoader from "../hooks/useLoader";
+import useBaseService from "../hooks/services/useBaseService";
+import { entities } from "../constants/entities";
 
 const SideBarTwo = ({ children }) => {
     const { user, logout } = useAuth();
@@ -20,6 +22,7 @@ const SideBarTwo = ({ children }) => {
         email: ''
     });
     const navigate = useNavigate();
+    const { fetchById } = useBaseService(entities.users, navigate);
     const { selectedOrgan, clearOrganSelection } = useOrgan();
     const [menuSections, setMenuSections] = useState([]);
 
@@ -95,7 +98,7 @@ const SideBarTwo = ({ children }) => {
     const fetchUser = async () => {
         try {
             showLoader();
-            const response = await UserService.getById(user.id);
+            const response = await fetchById(user.id);
             setUserData({
                 name: response.result.name,
                 email: response.result.email,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
@@ -7,17 +7,18 @@ import FormSection from '../../../components/FormSection';
 import Form from '../../../components/Form';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
-import useOrganizationService from '../../../hooks/useOrganizationService';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useAddressService from '../../../hooks/services/useAddressService';
+import { entities } from '../../../constants/entities';
 
 const CreateOrganizationAddressPage = () => {
     const navigate = useNavigate();
     const { organizationId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { addOrganizationAddress, formErrors } = useOrganizationService(navigate);
+    const { create, formErrors } = useAddressService(entities.organizations, organizationId,navigate);
     const { formData, setFormData, handleChange, resetForm } = useForm(setDefaultFieldValues(addressFields));
 
     const handleFieldChange = useCallback(async (fieldId, value) => {
@@ -73,17 +74,16 @@ const CreateOrganizationAddressPage = () => {
         };
 
         try {
-            const success = await addOrganizationAddress(organizationId, sanitizedData);
+            const success = await create(sanitizedData);
             if (success) {
                 resetForm();
             }
         } catch (error) {
             console.log(error)
-            showNotification('error', 'Erro ao cadastrar o endereço.');
         } finally {
             hideLoader();
         }
-    }, [addOrganizationAddress, organizationId, navigate, showLoader, hideLoader, showNotification]);
+    }, [create, organizationId, navigate, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate(`/organizacoes/detalhes/${organizationId}/`);

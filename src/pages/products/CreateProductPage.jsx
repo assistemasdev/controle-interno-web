@@ -2,27 +2,28 @@ import React, { useEffect, useCallback, useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import OrganizationService from '../../services/OrganizationService';
-import SupplierService from '../../services/SupplierService';
-import ConditionService from '../../services/ConditionService';
-import CategoryService from '../../services/CategoryService';
-import TypeService from '../../services/TypeService';
 import useNotification from '../../hooks/useNotification';
-import useProductService from '../../hooks/useProductService';
 import useLoader from '../../hooks/useLoader';
-import useOrganizationService from '../../hooks/useOrganizationService';
-import useTypeGroupsService from '../../hooks/useTypeGroupsService';
+import useOrganizationService from '../../hooks/services/useOrganizationService';
+import useTypeGroupsService from '../../hooks/services/useTypeGroupsService';
 import useForm from '../../hooks/useForm';
 import Form from '../../components/Form'; 
 import FormSection from '../../components/FormSection';
 import { productFields } from "../../constants/forms/productFields";
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateProductPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
-    const { createProduct, formErrors } = useProductService(navigate);
+    const { create, formErrors } = useBaseService(entities.products, navigate);
     const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
+    const { fetchAll: fetchOrganizations } = useBaseService(entities.organizations, navigate);
+    const { fetchAll: fetchConditions } = useBaseService(entities.conditions, navigate);
+    const { fetchAll: fetchCategories } = useBaseService(entities.categories, navigate);
+    const { fetchAll: fetchSuppliers } = useBaseService(entities.suppliers, navigate);
+    const { fetchAll: fetchTypes } = useBaseService(entities.types, navigate);
     const { showLoader, hideLoader } = useLoader();
     const { fetchTypeGroups } = useTypeGroupsService(navigate);
     const [suppliers, setSuppliers] = useState();
@@ -47,11 +48,11 @@ const CreateProductPage = () => {
                     categoriesResponse,
                     typesResponse,
                 ] = await Promise.all([
-                    OrganizationService.getAll(navigate),
-                    SupplierService.getAll(navigate),
-                    ConditionService.getAll(navigate),
-                    CategoryService.getAll(navigate),
-                    TypeService.getAll(navigate),
+                    fetchOrganizations(),
+                    fetchSuppliers(),
+                    fetchConditions(),
+                    fetchCategories(),
+                    fetchTypes(),
                 ]);
 
                 setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
@@ -112,7 +113,7 @@ const CreateProductPage = () => {
     const handleSubmit = async (data) => {
         showLoader();
         try {
-            const success = await createProduct(data);
+            const success = await create(data);
             if (success) {
                 resetForm();
             }

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
@@ -8,7 +8,7 @@ import useForm from '../../../hooks/useForm';
 import { locationFields } from '../../../constants/forms/locationFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
-import useCustomerService from '../../../hooks/useCustomerService';
+import useCustomerService from '../../../hooks/services/useCustomerService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 
 const CreateCustomerLocationPage = () => {

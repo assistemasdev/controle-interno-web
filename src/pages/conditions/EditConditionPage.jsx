@@ -3,17 +3,19 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
-import useConditionService from '../../hooks/useConditionService';
+import useConditionService from '../../hooks/services/useConditionService';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import { conditionFields } from '../../constants/forms/conditionFields';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditConditionPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { getConditionById, updateCondition, formErrors } = useConditionService(navigate);
+    const { fetchById, update, formErrors } = useBaseService(entities.conditions, navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(conditionFields));
@@ -22,14 +24,14 @@ const EditConditionPage = () => {
     const fetchCondition = useCallback(async () => {
         showLoader();
         try {
-            const data = await getConditionById(id);
-            formatData(data, conditionFields);
+            const data = await fetchById(id);
+            formatData(data.result, conditionFields);
         } catch (error) {
-            showNotification('error', 'Erro ao buscar a condição.');
+            console.log(error)
         } finally {
             hideLoader();
         }
-    }, [id, getConditionById, formatData, conditionFields, showLoader, hideLoader, showNotification]);
+    }, [id, fetchById, formatData, conditionFields, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchCondition();
@@ -38,7 +40,7 @@ const EditConditionPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await updateCondition(id, formData);
+            await update(id, formData);
         } catch (error) {
             console.log(error)
         } finally {

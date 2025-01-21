@@ -5,31 +5,32 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import '../../assets/styles/custom-styles.css';
 import { applicationFields } from '../../constants/forms/applicationFields';
-import useApplicationService from '../../hooks/useApplicationService';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditApplicationPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { getApplicationById, updateApplication, formErrors } = useApplicationService(navigate);
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(applicationFields));
+    const { fetchById, update, formErrors } = useBaseService(entities.applications, navigate);
 
     const fetchData = useCallback(async () => {
         try {
             showLoader();
-            const response = await getApplicationById(id);
-            formatData(response, applicationFields);
+            const response = await fetchById(id);
+            formatData(response.result, applicationFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da aplicação.');
         } finally {
             hideLoader();
         }
-    }, [id, getApplicationById, setFormData, showLoader, hideLoader, showNotification]);
+    }, [id, fetchById, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchData();
@@ -38,14 +39,14 @@ const EditApplicationPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await updateApplication(id, formData);
+            await update(id, formData);
         } catch (error) {
             console.log(error)
             showNotification('error', 'Erro ao atualizar a aplicação.');
         } finally {
             hideLoader();
         }
-    }, [id, formData, updateApplication, navigate, showLoader, hideLoader, showNotification]);
+    }, [id, formData, update, navigate, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate('/aplicacoes/dashboard');

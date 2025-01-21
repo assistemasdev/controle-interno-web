@@ -8,9 +8,9 @@ import { usePermissions } from '../../hooks/usePermissions';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { loginFields } from '../../constants/forms/loginFields';
-import useLoginService from '../../hooks/useLoginService';
-import useRoleService from '../../hooks/useRoleService';
-import usePermissionService from '../../hooks/usePermissionService';
+import useLoginService from '../../hooks/services/useLoginService';
+import useRoleService from '../../hooks/services/useRoleService';
+import usePermissionService from '../../hooks/services/usePermissionService';
 
 const LoginCard = () => {
     const navigate = useNavigate();  
@@ -42,7 +42,7 @@ const LoginCard = () => {
             const userRoles = await fetchRolesUser(storedUser.id);
             const userPermissions = await fetchPermissionsForUser(storedUser.id);
 
-            addRoles(userRoles);
+            addRoles(userRoles.result);
             addPermissions(userPermissions);
             
             navigate('/aplicacoes')

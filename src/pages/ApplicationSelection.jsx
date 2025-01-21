@@ -13,7 +13,7 @@ import ApplicationCard from '../components/application/ApplicationCard';
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
-import useUserService from "../hooks/useUserService";
+import useUserService from "../hooks/services/useUserService";
 import useLoader from "../hooks/useLoader";
 import useNotification from "../hooks/useNotification";
 

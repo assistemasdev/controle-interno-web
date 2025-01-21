@@ -8,10 +8,12 @@ import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
-import useCategoryService from "../../hooks/useCategoryService";
 import useNotification from "../../hooks/useNotification";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const CategoryPage = () => {
     const { canAccess } = usePermissions();
@@ -23,7 +25,7 @@ const CategoryPage = () => {
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const { showLoader, hideLoader } = useLoader();
-    const { fetchCategories: getCategories, deleteCategory } = useCategoryService(navigate);
+    const { fetchAll, remove } = useBaseService(entities.categories, navigate);
     const { showNotification } = useNotification();
     const [selectedCategory, setSelectedCategory] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
@@ -60,41 +62,31 @@ const CategoryPage = () => {
         try {
             showLoader();
             
-            const response = await getCategories(filtersSubmit || filters);
+            const response = await fetchAll(filtersSubmit || filters);
             
-            const filteredCategories = response.data.map(category => ({
+            const filteredCategories = response.result.data.map(category => ({
                 id: category.id,
                 name: category.name,
                 deleted_at: category.deleted_at ? 'deleted-' + category.deleted_at : 'deleted-null'
             }));
             
             setCategories(filteredCategories);
-            setTotalPages(response.last_page);
-            setCurrentPage(response.current_page);
+            setTotalPages(response.result.last_page);
+            setCurrentPage(response.result.current_page);
         } catch (error) {
             console.error(error);
         } finally {
             hideLoader();
         }
-    }, [getCategories, itemsPerPage, showLoader, hideLoader]);
+    }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
     const handleFilterSubmit = useCallback((e) => {
         e.preventDefault();
     
-        const selectedCatIds = selectedCategories
-            .filter((condition) => condition.textFilter === false || (condition.column === 'id' && condition.numberFilter === false))
-            .map((condition) => condition.value);
-    
-        const selectedNames = selectedCategories
-            .filter((condition) => condition.textFilter === true && condition.column === 'name')
-            .map((condition) => condition.value);
-    
-        const selectedIdLikes = selectedCategories
-            .filter((condition) => condition.numberFilter === true && condition.column === 'id')
-            .map((condition) => condition.value);
-    
+        const selectedCatIds = buildFilteredArray(selectedCategories, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedCategories, 'name', 'textFilter', true);
+        const selectedIdLikes = buildFilteredArray(selectedCategories, 'id', 'numberFilter', true);
         const filledInputs = new Set(selectedCategories.map((option) => option.column)).size;
-    
         const previousFilters = filters || {}; 
     
         setFilters(prev => ({
@@ -154,12 +146,11 @@ const CategoryPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteCategory(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             fetchCategories();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();

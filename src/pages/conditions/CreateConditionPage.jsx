@@ -5,18 +5,20 @@ import '../../assets/styles/custom-styles.css';
 import Form from '../../components/Form';
 import { conditionFields } from '../../constants/forms/conditionFields';
 import FormSection from '../../components/FormSection';
-import useConditionService from '../../hooks/useConditionService';
+import useConditionService from '../../hooks/services/useConditionService';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateConditionPage = () => {
     const navigate = useNavigate();
-    const { createCondition, formErrors } = useConditionService(navigate);
+    const { create, formErrors } = useBaseService(entities.conditions, navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(conditionFields));
 
     const handleSubmit = async () => {
         try {
-            const success = await createCondition(formData);
+            const success = await create(formData);
             if (success) {
                 resetForm(); 
             }

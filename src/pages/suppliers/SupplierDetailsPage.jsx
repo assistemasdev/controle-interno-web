@@ -8,12 +8,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { faEdit, faTrash, faEye } from '@fortawesome/free-solid-svg-icons';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
-import useSupplierService from '../../hooks/useSupplierService';
 import { supplierFields } from '../../constants/forms/supplierFields';
 import { PAGINATION } from '../../constants/pagination';
 import { usePermissions } from '../../hooks/usePermissions';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useForm from '../../hooks/useForm';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
+import useAddressService from '../../hooks/services/useAddressService';
+import useContactService from '../../hooks/services/useContactService';
 
 const SupplierDetailsPage = () => {
     const navigate = useNavigate();
@@ -21,95 +24,180 @@ const SupplierDetailsPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { canAccess } = usePermissions();
-    const { fetchSupplierById, fetchSupplierAddresses, fetchSupplierContacts, deleteSupplierAddress, deleteSupplierContact } = useSupplierService(navigate);
+    const { fetchAll: fetchAllAddresses, remove: removeAddress } = useAddressService(entities.suppliers, id, navigate);
+    const { fetchAll: fetchAllContacts, remove: removeContact } = useContactService(entities.suppliers, id, navigate);
+    const { fetchById } = useBaseService(entities.suppliers, navigate);
     const { formData, formatData } = useForm(setDefaultFieldValues(supplierFields));
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [addressToDelete, setAddressToDelete] = useState(null);
-    const [deleteModalOpenContacts, setDeleteModalOpenContacts] = useState(false);
-    const [contactToDelete, setContactToDelete] = useState(null);
-
+    const [openModalConfirmationAddress, setOpenModalConfirmationAddress] = useState(false);
+    const [openModalConfirmationContact, setOpenModalConfirmationContact] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [selectedContact, setSelectedContact] = useState(null);
     const [currentPageAddress, setCurrentPageAddress] = useState(PAGINATION.DEFAULT_PAGE);
-    const [totalPagesAddress, setTotalPagesAddress] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [totalPagesAddress, setTotalPagesAddress] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [currentPageContact, setCurrentPageContact] = useState(PAGINATION.DEFAULT_PAGE);
-    const [totalPagesContact, setTotalPagesContact] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [totalPagesContact, setTotalPagesContact] = useState(PAGINATION.DEFAULT_PER_PAGE);
+    const [filtersAddresses, setFiltersAddresses] = useState({
+        deleted_at:false,
+        page: 1,
+        perPage:totalPagesAddress
+    });
+    const [filtersContacts, setFiltersContacts] = useState({
+        deleted_at:false,
+        page: 1,
+        perPage:totalPagesContact
+    });
+    const [actionAddress, setActionAddress] = useState({
+        action: '',
+        text: '',
+    });
+    const [actionContact, setActionContact] = useState({
+        action: '',
+        text: '',
+    });
 
     const fetchData = useCallback(async () => {
         showLoader();
         try {
-            const supplier = await fetchSupplierById(id);
-            const addressesResponse = await fetchSupplierAddresses(id, { page: currentPageAddress });
-            const contactsResponse = await fetchSupplierContacts(id, { page: currentPageContact });
-
-            formatData(supplier, supplierFields);
-            
-            setAddresses(addressesResponse.data.map((address) => ({
-                id: address.id,
-                zip: address.zip,
-                street: address.street
-            })));
-
-            setTotalPagesAddress(addressesResponse.last_page);
-            setContacts(contactsResponse.data.map((contact) => ({
-                id: contact.id,
-                name: contact.name,
-                number: contact.ddd + '-' + contact.phone
-            })));
-            setTotalPagesContact(contactsResponse.last_page);
+            const supplier = await fetchById(id);
+            formatData(supplier.result, supplierFields);
+            fetchAddress()
+            fetchContacts();
         } catch (error) {
             console.log(error);
             showNotification('error', 'Erro ao carregar os dados do fornecedor.');
         } finally {
             hideLoader();
         }
-    }, [id, currentPageAddress, currentPageContact, fetchSupplierById, fetchSupplierAddresses, fetchSupplierContacts, showLoader, hideLoader, showNotification]);
+    }, [id, currentPageAddress, currentPageContact, fetchById, fetchAllAddresses, showLoader, hideLoader, showNotification]);
+
+    const fetchAddress = useCallback(async (filtersSubmit) => {
+        try {
+            const addressesResponse = await fetchAllAddresses(filtersSubmit || filtersAddresses);
+            
+            setAddresses(addressesResponse.result.data.map((address) => ({
+                id: address.id,
+                zip: address.zip,
+                street: address.street,
+                deleted_at: address.deleted_at ? 'deleted-' + address.deleted_at : 'deleted-null'
+            })));
+
+            setTotalPagesAddress(addressesResponse.result.last_page);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            hideLoader();
+        }
+    });
+
+    const fetchContacts = useCallback(async (filtersSubmit) => {
+        try {
+            const contactsResponse = await fetchAllContacts(filtersSubmit || filtersContacts);
+            
+            setContacts(contactsResponse.result.data.map((contact) => ({
+                id: contact.id,
+                name: contact.name,
+                number: contact.ddd + '-' + contact.phone,
+                deleted_at: contact.deleted_at ? 'deleted-' + contact.deleted_at : 'deleted-null'
+            })));
+            setTotalPagesContact(contactsResponse.result.last_page);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            hideLoader();
+        }
+    });
+
 
     useEffect(() => {
         fetchData();
     }, [id]);
 
-    const handleDeleteAddress = (address) => {
-        setAddressToDelete(address);
-        setDeleteModalOpen(true);
+    const handleActivateAddress = (address, action) => {
+        setSelectedAddress(address); 
+        setActionAddress({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmationAddress(true);  
     };
 
-    const confirmDeleteAddress = useCallback(async () => {
-        showLoader();
+    const handleDeleteAddress = (address, action) => {
+        setSelectedAddress(address);  
+        setActionAddress({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmationAddress(true);  
+    };
+    
+    const handleConfirmDeleteAddress = async (id) => {
         try {
-            await deleteSupplierAddress(id, addressToDelete.id);
-            fetchData();
+            showLoader();
+            await removeAddress(id);
+            setOpenModalConfirmationAddress(false);  
+            fetchAddress();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o endereço.');
+            setOpenModalConfirmationAddress(false);  
         } finally {
-            setDeleteModalOpen(false);
             hideLoader();
-        }
-    }, [id, addressToDelete, deleteSupplierAddress, fetchData, showLoader, hideLoader, showNotification]);
-
-    const handleDeleteContact = (contact) => {
-        setContactToDelete(contact);
-        setDeleteModalOpenContacts(true);
+        }    
     };
 
-    const confirmDeleteContact = useCallback(async () => {
-        showLoader();
+    const handleCancelConfirmationAddress = () => {
+        setOpenModalConfirmationAddress(false);  
+    };
+
+    const handleActivateContact = (contact, action) => {
+        setSelectedContact(contact); 
+        setActionContact({
+            action,
+            text:'Você tem certeza que deseja ativar: '
+        })
+        setOpenModalConfirmationContact(true);  
+    };
+
+    const handleDeleteContact = (contact, action) => {
+        setSelectedContact(contact);  
+        setActionContact({
+            action,
+            text:'Você tem certeza que deseja excluir: '
+        })
+        setOpenModalConfirmationContact(true);  
+    };
+    
+    const handleConfirmDeleteContact = async (id) => {
         try {
-            await deleteSupplierContact(id, contactToDelete.id);
-            fetchData();
+            showLoader();
+            await removeContact(id);
+            setOpenModalConfirmationContact(false);  
+            fetchContacts();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o contato.');
+            setOpenModalConfirmationContact(false);  
         } finally {
-            setDeleteModalOpenContacts(false);
             hideLoader();
-        }
-    }, [id, contactToDelete, deleteSupplierContact, fetchData, showLoader, hideLoader, showNotification]);
+        }    
+    };
+
+    const handleCancelConfirmationContact = () => {
+        setOpenModalConfirmationContact(false);  
+    };
 
     const addressHeaders = useMemo(() => ['ID', 'CEP', 'Rua'], []);
     const addressActions = useMemo(() => [
         {
+            id: 'viewAddresses',
+            icon: faEye, 
+            title: 'Ver endereços de fornecedores',
+            buttonClass: 'btn-info',
+            permission: 'Visualizar endereço do fornecedor',
+            onClick: (address) => navigate(`/fornecedores/${id}/endereco/${address.id}/detalhes/`),
+        },
+        {
+            id: 'edit',
             icon: faEdit,
             title: 'Editar Endereço',
             buttonClass: 'btn-primary',
@@ -117,24 +205,20 @@ const SupplierDetailsPage = () => {
             onClick: (address) => navigate(`/fornecedores/editar/${id}/endereco/${address.id}`),
         },
         {
+            id: 'delete',
             icon: faTrash,
             title: 'Excluir Endereço',
             buttonClass: 'btn-danger',
             permission: 'Excluir endereço do fornecedor',
             onClick: handleDeleteAddress,
         },
-        {
-            icon: faEye, 
-            title: 'Ver endereços de fornecedores',
-            buttonClass: 'btn-info',
-            permission: 'Visualizar endereço do fornecedor',
-            onClick: (address) => navigate(`/fornecedores/${id}/endereco/${address.id}/detalhes/`),
-        },
+
     ], [navigate, id, handleDeleteAddress]);
 
     const contactHeaders = useMemo(() => ['ID', 'Nome', 'Número'], []);
     const contactActions = useMemo(() => [
         {
+            id: 'edit',
             icon: faEdit,
             title: 'Editar Contato',
             buttonClass: 'btn-primary',
@@ -142,6 +226,7 @@ const SupplierDetailsPage = () => {
             onClick: (contact) => navigate(`/fornecedores/${id}/contato/editar/${contact.id}`),
         },
         {
+            id: 'delete',
             icon: faTrash,
             title: 'Excluir Contato',
             buttonClass: 'btn-danger',
@@ -178,7 +263,9 @@ const SupplierDetailsPage = () => {
                         actions={addressActions}
                         currentPage={currentPageAddress}
                         totalPages={totalPagesAddress}
-                        onPageChange={setCurrentPageAddress}
+                        onPageChange={fetchAddress}
+                        filters={filtersAddresses}
+                        setFilters={setFiltersAddresses}
                     />
 
                     <div className='form-row d-flex justify-content-between align-items-center mt-1'>
@@ -197,7 +284,9 @@ const SupplierDetailsPage = () => {
                         actions={contactActions}
                         currentPage={currentPageContact}
                         totalPages={totalPagesContact}
-                        onPageChange={setCurrentPageContact}
+                        onPageChange={fetchContacts}
+                        filters={filtersContacts}
+                        setFilters={setFiltersContacts}
                     />
 
                     <div className="mt-3 d-flex gap-2">
@@ -206,17 +295,19 @@ const SupplierDetailsPage = () => {
                 </div>
 
                 <ConfirmationModal
-                    open={deleteModalOpen}
-                    onClose={() => setDeleteModalOpen(false)}
-                    onConfirm={confirmDeleteAddress}
-                    itemName={addressToDelete ? addressToDelete.street : ''}
+                    open={openModalConfirmationAddress}
+                    onClose={handleCancelConfirmationAddress}
+                    onConfirm={() => actionAddress.action == 'delete'? handleConfirmDeleteAddress(selectedAddress.id) : console.log('oi')}
+                    itemName={selectedAddress ? selectedAddress.street : ''}
+                    text={actionAddress.text}
                 />
 
                 <ConfirmationModal
-                    open={deleteModalOpenContacts}
-                    onClose={() => setDeleteModalOpenContacts(false)}
-                    onConfirm={confirmDeleteContact}
-                    itemName={contactToDelete ? contactToDelete.name : ''}
+                    open={openModalConfirmationContact}
+                    onClose={handleCancelConfirmationContact}
+                    onConfirm={() => actionContact.action == 'delete'? handleConfirmDeleteContact(selectedContact.id) : console.log('oi')}
+                    itemName={selectedContact ? selectedContact.number : ''}
+                    text={actionContact.text}
                 />
             </div>
         </MainLayout>

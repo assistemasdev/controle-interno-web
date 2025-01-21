@@ -10,21 +10,19 @@ import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
 import { maskCpf, maskCnpj } from "../../utils/maskUtils";
-import useSupplierService from "../../hooks/useSupplierService";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const SuppliersPage = () => {
     const { canAccess } = usePermissions();
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchSuppliers, deleteSupplier } = useSupplierService(navigate);
-
-    const [name, setName] = useState('');
+    const { fetchAll, remove } = useBaseService(entities.suppliers, navigate);
     const [suppliers, setSuppliers] = useState([]);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [supplierToDelete, setSupplierToDelete] = useState(null);
     const [selectedSuppliers, setSelectedSuppliers] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -48,8 +46,8 @@ const SuppliersPage = () => {
     const fetchSuppliersData = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchSuppliers(filtersSubmit || filters);
-            const formattedSuppliers = response.data.map(supplier => {
+            const response = await fetchAll(filtersSubmit || filters);
+            const formattedSuppliers = response.result.data.map(supplier => {
                 const numericValue = supplier.cpf_cnpj.replace(/\D/g, '');
                 return {
                     id: supplier.id,
@@ -61,15 +59,15 @@ const SuppliersPage = () => {
             });
 
             setSuppliers(formattedSuppliers);
-            setTotalPages(response.last_page);
-            setCurrentPage(response.current_page);
+            setTotalPages(response.result.last_page);
+            setCurrentPage(response.result.current_page);
         } catch (error) {
             console.log(error)
             showNotification("error", "Erro ao carregar fornecedores.");
         } finally {
             hideLoader();
         }
-    }, [fetchSuppliers, name, itemsPerPage, showLoader, hideLoader, showNotification]);
+    }, [fetchAll, itemsPerPage, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchSuppliersData();
@@ -104,12 +102,11 @@ const SuppliersPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await deleteSupplier(id);
+            await remove(id);
             setOpenModalConfirmation(false);  
             fetchSuppliersData();
         } catch (error) {
             console.log(error);
-            showNotification('error', 'Erro ao excluir o usuário');
             setOpenModalConfirmation(false);  
         } finally {
             hideLoader();
@@ -139,20 +136,10 @@ const SuppliersPage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-    
-        const selectedIds = selectedSuppliers
-            .filter((supplier) => supplier.column === 'id' && !supplier.textFilter)
-            .map((supplier) => supplier.value);
-    
-        const selectedNames = selectedSuppliers
-            .filter((supplier) => supplier.column === 'name' && supplier.textFilter)
-            .map((supplier) => supplier.value);
-
-        const selectedIdLikes = selectedSuppliers
-            .filter((type) => type.textFilter === true && type.column === 'id')
-            .map((type) => type.value);
-
-    
+        
+        const selectedIds = buildFilteredArray(selectedSuppliers, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedSuppliers, 'name', 'textFilter', true);
+        const selectedICpfCnpjs = buildFilteredArray(selectedSuppliers, 'cpf_cnpj', 'textFilter', true);
         const filledInputs = new Set(selectedSuppliers.map((option) => option.column)).size;
     
         const previousFilters = filters || {}; 
@@ -161,7 +148,7 @@ const SuppliersPage = () => {
             ...prev,
             id: selectedIds,
             name: selectedNames,
-            idLike: selectedIdLikes,
+            cpf_cnpj: selectedICpfCnpjs,
             filledInputs,
             page: 1, 
         }));
@@ -169,7 +156,7 @@ const SuppliersPage = () => {
         fetchSuppliersData({
             id: selectedIds,
             name: selectedNames,
-            idLike: selectedIdLikes,
+            cpf_cnpj: selectedICpfCnpjs,
             filledInputs,
             page: 1,
             perPage: previousFilters.perPage, 

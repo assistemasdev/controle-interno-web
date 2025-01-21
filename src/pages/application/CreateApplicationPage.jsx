@@ -1,38 +1,38 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import '../../assets/styles/custom-styles.css';
 import { applicationFields } from '../../constants/forms/applicationFields';
-import useApplicationService from '../../hooks/useApplicationService';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import { useNavigate } from 'react-router-dom';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const CreateApplicationPage = () => {
     const navigate = useNavigate();
-    const { createApplication, formErrors } = useApplicationService(navigate);
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(applicationFields));
-    
+    const { create, formErrors} = useBaseService(entities.applications, navigate);
+
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            const success = await createApplication(formData);
+            const success = await create(formData);
 
             if (success) {
                 resetForm();
             }
         } catch (error) {
             console.log(error)
-            showNotification('error', 'Erro ao cadastrar a aplicação.');
         } finally {
             hideLoader();
         }
-    }, [formData, createApplication, showNotification, navigate, showLoader, hideLoader]);
+    }, [formData, create, showNotification, navigate, showLoader, hideLoader]);
 
     const handleBack = useCallback(() => {
         navigate('/aplicacoes/dashboard');

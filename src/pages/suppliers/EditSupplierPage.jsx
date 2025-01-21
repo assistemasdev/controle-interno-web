@@ -4,38 +4,39 @@ import MainLayout from '../../layouts/MainLayout';
 import '../../assets/styles/custom-styles.css';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
-import useSupplierService from '../../hooks/useSupplierService';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { supplierFields } from '../../constants/forms/supplierFields';
 import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const EditSupplierPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchSupplierById, updateSupplier, formErrors } = useSupplierService(navigate);
+    const { fetchById, update, formErrors } = useBaseService(entities.suppliers, navigate);
 
     const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(supplierFields));
 
     const fetchSupplier = useCallback(async () => {
         showLoader();
         try {
-            const supplier = await fetchSupplierById(id);
-            formatData(supplier, supplierFields);
+            const supplier = await fetchById(id);
+            formatData(supplier.result, supplierFields);
             setFormData(prev => ({
                 ...prev,
-                cpf_cnpj: maskCpfCnpj(supplier.cpf_cnpj || ''),
+                cpf_cnpj: maskCpfCnpj(supplier.result.cpf_cnpj || ''),
             }));
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados do fornecedor.');
         } finally {
             hideLoader();
         }
-    }, [id, fetchSupplierById, setFormData, showLoader, hideLoader, showNotification]);
+    }, [id, fetchById, setFormData, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchSupplier();
@@ -50,7 +51,7 @@ const EditSupplierPage = () => {
         };
         
         try {
-            await updateSupplier(id, sanitizedData);
+            await update(id, sanitizedData);
         } catch (error) {
             console.log(error);
             showNotification('error', 'Erro ao atualizar o fornecedor.');

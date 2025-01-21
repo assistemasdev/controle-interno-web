@@ -5,19 +5,21 @@ import '../../../assets/styles/custom-styles.css';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
-import useCustomerService from '../../../hooks/useCustomerService';
+import useCustomerService from '../../../hooks/services/useCustomerService';
 import useForm from '../../../hooks/useForm';
 import { addressFields } from '../../../constants/forms/addressFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useAddressService from '../../../hooks/services/useAddressService';
+import { entities } from '../../../constants/entities';
 
 const EditCustomerAddressPage = () => {
     const navigate = useNavigate();
     const { id, addressId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchCustomerAddress, updateAddress, formErrors } = useCustomerService(navigate);
+    const { fetchById, update, formErrors } = useAddressService(entities.customers, id,navigate);
     const { formData, setFormData, formatData, handleChange } = useForm(setDefaultFieldValues(addressFields));
 
     const handleFieldChange = useCallback((fieldId, value) => {
@@ -70,11 +72,11 @@ const EditCustomerAddressPage = () => {
     const fetchAddress = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchCustomerAddress(id, addressId);
-            formatData(response, addressFields)
+            const response = await fetchById(addressId);
+            formatData(response.result, addressFields)
             setFormData((prev) => ({
                 ...prev,
-                zip: maskCep(response.zip)
+                zip: maskCep(response.result.zip)
             }))
         } catch (error) {
             showNotification('error', 'Erro ao buscar pelo endereço');
@@ -82,7 +84,7 @@ const EditCustomerAddressPage = () => {
         } finally {
             hideLoader();
         }
-    }, [fetchCustomerAddress, id, addressId, setFormData, showLoader, hideLoader, showNotification]);
+    }, [fetchById, id, addressId, setFormData, showLoader, hideLoader, showNotification]);
 
     const handleSubmit = useCallback(async () => {
         const sanitizedData = {
@@ -91,12 +93,12 @@ const EditCustomerAddressPage = () => {
         };
 
         try {
-            await updateAddress(id, addressId, sanitizedData);
+            await update(id, addressId, sanitizedData);
         } catch (error) {
             console.error(error);
             showNotification('error', 'Erro ao editar o endereço');
         }
-    }, [formData, id, addressId, updateAddress, showNotification]);
+    }, [formData, id, addressId, update, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate(`/clientes/detalhes/${id}`);

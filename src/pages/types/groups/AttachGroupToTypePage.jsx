@@ -4,19 +4,20 @@ import { useNavigate, useParams } from 'react-router-dom';
 import '../../../assets/styles/custom-styles.css';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
-import useTypeGroupsService from '../../../hooks/useTypeGroupsService';
-import useGroupService from '../../../hooks/useGroupService';
+import useTypeGroupsService from '../../../hooks/services/useTypeGroupsService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { associeteGroupFields } from '../../../constants/forms/groupFields'
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useBaseService from '../../../hooks/services/useBaseService';
+import { entities } from '../../../constants/entities';
 
 const AttachGroupToTypePage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { fetchTypeGroups, attachGroupToType, formErrors } = useTypeGroupsService(navigate);
-    const { fetchAllGroups } = useGroupService(navigate);
+    const { fetchAll } = useBaseService(entities.groups ,navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const [groups, setGroups] = useState([]);
@@ -28,14 +29,14 @@ const AttachGroupToTypePage = () => {
             showLoader();
             const [typeGroups, allGroups] = await Promise.all([
                 fetchTypeGroups(id),
-                fetchAllGroups({}),
+                fetchAll({}),
             ]);
 
             setFormData({
                 groups: typeGroups.map((group) => group.id),
             });
 
-            setGroups(allGroups.data.map((group) => ({
+            setGroups(allGroups.result.data.map((group) => ({
                 value: group.id,
                 label: group.name,
             })));

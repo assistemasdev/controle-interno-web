@@ -5,36 +5,39 @@ import Button from '../../../components/Button';
 import '../../../assets/styles/custom-styles.css';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
-import useOrganizationService from '../../../hooks/useOrganizationService';
+import useOrganizationService from '../../../hooks/services/useOrganizationService';
 import { maskCep } from '../../../utils/maskUtils';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { addressFields } from '../../../constants/forms/addressFields';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useAddressService from '../../../hooks/services/useAddressService';
+import { entities } from '../../../constants/entities';
 
 const OrganizationAddressDetailsPage = () => {
     const navigate = useNavigate();
     const { organizationId, addressId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchOrganizationAddressById } = useOrganizationService(navigate);
+    const { fetchById } = useAddressService(entities.organizations, organizationId, navigate);
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields));
     
     const fetchAddress = useCallback(async () => {
         showLoader();
         try {
-            const response = await fetchOrganizationAddressById(organizationId, addressId);
-            formatData(response, addressFields)
+            const response = await fetchById(addressId);
+            formatData(response.result, addressFields)
             setFormData(prev => ({
                 ...prev,
-                zip: maskCep(response.zip)
+                zip: maskCep(response.result.zip)
             }));
         } catch (error) {
+            console.log(error)
             showNotification('error', 'Erro ao carregar os dados do endereço.');
         } finally {
             hideLoader();
         }
-    }, [fetchOrganizationAddressById, organizationId, addressId, showLoader, hideLoader, showNotification]);
+    }, [fetchById, organizationId, addressId, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchAddress();

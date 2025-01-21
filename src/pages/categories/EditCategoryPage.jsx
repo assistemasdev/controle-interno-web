@@ -6,36 +6,32 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import useForm from '../../hooks/useForm';
 import useNotification from '../../hooks/useNotification';
-import useCategoryService from '../../hooks/useCategoryService';
+import useCategoryService from '../../hooks/services/useCategoryService';
 import useLoader from '../../hooks/useLoader';
 import { categoryFields } from '../../constants/forms/categoryFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
+import { entities } from '../../constants/entities';
+import useBaseService from '../../hooks/services/useBaseService';
 
 const EditCategoryPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showNotification } = useNotification();
-    const { fetchCategoryById, updateCategory, formErrors } = useCategoryService(navigate);
+    const { fetchById, update, formErrors } = useBaseService(entities.categories, navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(categoryFields));
 
     const fetchCategory = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchCategoryById(id);
+            const response = await fetchById(id);
             formatData(response, categoryFields);
         } catch (error) {
-            if (error.status === 404) {
-                showNotification('error', error.message || 'Categoria não encontrada.');
-                navigate('/categorias/');
-                return;
-            }
-            showNotification('error', 'Erro ao carregar a categoria.');
             console.error(error);
         } finally {
             hideLoader();
         }
-    }, [id, fetchCategoryById, formatData, showLoader, hideLoader, showNotification, navigate]);
+    }, [id, fetchById, formatData, showLoader, hideLoader, showNotification, navigate]);
 
     useEffect(() => {
         fetchCategory();
@@ -44,13 +40,13 @@ const EditCategoryPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await updateCategory(id, formData);
+            await update(id, formData);
         } catch (error) {
             console.error(error);
         } finally {
             hideLoader();
         }
-    }, [id, formData, updateCategory, showNotification, showLoader, hideLoader]);
+    }, [id, formData, update, showNotification, showLoader, hideLoader]);
 
     const handleBack = useCallback(() => {
         navigate(`/categorias/`);
