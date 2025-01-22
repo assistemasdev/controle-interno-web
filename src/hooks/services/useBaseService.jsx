@@ -17,6 +17,7 @@ const useBaseService = (entity, navigate) => {
             clearFormErrors();
             try {
                 const response = await requestFn();
+
                 if (successMessage) {
                     showNotification('success', response.message || successMessage);
                 }

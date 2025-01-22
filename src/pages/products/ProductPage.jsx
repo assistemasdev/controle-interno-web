@@ -25,7 +25,7 @@ const ProductsPage = () => {
     const [itemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const { fetchAll, remove } = useBaseService(entities.products,navigate);
-    const { fetchAllStatus } = useStatusService(navigate);
+    const { fetchAll: fetchAllStatus } = useBaseService(entities.status,navigate);
     const { hideLoader, showLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedProducts, setSelectedProducts] = useState([]);
@@ -60,6 +60,7 @@ const ProductsPage = () => {
             name: product.name,
             number: product.number,
             status: statusMap[product.status_id] || "N/A",
+            deleted_at: product.deleted_at ? 'deleted-' + product.deleted_at : 'deleted-null'
         }));
     }, []);
 
@@ -70,14 +71,13 @@ const ProductsPage = () => {
                 fetchAllStatus(),
                 fetchAll(filtersSubmit || filters),
             ]);
-    
-            const statusMap = mapStatus(statusResponse.data);
+            const statusMap = mapStatus(statusResponse.result.data);
             setStatusOptions(statusMap);
     
-            const filteredProducts = transformProducts(productsResponse.data, statusMap);
+            const filteredProducts = transformProducts(productsResponse.result.data, statusMap);
             setProducts(filteredProducts);
-            setCurrentPage(productsResponse.currentPage);
-            setTotalPages(productsResponse.last_page);
+            setCurrentPage(productsResponse.result.currentPage);
+            setTotalPages(productsResponse.result.last_page);
         } catch (error) {
             console.error("Erro capturado no fetchData:", error);
         } finally {

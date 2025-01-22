@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faBriefcase, faBars, faCalendar, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faBriefcase, faCalendarAlt, faCircleInfo, faFileContract, faBars, faCalendar, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
 import "../assets/styles/sidebar/header.css";
 import "../assets/styles/sidebar/sidebar.css";
 import perfil from "../assets/img/perfil.png";
 import { useAuth } from "../hooks/useAuth";
-import UserService from "../services/UserService";
 import { useNavigate } from 'react-router-dom';
 import { useOrgan } from '../hooks/useOrgan';
 import { usePermissions } from "../hooks/usePermissions";
@@ -73,8 +72,11 @@ const SideBarTwo = ({ children }) => {
                 }, {
                     title: 'Contratos',
                     items: [
+                        { name: 'Contratos', icon: faFileContract, to: '/contratos/', requiredPermission: 'Listar contratos' }, 
+                        { name: 'Tipos de Contratos', icon: faTags, to: '/contratos/tipos', requiredPermission: 'Listar tipos de contratos' },
+                        { name: 'Tipos de Eventos', icon: faCalendarAlt, to: '/contratos/tipos-eventos', requiredPermission: 'Listar tipos de eventos de contratos' },
+                        { name: 'Status', icon: faCircleInfo, to: '/contratos/status', requiredPermission: 'Listar status de contratos' },
                         { name: 'Calendário', icon: faCalendar, to: '/calendario', requiredPermission: '' },
-                        { name: 'Tipos', icon: faTags, to: '/contratos/tipos', requiredPermission: '' },
                     ].filter(item => canAccess(item.requiredPermission))
                 }
             ];

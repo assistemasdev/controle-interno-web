@@ -13,12 +13,12 @@ import { productFields } from "../../constants/forms/productFields";
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
-
+import useAddressService from '../../hooks/services/useAddressService';
 const CreateProductPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { create, formErrors } = useBaseService(entities.products, navigate);
-    const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
+    const { fetchOrganizationLocations } = useOrganizationService(navigate);
     const { fetchAll: fetchOrganizations } = useBaseService(entities.organizations, navigate);
     const { fetchAll: fetchConditions } = useBaseService(entities.conditions, navigate);
     const { fetchAll: fetchCategories } = useBaseService(entities.categories, navigate);
@@ -36,6 +36,10 @@ const CreateProductPage = () => {
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
     const [selectedOrganizationId, setSelectedOrganizationId] = useState();
+    const { fetchAll: fetchOrganizationAddresses } = useAddressService(entities.organizations, selectedOrganizationId, navigate);
+
+    useEffect(() => {
+    }, [selectedOrganizationId]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -157,11 +161,13 @@ const CreateProductPage = () => {
         }
     };
 
-    const fetchAddresses = useCallback(async (organizationId) => {
+    const fetchAddresses = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchOrganizationAddresses(organizationId);
-            const addressesFormatted = response.data.map((address) => ({
+            console.log(selectedOrganizationId)
+            const response = await fetchOrganizationAddresses();
+            console.log(response)
+            const addressesFormatted = response.result.data.map((address) => ({
                 value: address.id,
                 label: `${address.street}, ${address.city} - ${address.state}`,
             }));
@@ -196,21 +202,23 @@ const CreateProductPage = () => {
     };
 
     const handleOrganizationChange = useCallback((selectedOption) => {
-        const selectedOrganizationId = selectedOption ? selectedOption.value : '';
+        setSelectedOrganizationId(selectedOption ? selectedOption.value : '');
         setFormData((prev) => ({
             ...prev,
             product: {
                 ...prev.product,
-                current_organization_id: selectedOrganizationId,
+                current_organization_id: selectedOption.value,
             },
         }));
-    
+    }, [fetchAddresses]);
+
+    useEffect(() => {
         if (selectedOrganizationId) {
-            fetchAddresses(selectedOrganizationId);
+            fetchAddresses();
         } else {
             setAddresses([]);
         }
-    }, [fetchAddresses]);
+    }, [selectedOrganizationId])
 
     const handleGroupChange = useCallback((selectedOptions) => {
         const selectedValues = Array.isArray(selectedOptions)

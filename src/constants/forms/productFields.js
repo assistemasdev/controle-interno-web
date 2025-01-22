@@ -127,7 +127,8 @@ export const productFields = [
                 label: "Grupos:", 
                 type: "multi-select", 
                 placeholder: "Selecione os grupos", 
-                handleChange: "handleGroupChange" 
+                handleChange: "handleGroupChange" ,
+                fullWidth: true
             },
         ],
     },

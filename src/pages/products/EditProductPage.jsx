@@ -6,31 +6,29 @@ import { productFields } from "../../constants/forms/productFields";
 import useNotification from '../../hooks/useNotification';
 import useProductService from '../../hooks/services/useProductService';
 import useLoader from '../../hooks/useLoader';
-import useSupplierService from '../../hooks/services/useSupplierService';
 import useOrganizationService from '../../hooks/services/useOrganizationService';
 import useTypeGroupsService from '../../hooks/services/useTypeGroupsService';
 import useForm from '../../hooks/useForm';
 import { useNavigate, useParams } from 'react-router-dom';
-import TypeService from '../../services/TypeService';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import useAddressService from '../../hooks/services/useAddressService';
 
 const EditProductPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showNotification } = useNotification();
     const { fetchProductGroups } = useProductService(navigate);
-    const { fetchOrganizationAddresses, fetchOrganizationLocations } = useOrganizationService(navigate);
-    const { fetchSuppliers } = useSupplierService(navigate);
+    const { fetchOrganizationLocations } = useOrganizationService(navigate);
     const { fetchTypeGroups } = useTypeGroupsService(navigate);
     const { fetchAll: fetchOrganizations } = useBaseService(entities.organizations, navigate);
     const { fetchAll: fetchConditions } = useBaseService(entities.conditions, navigate);
     const { fetchAll: fetchCategories } = useBaseService(entities.categories, navigate);
+    const { fetchAll: fetchSuppliers } = useBaseService(entities.suppliers, navigate);
+    const { fetchAll: fetchTypes } = useBaseService(entities.types, navigate);
     const { fetchById, update, formErrors } = useBaseService(entities.products, navigate);
-
     const { showLoader, hideLoader } = useLoader();
-
     const {
         formData,
         setFormData,
@@ -38,7 +36,6 @@ const EditProductPage = () => {
         initializeData,
         formatData
     } = useForm(setDefaultFieldValues(productFields));
-
     const [organizations, setOrganizations] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
     const [conditions, setConditions] = useState([]);
@@ -48,7 +45,8 @@ const EditProductPage = () => {
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
     const [selectedOrganizationId, setSelectedOrganizationId] = useState();
-    
+    const { fetchAll: fetchOrganizationAddresses} = useAddressService(entities.organizations, selectedOrganizationId, navigate)
+
     useEffect(() => {
         initializeData(productFields);
 
@@ -69,21 +67,21 @@ const EditProductPage = () => {
                     fetchSuppliers(),
                     fetchConditions(),
                     fetchCategories(),
-                    TypeService.getAll(navigate),
+                    fetchTypes(),
                     fetchProductGroups(id)
                 ]);
 
                 setOrganizations(orgResponse.result.data.map((org) => ({ value: org.id, label: org.name })));
 
-                setSuppliers(suppliersResponse.data.map((supplier) => ({
+                setSuppliers(suppliersResponse.result.data.map((supplier) => ({
                     value: supplier.id,
                     label: supplier.name,
                 })));
-                setConditions(conditionResponse.data.map((condition) => ({
+                setConditions(conditionResponse.result.data.map((condition) => ({
                     value: condition.id,
                     label: condition.name,
                 })));
-                setCategories(categoryResponse.data.map((category) => ({
+                setCategories(categoryResponse.result.data.map((category) => ({
                     value: category.id,
                     label: category.name,
                 })));
@@ -97,23 +95,20 @@ const EditProductPage = () => {
                     label: group.name,
                 })));
 
-                setSelectedOrganizationId(product.current_organization_id)
-
+                setSelectedOrganizationId(product.result.current_organization_id)
                 formatData({product:product.result}, productFields)
 
-                setFormData({
+                setFormData(prev => ({
+                    ...prev,
                     product: {
-                        ...product,
-                        type_id: product.type_id || '',
+                        ...prev.product,
+                        type_id: product.result.type_id || '',
                     },
                     groups: productGroups.map((group) => group.id) || [],
-                });
+                }));
 
-                if (product.current_organization_id) {
-                    await fetchAddresses(product.current_organization_id);
-                }
-                if (product.address_id && product.current_organization_id) {
-                    await fetchLocations(product.current_organization_id, product.address_id);
+                if (product.address_id && product.result.current_organization_id) {
+                    await fetchLocations(product.result.current_organization_id, product.result.address_id);
                 }
             } catch (error) {
                 console.error(error);
@@ -195,10 +190,10 @@ const EditProductPage = () => {
     };
 
     const getSelectedValue = (fieldId) => {
-        if (fieldId.startsWith('product.')) {
-            const key = fieldId.replace('product.', '');
-            const value = formData.product[key];
-            return getOptions(fieldId).find(option => option.value === value) || null;
+        const [category, key] = fieldId.split(".");
+        if (key) {
+            const value = formData[category]?.[key];
+            return getOptions(fieldId).find((option) => option.value === value) || null;
         }
         if (fieldId === 'groups') {
             return groups.filter(group => formData.groups.includes(group.value));
@@ -206,11 +201,11 @@ const EditProductPage = () => {
         return null;
     };
 
-    const fetchAddresses = useCallback(async (organizationId) => {
+    const fetchAddresses = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchOrganizationAddresses(organizationId);
-            const addressesFormatted = response.data.map((address) => ({
+            const response = await fetchOrganizationAddresses();
+            const addressesFormatted = response.result.data.map((address) => ({
                 value: address.id,
                 label: `${address.street}, ${address.city} - ${address.state}`,
             }));
@@ -250,16 +245,18 @@ const EditProductPage = () => {
             ...prev,
             product: {
                 ...prev.product,
-                current_organization_id: selectedOrganizationId,
+                current_organization_id: selectedOption.value,
             },
         }));
+    }, [fetchAddresses]);
 
+    useEffect(() => {
         if (selectedOrganizationId) {
             fetchAddresses(selectedOrganizationId);
         } else {
             setAddresses([]);
         }
-    }, [fetchAddresses]);
+    }, [selectedOrganizationId])
 
     const handleGroupChange = useCallback((selectedOptions) => {
         const selectedValues = Array.isArray(selectedOptions)

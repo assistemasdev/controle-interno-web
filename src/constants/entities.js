@@ -11,5 +11,11 @@ export const entities = {
     types: 'types',
     groups: 'groups',
     status: 'status',
-    units: 'units'
+    units: 'units',
+    contracts: 'contracts',
+    contractTypes: 'contractTypes',
+    contractStatus: 'contractStatus',
+    contractEventTypes: 'contractEventTypes',
+    contractInfos: 'contractInfos',
+
 }

@@ -94,8 +94,20 @@ import EditProductPage from "../pages/products/EditProductPage";
 import DetailsProductPage from "../pages/products/DetailsProductPage";
 import UserOrganizationsPage from "../pages/users/organizations/UserOrganizationsPage";
 import CalendarPage from "../pages/contracts/CalendarPage";
-import TypeContractPage from "../pages/contracts/types/TypeContractPage";
-
+import TypeContractPage from "../pages/contracts/typesContracts/TypeContractPage";
+import CreateTypeContractPage from "../pages/contracts/typesContracts/CreateTypeContractPage";
+import EditTypeContractPage from "../pages/contracts/typesContracts/EditTypeContractPage";
+import StatusContractPage from "../pages/contracts/status/StatusContractPage";
+import CreateStatusContractPage from "../pages/contracts/status/CreateStatusContractPage";
+import ContractPage from "../pages/contracts/contract/ContractPage";
+import CreateContractPage from "../pages/contracts/contract/CreateContractPage";
+import TypeEventsPage from "../pages/contracts/typesEvents/TypeEventsPage"
+import CreateTypeEventsPage from "../pages/contracts/typesEvents/CreateTypeEventsPage";
+import DetailsTypeEventsPage from "../pages/contracts/typesEvents/DetailsTypeEventsPage";
+import EditTypeEventsPage from "../pages/contracts/typesEvents/EditTypeEventsPage";
+import DetailsContractPage from "../pages/contracts/contract/DetailsContractPage";
+import EditContractPage from "../pages/contracts/contract/EditContractPage";
+import CreateEventContractPage from "../pages/contracts/contract/events/CreateEventContractPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -266,6 +278,50 @@ const AppRoutesContent = () => {
         }
     ];
 
+    const typesEventsRoutes = [
+        {
+            path: "/contratos/tipos-eventos",
+            element: <PrivateRoute element={TypeEventsPage} />,
+        },
+        {
+            path: "/contratos/tipos-eventos/detalhes/:id",
+            element: <PrivateRoute element={DetailsTypeEventsPage} />,
+        },
+        {
+            path: "/contratos/tipos-eventos/criar",
+            element: <PrivateRoute element={CreateTypeEventsPage} />,
+        },
+        {
+            path: "/contratos/tipos-eventos/editar/:id",
+            element: <PrivateRoute element={EditTypeEventsPage}/>
+        }
+    ];
+
+
+    const contractRoutes = [
+        {
+            path: "/contratos",
+            element: <PrivateRoute element={ContractPage} />,
+        },
+        {
+            path: "/contratos/criar",
+            element: <PrivateRoute element={CreateContractPage} />,
+        },
+        {
+            path: "/contratos/editar/:id",
+            element: <PrivateRoute element={EditContractPage}/>
+        },
+        {
+            path: "/contratos/detalhes/:id",
+            element: <PrivateRoute element={DetailsContractPage}/>
+        },
+        {
+            path: "/contratos/:id/evento/adicionar/",
+            element: <PrivateRoute element={CreateEventContractPage}/>
+        }
+    ];
+
+
     const typesContractRoutes = [
         {
             path: "/contratos/tipos",
@@ -273,16 +329,27 @@ const AppRoutesContent = () => {
         },
         {
             path: "/contratos/tipos/criar",
-            element: <PrivateRoute element={CreateTypePage} />,
+            element: <PrivateRoute element={CreateTypeContractPage} />,
         },
         {
             path: "/contratos/tipos/editar/:id",
-            element: <PrivateRoute element={EditTypePage}/>
+            element: <PrivateRoute element={EditTypeContractPage}/>
+        }
+    ];
+
+    const statusContractRoutes = [
+        {
+            path: "/contratos/status",
+            element: <PrivateRoute element={StatusContractPage} />,
         },
         {
-            path: "/contratos/tipos/:id/grupos/associar",
-            element: <PrivateRoute element={AttachGroupToTypePage}/>
-        }
+            path: "/contratos/status/criar",
+            element: <PrivateRoute element={CreateStatusContractPage} />,
+        },
+        {
+            path: "/contratos/status/editar/:id",
+            element: <PrivateRoute element={EditTypeContractPage}/>
+        },
     ];
 
     const categoriesRoutes = [
@@ -471,10 +538,22 @@ const AppRoutesContent = () => {
             <Route key={index} path={route.path} element={route.element} />
         ))}
 
+        {contractRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
         {typesContractRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}
+
+        {statusContractRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
         
+        {typesEventsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
         {typesRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}

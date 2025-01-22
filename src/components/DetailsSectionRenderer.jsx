@@ -12,7 +12,7 @@ const resolveFieldValue = (formData, fieldId) => {
 
 const DetailsSectionRenderer = ({ sections, formData }) => {
     return (
-        <div className="row">
+        <div className="row p-3 rounded shadow-sm">
             {sections.map((section) => (
                 <div key={section.section} className="form-section mb-4">
                     <hr />
@@ -21,19 +21,35 @@ const DetailsSectionRenderer = ({ sections, formData }) => {
                     <div className="form-row">
                         {section.fields.map((field) => {
                             const value = resolveFieldValue(formData, field.id);
+
                             return (
                                 <div
                                     key={field.id}
                                     className={`d-flex flex-column ${field.fullWidth ? 'col-md-12' : 'col-md-6'}`}
                                 >
-                                    <InputField
-                                        label={field.label}
-                                        id={field.id}
-                                        value={value}
-                                        type={field.type}
-                                        placeholder={field.placeholder}
-                                        disabled={field.disabled !== false}
-                                    />
+                                    {field.type === "textarea" ? (
+                                        <>
+                                            <label htmlFor={field.id} className="font-weight-bold mt-1">
+                                                {field.label}
+                                            </label>
+                                            <textarea
+                                                id={field.id}
+                                                className={`form-control`}
+                                                value={value || "-"}
+                                                placeholder={field.placeholder}
+                                                disabled={field.disabled !== false}
+                                            />
+                                        </>
+                                    ) : (
+                                        <InputField
+                                            label={field.label}
+                                            id={field.id}
+                                            value={value || "-"}
+                                            type={field.type}
+                                            placeholder={field.placeholder}
+                                            disabled={field.disabled !== false}
+                                        />
+                                    )}
                                 </div>
                             );
                         })}
