@@ -2,41 +2,166 @@ import React, { useEffect, useMemo, useState } from 'react';
 import InputField from '../components/InputField';
 import Select from 'react-select';
 import Button from './Button';
+import DynamicTable from './DynamicTable';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { v4 as uuidv4 } from 'uuid';
 
 const FormSection = ({ 
     section, 
     formData, 
+    setFormData = null,
     handleFieldChange, 
     getOptions, 
     getSelectedValue, 
-    formErrors 
+    formErrors ,
+    setFormErrors = null
 }) => {
-    const [count, setCount] = useState(section.count);
     const [fieldsData, setFieldsData] = useState([]);
-
+    const [viewTable, setViewTable] = useState(false);
+    const [headers, setHeaders] = useState([]);
+    
     useEffect(() => {
-        console.log(fieldsData)
-    }, [fieldsData])
-    useEffect(() => {
-        setFieldsData(Array.from({ length: count }).map((_, index) => ({ id: `field-${index}` })));
-    }, [count]);
+        if (section.array) {
+            const fields = section.fields;
+            
+            setFieldsData(fields.reduce((acc, currentValue) => {
+                const column = currentValue.id.split('.')[1]
+                return {
+                    ...acc,
+                    [column]: ''
+                }
+            }, { id: '' }));
 
-    const handleSectionCount = (action) => {
-        if (action === 'increment') {
-            setCount(count + 1);
-            setFieldsData([...fieldsData, { id: `field-${count}` }]);
-        } else if (action === 'decrement' && count > 0) {
-            const updatedFields = fieldsData.slice(0, -1);
-            setFieldsData(updatedFields);
-            setCount(count - 1);
+            setHeaders(fields.reduce((acc, currentValue) => {
+                const cleanedValue = currentValue.label.replace(/:/g, '');
+
+                return [
+                    ...acc,
+                    cleanedValue
+                ]
+            }, ['ID']))
         }
+    }, [section.array]);
+
+ 
+    const handleEdit = (item) => {
+        setViewTable(false)
+        setFieldsData(item)
+    }
+
+    const handleDelete = (item) => {
+        const key = section.fields[0].id.split('.')[0]
+        setFormData((prev) => ({
+            ...prev,
+            [key]: prev[key].filter((currentItem) => currentItem.id !== item.id)
+        }));
+    }
+
+    const addFieldsInData = (section) => {
+        const key = section.fields[0].id.split('.')[0];
+        const newFormErrors = {};
+        let hasError = false;
+
+        section.fields.forEach((field) => {
+            if (fieldsData[field.id.split('.')[1]]) {
+                delete formErrors[fieldsData[field.id.split('.')[1]]];
+            }
+        });
+
+        section.fields.forEach((field) => {
+            const fieldKey = `${key}.0.${field.id.split('.')[1]}`;
+            if (!fieldsData[field.id.split('.')[1]] || fieldsData[field.id.split('.')[1]].trim() === "") {
+                hasError = true;
+                newFormErrors[fieldKey] = `O campo ${field.label} é obrigatório.`;
+            }
+        });
+    
+        if (hasError) {
+            setFormErrors((prev) => ({
+                ...prev,
+                ...newFormErrors, 
+            }));
+            return; 
+        }
+    
+        setFormErrors((prev) => {
+            const updatedErrors = Object.keys(prev).reduce((acc, errorKey) => {
+                if (!errorKey.startsWith(`${key}.0.`)) {
+                    acc[errorKey] = prev[errorKey]; 
+                }
+                return acc;
+            }, {});
+            return updatedErrors;
+        });
+        
+        if (fieldsData.id) {
+            setFormData((prev) => ({
+                ...prev,
+                [key]: prev[key].some(item => item.id === fieldsData.id)
+                    ? prev[key].map(item => 
+                        item.id === fieldsData.id 
+                            ? { ...item, ...fieldsData } 
+                            : item
+                      )
+                    : [
+                        ...prev[key],
+                        fieldsData 
+                      ]
+            }));
+            setFieldsData({});
+            return
+        }
+
+        fieldsData.id = uuidv4();
+
+        setFormData((prev) => ({
+            ...prev,
+            [key]: [
+                ...prev[key],
+                fieldsData
+            ],
+        }));
+    
+        setFieldsData({});
+    };
+    
+    const handleArrayFieldChange = (fieldId, value, field) => {
+        const column = fieldId.split('.')[1];
+        setFieldsData(prev => ({
+            ...prev,
+            [column]: value
+        }));
     };
 
-    const handleRemoveField = (fieldIndex) => {
-        const updatedFields = fieldsData.filter((_, index) => index !== fieldIndex);
-        setFieldsData(updatedFields);
-        setCount(updatedFields.length);
+    const handleViewTable = () => {
+        setViewTable(!viewTable);
     };
+
+    const actions = useMemo(() => [
+            {
+                id:'edit',
+                icon: faEdit,
+                title: 'Editar',
+                buttonClass: 'btn-primary',
+                permission: '',
+                onClick: handleEdit
+            },
+            {
+                id: 'delete',
+                icon: faTrash,
+                title: 'Excluir',
+                buttonClass: 'btn-danger',
+                permission: '',
+                onClick: handleDelete
+            },
+    ], []);
+    
+
+    // const handleRemoveField = (fieldId) => {
+    //     const updatedFields = fieldsData.filter((item) => item.id !== fieldId);
+    //     setFieldsData(updatedFields);
+    //     setCount(updatedFields.length);
+    // };
 
     const flattenObject = (obj, parentKey = '', result = {}) => {
         for (let key in obj) {
@@ -60,131 +185,87 @@ const FormSection = ({
             <div className='d-flex align-items-center justify-content-between'>
                 <h5>{section.section}</h5>
                 {section.array && (
-                    <Button 
-                        text="Adicionar Campos" 
-                        className='btn btn-blue-light fw-semibold' 
-                        onClick={() => handleSectionCount('increment')}
-                    />
+                    <div className='d-flex '>
+                        <Button 
+                            text={`${viewTable? 'Ver campos' : 'Ver tabela'}`} 
+                            className='btn btn-blue-light fw-semibold mr-2' 
+                            onClick={() => handleViewTable()}
+                        />
+                        <Button 
+                            text="Adicionar Campos" 
+                            className='btn btn-blue-light fw-semibold' 
+                            onClick={() => addFieldsInData(section)}
+                            disabled={viewTable}
+                        />
+                    </div>
                 )}
             </div>
             <hr />
             {section.array ? (
-                count === 0 ? (
-                    <div style={{ 
-                        backgroundColor: '#F0E68C', 
-                        padding: '10px', 
-                        borderRadius: '5px', 
-                        width: '100%', 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        alignItems: 'center' 
-                    }}>
-                        <h6>Clique em 'Adicionar Campos' para exibir os campos adicionais</h6>
-                    </div>  
+                viewTable? (
+                    <>
+                        <DynamicTable
+                            headers={headers}
+                            data={formData[section.fields[0].id.split('.')[0]]}
+                            actions={actions}
+                        />
+                    </>
                 ) : (
-                    fieldsData.map((field, index) => (
-                        <div className="form-row" key={field.id}>
-                            <div className="d-flex justify-content-between align-items-center mb-3 w-100">
-                                <span className="font-weight-bold">Campo #{index + 1}</span>
-                                <button
-                                    type="button"
-                                    className="btn btn-danger btn-sm"
-                                    onClick={() => handleRemoveField(index)}
-                                >
-                                    Remover
-                                </button>
-                            </div>
-                            {section.fields.map((sectionField) => (
-                                <div 
-                                    className={`d-flex flex-column ${sectionField.fullWidth ? 'col-md-12' : 'col-md-6'}`} 
-                                    key={sectionField.id}
-                                >
-                                    {sectionField.type === "textarea" ? (
-                                        <>
-                                            <label htmlFor={sectionField.id} className="font-weight-bold mt-1">
-                                                {sectionField.label}
-                                            </label>
-                                            <textarea
-                                                id={`${field.id}-${sectionField.id}`}
-                                                className={`form-control ${formErrors[sectionField.id] ? "is-invalid" : ""}`}
-                                                value={flatData[`${field.id}-${sectionField.id}`] || ""}
-                                                onChange={(e) => handleFieldChange(`${field.id}-${sectionField.id}`, e.target.value, sectionField)}
-                                                placeholder={sectionField.placeholder}
-                                            />
-                                            {formErrors[sectionField.id] && (
-                                                <div className="invalid-feedback d-block">
-                                                    {formErrors[sectionField.id]}
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : sectionField.type === "text" || sectionField.type === "email" || sectionField.type === "color" || sectionField.type === "password" || sectionField.type === "number" || sectionField.type === "date" ? (
-                                        <InputField
-                                            label={sectionField.label}
-                                            type={sectionField.type}
-                                            id={`${field.id}-${sectionField.id}`}
-                                            value={flatData[`${field.id}-${sectionField.id}`] || ""}
-                                            onChange={(e) => handleFieldChange(`${field.id}-${sectionField.id}`, e.target.value, sectionField)}
+                    <div className='form-row'>
+                        {section.fields.map((sectionField) => (
+                            <div
+                                className={`d-flex flex-column ${sectionField.fullWidth ? 'col-md-12' : 'col-md-6'}`}
+                                key={sectionField.id}
+                            >
+                                {sectionField.type === "text" || sectionField.type === "textarea" || sectionField.type === "email" || sectionField.type === "color" || sectionField.type === "password" || sectionField.type === "number" || sectionField.type === "date" ? (
+                                    <InputField
+                                        label={sectionField.label}
+                                        type={sectionField.type}
+                                        id={`${sectionField.id}`}
+                                        value={fieldsData[sectionField.id.split('.')[1]] || ""}
+                                        onChange={(e) => handleArrayFieldChange(sectionField.id, e.target.value, sectionField)}
+                                        placeholder={sectionField.placeholder}
+                                        error={formErrors[`${sectionField.id.split('.')[0]}.0.${sectionField.id.split('.')[1]}`]}
+                                    />
+                                ) : (
+                                    <>
+                                        <label htmlFor={sectionField.id} className="font-weight-bold mt-1">
+                                            {sectionField.label}
+                                        </label>
+                                        <Select
+                                            name={`${sectionField.id}`}
+                                            isMulti={sectionField.isMulti}
+                                            options={getOptions(sectionField.id)}
+                                            className={`basic-multi-select ${formErrors[sectionField.id] ? "is-invalid" : ""}`}
+                                            classNamePrefix="select"
+                                            value={getSelectedValue(sectionField.id)}
+                                            onChange={(selectedOption) => {
+                                                if (sectionField.isMulti) {
+                                                    const values = selectedOption ? selectedOption.map(option => option.value) : [];
+                                                    handleArrayFieldChange(sectionField.id, values, sectionField);
+                                                } else {
+                                                    handleArrayFieldChange(sectionField.id, selectedOption ? selectedOption.value : "", sectionField);
+                                                }
+                                            }}
+                                            noOptionsMessage={() => `Nenhuma opção encontrada para ${sectionField.label}`}
                                             placeholder={sectionField.placeholder}
-                                            error={formErrors[sectionField.id]}
                                         />
-                                    ) : (
-                                        <>
-                                            <label htmlFor={sectionField.id} className="font-weight-bold mt-1">
-                                                {sectionField.label}
-                                            </label>
-                                            <Select
-                                                name={`${field.id}-${sectionField.id}`}
-                                                isMulti={sectionField.isMulti}
-                                                options={getOptions(sectionField.id)}
-                                                className={`basic-multi-select ${formErrors[sectionField.id] ? "is-invalid" : ""}`}
-                                                classNamePrefix="select"
-                                                value={getSelectedValue(`${field.id}-${sectionField.id}`)}
-                                                onChange={(selectedOption) => {
-                                                    if (sectionField.isMulti) {
-                                                        const values = selectedOption ? selectedOption.map((option) => option.value) : [];
-                                                        handleFieldChange(`${field.id}-${sectionField.id}`, values, sectionField);
-                                                    } else {
-                                                        handleFieldChange(`${field.id}-${sectionField.id}`, selectedOption ? selectedOption.value : "", sectionField);
-                                                    }
-                                                }}
-                                                noOptionsMessage={() => `Nenhuma opção encontrada para ${sectionField.label}`}
-                                                placeholder={sectionField.placeholder}
-                                            />
-                                            {formErrors[sectionField.id] && (
-                                                <div className="invalid-feedback d-block">
-                                                    {formErrors[sectionField.id]}
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ))
+                                        {formErrors[`${sectionField.id.split('.')[0]}.0.${sectionField.id.split('.')[1]}`] && (
+                                            <div className="invalid-feedback d-block">
+                                                {formErrors[`${sectionField.id.split('.')[0]}.0.${sectionField.id.split('.')[1]}`]}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 )
             ) : (
                 <div className="form-row">
                     {section.fields.map((field) => (
                         <div className={`d-flex flex-column ${field.fullWidth ? 'col-md-12' : 'col-md-6'}`} key={field.id}>
-                            {field.type === "textarea" ? (
-                                <>
-                                    <label htmlFor={field.id} className="font-weight-bold mt-1">
-                                        {field.label}
-                                    </label>
-                                    <textarea
-                                        id={field.id}
-                                        className={`form-control ${formErrors[field.id] ? "is-invalid" : ""}`}
-                                        value={flatData[field.id] || ""}
-                                        onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
-                                        placeholder={field.placeholder}
-                                    />
-                                    {formErrors[field.id] && (
-                                        <div className="invalid-feedback d-block">
-                                            {formErrors[field.id]}
-                                        </div>
-                                    )}
-                                </>
-                            ) : field.type === "text" || field.type === "email" || field.type === "color" || field.type === "password" || field.type === "number" || field.type === "date" ? (
+                            {field.type === "text" || field.type === "textarea" || field.type === "email" || field.type === "color" || field.type === "password" || field.type === "number" || field.type === "date" ? (
                                 <InputField
                                     label={field.label}
                                     type={field.type}

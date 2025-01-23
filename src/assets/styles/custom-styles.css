@@ -157,6 +157,26 @@ hr {
     cursor: pointer;
 }
 
+.table-theme td {
+    white-space: nowrap; /* Impede quebra de linha */
+    overflow: hidden; /* Esconde texto que ultrapassar o limite */
+    text-overflow: ellipsis; /* Adiciona "..." no texto grande */
+    max-width: 150px; /* Define um limite máximo de largura */
+}
+
+.table-theme th {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.table-theme td:hover {
+    white-space: normal; /* Permite quebra de linha ao passar o mouse */
+    overflow: visible;
+    max-width: none;
+    word-break: break-word; /* Quebra palavras muito grandes */
+}
+
 @media (max-width: 767px) {
     .open-sidebar{
         visibility: visible;

@@ -43,9 +43,20 @@ const useContractService = (navigate) => {
         [navigate, handleRequest]
     );
 
+    const createContractEvent = useCallback(
+        async (id, data) => handleRequest(
+            () => contractService.createContractEvent(id, data, navigate),
+            'Evento adicionado com sucesso!',
+            'Erro ao adicionar evento!'
+        ),
+        [navigate, handleRequest]
+    );
 
     return {
         fetchInfos,
+        createContractEvent,
+        formErrors,
+        setFormErrors
     };
 };
 

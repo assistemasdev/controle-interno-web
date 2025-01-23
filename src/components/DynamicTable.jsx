@@ -24,7 +24,9 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
     };
 
     useEffect(() => {
-        onPageChange(filters);
+        if(onPageChange && filters) {
+            onPageChange(filters);
+        }
     }, [filters])
 
     const toggleCollapse = () => {
@@ -36,6 +38,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
             {/* Cabeçalho com Seta */}
             <div className="d-flex justify-content-between align-items-center flex-wrap">
                 <button
+                    type="button"
                     className="btn btn-sm"
                     style={{ color: organColor }}
                     onClick={toggleCollapse}
@@ -43,26 +46,28 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                     <FontAwesomeIcon icon={isCollapsed ? faChevronDown : faChevronUp} />
                 </button>
 
-                <div>
-                    <div className="checkbox-container" style={{ width: '150px'}}>
-                        <div className="box-switch">
-                            <div className="switch status">
-                                <input
-                                    type="checkbox"
-                                    value={filters.deleted_at}
-                                    onChange={() => handleStatus(filters.deleted_at)}
-                                    id="active"
-                                    checked={filters.deleted_at}
-                                />
+                {filters && filters.deleted_at && (
+                    <div>
+                        <div className="checkbox-container" style={{ width: '150px'}}>
+                            <div className="box-switch">
+                                <div className="switch status">
+                                    <input
+                                        type="checkbox"
+                                        value={filters.deleted_at}
+                                        onChange={() => handleStatus(filters.deleted_at)}
+                                        id="active"
+                                        checked={filters.deleted_at}
+                                    />
+                                </div>
+                            </div>
+                            <div className="label">
+                                <p className='text-dark font-bold'>
+                                    Ativos/Inativos
+                                </p>
                             </div>
                         </div>
-                        <div className="label">
-                            <p className='text-dark font-bold'>
-                                Ativos/Inativos
-                            </p>
-                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Corpo da Tabela */}
@@ -74,7 +79,11 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                 {headers.map((header, index) => (
                                     <th scope="col" className="text-dark" key={index}>{header}</th>
                                 ))}
-                                <th scope="col" className="text-dark">Ações</th>
+
+                                {actions && (
+                                    <th scope="col" className="text-dark">Ações</th>
+                                )}
+                                    
                             </tr>
                         </thead>
                         <tbody>
@@ -92,8 +101,8 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                             return null;
                                         })}
                                         <td className="align-middle">
-                                            {actions
-                                                .filter(action => {
+                                            {actions && item.deleted_at? (
+                                                actions.filter(action => {
                                                     const deletedAt = item.deleted_at.split('-')[1];
                                                     if (action.id === 'delete' && deletedAt != 'null') {
                                                         return false;
@@ -106,13 +115,28 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                                 .map((action, idx) => (
                                                     <button
                                                         key={idx}
+                                                        type="button"
                                                         className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
                                                         title={action.title}
                                                         onClick={() => action.onClick(item, action.id)}
                                                     >
                                                         <FontAwesomeIcon icon={action.icon} />
                                                     </button>
-                                                ))}
+                                                ))
+                                            ) : (
+                                                actions
+                                                .map((action, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
+                                                        title={action.title}
+                                                        onClick={() => action.onClick(item, action.id)}
+                                                    >
+                                                        <FontAwesomeIcon icon={action.icon} />
+                                                    </button>
+                                                ))
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -125,46 +149,48 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                     </table>
 
                     {/* Paginação */}
-                    <div className="d-flex justify-content-center align-items-center mt-3">
-                        <button
-                            className="btn btn-sm mx-1"
-                            style={{ color: organColor, border: `1px solid ${organColor}` }}
-                            onClick={() => 
-                                onPageChange(currentPage - 1) 
-                            }
-                            disabled={currentPage === 1}
-                        >
-                            Anterior
-                        </button>
-                        {generatePageNumbers().map((page) => (
+                    {currentPage  && onPageChange (
+                        <div className="d-flex justify-content-center align-items-center mt-3">
                             <button
-                                key={page}
-                                className={`btn btn-sm mx-1`}
-                                style={{
-                                    backgroundColor: currentPage === page ? organColor : 'transparent',
-                                    color: currentPage === page ? '#FFF' : organColor,
-                                    border: `1px solid ${organColor}`
-                                }}
+                                className="btn btn-sm mx-1"
+                                style={{ color: organColor, border: `1px solid ${organColor}` }}
                                 onClick={() => 
-                                    {
-                                        setFilters(prev => ({
-                                            ...prev,
-                                            page
-                                        }))
-                                    }}
+                                    onPageChange(currentPage - 1) 
+                                }
+                                disabled={currentPage === 1}
                             >
-                                {page}
+                                Anterior
                             </button>
-                        ))}
-                        <button
-                            className="btn btn-sm mx-1"
-                            style={{ color: organColor, border: `1px solid ${organColor}` }}
-                            onClick={() => onPageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Próximo
-                        </button>
-                    </div>
+                            {generatePageNumbers().map((page) => (
+                                <button
+                                    key={page}
+                                    className={`btn btn-sm mx-1`}
+                                    style={{
+                                        backgroundColor: currentPage === page ? organColor : 'transparent',
+                                        color: currentPage === page ? '#FFF' : organColor,
+                                        border: `1px solid ${organColor}`
+                                    }}
+                                    onClick={() => 
+                                        {
+                                            setFilters(prev => ({
+                                                ...prev,
+                                                page
+                                            }))
+                                        }}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                            <button
+                                className="btn btn-sm mx-1"
+                                style={{ color: organColor, border: `1px solid ${organColor}` }}
+                                onClick={() => onPageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Próximo
+                            </button>
+                        </div>
+                    )}
                 </>
             )}
         </div>

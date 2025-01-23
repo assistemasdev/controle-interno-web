@@ -86,7 +86,8 @@ const useBaseService = (entity, navigate) => {
         create,
         update,
         remove,
-        formErrors
+        formErrors,
+        setFormErrors
     };
 };
 

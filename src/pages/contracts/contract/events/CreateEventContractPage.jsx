@@ -11,42 +11,35 @@ import { eventFields } from "../../../../constants/forms/eventFields";
 import { setDefaultFieldValues } from '../../../../utils/objectUtils';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
+import useContractService from '../../../../hooks/services/useContractService';
+import { useParams } from 'react-router-dom';
 
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
-    const { create, formErrors } = useBaseService(entities.contracts, navigate);
-    const { fetchAll: fetchOrganizations } = useBaseService(entities.organizations, navigate);
+    const { createContractEvent, formErrors, setFormErrors } = useContractService(navigate);
     const { fetchAll: fetchTypes } = useBaseService(entities.contractTypes, navigate);
-    const { fetchAll: fetchCustomers } = useBaseService(entities.customers, navigate);
-    const { fetchAll: fetchStatus } = useBaseService(entities.contractStatus, navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(eventFields));
-    const [organizations, setOrganizations] = useState([]);
     const [types, setTypes] = useState([]);
-    const [status, setStatus] = useState([]);
-    const [customers, setCustomers] = useState([]);
-
+    const { id } = useParams();
+    
     useEffect(() => {
+        setFormData(prev => ({
+            ...prev,
+            products:[],
+            jobs:[]
+        }));
+
         const fetchData = async () => {
             try {
                 showLoader();
                 const [
-                    organizationsResponse,
                     typesResponse,
-                    customersResponse,
-                    statusResponse
                 ] = await Promise.all([
-                    fetchOrganizations(),
                     fetchTypes(),
-                    fetchCustomers(),
-                    fetchStatus()
                 ]);
-
-                setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
                 setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
-                setStatus(statusResponse.result.data.map(status => ({ value: status.id, label: status.name })));
-                setCustomers(customersResponse.result.data.map(customer => ({ value: customer.id, label: customer.name })));
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
                 showNotification('error', errorMessage);
@@ -57,17 +50,12 @@ const CreateEventContractPage = () => {
         };
         fetchData();
     }, []);
+    
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "contract.organization_id":
-                return organizations || [];
-            case "contract.contract_type_id":
+            case "event.event_type_id":
                 return types || [];
-            case "contract.customer_id":
-                return customers || [];
-            case "contract.contract_status_id":
-                return status || [];
             default:
                 return [];
         }
@@ -82,10 +70,10 @@ const CreateEventContractPage = () => {
         return null;
     };
 
-    const handleSubmit = async (data) => {
+    const handleSubmit = async () => {
         showLoader();
         try {
-            const success = await create(data);
+            const success = await createContractEvent(id, formData);
             if (success) {
                 resetForm();
             }
@@ -101,6 +89,19 @@ const CreateEventContractPage = () => {
     };
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
+        const fielBelongsToAnArray = fieldId.split('.')[0]
+        if (fielBelongsToAnArray == 'array') {
+            const fieldSplit = fieldId.split('.')
+            const idObject = fieldSplit[1]
+            const key = fieldSplit[fieldSplit.length - 2];
+            const column = fieldSplit[fieldSplit.length - 1];
+            setFormData(prev => ({
+                ...prev,
+                [key]: prev[key].map(item => 
+                    item.id === idObject ? { ...item, [column]: value } : item
+                )
+            }));
+        }
         handleChange(fieldId, value);
     
     }, [getOptions]);
@@ -125,10 +126,12 @@ const CreateEventContractPage = () => {
                                 key={section.section}
                                 section={section}
                                 formData={formData}
+                                setFormData={setFormData}
                                 handleFieldChange={handleFieldChange}
                                 getOptions={getOptions}
                                 getSelectedValue={getSelectedValue}
                                 formErrors={formErrors}
+                                setFormErrors={setFormErrors}
                             />
                         ))
                     }

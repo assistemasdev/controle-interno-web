@@ -18,10 +18,21 @@ const InputField = ({
         setIsPasswordVisible((prev) => !prev);
     };
 
-    return (
-        <div className="d-flex flex-column py-1">
-            {label && <label htmlFor={id} className="form-label font-weight-bold">{label}</label>}
+    const renderInputField = () => {
+        if (type === 'textarea') {
+            return (
+                <textarea
+                    id={id}
+                    className={`form-control ${error ? 'is-invalid' : ''} rounded input-theme`}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                />
+            );
+        }
 
+        return (
             <div className="input-group position-relative">
                 <input
                     type={isPasswordVisible ? 'text' : type}  
@@ -45,7 +56,13 @@ const InputField = ({
                 )}
                 {error && <div className="invalid-feedback">{error}</div>}
             </div>
+        );
+    };
 
+    return (
+        <div className="d-flex flex-column py-1">
+            {label && <label htmlFor={id} className="form-label font-weight-bold">{label}</label>}
+            {renderInputField()}
         </div>
     );
 };
