@@ -43,6 +43,15 @@ const useContractService = (navigate) => {
         [navigate, handleRequest]
     );
 
+    const fetchContractEventById = useCallback(
+        async (id, eventId) => handleRequest(
+            () => contractService.fetchContractEventById(id, eventId, navigate),
+            null,
+            'Erro ao buscar os dados.'
+        ),
+        [navigate, handleRequest]
+    );
+
     const createContractEvent = useCallback(
         async (id, data) => handleRequest(
             () => contractService.createContractEvent(id, data, navigate),
@@ -52,11 +61,42 @@ const useContractService = (navigate) => {
         [navigate, handleRequest]
     );
 
+    const updateContractEvent = useCallback(
+        async (id, eventId,data) => handleRequest(
+            () => contractService.updateContractEvent(id, eventId, data, navigate),
+            'Evento editado com sucesso!',
+            'Erro ao adicionar evento!'
+        ),
+        [navigate, handleRequest]
+    );
+
+    const fetchEventsContract = useCallback(
+        async (id) => handleRequest(
+            () => contractService.allContractEvents(id, navigate),
+            null,
+            'Erro ao buscar os dados.'
+        ),
+        [navigate, handleRequest]
+    );
+
+    const deleteEventContract = useCallback(
+        async (id, eventId) => handleRequest(
+            () => contractService.deleteContractEvent(id, eventId, navigate),
+            'Evento excluído com sucesso!',
+            'Erro ao excluir evento.'
+        ),
+        [navigate, handleRequest]
+    );
+
     return {
         fetchInfos,
         createContractEvent,
         formErrors,
-        setFormErrors
+        setFormErrors,
+        fetchEventsContract,
+        deleteEventContract,
+        updateContractEvent,
+        fetchContractEventById
     };
 };
 

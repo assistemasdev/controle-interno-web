@@ -4,7 +4,7 @@ import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
 import DynamicTable from "../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faEye, faUndo, faCalendarPlus } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faUndo, faCalendarPlus, faHistory } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
@@ -87,9 +87,13 @@ const ContractPage = () => {
         loadContracts();
     }, [itemsPerPage]);
 
-    const handleEdit = useCallback((type) => {
-        navigate(`/contratos/editar/${type.id}`);
+    const handleEdit = useCallback((contract) => {
+        navigate(`/contratos/editar/${contract.id}`);
     }, [navigate]);
+
+    const handleViewHistory = useCallback((contract) => {
+        navigate(`/contratos/${contract.id}/eventos/historico/`);
+    }, [navigate])
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
@@ -132,8 +136,8 @@ const ContractPage = () => {
         });
     }, []);
 
-    const handleActivate = (type, action) => {
-        setSelectedContract(type); 
+    const handleActivate = (contract, action) => {
+        setSelectedContract(contract); 
         setAction({
             action,
             text:'Você tem certeza que deseja ativar: '
@@ -141,8 +145,8 @@ const ContractPage = () => {
         setOpenModalConfirmation(true);  
     };
 
-    const handleDelete = (type, action) => {
-        setSelectedContract(type);  
+    const handleDelete = (contract, action) => {
+        setSelectedContract(contract);  
         setAction({
             action,
             text:'Você tem certeza que deseja excluir: '
@@ -173,7 +177,7 @@ const ContractPage = () => {
     };
 
     const handleAddEvent = (contract) => {
-        navigate(`/contratos/${contract.id}/evento/adicionar`)
+        navigate(`/contratos/${contract.id}/eventos/adicionar`)
     };
 
     const headers = useMemo(() => ['Id', 'Número', 'Cliente'], []);
@@ -194,6 +198,14 @@ const ContractPage = () => {
             buttonClass: 'btn-success',
             permission: 'Adicionar eventos',
             onClick: handleAddEvent,
+        },
+        {
+            id: 'history',
+            icon: faHistory, 
+            title: 'Ver Histórico',
+            buttonClass: 'btn-warning',
+            permission: 'Ver histórico',
+            onClick: handleViewHistory, 
         },
         {
             id:'edit',

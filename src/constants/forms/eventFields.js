@@ -105,3 +105,24 @@ export const eventFields = [
     }
 
 ];
+
+
+export const editEventFields = [
+    {
+        section: "Dados do Evento",
+        fields: [
+            { 
+                id: "contract_event_type_id", 
+                label: "Tipo de Evento:", 
+                type: "multi-select", 
+                placeholder: "Selecione o tipo", 
+            },
+            { 
+                id: "contract_id", 
+                label: "Contrato:", 
+                type: "multi-select", 
+                placeholder: "Selecione o contrato", 
+            },
+        ],
+    },
+];

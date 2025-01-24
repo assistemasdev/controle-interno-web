@@ -36,7 +36,7 @@ const useBaseService = (entity, navigate) => {
     );
 
     const fetchAll = useCallback(
-        async (params = { deleted_at: false }) => handleRequest(
+        async (params = {}) => handleRequest(
             () => baseService.fetchAll(entity, params, navigate),
             null,
             'Erro ao buscar os dados.'

@@ -108,6 +108,8 @@ import EditTypeEventsPage from "../pages/contracts/typesEvents/EditTypeEventsPag
 import DetailsContractPage from "../pages/contracts/contract/DetailsContractPage";
 import EditContractPage from "../pages/contracts/contract/EditContractPage";
 import CreateEventContractPage from "../pages/contracts/contract/events/CreateEventContractPage";
+import HistoryEventsContractPage from "../pages/contracts/contract/events/HistoryEventsContractPage";
+import EditEventContractPage from "../pages/contracts/contract/events/EditEventContractPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -316,8 +318,16 @@ const AppRoutesContent = () => {
             element: <PrivateRoute element={DetailsContractPage}/>
         },
         {
-            path: "/contratos/:id/evento/adicionar/",
+            path: "/contratos/:id/eventos/adicionar/",
             element: <PrivateRoute element={CreateEventContractPage}/>
+        },
+        {
+            path: "/contratos/:id/eventos/historico/",
+            element: <PrivateRoute element={HistoryEventsContractPage}/>
+        },
+        {
+            path: "/contratos/:id/eventos/:eventId/editar/",
+            element: <PrivateRoute element={EditEventContractPage}/>
         }
     ];
 

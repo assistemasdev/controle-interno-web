@@ -20,15 +20,13 @@ const EditOrganizationPage = () => {
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
     const { fetchById, update, formErrors } = useBaseService(entities.organizations, navigate)
+
     const handleFieldChange = useCallback((fieldId, value) => {
         if (fieldId === 'color') {
             const hexColor = colorToHex(value);
             setFormData((prev) => ({
                 ...prev,
-                organization: {
-                    ...prev.organization,
-                    color: hexColor,
-                },
+                color: hexColor,
             }));
         } else {
             handleChange(fieldId, value);

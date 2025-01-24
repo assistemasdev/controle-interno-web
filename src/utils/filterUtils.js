@@ -4,7 +4,6 @@ export function buildDynamicFilters(data) {
     const filledInputs = data.filledInputs || 0; // Total de inputs preenchidos
 
     // Caso `deleted_at` seja vazio, aplica filtro para registros sem `deleted_at`
-    filters.deleted_at = { $eq: null }; 
     Object.entries(data).forEach(([key, value]) => {
         if (key === 'startDate' && value) {
             // Filtrar por data inicial (maior ou igual)
@@ -12,6 +11,10 @@ export function buildDynamicFilters(data) {
         } else if (key === 'endDate' && value) {
             // Filtrar por data final (menor ou igual)
             filters.date = { ...(filters.date || {}), $lte: value };
+        }else if (key === 'deleted_at' && value == false) {
+            console.log(value)
+            // Filtrar por registros com `deleted_at` preenchido
+            filters.deleted_at = { $eq: null }; // Apenas trazer registros que possuem `deleted_at`
         } else if (key === 'deleted_at' && value) {
             // Filtrar por registros com `deleted_at` preenchido
             filters.deleted_at = { $ne: null }; // Apenas trazer registros que possuem `deleted_at`

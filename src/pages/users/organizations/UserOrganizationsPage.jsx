@@ -17,7 +17,7 @@ const UserOrganizationsPage = () => {
     const { id } = useParams();
     const { getUserAppsAndOrgs, syncMultipleUserAppOrganizations } = useUserService(navigate);
     const { fetchAll: fetchApplications } = useBaseService(entities.applications, navigate);
-    const { fetchAll: getOrganizations } = useOrganizationService(navigate);
+    const { fetchAll: getOrganizations } = useBaseService(entities.organizations, navigate);
     const [applications, setApplications] = useState([]);
     const [organizations, setOrganizations] = useState([]);
     const { showNotification } = useNotification();
@@ -37,9 +37,9 @@ const UserOrganizationsPage = () => {
                 getUserAppsAndOrgs(id)
             ]);
 
-            setApplications(responseApplications.data);
-            setOrganizations(responseOrganizations.data);
-            setFormData(generateInitialFormData(responseApplications.data, responseOrganizations.data, responseUserAppsAndOrgs.data));
+            setApplications(responseApplications.result.data);
+            setOrganizations(responseOrganizations.result.data);
+            setFormData(generateInitialFormData(responseApplications.result.data, responseOrganizations.result.data, responseUserAppsAndOrgs.data));
         } catch (error) {
             console.error(error);
             showNotification('error', 'Erro ao carregar aplicações e organizações');

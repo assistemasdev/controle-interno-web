@@ -24,6 +24,10 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
     };
 
     useEffect(() => {
+        console.log(filters)
+    }, [filters])
+
+    useEffect(() => {
         if(onPageChange && filters) {
             onPageChange(filters);
         }
@@ -46,7 +50,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                     <FontAwesomeIcon icon={isCollapsed ? faChevronDown : faChevronUp} />
                 </button>
 
-                {filters && filters.deleted_at && (
+                {filters && (
                     <div>
                         <div className="checkbox-container" style={{ width: '150px'}}>
                             <div className="box-switch">
@@ -116,7 +120,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                                     <button
                                                         key={idx}
                                                         type="button"
-                                                        className={`btn btn-sm ${action.buttonClass} btn-tooltip mr-1`}
+                                                        className={`btn btn-sm ${action.buttonClass} btn-tooltip  mr-1`}
                                                         title={action.title}
                                                         onClick={() => action.onClick(item, action.id)}
                                                     >
@@ -149,7 +153,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                     </table>
 
                     {/* Paginação */}
-                    {currentPage  && onPageChange (
+                    {currentPage  && onPageChange &&(
                         <div className="d-flex justify-content-center align-items-center mt-3">
                             <button
                                 className="btn btn-sm mx-1"
