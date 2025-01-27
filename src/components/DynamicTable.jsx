@@ -24,10 +24,6 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
     };
 
     useEffect(() => {
-        console.log(filters)
-    }, [filters])
-
-    useEffect(() => {
         if(onPageChange && filters) {
             onPageChange(filters);
         }

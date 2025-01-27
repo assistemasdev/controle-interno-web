@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faBriefcase, faCalendarAlt, faCircleInfo, faFileContract, faBars, faCalendar, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faBriefcase, faClipboardList, faCalendarAlt, faCircleInfo, faFileContract, faBars, faCalendar, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
 import "../assets/styles/sidebar/header.css";
 import "../assets/styles/sidebar/sidebar.css";
 import perfil from "../assets/img/perfil.png";
@@ -73,10 +73,11 @@ const SideBarTwo = ({ children }) => {
                     title: 'Contratos',
                     items: [
                         { name: 'Contratos', icon: faFileContract, to: '/contratos/', requiredPermission: 'Listar contratos' }, 
+                        { name: 'Calendário', icon: faCalendar, to: '/calendario', requiredPermission: '' },
                         { name: 'Tipos de Contratos', icon: faTags, to: '/contratos/tipos', requiredPermission: 'Listar tipos de contratos' },
                         { name: 'Tipos de Eventos', icon: faCalendarAlt, to: '/contratos/tipos-eventos', requiredPermission: 'Listar tipos de eventos de contratos' },
                         { name: 'Status', icon: faCircleInfo, to: '/contratos/status', requiredPermission: 'Listar status de contratos' },
-                        { name: 'Calendário', icon: faCalendar, to: '/calendario', requiredPermission: '' },
+                        { name: 'Tipos de Item OS', icon: faClipboardList, to: '/contratos/ordem-servico/tipos-itens', requiredPermission: 'Listar tipos de itens de ordem de serviço' },
                     ].filter(item => canAccess(item.requiredPermission))
                 }
             ];

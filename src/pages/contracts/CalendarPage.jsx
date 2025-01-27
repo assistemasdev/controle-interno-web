@@ -10,10 +10,17 @@ import {
 import { createEventsServicePlugin } from '@schedule-x/events-service';
 import { createEventModalPlugin } from '@schedule-x/event-modal';
 import '@schedule-x/theme-default/dist/index.css';
+import useBaseService from "../../hooks/services/useBaseService";
+import { useNavigate } from "react-router-dom";
+import { entities } from "../../constants/entities";
+import useLoader from "../../hooks/useLoader";
 
 const CalendarPage = () => {
+    const navigate = useNavigate();
+    const { fetchAll } = useBaseService(entities.contracts,navigate);
+    const { showLoader, hideLoader } = useLoader();
+    const [contracts, setContracts] = useState([]);
     const eventsService = createEventsServicePlugin();
-
     const eventModalPlugin = createEventModalPlugin({ eventsService });
     const calendar = useCalendarApp({
         views: [createViewDay(), createViewWeek(), createViewMonthGrid(), createViewMonthAgenda()],
@@ -30,7 +37,20 @@ const CalendarPage = () => {
         locale: 'pt-BR', 
     });
 
+    const fetchContracts = async () => {
+        try {
+            showLoader();
+            const response = await fetchAll();
+            console.log(response)
+        } catch (error) {
+            console.log(error);
+        } finally {
+            hideLoader();
+        }
+    }
+
     useEffect(() => {
+        fetchContracts();
         eventsService.getAll();
     }, []);
 

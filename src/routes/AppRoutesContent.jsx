@@ -110,6 +110,9 @@ import EditContractPage from "../pages/contracts/contract/EditContractPage";
 import CreateEventContractPage from "../pages/contracts/contract/events/CreateEventContractPage";
 import HistoryEventsContractPage from "../pages/contracts/contract/events/HistoryEventsContractPage";
 import EditEventContractPage from "../pages/contracts/contract/events/EditEventContractPage";
+import OsItemTypePage from "../pages/contracts/OsItemType/OsItemTypePage";
+import CreateOsItemTypePage from "../pages/contracts/OsItemType/CreateOsItemTypePage";
+import EditOsItemTypePage from "../pages/contracts/OsItemType/EditOsItemTypePage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -347,6 +350,21 @@ const AppRoutesContent = () => {
         }
     ];
 
+    const OsItemTypeRoutes = [
+        {
+            path: "/contratos/ordem-servico/tipos-itens",
+            element: <PrivateRoute element={OsItemTypePage} />,
+        },
+        {
+            path: "/contratos/ordem-servico/tipos-itens/criar",
+            element: <PrivateRoute element={CreateOsItemTypePage} />,
+        },
+        {
+            path: "/contratos/ordem-servico/tipos-itens/editar/:id",
+            element: <PrivateRoute element={EditOsItemTypePage}/>
+        }
+    ];
+
     const statusContractRoutes = [
         {
             path: "/contratos/status",
@@ -553,6 +571,10 @@ const AppRoutesContent = () => {
         ))}
 
         {typesContractRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
+        {OsItemTypeRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}
 

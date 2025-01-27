@@ -4,28 +4,27 @@ import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
 import DynamicTable from "../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faEye, faUndo } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faLayerGroup, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
 import AutoCompleteFilter from "../../../components/AutoCompleteFilter";
 import baseService from "../../../services/baseService";
-import useBaseService from "../../../hooks/services/useBaseService";
-import { entities } from "../../../constants/entities";
+import useOrderService from "../../../hooks/services/useOrderService";
 import { buildFilteredArray } from "../../../utils/arrayUtils";
 
-const TypeEventsPage = () => {
+const OsItemTypePage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchAll, remove } = useBaseService(entities.contractEventTypes, navigate);
+    const { fetchAllOsItemsType, removeOsItemType } = useOrderService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const [selectedTypes, setSelectedTypes] = useState([]);
-    const [types, setTypes] = useState([]);
+    const [selectedOsItemsTypes, setSelectedOsItemsTypes] = useState([]);
+    const [OsItemsTypes, setOsItemsTypes] = useState([]);
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedType, setSelectedType] = useState(null);  
+    const [selectedOsItemType, setSelectedOsItemType] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
@@ -52,12 +51,11 @@ const TypeEventsPage = () => {
         window.location.reload();
     }, []);
 
-    const loadTypes = useCallback(async (filtersSubmit) => {
+    const loadOsItemsTypes = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(filtersSubmit || filters);
-            console.log(response)
-            setTypes(response.result.data.map((type) => ({
+            const response = await fetchAllOsItemsType(filtersSubmit || filters);
+            setOsItemsTypes(response.result.data.map((type) => ({
                 id: type.id,
                 name: type.name,
                 deleted_at: type.deleted_at ? 'deleted-' + type.deleted_at : 'deleted-null'
@@ -67,27 +65,23 @@ const TypeEventsPage = () => {
         } finally {
             hideLoader();
         }
-    }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
+    }, [fetchAllOsItemsType, itemsPerPage, showLoader, hideLoader]);
 
     useEffect(() => {
-        loadTypes();
+        loadOsItemsTypes();
     }, [itemsPerPage]);
 
     const handleEdit = useCallback((type) => {
-        navigate(`/contratos/tipos-eventos/editar/${type.id}`);
+        navigate(`/contratos/ordem-servico/tipos-itens/editar/${type.id}`);
     }, [navigate]);
-
-    const handleViewDetails = (product) => {
-        navigate(`/contratos/tipos-eventos/detalhes/${product.id}`);
-    };
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
     
-        const selectedIds = buildFilteredArray(selectedTypes, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedTypes, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedTypes, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedTypes.map((option) => option.column)).size;
+        const selectedIds = buildFilteredArray(selectedOsItemsTypes, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedOsItemsTypes, 'name', 'textFilter', true);
+        const selectedIdLikes = buildFilteredArray(selectedOsItemsTypes, 'id', 'numberFilter', true);
+        const filledInputs = new Set(selectedOsItemsTypes.map((option) => option.column)).size;
     
         const previousFilters = filters || {}; 
     
@@ -100,7 +94,7 @@ const TypeEventsPage = () => {
             page: 1,
         }));
     
-        loadTypes({
+        loadOsItemsTypes({
             id: selectedIds,
             name: selectedNames,
             idLike: selectedIdLikes,
@@ -111,7 +105,7 @@ const TypeEventsPage = () => {
     };
     
     const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedTypes((prev) => {
+        setSelectedOsItemsTypes((prev) => {
             if (!newSelected.length) {
                 return prev.filter((option) => option.column !== column);
             }
@@ -124,7 +118,7 @@ const TypeEventsPage = () => {
     }, []);
 
     const handleActivate = (type, action) => {
-        setSelectedType(type); 
+        setSelectedOsItemType(type); 
         setAction({
             action,
             text:'Você tem certeza que deseja ativar: '
@@ -133,7 +127,7 @@ const TypeEventsPage = () => {
     };
 
     const handleDelete = (type, action) => {
-        setSelectedType(type);  
+        setSelectedOsItemType(type);  
         setAction({
             action,
             text:'Você tem certeza que deseja excluir: '
@@ -144,9 +138,9 @@ const TypeEventsPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await removeOsItemType(id);
             setOpenModalConfirmation(false);  
-            loadTypes();
+            loadOsItemsTypes();
         } catch (error) {
             console.log(error);
             setOpenModalConfirmation(false);  
@@ -167,23 +161,15 @@ const TypeEventsPage = () => {
             icon: faEdit,
             title: 'Editar Cargos',
             buttonClass: 'btn-primary',
-            permission: 'Atualizar tipos de eventos de contratos',
+            permission: 'Atualizar tipos de contratos',
             onClick: handleEdit
-        },
-        {
-            id:'details',
-            icon: faEye,
-            title: "Ver Detalhes",
-            buttonClass: "btn-info",
-            permission: "Ver tipos de eventos de contratos",
-            onClick: handleViewDetails,
         },
         {
             id: 'delete',
             icon: faTrash,
             title: 'Excluir Tipo',
             buttonClass: 'btn-danger',
-            permission: 'Excluir tipos de eventos de contratos',
+            permission: 'Atualizar tipos de contratos',
             onClick: handleDelete
         },
         {
@@ -191,7 +177,7 @@ const TypeEventsPage = () => {
             icon: faUndo,
             title: 'Ativar usuário',
             buttonClass: 'btn-info',
-            permission: 'Atualizar tipos de eventos de contratos',
+            permission: 'Excluir tipos de contratos',
             onClick: handleActivate,
         },
     ], [handleEdit, handleDelete]);
@@ -200,7 +186,7 @@ const TypeEventsPage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Tipos de Eventos de Contrato
+                    Tipos de Item de Ordem de Serviço
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
@@ -211,8 +197,8 @@ const TypeEventsPage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="id"
-                            model='contractEventType'
-                            value={selectedTypes.filter((option) => option.column === 'id')}
+                            model='contractType'
+                            value={selectedOsItemsTypes.filter((option) => option.column === 'id')}
                             onChange={(selected) => handleChangeCustomers(selected, 'id')}
                             onBlurColumn="numberFilter"
                             placeholder="Filtre os tipos pelo número"
@@ -226,8 +212,8 @@ const TypeEventsPage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="name"
-                            model='contractEventType'
-                            value={selectedTypes.filter((option) => option.column === 'name')}
+                            model='contractType'
+                            value={selectedOsItemsTypes.filter((option) => option.column === 'name')}
                             onChange={(selected) => handleChangeCustomers(selected, 'name')}
                             onBlurColumn="textFilter"
                             placeholder="Filtre os tipos pelo nome"
@@ -242,24 +228,24 @@ const TypeEventsPage = () => {
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Tipos
+                        Lista de Tipos de Item de Ordem de Serviço
                     </div>
-                    {canAccess('Criar tipos de eventos de contratos') && (
+                    {canAccess('Criar tipos de itens de ordem de serviço') && (
                         <Button
                             text="Novo Tipo"
                             className="btn btn-blue-light fw-semibold"
-                            link="/contratos/tipos-eventos/criar"
+                            link="/contratos/ordem-servico/tipos-itens/criar"
                         />
                     )}
                 </div>
 
                 <DynamicTable
                     headers={headers}
-                    data={types}
+                    data={OsItemsTypes}
                     actions={actions}
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={loadTypes}
+                    onPageChange={loadOsItemsTypes}
                     filters={filters}
                     setFilters={setFilters}
                 />
@@ -267,8 +253,8 @@ const TypeEventsPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedType.id) : console.log('oi')}
-                    itemName={selectedType ? selectedType.name : ''}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOsItemType.id) : console.log('oi')}
+                    itemName={selectedOsItemType ? selectedOsItemType.name : ''}
                     text={action.text}
                 />
             </div>
@@ -276,4 +262,4 @@ const TypeEventsPage = () => {
     );
 };
 
-export default TypeEventsPage
+export default OsItemTypePage

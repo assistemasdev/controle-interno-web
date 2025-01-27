@@ -12,7 +12,6 @@ export function buildDynamicFilters(data) {
             // Filtrar por data final (menor ou igual)
             filters.date = { ...(filters.date || {}), $lte: value };
         }else if (key === 'deleted_at' && value == false) {
-            console.log(value)
             // Filtrar por registros com `deleted_at` preenchido
             filters.deleted_at = { $eq: null }; // Apenas trazer registros que possuem `deleted_at`
         } else if (key === 'deleted_at' && value) {
