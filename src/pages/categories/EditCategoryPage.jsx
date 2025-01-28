@@ -6,7 +6,6 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import useForm from '../../hooks/useForm';
 import useNotification from '../../hooks/useNotification';
-import useCategoryService from '../../hooks/services/useCategoryService';
 import useLoader from '../../hooks/useLoader';
 import { categoryFields } from '../../constants/forms/categoryFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
@@ -17,15 +16,15 @@ const EditCategoryPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showNotification } = useNotification();
-    const { fetchById, update, formErrors } = useBaseService(entities.categories, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(categoryFields));
 
     const fetchCategory = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchById(id);
-            formatData(response, categoryFields);
+            const response = await fetchById(entities.categories.getByColumn(id));
+            formatData(response.result, categoryFields);
         } catch (error) {
             console.error(error);
         } finally {
@@ -40,7 +39,7 @@ const EditCategoryPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await update(id, formData);
+            await update(entities.categories.update(id), formData);
         } catch (error) {
             console.error(error);
         } finally {

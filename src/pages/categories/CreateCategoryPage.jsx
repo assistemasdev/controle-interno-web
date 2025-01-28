@@ -11,12 +11,12 @@ import { entities } from '../../constants/entities';
 
 const CreateCategoryPage = () => {
     const navigate = useNavigate();
-    const { create, formErrors } = useBaseService(entities.categories, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(categoryFields));
 
     const handleSubmit = async () => {
         try {
-            const success = await create(formData); 
+            const success = await create(entities.categories.create, formData); 
             if (success) {
                 resetForm(); 
             }
@@ -41,6 +41,7 @@ const CreateCategoryPage = () => {
                     textSubmit="Cadastrar"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
+                    initialFormData={formData}
                 >
                     {() =>
                         categoryFields.map((field) => (

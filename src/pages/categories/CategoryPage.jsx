@@ -25,7 +25,7 @@ const CategoryPage = () => {
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const { showLoader, hideLoader } = useLoader();
-    const { fetchAll, remove } = useBaseService(entities.categories, navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showNotification } = useNotification();
     const [selectedCategory, setSelectedCategory] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
@@ -62,7 +62,7 @@ const CategoryPage = () => {
         try {
             showLoader();
             
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.categories.get, filtersSubmit || filters);
             
             const filteredCategories = response.result.data.map(category => ({
                 id: category.id,
@@ -146,7 +146,7 @@ const CategoryPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.categories.delete(id));
             setOpenModalConfirmation(false);  
             fetchCategories();
         } catch (error) {

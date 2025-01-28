@@ -36,5 +36,6 @@ export const entities = {
             locations: (organizationId) => createNestedRoutes(`organizations/${organizationId}/addresses`, 'locations')
         }
     },
-    conditions: createEntityRoutes('conditions')
+    conditions: createEntityRoutes('conditions'),
+    categories: createEntityRoutes('categories')
 };
