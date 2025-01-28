@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
 import Form from '../../components/Form';
 import { conditionFields } from '../../constants/forms/conditionFields';
 import FormSection from '../../components/FormSection';
-import useConditionService from '../../hooks/services/useConditionService';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
@@ -13,12 +12,12 @@ import { entities } from '../../constants/entities';
 
 const CreateConditionPage = () => {
     const navigate = useNavigate();
-    const { create, formErrors } = useBaseService(entities.conditions, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(conditionFields));
 
     const handleSubmit = async () => {
         try {
-            const success = await create(formData);
+            const success = await create(entities.conditions.create, formData);
             if (success) {
                 resetForm(); 
             }
@@ -43,6 +42,7 @@ const CreateConditionPage = () => {
                     textSubmit="Cadastrar"
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
+                    initialFormData={formData}
                 >
                     {() =>
                         conditionFields.map((section) => (

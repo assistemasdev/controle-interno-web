@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-
 import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
@@ -25,7 +24,7 @@ const ConditionPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const { fetchAll, remove} = useBaseService(entities.conditions, navigate)
+    const { get: fetchAll, del: remove} = useBaseService(navigate)
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedCondition, setSelectedCondition] = useState(null);  
@@ -59,7 +58,7 @@ const ConditionPage = () => {
         try {
             showLoader();
         
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.conditions.get, filtersSubmit || filters);
 
             const filteredCondition = response.result.data.map(condition => ({
                 id: condition.id,
@@ -150,7 +149,7 @@ const ConditionPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.conditions.delete);
             setOpenModalConfirmation(false);  
             fetchCondition();
         } catch (error) {

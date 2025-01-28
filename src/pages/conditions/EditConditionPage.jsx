@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
-import useConditionService from '../../hooks/services/useConditionService';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import { conditionFields } from '../../constants/forms/conditionFields';
@@ -15,7 +14,7 @@ import { entities } from '../../constants/entities';
 const EditConditionPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchById, update, formErrors } = useBaseService(entities.conditions, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(conditionFields));
@@ -24,7 +23,7 @@ const EditConditionPage = () => {
     const fetchCondition = useCallback(async () => {
         showLoader();
         try {
-            const data = await fetchById(id);
+            const data = await fetchById(entities.conditions.getByColumn(id));
             formatData(data.result, conditionFields);
         } catch (error) {
             console.log(error)
@@ -40,7 +39,7 @@ const EditConditionPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await update(id, formData);
+            await update(entities.conditions.update(id), formData);
         } catch (error) {
             console.log(error)
         } finally {
@@ -64,6 +63,7 @@ const EditConditionPage = () => {
                     textSubmit="Atualizar"
                     textLoadingSubmit="Atualizando..."
                     handleBack={handleBack}
+                    initialFormData={formData}
                 >
                     {() =>
                         conditionFields.map((section) => (
