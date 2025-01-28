@@ -21,7 +21,7 @@ const OrganizationPage = () => {
     const location = useLocation();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchAll, remove } = useBaseService(entities.organizations, navigate);
+    const { get: fetchAll, put: remove } = useBaseService(navigate);
     const [selectedOrgs, setSelectedOrgs] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -58,7 +58,7 @@ const OrganizationPage = () => {
         try {
             showLoader();
         
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.organizations.get, filtersSubmit || filters);
             const filteredOrganizations = response.result.data.map(organization => ({
                 id: organization.id,
                 name: organization.name,
@@ -160,7 +160,7 @@ const OrganizationPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.organizations.delete(id));
             setOpenModalConfirmation(false);  
             fetchOrganizations();
         } catch (error) {

@@ -19,7 +19,10 @@ const CreateOrganizationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(organizationFields));
-    const { create, formErrors } = useBaseService(entities.organizations,navigate);
+    const { 
+        post: create
+        , formErrors
+     } = useBaseService(navigate);
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
         if (fieldId === 'address.zip') {
@@ -97,7 +100,7 @@ const CreateOrganizationPage = () => {
 
         showLoader();
         try {
-            const success = await create(sanitizedData);
+            const success = await create(entities.organizations.create, sanitizedData);
             if (success) {
                 resetForm();
             }

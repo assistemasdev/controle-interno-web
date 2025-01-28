@@ -6,19 +6,19 @@ import { usePermissions } from "../../../hooks/usePermissions";
 import { useNavigate, useParams } from "react-router-dom";
 import { faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
-import useOrganizationService from "../../../hooks/services/useOrganizationService";
+import useBaseService from "../../../hooks/services/useBaseService";
 import useLoader from "../../../hooks/useLoader";
 import useNotification from "../../../hooks/useNotification";
 import { PAGINATION } from "../../../constants/pagination";
-
+import { entities } from "../../../constants/entities";
 const LocationOrganizationPage = () => {
     const { canAccess } = usePermissions();
     const navigate = useNavigate();
     const { organizationId, addressId } = useParams();
     const {
-        fetchOrganizationLocations,
-        deleteOrganizationLocation,
-    } = useOrganizationService(navigate);
+        get: fetchAll,
+        del: remove,
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
 
@@ -33,18 +33,17 @@ const LocationOrganizationPage = () => {
     const fetchLocations = useCallback(async (page = currentPage) => {
         try {
             showLoader();
-            const response = await fetchOrganizationLocations(organizationId, addressId, {
+            const response = await fetchAll(entities.organizations.addresses.locations(organizationId).get(addressId), {
                 page,
                 perPage: itemsPerPage,
             });
+            const { result, last_page, current_page } = response;
 
-            const { data, last_page, current_page } = response;
-
-            const formattedLocations = data.map((loc) => ({
-                id: loc.id,
-                area: loc.area,
-                section: loc.section,
-                spot: loc.spot,
+            const formattedLocations = result.data.map((loc) => ({
+                id: loc.id || '-',
+                area: loc.area || '-',
+                section: loc.section || '-',
+                spot: loc.spot || '-',
             }));
 
             setLocations(formattedLocations);
@@ -56,7 +55,7 @@ const LocationOrganizationPage = () => {
         } finally {
             hideLoader();
         }
-    }, [fetchOrganizationLocations, organizationId, addressId, itemsPerPage, currentPage, showLoader, hideLoader, showNotification]);
+    }, [fetchAll, organizationId, addressId, itemsPerPage, currentPage, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchLocations();
@@ -78,7 +77,7 @@ const LocationOrganizationPage = () => {
     const confirmDelete = useCallback(async () => {
         try {
             showLoader();
-            await deleteOrganizationLocation(organizationId, addressId, locationToDelete.id);
+            await remove(organizationId, addressId, locationToDelete.id);
             setDeleteModalOpen(false);
             fetchLocations();
         } catch (error) {
@@ -87,7 +86,7 @@ const LocationOrganizationPage = () => {
         } finally {
             hideLoader();
         }
-    }, [deleteOrganizationLocation, organizationId, addressId, locationToDelete, fetchLocations, showLoader, hideLoader, showNotification]);
+    }, [remove, organizationId, addressId, locationToDelete, fetchLocations, showLoader, hideLoader, showNotification]);
 
     const headers = ["id", "Área", "Seção", "Ponto"];
 

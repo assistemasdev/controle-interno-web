@@ -7,11 +7,10 @@ import FormSection from '../../../components/FormSection';
 import Form from '../../../components/Form';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
-import useOrganizationService from '../../../hooks/services/useOrganizationService';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const EditOrganizationAddressPage = () => {
@@ -19,7 +18,11 @@ const EditOrganizationAddressPage = () => {
     const { organizationId, addressId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchById, update, formErrors } = useAddressService(entities.organizations, organizationId, navigate);
+    const { 
+        getByColumn: fetchById, 
+        put: update, 
+        formErrors 
+    } = useBaseService(navigate);
     const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(addressFields));
     
     const handleFieldChange = useCallback((fieldId, value, field) => {
@@ -67,7 +70,8 @@ const EditOrganizationAddressPage = () => {
     const fetchData = useCallback(async () => {
         showLoader();
         try {
-            const response = await fetchById(addressId);
+            const response = await fetchById(entities.organizations.addresses.getByColumn(organizationId,addressId));
+        
             formatData(response.result, addressFields)
             setFormData(prev => ({
                 ...prev,
@@ -90,7 +94,7 @@ const EditOrganizationAddressPage = () => {
         };
 
         try {
-            await update(organizationId, addressId, sanitizedData);
+            await update(entities.organizations.addresses.update(organizationId, addressId), sanitizedData);
         } catch (error) {
             console.log(error);
             showNotification('error', 'Erro ao atualizar o endereço.');

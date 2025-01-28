@@ -5,13 +5,12 @@ import Button from '../../../components/Button';
 import '../../../assets/styles/custom-styles.css';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
-import useOrganizationService from '../../../hooks/services/useOrganizationService';
 import { maskCep } from '../../../utils/maskUtils';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { addressFields } from '../../../constants/forms/addressFields';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const OrganizationAddressDetailsPage = () => {
@@ -19,13 +18,13 @@ const OrganizationAddressDetailsPage = () => {
     const { organizationId, addressId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchById } = useAddressService(entities.organizations, organizationId, navigate);
+    const { getByColumn: fetchById } = useBaseService(navigate);
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields));
     
     const fetchAddress = useCallback(async () => {
         showLoader();
         try {
-            const response = await fetchById(addressId);
+            const response = await fetchById(entities.organizations.addresses.getByColumn(organizationId,addressId));
             formatData(response.result, addressFields)
             setFormData(prev => ({
                 ...prev,

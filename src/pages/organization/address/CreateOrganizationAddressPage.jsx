@@ -10,7 +10,7 @@ import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const CreateOrganizationAddressPage = () => {
@@ -18,7 +18,10 @@ const CreateOrganizationAddressPage = () => {
     const { organizationId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { create, formErrors } = useAddressService(entities.organizations, organizationId,navigate);
+    const { 
+        post: create, 
+        formErrors 
+    } = useBaseService(navigate);
     const { formData, setFormData, handleChange, resetForm } = useForm(setDefaultFieldValues(addressFields));
 
     const handleFieldChange = useCallback(async (fieldId, value) => {
@@ -74,7 +77,7 @@ const CreateOrganizationAddressPage = () => {
         };
 
         try {
-            const success = await create(sanitizedData);
+            const success = await create(entities.organizations.addresses.create(organizationId), sanitizedData);
             if (success) {
                 resetForm();
             }

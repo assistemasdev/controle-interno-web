@@ -10,14 +10,12 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
-import useOrganizationService from '../../hooks/services/useOrganizationService';
 import { editOrganizationFields } from '../../constants/forms/organizationFields';
 import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
-import useAddressService from '../../hooks/services/useAddressService';
 
 const OrganizationDetailsPage = () => {
     const navigate = useNavigate();
@@ -25,8 +23,11 @@ const OrganizationDetailsPage = () => {
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchAll: fetchAllAddresses, remove: removeAddress } = useAddressService(entities.organizations, organizationId, navigate);
-    const { fetchById } = useBaseService(entities.organizations, navigate);
+    const { 
+        getByColumn: fetchById,
+        get: fetchAllAddresses, 
+        del: removeAddress
+    } = useBaseService(navigate);
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
     const [addresses, setAddresses] = useState([]);
     const [currentPageAddresses, setCurrentPageAddresses] = useState(PAGINATION.DEFAULT_PAGE);
@@ -46,7 +47,7 @@ const OrganizationDetailsPage = () => {
 
     const fetchAddresses = useCallback(async (filtersSubmit) => {
         try {
-            const response = await fetchAllAddresses(filtersSubmit || filtersAddresses);
+            const response = await fetchAllAddresses(entities.organizations.addresses.get(organizationId), filtersSubmit || filtersAddresses);
             setAddresses(response.result.data.map((address) => ({
                 id: address.id,
                 zip: address.zip,
@@ -65,11 +66,12 @@ const OrganizationDetailsPage = () => {
         showLoader();
 
         try {
-            const response = await fetchById(organizationId);
+            const response = await fetchById(entities.organizations.getByColumn(organizationId));
+            console.log(response)
             formatData(response.result, editOrganizationFields)
             setFormData(prev => ({
                 ...prev,
-                active: response.active ? 'Ativo' : 'Desativado',
+                active: response.result.active ? 'Ativo' : 'Desativado',
             }));
 
             await fetchAddresses(currentPageAddresses);
@@ -101,7 +103,7 @@ const OrganizationDetailsPage = () => {
     const handleConfirmDeleteAddress = async (id) => {
         try {
             showLoader();
-            await removeAddress(id);
+            await removeAddress(entities.organizations.addresses.delete(organizationId, id));
             setOpenModalConfirmationAddress(false);  
             fetchAddresses();
         } catch (error) {

@@ -38,7 +38,7 @@ const EditRolePage = () => {
                     fetchPermissionsForRole(entities.roles.permissions.getByColumn(roleId)),
                     fetchPermissions(entities.permissions.get)
                 ]);
-
+                
                 const formattedPermissions = responsePermissions.result.data.map(permission => ({
                     value: permission.id,
                     label: permission.name

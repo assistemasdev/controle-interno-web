@@ -19,7 +19,7 @@ const EditOrganizationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
-    const { fetchById, update, formErrors } = useBaseService(entities.organizations, navigate)
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate)
 
     const handleFieldChange = useCallback((fieldId, value) => {
         if (fieldId === 'color') {
@@ -54,12 +54,12 @@ const EditOrganizationPage = () => {
         const fetchData = async () => {
             showLoader();
             try {
-                const response = await fetchById(organizationId);
+                const response = await fetchById(entities.organizations.getByColumn(organizationId));
 
                 formatData(response.result, editOrganizationFields)
                 setFormData(prev => ({
                     ...prev,
-                    active: response.active ? '1' : '0'
+                    active: response.result.active ? '1' : '0'
                 }))
             } catch (error) {
                 navigate('/aplicacoes/dashboard');
@@ -74,7 +74,7 @@ const EditOrganizationPage = () => {
     const handleSubmit = useCallback(async () => {
         showLoader();
         try {
-            await update(organizationId, formData.organization);
+            await update(entities.organizations.update(organizationId), formData.organization);
         } catch (error) {
             console.log(error)
         } finally {

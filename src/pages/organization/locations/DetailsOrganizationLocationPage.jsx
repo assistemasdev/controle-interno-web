@@ -4,17 +4,17 @@ import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
 import Button from '../../../components/Button';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
-import useOrganizationService from '../../../hooks/services/useOrganizationService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import { locationFields } from '../../../constants/forms/locationFields';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-
+import { entities } from '../../../constants/entities';
 const DetailsOrganizationLocationPage = () => {
     const navigate = useNavigate();
     const { organizationId, addressId, locationId } = useParams();
-    const { fetchOrganizationLocationById } = useOrganizationService(navigate);
+    const { getByColumn: fetchById } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, formatData } = useForm(setDefaultFieldValues(locationFields));
@@ -22,14 +22,14 @@ const DetailsOrganizationLocationPage = () => {
     const fetchLocationData = useCallback(async () => {
         showLoader();
         try {
-            const response = await fetchOrganizationLocationById(organizationId, addressId, locationId);
-            formatData(response, locationFields)
+            const response = await fetchById(entities.organizations.addresses.locations(organizationId).getByColumn(addressId,locationId));
+            formatData(response.result, locationFields)
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização.');
         } finally {
             hideLoader();
         }
-    }, [fetchOrganizationLocationById, organizationId, addressId, locationId, showLoader, hideLoader, showNotification]);
+    }, [fetchById, organizationId, addressId, locationId, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchLocationData();

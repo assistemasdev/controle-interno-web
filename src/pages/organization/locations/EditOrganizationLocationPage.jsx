@@ -4,33 +4,34 @@ import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
-import useOrganizationService from '../../../hooks/services/useOrganizationService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { locationFields } from '../../../constants/forms/locationFields';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import { entities } from '../../../constants/entities';
 
 const EditOrganizationLocationPage = () => {
     const navigate = useNavigate();
     const { organizationId, addressId, locationId } = useParams(); 
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchOrganizationLocationById, updateOrganizationLocation, formErrors } = useOrganizationService(navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
 
     const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(locationFields));
 
     const fetchLocationData = useCallback(async () => {
         showLoader();
         try {
-            const response = await fetchOrganizationLocationById(organizationId, addressId, locationId);
-            formatData(response, locationFields)
+            const response = await fetchById(entities.organizations.addresses.locations(organizationId).getByColumn(addressId, locationId));
+            formatData(response.result, locationFields)
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização');
         } finally {
             hideLoader();
         }
-    }, [fetchOrganizationLocationById, organizationId, addressId, locationId, showLoader, hideLoader, showNotification, setFormData]);
+    }, [fetchById, organizationId, addressId, locationId, showLoader, hideLoader, showNotification, setFormData]);
 
     useEffect(() => {
         fetchLocationData();
@@ -40,7 +41,7 @@ const EditOrganizationLocationPage = () => {
         showLoader();
 
         try {
-            await updateOrganizationLocation(organizationId, addressId, locationId, data);
+            await update(entities.organizations.addresses.locations(organizationId).update(addressId, locationId), data);
         } catch (error) {
             console.log(error)
             showNotification('error', 'Erro ao atualizar localização');
