@@ -20,7 +20,7 @@ const ApplicationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const navigate = useNavigate();
-    const { fetchAll, remove } = useBaseService(entities.applications, navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const location = useLocation();
     const [selectedApplications, setSelectedApplications] = useState([]);
     const [applications, setApplications] = useState([]);
@@ -54,7 +54,7 @@ const ApplicationPage = () => {
     const fetchApplications = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.applications.get, filtersSubmit || filters);
             setApplications(response.result.data.map(app => ({
                 id: app.id,
                 name: app.name,
@@ -149,7 +149,7 @@ const ApplicationPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.applications.delete(id));
             setOpenModalConfirmation(false);  
             fetchApplications();
         } catch (error) {

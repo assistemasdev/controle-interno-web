@@ -41,7 +41,8 @@ export const entities = {
             update: (rolesColumn) => `/roles/${rolesColumn}/permissions/`
         }
     },
-    permissions: createEntityRoutes('/permissions')
+    permissions: createEntityRoutes('/permissions'),
+    applications: createEntityRoutes('/applications')
 
 };
 

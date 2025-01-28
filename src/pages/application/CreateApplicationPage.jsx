@@ -17,12 +17,12 @@ const CreateApplicationPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(applicationFields));
-    const { create, formErrors} = useBaseService(entities.applications, navigate);
+    const { post: create, formErrors} = useBaseService(navigate);
 
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            const success = await create(formData);
+            const success = await create(entities.applications.create, formData);
 
             if (success) {
                 resetForm();

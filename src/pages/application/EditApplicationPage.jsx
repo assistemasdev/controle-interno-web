@@ -18,12 +18,12 @@ const EditApplicationPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(applicationFields));
-    const { fetchById, update, formErrors } = useBaseService(entities.applications, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
 
     const fetchData = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchById(id);
+            const response = await fetchById();
             formatData(response.result, applicationFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da aplicação.');
@@ -39,7 +39,7 @@ const EditApplicationPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await update(id, formData);
+            await update(entities.applications.update(id), formData);
         } catch (error) {
             console.log(error)
             showNotification('error', 'Erro ao atualizar a aplicação.');
