@@ -20,31 +20,34 @@ const EditRolePage = () => {
     const { formData, formatData, handleChange } = useForm(setDefaultFieldValues(roleFields));
     const [permissions, setPermissions] = useState([]);
     const { showLoader, hideLoader } = useLoader();
-    const { showNotification } = useNotification();
-    const { fetchPermissions } = usePermissionService(navigate);
-    const {  fetchPermissionsForRole, updateRolePermissions } = useRoleService(navigate);
-    const { fetchById, update, formErrors } = useBaseService(entities.roles, navigate);
+    const { 
+        get: fetchPermissions,
+        get: fetchPermissionsForRole,
+        getByColumn: fetchById, 
+        put: update, 
+        put: updateRolePermissions,
+        formErrors 
+    } = useBaseService(navigate);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 showLoader();
                 const [responseRole, responseRolePermissions, responsePermissions] = await Promise.all([
-                    fetchById(roleId),
-                    fetchPermissionsForRole(roleId),
-                    fetchPermissions()
+                    fetchById(entities.roles.getByColumn(roleId)),
+                    fetchPermissionsForRole(entities.roles.permissions.getByColumn(roleId)),
+                    fetchPermissions(entities.permissions.get)
                 ]);
 
-                const formattedPermissions = responsePermissions.map(permission => ({
+                const formattedPermissions = responsePermissions.result.data.map(permission => ({
                     value: permission.id,
                     label: permission.name
                 }));
                 
                 setPermissions(formattedPermissions);  
-
                 const responseAll = {
                     name: responseRole.result.name,
-                    permissions: responseRolePermissions.map((option) => option.id)
+                    permissions: responseRolePermissions.result.map((option) => option.id)
                 }
 
                 formatData(responseAll, roleFields);
@@ -80,9 +83,9 @@ const EditRolePage = () => {
 
     const handleSubmit = async () => {
         try {
-            const success = await update(roleId, formData);
+            const success = await update(entities.roles.getByColumn(roleId), formData);
             if (success) {
-                await updateRolePermissions(roleId, {permissions: formData.permissions})
+                await updateRolePermissions(entities.roles.permissions.update(roleId), {permissions: formData.permissions})
             }
         } catch (error) {
             console.log(error)

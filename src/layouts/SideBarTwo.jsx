@@ -21,7 +21,7 @@ const SideBarTwo = ({ children }) => {
         email: ''
     });
     const navigate = useNavigate();
-    const { fetchById } = useBaseService(entities.users, navigate);
+    const { getByColumn: fetchById } = useBaseService(navigate);
     const { selectedOrgan, clearOrganSelection } = useOrgan();
     const [menuSections, setMenuSections] = useState([]);
 
@@ -101,7 +101,7 @@ const SideBarTwo = ({ children }) => {
     const fetchUser = async () => {
         try {
             showLoader();
-            const response = await fetchById(user.id);
+            const response = await fetchById(entities.users.getByColumn(user.id));
             setUserData({
                 name: response.result.name,
                 email: response.result.email,

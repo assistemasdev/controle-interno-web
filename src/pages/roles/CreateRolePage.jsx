@@ -8,7 +8,6 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import { roleFields } from '../../constants/forms/roleFields';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
-import usePermissionService from '../../hooks/services/usePermissionService';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 
@@ -17,16 +16,20 @@ const CreateRolePage = () => {
     const [permissions, setPermissions] = useState([]);
     const { formData, setFormData, resetForm, handleChange } = useForm(setDefaultFieldValues(roleFields));
     const { showNotification } = useNotification();
-    const { fetchPermissions: getPermissions } = usePermissionService(navigate);
-    const { formErrors, create} = useBaseService(entities.roles, navigate);
+    const { 
+        formErrors, 
+        post: create,
+        get: getPermissions
+    } = useBaseService(navigate);
+
     useEffect(() => { 
         fetchPermissions();
     }, [])
 
     const fetchPermissions = async () => {
         try {
-            const response = await getPermissions();
-            const formattedPermissions = response.map(permission => ({
+            const response = await getPermissions(entities.permissions.get);
+            const formattedPermissions = response.result.data.map(permission => ({
                 value: permission.id,
                 label: permission.name
             }));
@@ -82,7 +85,7 @@ const CreateRolePage = () => {
 
     const handleSubmit = async () => {
         try {
-            const success = await create(formData);
+            const success = await create(entities.roles.create, formData);
             if (success) {
                 resetForm();
             }

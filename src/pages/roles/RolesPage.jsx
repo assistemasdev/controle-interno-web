@@ -28,7 +28,7 @@ const RolePage = () => {
     const { showNotification } = useNotification();
     const [selectedRole, setSelectedRole] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
-    const { fetchAll, remove} = useBaseService(entities.roles, navigate);
+    const { get: fetchAll, del: remove} = useBaseService(navigate);
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -57,7 +57,7 @@ const RolePage = () => {
         async (filtersSubmit) => {
             try {
                 showLoader();
-                const response = await fetchAll(filtersSubmit || filters);
+                const response = await fetchAll(entities.roles.get, filtersSubmit || filters);
                 const filteredRoles = response.result.data.map(role => ({
                     id: role.id,
                     name: role.name,
@@ -155,7 +155,7 @@ const RolePage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.roles.delete(id));
             setOpenModalConfirmation(false);  
             fetchRoles();
         } catch (error) {
