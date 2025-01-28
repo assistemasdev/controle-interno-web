@@ -4,30 +4,32 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { productFields } from "../../constants/forms/productFields";
 import useNotification from '../../hooks/useNotification';
-import useProductService from '../../hooks/services/useProductService';
 import useLoader from '../../hooks/useLoader';
-import useOrganizationService from '../../hooks/services/useOrganizationService';
-import useTypeGroupsService from '../../hooks/services/useTypeGroupsService';
 import useForm from '../../hooks/useForm';
 import { useNavigate, useParams } from 'react-router-dom';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
-import useAddressService from '../../hooks/services/useAddressService';
 
 const EditProductPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showNotification } = useNotification();
-    const { fetchProductGroups } = useProductService(navigate);
-    const { fetchOrganizationLocations } = useOrganizationService(navigate);
-    const { fetchTypeGroups } = useTypeGroupsService(navigate);
-    const { fetchAll: fetchOrganizations } = useBaseService(entities.organizations, navigate);
-    const { fetchAll: fetchConditions } = useBaseService(entities.conditions, navigate);
-    const { fetchAll: fetchCategories } = useBaseService(entities.categories, navigate);
-    const { fetchAll: fetchSuppliers } = useBaseService(entities.suppliers, navigate);
-    const { fetchAll: fetchTypes } = useBaseService(entities.types, navigate);
-    const { fetchById, update, formErrors } = useBaseService(entities.products, navigate);
+    const { 
+        get: fetchOrganizations,
+        get: fetchProductGroups,
+        get: fetchOrganizationLocations,
+        get: fetchTypeGroups,
+        get: fetchConditions,
+        get: fetchCategories,
+        get: fetchSuppliers,
+        get: fetchOrganizationAddresses,
+        get: fetchTypes,
+        getByColumn: fetchById,
+        put: update,
+        formErrors
+
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const {
         formData,
@@ -45,7 +47,6 @@ const EditProductPage = () => {
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
     const [selectedOrganizationId, setSelectedOrganizationId] = useState();
-    const { fetchAll: fetchOrganizationAddresses} = useAddressService(entities.organizations, selectedOrganizationId, navigate)
 
     useEffect(() => {
         initializeData(productFields);
@@ -62,13 +63,13 @@ const EditProductPage = () => {
                     typeResponse,
                     productGroups
                 ] = await Promise.all([
-                    fetchById(id),
-                    fetchOrganizations(),
-                    fetchSuppliers(),
-                    fetchConditions(),
-                    fetchCategories(),
-                    fetchTypes(),
-                    fetchProductGroups(id)
+                    fetchById(entities.products.getByColumn(id)),
+                    fetchOrganizations(entities.organizations.get),
+                    fetchSuppliers(entities.suppliers.get),
+                    fetchConditions(entities.conditions.get),
+                    fetchCategories(entities.categories.get),
+                    fetchTypes(entities.types.get),
+                    fetchProductGroups(entities.products.groups.get(id))
                 ]);
 
                 setOrganizations(orgResponse.result.data.map((org) => ({ value: org.id, label: org.name })));
@@ -89,8 +90,7 @@ const EditProductPage = () => {
                     value: type.id,
                     label: type.name,
                 })));
-
-                setGroups(productGroups.map((group) => ({
+                setGroups(productGroups.result.map((group) => ({
                     value: group.id,
                     label: group.name,
                 })));
@@ -104,10 +104,10 @@ const EditProductPage = () => {
                         ...prev.product,
                         type_id: product.result.type_id || '',
                     },
-                    groups: productGroups.map((group) => group.id) || [],
+                    groups: productGroups.result.map((group) => group.id) || [],
                 }));
 
-                if (product.address_id && product.result.current_organization_id) {
+                if (product.result.address_id && product.result.current_organization_id) {
                     await fetchLocations(product.result.current_organization_id, product.result.address_id);
                 }
             } catch (error) {
@@ -139,8 +139,8 @@ const EditProductPage = () => {
 
         try {
             showLoader(true);
-            const response = await fetchTypeGroups(selectedTypeId);
-            const groupsFormatted = response.map((group) => ({
+            const response = await fetchTypeGroups(entities.types.groups.get(selectedTypeId));
+            const groupsFormatted = response.result.map((group) => ({
                 value: group.id,
                 label: group.name,
             }));
@@ -157,7 +157,7 @@ const EditProductPage = () => {
     const handleSubmit = async (data) => {
         try {
             showLoader();
-            await update(id, data);
+            await update(entities.products.update(id), data);
         } catch (error) {
             console.log(error)
         } finally {
@@ -204,7 +204,7 @@ const EditProductPage = () => {
     const fetchAddresses = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchOrganizationAddresses();
+            const response = await fetchOrganizationAddresses(entities.organizations.addresses.get(selectedOrganizationId));
             const addressesFormatted = response.result.data.map((address) => ({
                 value: address.id,
                 label: `${address.street}, ${address.city} - ${address.state}`,
@@ -221,8 +221,8 @@ const EditProductPage = () => {
     const fetchLocations = async (organizationId, addressId) => {
         try {
             showLoader();
-            const response = await fetchOrganizationLocations(organizationId, addressId);
-            const locationsFormatted = response.data.map(location => ({
+            const response = await fetchOrganizationLocations(entities.organizations.addresses.locations(organizationId).get(addressId));
+            const locationsFormatted = response.result.data.map(location => ({
                 value: location.id,
                 label: `${location.area}, ${location.section} - ${location.spot}`
             }));

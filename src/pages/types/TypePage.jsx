@@ -18,7 +18,7 @@ import { buildFilteredArray } from "../../utils/arrayUtils";
 const TypePage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchAll, remove } = useBaseService(entities.types, navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedTypes, setSelectedTypes] = useState([]);
@@ -57,7 +57,7 @@ const TypePage = () => {
     const loadTypes = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.types.get, filtersSubmit || filters);
             setTypes(response.result.data.map((type) => ({
                 id: type.id,
                 name: type.name,
@@ -146,7 +146,7 @@ const TypePage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.types.delete(id));
             setOpenModalConfirmation(false);  
             loadTypes();
         } catch (error) {

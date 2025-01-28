@@ -15,7 +15,7 @@ import { entities } from '../../constants/entities';
 
 const CreateGroupPage = () => {
     const navigate = useNavigate();
-    const { create, formErrors } = useBaseService(entities.groups, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(groupFields));
@@ -23,7 +23,7 @@ const CreateGroupPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            const success = await create(formData);
+            const success = await create(entities.groups.create, formData);
             if (success) {
                 resetForm();
             }

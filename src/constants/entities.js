@@ -45,5 +45,17 @@ export const entities = {
             locations: (customerId) => createNestedRoutes(`customers/${customerId}/addresses`, 'locations')
         },
         contacts: createNestedRoutes('customers', 'contacts'),
-    }
+    },
+    products: {
+        ...createEntityRoutes('products'),
+        groups: createNestedRoutes('products', 'groups')
+    },
+    status: createEntityRoutes('status'),
+    suppliers: createEntityRoutes('suppliers'),
+    types: {
+        ...createEntityRoutes('types'),
+        groups: createNestedRoutes('types','groups')
+    },
+    groups: createEntityRoutes('groups'),
+
 };

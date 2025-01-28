@@ -21,7 +21,7 @@ const GroupPage = () => {
     const { showNotification } = useNotification();
     const navigate = useNavigate();
     const location = useLocation();
-    const { fetchAll, remove } = useBaseService(entities.groups,navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const [groups, setGroups] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -46,7 +46,7 @@ const GroupPage = () => {
     const fetchGroup = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.groups.get, filtersSubmit || filters);
             setGroups(response.result.data.map(group => ({
                 id: group.id,
                 name: group.name,
@@ -139,7 +139,7 @@ const GroupPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.groups.delete(id));
             setOpenModalConfirmation(false);  
             fetchGroup();
         } catch (error) {

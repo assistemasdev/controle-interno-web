@@ -14,7 +14,7 @@ import { entities } from '../../constants/entities';
 const EditGroupPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchById, update, formErrors } = useBaseService(entities.groups, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(groupFields));
@@ -22,8 +22,8 @@ const EditGroupPage = () => {
     const fetchGroup = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchById(id);
-            formatData(response, groupFields);
+            const response = await fetchById(entities.groups.getByColumn(id));
+            formatData(response.result, groupFields);
         } catch (error) {
             console.log(error)
         } finally {
@@ -38,7 +38,7 @@ const EditGroupPage = () => {
     const handleSubmit = async () => {
         try {
             showLoader();
-            await update(id, formData);
+            await update(entities.groups.getByColumn(id), formData);
         } catch (error) {
             console.log(error)
         } finally {

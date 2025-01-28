@@ -10,7 +10,6 @@ import { PAGINATION } from "../../constants/pagination";
 import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
-import useStatusService from "../../hooks/services/useStatusService";
 import baseService from "../../services/baseService";
 import useBaseService from "../../hooks/services/useBaseService";
 import { entities } from "../../constants/entities";
@@ -24,8 +23,11 @@ const ProductsPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const { fetchAll, remove } = useBaseService(entities.products,navigate);
-    const { fetchAll: fetchAllStatus } = useBaseService(entities.status,navigate);
+    const { 
+        get: fetchAll, 
+        get: fetchAllStatus,
+        del: remove 
+    } = useBaseService(navigate);
     const { hideLoader, showLoader } = useLoader();
     const { showNotification } = useNotification();
     const [selectedProducts, setSelectedProducts] = useState([]);
@@ -68,15 +70,15 @@ const ProductsPage = () => {
         try {
             showLoader();
             const [statusResponse, productsResponse] = await Promise.all([
-                fetchAllStatus(),
-                fetchAll(filtersSubmit || filters),
+                fetchAllStatus(entities.status.get),
+                fetchAll(entities.products.get, filtersSubmit || filters),
             ]);
             const statusMap = mapStatus(statusResponse.result.data);
             setStatusOptions(statusMap);
-    
+            
             const filteredProducts = transformProducts(productsResponse.result.data, statusMap);
             setProducts(filteredProducts);
-            setCurrentPage(productsResponse.result.currentPage);
+            setCurrentPage(productsResponse.result.current_page);
             setTotalPages(productsResponse.result.last_page);
         } catch (error) {
             console.error("Erro capturado no fetchData:", error);
@@ -158,7 +160,7 @@ const ProductsPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.products.delete(id));
             setOpenModalConfirmation(false);  
             fetchAll();
         } catch (error) {

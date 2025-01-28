@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import '../../../assets/styles/custom-styles.css';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
-import useTypeGroupsService from '../../../hooks/services/useTypeGroupsService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
@@ -16,8 +15,12 @@ import { entities } from '../../../constants/entities';
 const AttachGroupToTypePage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchTypeGroups, attachGroupToType, formErrors } = useTypeGroupsService(navigate);
-    const { fetchAll } = useBaseService(entities.groups ,navigate);
+    const { 
+        get: fetchAll,
+        get: fetchTypeGroups, 
+        post: attachGroupToType, 
+        formErrors
+     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const [groups, setGroups] = useState([]);
@@ -28,12 +31,11 @@ const AttachGroupToTypePage = () => {
         try {
             showLoader();
             const [typeGroups, allGroups] = await Promise.all([
-                fetchTypeGroups(id),
-                fetchAll({}),
+                fetchTypeGroups(entities.types.groups.get(id)),
+                fetchAll(entities.groups.get),
             ]);
-
             setFormData({
-                groups: typeGroups.map((group) => group.id),
+                groups: typeGroups.result.map((group) => group.id),
             });
 
             setGroups(allGroups.result.data.map((group) => ({
@@ -41,7 +43,7 @@ const AttachGroupToTypePage = () => {
                 label: group.name,
             })));
         } catch (error) {
-            showNotification('error', 'Erro ao carregar grupos.');
+            console.log(error)
         } finally {
             hideLoader();
         }
@@ -54,7 +56,7 @@ const AttachGroupToTypePage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            const message = await attachGroupToType(id, formData.groups);
+            const message = await attachGroupToType(entities.types.groups.create(id), formData);
             showNotification('success', message);
         } catch (error) {
             showNotification('error', 'Erro ao associar grupos.');

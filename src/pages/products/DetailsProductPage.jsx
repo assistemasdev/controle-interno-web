@@ -21,21 +21,24 @@ const DetailsProductPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, setFormData } = useForm(setDefaultFieldValues(detailsProductFields))
-    const { fetchById } = useBaseService(entities.products, navigate);
-    const { fetchById: fetchOrganizationById } = useBaseService(entities.organizations, navigate);
-    const { fetchById: fetchConditionById } = useBaseService(entities.conditions, navigate);
-    const { fetchById: fetchCategoryById } = useBaseService(entities.categories, navigate);
-    const { fetchById: fetchSupplierById } = useBaseService(entities.suppliers, navigate);
-    const { fetchById: fetchTypeById } = useBaseService(entities.types, navigate);
-    const { fetchById: fetchStatusById } = useBaseService(entities.status, navigate);
+    const { 
+        getByColumn: fetchById,
+        get: fetchProductGroups,
+        getByColumn: fetchOrganizationById,
+        getByColumn: fetchConditionById,
+        getByColumn: fetchCategoryById,
+        getByColumn: fetchSupplierById,
+        getByColumn: fetchTypeById,
+        getByColumn: fetchStatusById
+    } = useBaseService(navigate);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
             try {
                 showLoader();
                 const [productResponse, productGroupsResponse] = await Promise.all([
-                    fetchById(id),
-                    ProductService.getProductGroupsById(id, navigate),
+                    fetchById(entities.products.getByColumn(id)),
+                    fetchProductGroups(entities.products.groups.get(id)),
                 ]);
     
                 setProductDetails(productResponse.result);
@@ -59,29 +62,29 @@ const DetailsProductPage = () => {
             try {
                 const responses = await Promise.all([
                     productDetails.current_organization_id
-                        ? fetchOrganizationById(productDetails.current_organization_id)
+                        ? fetchOrganizationById(entities.organizations.getByColumn(productDetails.current_organization_id))
                         : Promise.resolve({ result: { id: null, name: 'Organização não disponível' } }),
                     productDetails.owner_organization_id 
-                        ? fetchOrganizationById(productDetails.owner_organization_id)
+                        ? fetchOrganizationById(entities.organizations.getByColumn(productDetails.owner_organization_id))
                         : Promise.resolve({ result: { id: null, name: 'Organização não disponível' } }),
                     productDetails.supplier_id
-                        ? fetchSupplierById(productDetails.supplier_id)
+                        ? fetchSupplierById(entities.suppliers.getByColumn(productDetails.supplier_id))
                         : Promise.resolve({ result: { id: null, name: 'Fornecedor não disponível' } }),
     
                     productDetails.condition_id
-                        ? fetchConditionById(productDetails.condition_id)
+                        ? fetchConditionById(entities.conditions.getByColumn(productDetails.condition_id))
                         : Promise.resolve({ result: { id: null, name: 'Condição não disponível' } }),
     
                     productDetails.category_id
-                        ? fetchCategoryById(productDetails.category_id)
+                        ? fetchCategoryById(entities.categories.getByColumn(productDetails.category_id))
                         : Promise.resolve({ result: { id: null, name: 'Categoria não disponível' } }),
     
                     productDetails.type_id
-                        ? fetchTypeById(productDetails.type_id)
+                        ? fetchTypeById(entities.types.getByColumn(productDetails.type_id))
                         : Promise.resolve({ result: { id: null, name: 'Tipo não disponível' } }),
     
                     productDetails.status_id
-                        ? fetchStatusById(productDetails.status_id)
+                        ? fetchStatusById(entities.status.getByColumn(productDetails.status_id))
                         : Promise.resolve({ result: { id: null, name: 'Status não disponível' } }),
                 ]);
     

@@ -12,12 +12,12 @@ import { entities } from '../../constants/entities';
 
 const CreateTypePage = () => {
     const navigate = useNavigate();
-    const { create, formErrors } = useBaseService(entities.types, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(typeFields));
 
     const handleSubmit = async () => {
         try {
-            const success = await create(formData);
+            const success = await create(entities.types.create, formData);
             if (success) {
                 resetForm();
             }

@@ -149,7 +149,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                     </table>
 
                     {/* Paginação */}
-                    {currentPage  && onPageChange &&(
+                    {currentPage &&(
                         <div className="d-flex justify-content-center align-items-center mt-3">
                             <button
                                 className="btn btn-sm mx-1"
