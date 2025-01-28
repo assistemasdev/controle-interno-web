@@ -18,7 +18,7 @@ const PerfilUserPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
     const { user } = useAuth();
-    const { formErrors, fetchById, update} = useBaseService(entities.users, navigate);
+    const { formErrors, getByColumn: fetchById, put: update} = useBaseService(navigate);
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
@@ -27,7 +27,7 @@ const PerfilUserPage = () => {
                     navigate('/dashboard', { state: { type:'error', message: 'Usuário inválido!'}})
                 }
 
-                const userData = await fetchById(id);
+                const userData = await fetchById(entities.users.getByColumn(id));
                 formatData(userData.result, userProfileFields);
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -43,7 +43,7 @@ const PerfilUserPage = () => {
         showLoader();
         try {
             const formatData = removeEmptyValues(formData);
-            await update(id, formatData);
+            await update(entities.users.update(id), formatData);
         } catch (error) {
             console.error('Error updating user:', error);
         } finally {

@@ -6,8 +6,6 @@ import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
 import Select from 'react-select';
 import useLoader from '../../hooks/useLoader';
-import usePermissionService from '../../hooks/services/usePermissionService';
-import useRoleService from '../../hooks/services/useRoleService';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
@@ -18,30 +16,37 @@ const EditUserPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
-    const { fetchPermissionsForRole } = useRoleService(navigate);
-    const { permissions, fetchPermissions, fetchPermissionsForUser, updateUserPermissions } = usePermissionService(navigate);
-    const { formErrors, fetchById, update } = useBaseService(entities.users, navigate)
-    const { fetchAll: fetchRoles } = useBaseService(entities.roles, navigate)
+    const { 
+        get: fetchRoles,
+        get: fetchPermissions, 
+        get: fetchPermissionsForUser, 
+        get: fetchPermissionsForRole,
+        put: updateUserPermissions, 
+        getByColumn: fetchById, 
+        put: update, 
+        formErrors 
+    } = useBaseService(navigate);
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
     const [roles, setRoles] = useState([]);
     const [selectedRoles, setSelectedRoles] = useState([]);
     const [selectedPermissions, setSelectedPermissions] = useState([]);
     const [oldSelectedRoles, setOldSelectedRoles] = useState([]);
+    const [permissions, setPermissions] = useState([]);
 
     const fetchData = useCallback(async () => {
         showLoader();
         try {
-            const user = await fetchById(id);
+            const user = await fetchById(entities.users.getByColumn(id));
             formatData(user.result, userProfileFields);
 
             const [roles, permissionsData, userPermissions] = await Promise.all([
-                fetchRoles(),
-                fetchPermissions(),
-                fetchPermissionsForUser(id),
+                fetchRoles(entities.roles.get),
+                fetchPermissions(entities.permissions.get),
+                fetchPermissionsForUser(entities.users.permissions.getByColumn(id)),
             ]);
-
+            setPermissions(permissionsData.result.data)
             setRoles(roles.result.data)
-            setSelectedPermissions(userPermissions.map((p) => p.id));
+            setSelectedPermissions(userPermissions.result.map((p) => p.id) || []);
 
             const userRoles = user.roles || [];
             setSelectedRoles(userRoles.map((r) => ({ value: r.id, label: r.name })));
@@ -57,20 +62,18 @@ const EditUserPage = () => {
         fetchData();
     }, [id]);
 
-    useEffect(() => {
-        console.log(roles)
-    }, [roles])
+
     const handleRoleChange = async (selectedOptions) => {
         const safeSelectedOptions = selectedOptions || [];
         const safeOldSelectedRoles = oldSelectedRoles || [];
 
         const addedRoles = safeSelectedOptions.filter((option) => !safeOldSelectedRoles.includes(option.value));
         const removedRoles = safeOldSelectedRoles.filter((role) => !safeSelectedOptions.some((option) => option.value === role));
-
         if (addedRoles.length > 0) {
             for (const addedRole of addedRoles) {
-                const response = await fetchPermissionsForRole(addedRole.value);
-                const permissionsFromRole = response || [];
+                const response = await fetchPermissionsForRole(entities.roles.permissions.getByColumn(addedRole.value));
+                console.log(response)
+                const permissionsFromRole = response.result || [];
 
                 setSelectedPermissions((prevPermissions) => {
                     const updatedPermissions = [...prevPermissions];
@@ -86,14 +89,14 @@ const EditUserPage = () => {
 
         if (removedRoles.length > 0) {
             for (const removedRole of removedRoles) {
-                const response = await fetchPermissionsForRole(removedRole);
-                const permissionsFromRole = response || [];
+                const response = await fetchPermissionsForRole(entities.roles.permissions.getByColumn(removedRole));
+                const permissionsFromRole = response.result || [];
                 const remainingRoles = safeSelectedOptions.filter((role) => role.value !== removedRole);
 
                 const remainingPermissions = [];
                 for (const role of remainingRoles) {
-                    const roleResponse = await fetchPermissionsForRole(role.value);
-                    const rolePermissions = roleResponse || [];
+                    const roleResponse = await fetchPermissionsForRole(entities.roles.permissions.getByColumn(role.value));
+                    const rolePermissions = roleResponse.result || [];
                     remainingPermissions.push(...rolePermissions);
                 }
 
@@ -120,7 +123,7 @@ const EditUserPage = () => {
         showLoader();
         try {
             const formatData = removeEmptyValues(formData);
-            await update(id, formatData);
+            await update(entities.users.update(id), formatData);
         } catch (error) {
             console.error('Error updating user: ', error);
         } finally {
@@ -131,7 +134,7 @@ const EditUserPage = () => {
     const handlePermissionSubmit = async () => {
         showLoader();
         try {
-            await updateUserPermissions(id, selectedPermissions);
+            await updateUserPermissions(entities.users.permissions.update(id), {permissions: selectedPermissions});
         } catch (error) {
             console.error('Error updating permissions: ', error);
         } finally {

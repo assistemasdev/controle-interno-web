@@ -22,7 +22,7 @@ const UsersPage = () => {
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchAll, remove} = useBaseService(entities.users, navigate);
+    const { get: fetchAll, del:remove} = useBaseService(navigate);
     const [users, setUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -53,7 +53,8 @@ const UsersPage = () => {
     const fetchUsers = async (filtersSubmit) => {
         try {
             showLoader();
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.users.get, filtersSubmit || filters);
+            
             const filteredUsers = response.result.data.map(user => ({
                 id: user.id,
                 name: user.name,
@@ -146,7 +147,7 @@ const UsersPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.users.delete(id));
             setOpenModalConfirmation(false);  
             fetchUsers();
         } catch (error) {

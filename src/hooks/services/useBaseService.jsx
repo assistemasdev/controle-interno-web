@@ -3,7 +3,7 @@ import baseService from '../../services/baseService';
 import useErrorHandling from '../useErrorHandling';
 import useNotification from '../useNotification';
 
-const useBaseService = (entity, navigate) => {
+const useBaseService = (navigate) => {
     const { handleError } = useErrorHandling();
     const { showNotification } = useNotification();
     const [formErrors, setFormErrors] = useState({});
@@ -35,57 +35,57 @@ const useBaseService = (entity, navigate) => {
         [handleError, showNotification]
     );
 
-    const fetchAll = useCallback(
-        async (params = {}) => handleRequest(
-            () => baseService.fetchAll(entity, params, navigate),
+    const get = useCallback(
+        async (url, params = {}) => handleRequest(
+            () => baseService.get(url, params, navigate),
             null,
             'Erro ao buscar os dados.'
         ),
-        [entity, navigate, handleRequest]
+        [navigate, handleRequest]
     );
 
-    const fetchById = useCallback(
-        async (id) => handleRequest(
-            () => baseService.fetchEntityById(entity, id, navigate),
+    const getByColumn = useCallback(
+        async (url) => handleRequest(
+            () => baseService.getByColumn(url, navigate),
             null,
             'Erro ao buscar os dados.'
         ),
-        [entity, navigate, handleRequest]
+        [navigate, handleRequest]
     );
 
-    const create = useCallback(
-        async (data) => handleRequest(
-            () => baseService.create(entity, data, navigate),
+    const post = useCallback(
+        async (url, data) => handleRequest(
+            () => baseService.post(url, data, navigate),
             'Cadastro realizado com sucesso.',
             'Erro ao cadastrar.'
         ),
-        [entity, navigate, handleRequest]
+        [navigate, handleRequest]
     );
 
-    const update = useCallback(
-        async (id, data) => handleRequest(
-            () => baseService.update(entity, id, data, navigate),
+    const put = useCallback(
+        async (url, data) => handleRequest(
+            () => baseService.put(url, data, navigate),
             'Edição realizada com sucesso.',
             'Erro ao editar.'
         ),
-        [entity, navigate, handleRequest]
+        [navigate, handleRequest]
     );
 
-    const remove = useCallback(
-        async (id) => handleRequest(
-            () => baseService.delete(entity, id, navigate),
+    const del = useCallback(
+        async (url) => handleRequest(
+            () => baseService.delete(url, navigate),
             'Exclusão realizada com sucesso.',
             'Erro ao excluir.'
         ),
-        [entity, navigate, handleRequest]
+        [navigate, handleRequest]
     );
 
     return {
-        fetchAll,
-        fetchById,
-        create,
-        update,
-        remove,
+        get,
+        getByColumn,
+        post,
+        put,
+        del,
         formErrors,
         setFormErrors
     };

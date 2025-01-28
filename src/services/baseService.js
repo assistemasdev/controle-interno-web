@@ -7,30 +7,30 @@ const baseService = {
         return request("get", `/a/${entity}`, params, navigate);
     },
 
-    async fetchAll(entity, data, navigate = null) {
+    async get(url, data, navigate = null) {
         const query = qs.stringify({
             filters: buildDynamicFilters(data),
             page: data.page,
             perPage: data.perPage,
         }, { encode: false });
-        
-        return request("get", `/${entity}/?${query}`, {}, navigate);
+
+        return request("get", `${url}/?${query}`, {}, navigate);
     },
 
-    async fetchEntityById(entity, id, navigate = null) {
-        return request("get", `/${entity}/${id}`, {}, navigate);
+    async getByColumn(url, navigate = null) {
+        return request("get", `${url}`, {}, navigate);
     },
 
-    async create(entity, data, navigate = null) {
-        return request("post", `/${entity}`, data, navigate);
+    async post(url, data, navigate = null) {
+        return request("post", `${url}`, data, navigate);
     },
 
-    async update(entity, id, data, navigate = null) {
-        return request("put", `/${entity}/${id}`, data, navigate);
+    async put(url, data, navigate = null) {
+        return request("put", `${url}`, data, navigate);
     },
 
-    async delete(entity, id, navigate = null) {
-        return request("delete", `/${entity}/${id}`, {}, navigate);
+    async delete(url, navigate = null) {
+        return request("delete", `${url}`, {}, navigate);
     }
 };
 

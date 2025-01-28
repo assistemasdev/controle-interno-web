@@ -13,11 +13,12 @@ const CreateUserPage = () => {
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(userProfileFields));
-    const { formErrors, create} = useBaseService(entities.users, navigate)
+    const { formErrors, post:create } = useBaseService(navigate);
+    
     const handleSubmit = async () => {
         showLoader();
         try {
-            const success = await create(formData);
+            const success = await create(entities.users.create, formData);
             if (success) {
                 resetForm();
             }
@@ -42,6 +43,7 @@ const CreateUserPage = () => {
                 <Form
                     onSubmit={handleSubmit}
                     textSubmit="Cadastrar Usuário"
+                    initialFormData={formData}
                     textLoadingSubmit="Cadastrando..."
                     handleBack={handleBack}
                 >
