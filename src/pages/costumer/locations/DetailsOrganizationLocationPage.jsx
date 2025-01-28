@@ -8,8 +8,9 @@ import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { locationFields } from '../../../constants/forms/locationFields';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
-import useCustomerService from '../../../hooks/services/useCustomerService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import { entities } from '../../../constants/entities';
 
 const DetailsCustomerLocationPage = () => {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ const DetailsCustomerLocationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, setFormData } = useForm(setDefaultFieldValues(locationFields));
-    const { fetchCustomerLocation } = useCustomerService(navigate);
+    const { getByColumn: fetchById } = useBaseService(navigate);
 
     useEffect(() => {
         fetchLocationData();
@@ -26,15 +27,15 @@ const DetailsCustomerLocationPage = () => {
     const fetchLocationData = useCallback(async () => {
         showLoader();
         try {
-            const response = await fetchCustomerLocation(id, addressId, locationId);
-            setFormData(response);
+            const response = await fetchById(entities.customers.addresses.locations(id).getByColumn(addressId, locationId));
+            setFormData(response.result);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização');
             console.error(error);
         } finally {
             hideLoader();
         }
-    }, [id, addressId, locationId, fetchCustomerLocation, setFormData, showLoader, hideLoader, showNotification]);
+    }, [id, addressId, locationId, fetchById, setFormData, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes`);

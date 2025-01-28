@@ -27,7 +27,7 @@ const CostumerPage = () => {
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchAll, remove } = useBaseService(entities.customers ,navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const [selectedCustomer, setSelectedCustomer] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
@@ -58,7 +58,7 @@ const CostumerPage = () => {
     const fetchCustomers = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.customers.get, filtersSubmit || filters);
             const filteredCustomers = response.result.data.map(customer => {
                 const numericValue = customer.cpf_cnpj.replace(/\D/g, '');
 
@@ -158,7 +158,7 @@ const CostumerPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.customers.delete(id));
             setOpenModalConfirmation(false);  
             fetchCustomers();
         } catch (error) {

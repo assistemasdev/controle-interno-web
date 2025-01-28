@@ -10,7 +10,8 @@ import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
 import useNotification from "../../../hooks/useNotification";
-import useCustomerService from "../../../hooks/services/useCustomerService";
+import useBaseService from "../../../hooks/services/useBaseService";
+import { entities } from "../../../constants/entities";
 
 const LocationCustomerPage = () => {
     const { canAccess } = usePermissions();
@@ -26,7 +27,7 @@ const LocationCustomerPage = () => {
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchCustomerLocations, deleteLocation } = useCustomerService(navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -43,25 +44,25 @@ const LocationCustomerPage = () => {
         try {
             showLoader();
 
-            const result = await fetchCustomerLocations(id, addressId, { page, perPage: itemsPerPage });
+            const response = await fetchAll(entities.customers.addresses.locations(id).get(addressId), { page, perPage: itemsPerPage });
 
-            const formattedLocations = result.data.map((loc) => ({
-                id: loc.id,
-                area: loc.area,
-                section: loc.section,
-                spot: loc.spot,
+            const formattedLocations = response.result.data.map((loc) => ({
+                id: loc.id || '-',
+                area: loc.area || '-',
+                section: loc.section || '-',
+                spot: loc.spot || '-',
             }));
 
             setLocations(formattedLocations);
-            setTotalPages(result.last_page);
-            setCurrentPage(result.current_page);
+            setTotalPages(response.result.last_page);
+            setCurrentPage(response.result.current_page);
         } catch (error) {
             showNotification("error", "Erro ao carregar localizações");
             console.error(error);
         } finally {
             hideLoader();
         }
-    }, [id, addressId, itemsPerPage, fetchCustomerLocations, showLoader, hideLoader, showNotification]);
+    }, [id, addressId, itemsPerPage, fetchAll, showLoader, hideLoader, showNotification]);
 
     useEffect(() => {
         fetchLocations();
@@ -83,7 +84,7 @@ const LocationCustomerPage = () => {
     const confirmDelete = useCallback(async () => {
         try {
             showLoader();
-            await deleteLocation(id, addressId, locationToDelete.id);
+            await remove(entities.customers.addresses.locations(id).delete(addressId, locationToDelete.id));
             setDeleteModalOpen(false);
             fetchLocations();
         } catch (error) {
@@ -92,7 +93,7 @@ const LocationCustomerPage = () => {
         } finally {
             hideLoader();
         }
-    }, [id, addressId, locationToDelete, deleteLocation, fetchLocations, showLoader, hideLoader, showNotification]);
+    }, [id, addressId, locationToDelete, remove, fetchLocations, showLoader, hideLoader, showNotification]);
 
     const headers = useMemo(() => ["id", "Área", "Seção", "Ponto"], []);
 

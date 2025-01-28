@@ -10,14 +10,12 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
-import useCustomerService from '../../hooks/services/useCustomerService';
 import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
 import { editCustomerFields } from '../../constants/forms/customerFields';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
-import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
-import useAddressService from '../../hooks/services/useAddressService';
+import useBaseService from '../../hooks/services/useBaseService';
 import useContactService from '../../hooks/services/useContactService';
 
 const CustomerDetailsPage = () => {
@@ -26,9 +24,13 @@ const CustomerDetailsPage = () => {
     const { canAccess } = usePermissions();
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { fetchAll: fetchAllAddresses, remove: removeAddress } = useAddressService(entities.customers, id, navigate);
-    const { fetchAll: fetchAllContacts, remove: removeContact } = useContactService(entities.customers, id, navigate);
-    const { fetchById } = useBaseService(entities.customers, navigate);
+    const { 
+        get: fetchAllAddresses, 
+        getByColumn: fetchById,
+        del: removeAddress, 
+        get: fetchAllContacts, 
+        del: removeContact  
+    } = useBaseService(navigate);
     const { formData, setFormData } = useForm(setDefaultFieldValues(editCustomerFields));
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
@@ -62,7 +64,7 @@ const CustomerDetailsPage = () => {
     const fetchData = async () => {
         showLoader();
         try {
-            const customerResponse = await fetchById(id);
+            const customerResponse = await fetchById(entities.customers.getByColumn(id));
             setFormData(customerResponse.result);
 
             fetchAddress();
@@ -77,7 +79,7 @@ const CustomerDetailsPage = () => {
 
     const fetchAddress = useCallback(async (filtersSubmit) => {
             try {
-                const addressesResponse = await fetchAllAddresses(filtersSubmit || filtersAddresses);
+                const addressesResponse = await fetchAllAddresses(entities.customers.addresses.get(id), filtersSubmit || filtersAddresses);
                 setAddresses(addressesResponse.result.data.map((address) => ({
                     id: address.id,
                     zip: address.zip,
@@ -95,7 +97,7 @@ const CustomerDetailsPage = () => {
     
         const fetchContacts = useCallback(async (filtersSubmit) => {
             try {
-                const contactsResponse = await fetchAllContacts(filtersSubmit || filtersContacts);
+                const contactsResponse = await fetchAllContacts(entities.customers.contacts.get(id), filtersSubmit || filtersContacts);
                 
                 setContacts(contactsResponse.result.data.map((contact) => ({
                     id: contact.id,
@@ -133,10 +135,10 @@ const CustomerDetailsPage = () => {
         setOpenModalConfirmationAddress(true);  
     };
     
-    const handleConfirmDeleteAddress = async (id) => {
+    const handleConfirmDeleteAddress = async (addressId) => {
         try {
             showLoader();
-            await removeAddress(id);
+            await removeAddress(entities.customers.addresses.delete(id, addressId));
             setOpenModalConfirmationAddress(false);  
             fetchAddress();
         } catch (error) {
@@ -169,10 +171,10 @@ const CustomerDetailsPage = () => {
         setOpenModalConfirmationContact(true);  
     };
     
-    const handleConfirmDeleteContact = async (id) => {
+    const handleConfirmDeleteContact = async (contactId) => {
         try {
             showLoader();
-            await removeContact(id);
+            await removeContact(entities.customers.contacts.delete(id, contactId));
             setOpenModalConfirmationContact(false);  
             fetchContacts();
         } catch (error) {

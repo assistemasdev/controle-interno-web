@@ -5,11 +5,12 @@ import '../../../assets/styles/custom-styles.css';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
-import useCustomerService from '../../../hooks/services/useCustomerService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { locationFields } from '../../../constants/forms/locationFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import { entities } from '../../../constants/entities';
 
 const EditCustomerLocationPage = () => {
     const navigate = useNavigate();
@@ -17,20 +18,20 @@ const EditCustomerLocationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(locationFields));
-    const { fetchCustomerLocation, updateLocation, formErrors } = useCustomerService(navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
 
     const fetchLocationData = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchCustomerLocation(id, addressId, locationId);
-            formatData(response, locationFields);
+            const response = await fetchById(entities.customers.addresses.locations(id).getByColumn(addressId, locationId));
+            formatData(response.result, locationFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização');
             console.error(error);
         } finally {
             hideLoader();
         }
-    }, [id, addressId, locationId, setFormData, showLoader, hideLoader, fetchCustomerLocation, showNotification]);
+    }, [id, addressId, locationId, setFormData, showLoader, hideLoader, fetchById, showNotification]);
 
     useEffect(() => {
         fetchLocationData();
@@ -38,12 +39,12 @@ const EditCustomerLocationPage = () => {
 
     const handleSubmit = useCallback(async () => {
         try {
-            await updateLocation(id, addressId, locationId, formData);
+            await update(entities.customers.addresses.locations(id).update(addressId, locationId), formData);
         } catch (error) {
             console.error(error);
             showNotification('error', 'Erro ao atualizar localização');
         }
-    }, [id, addressId, locationId, formData, updateLocation, showNotification]);
+    }, [id, addressId, locationId, formData, update, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes`);

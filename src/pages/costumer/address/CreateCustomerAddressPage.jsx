@@ -10,7 +10,7 @@ import { addressFields } from '../../../constants/forms/addressFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const CreateCustomerAddressPage = () => {
@@ -19,7 +19,7 @@ const CreateCustomerAddressPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, setFormData, resetForm, handleChange } = useForm(setDefaultFieldValues(addressFields));
-    const { create, formErrors } = useAddressService(entities.customers, id, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
 
     const handleFieldChange = (fieldId, value) => {
         if (fieldId == 'zip') {
@@ -70,7 +70,7 @@ const CreateCustomerAddressPage = () => {
         }
 
         try {
-            const success = await create(sanitizedData);
+            const success = await create(entities.customers.addresses.create(id), sanitizedData);
             if (success) {
                 resetForm();
             }

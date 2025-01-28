@@ -11,7 +11,7 @@ import useForm from '../../../hooks/useForm';
 import useNotification from '../../../hooks/useNotification';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const CostumerAddressDetailsPage = () => {
@@ -20,7 +20,7 @@ const CostumerAddressDetailsPage = () => {
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields));
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchById } = useAddressService(entities.customers, id, navigate);
+    const { getByColumn: fetchById } = useBaseService(navigate);
     useEffect(() => {
         fetchAddress();
     }, [id]);
@@ -28,7 +28,7 @@ const CostumerAddressDetailsPage = () => {
     const fetchAddress = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchById(addressId);
+            const response = await fetchById(entities.customers.addresses.getByColumn(id, addressId));
             const address = response.result;
             formatData(address, addressFields);
 

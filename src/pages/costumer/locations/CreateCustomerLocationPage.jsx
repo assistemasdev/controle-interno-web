@@ -8,8 +8,9 @@ import useForm from '../../../hooks/useForm';
 import { locationFields } from '../../../constants/forms/locationFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
-import useCustomerService from '../../../hooks/services/useCustomerService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import { entities } from '../../../constants/entities';
 
 const CreateCustomerLocationPage = () => {
     const navigate = useNavigate();
@@ -17,12 +18,12 @@ const CreateCustomerLocationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(locationFields));
-    const { createLocation, formErrors } = useCustomerService(navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
 
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            const success = await createLocation(id, addressId, formData);
+            const success = await create(entities.customers.addresses.locations(id).create(addressId), formData);
             if (success) {
                 resetForm();
             }
@@ -32,7 +33,7 @@ const CreateCustomerLocationPage = () => {
         } finally {
             hideLoader();
         }
-    }, [createLocation, id, addressId, formData, showLoader, hideLoader, showNotification]);
+    }, [create, id, addressId, formData, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes`);

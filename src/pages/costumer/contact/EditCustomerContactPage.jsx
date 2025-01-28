@@ -8,18 +8,16 @@ import useForm from '../../../hooks/useForm';
 import { contactFields } from '../../../constants/forms/contactFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
-import useCustomerService from '../../../hooks/services//useCustomerService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useContactService from '../../../hooks/services/useContactService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const EditCustomerContactPage = () => {
     const navigate = useNavigate();
     const { id, contactId } = useParams();
     const { showLoader, hideLoader } = useLoader();
-    const { showNotification } = useNotification();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(contactFields));
-    const { fetchById, update, formErrors } = useContactService(entities.customers, id, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(entities.customers, id, navigate);
 
     useEffect(() => {
         fetchContact();
@@ -28,7 +26,7 @@ const EditCustomerContactPage = () => {
     const fetchContact = async () => {
         try {
             showLoader();
-            const response = await fetchById(contactId);
+            const response = await fetchById(entities.customers.contacts.getByColumn(id,contactId));
             formatData(response.result, contactFields)
         } catch (error) {
             console.error(error);
@@ -39,7 +37,7 @@ const EditCustomerContactPage = () => {
 
     const handleSubmit = async () => {
         try {
-            await update(contactId, formData);
+            await update(entities.customers.contacts.update(id,contactId), formData);
         } catch (error) {
             console.error(error);
         }

@@ -11,7 +11,7 @@ import { addressFields } from '../../../constants/forms/addressFields';
 import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const EditCustomerAddressPage = () => {
@@ -19,7 +19,7 @@ const EditCustomerAddressPage = () => {
     const { id, addressId } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchById, update, formErrors } = useAddressService(entities.customers, id,navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { formData, setFormData, formatData, handleChange } = useForm(setDefaultFieldValues(addressFields));
 
     const handleFieldChange = useCallback((fieldId, value) => {
@@ -72,7 +72,7 @@ const EditCustomerAddressPage = () => {
     const fetchAddress = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchById(addressId);
+            const response = await fetchById(entities.customers.addresses.getByColumn(id,addressId));
             formatData(response.result, addressFields)
             setFormData((prev) => ({
                 ...prev,
@@ -93,7 +93,7 @@ const EditCustomerAddressPage = () => {
         };
 
         try {
-            await update(id, addressId, sanitizedData);
+            await update(entities.customers.addresses.update(id, addressId), sanitizedData);
         } catch (error) {
             console.error(error);
             showNotification('error', 'Erro ao editar o endereço');

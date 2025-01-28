@@ -18,14 +18,14 @@ const EditCustomerPage = () => {
     const { id } = useParams();
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { fetchById, update, formErrors } = useBaseService(entities.customers, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(editCustomerFields));
 
     useEffect(() => {
         const fetchCustomerData = async () => {
             showLoader();
             try {
-                const response = await fetchById(id);
+                const response = await fetchById(entities.customers.getByColumn(id));
                 formatData(response.result, editCustomerFields)
                 setFormData(prev => ({
                     ...prev,
@@ -57,7 +57,7 @@ const EditCustomerPage = () => {
         };
 
         try {
-            await update(id, sanitizedData);
+            await update(entities.customers.update(id), sanitizedData);
         } catch (error) {
             console.log(error)
         } finally {

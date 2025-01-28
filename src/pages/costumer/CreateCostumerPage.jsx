@@ -17,7 +17,7 @@ const CreateCustomerPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { create, formErrors } = useBaseService(entities.customers, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { formData, handleChange, setFormData, initializeData, resetForm } = useForm(setDefaultFieldValues(customerFields));
 
     
@@ -85,7 +85,7 @@ const CreateCustomerPage = () => {
                     }
                 };
         try {
-            const success = await create(sanitizedData);
+            const success = await create(entities.customers.create, sanitizedData);
             if (success) {
                 resetForm();
             }
