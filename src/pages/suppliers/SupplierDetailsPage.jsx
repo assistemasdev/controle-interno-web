@@ -15,8 +15,6 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useForm from '../../hooks/useForm';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
-import useAddressService from '../../hooks/services/useAddressService';
-import useContactService from '../../hooks/services/useContactService';
 
 const SupplierDetailsPage = () => {
     const navigate = useNavigate();
@@ -24,9 +22,13 @@ const SupplierDetailsPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { canAccess } = usePermissions();
-    const { fetchAll: fetchAllAddresses, remove: removeAddress } = useAddressService(entities.suppliers, id, navigate);
-    const { fetchAll: fetchAllContacts, remove: removeContact } = useContactService(entities.suppliers, id, navigate);
-    const { fetchById } = useBaseService(entities.suppliers, navigate);
+    const { 
+        getByColumn:fetchById,
+        get: fetchAllAddresses, 
+        del: removeAddress,
+        get: fetchAllContacts, 
+        del: removeContact
+    } = useBaseService(navigate);
     const { formData, formatData } = useForm(setDefaultFieldValues(supplierFields));
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
@@ -60,7 +62,7 @@ const SupplierDetailsPage = () => {
     const fetchData = useCallback(async () => {
         showLoader();
         try {
-            const supplier = await fetchById(id);
+            const supplier = await fetchById(entities.suppliers.getByColumn(id));
             formatData(supplier.result, supplierFields);
             fetchAddress()
             fetchContacts();
@@ -74,7 +76,7 @@ const SupplierDetailsPage = () => {
 
     const fetchAddress = useCallback(async (filtersSubmit) => {
         try {
-            const addressesResponse = await fetchAllAddresses(filtersSubmit || filtersAddresses);
+            const addressesResponse = await fetchAllAddresses(entities.suppliers.addresses.get(id) ,filtersSubmit || filtersAddresses);
             
             setAddresses(addressesResponse.result.data.map((address) => ({
                 id: address.id,
@@ -93,7 +95,7 @@ const SupplierDetailsPage = () => {
 
     const fetchContacts = useCallback(async (filtersSubmit) => {
         try {
-            const contactsResponse = await fetchAllContacts(filtersSubmit || filtersContacts);
+            const contactsResponse = await fetchAllContacts(entities.suppliers.contacts.get(id), filtersSubmit || filtersContacts);
             
             setContacts(contactsResponse.result.data.map((contact) => ({
                 id: contact.id,
@@ -132,10 +134,10 @@ const SupplierDetailsPage = () => {
         setOpenModalConfirmationAddress(true);  
     };
     
-    const handleConfirmDeleteAddress = async (id) => {
+    const handleConfirmDeleteAddress = async (addressId) => {
         try {
             showLoader();
-            await removeAddress(id);
+            await removeAddress(entities.suppliers.addresses.delete(id,addressId));
             setOpenModalConfirmationAddress(false);  
             fetchAddress();
         } catch (error) {
@@ -168,10 +170,10 @@ const SupplierDetailsPage = () => {
         setOpenModalConfirmationContact(true);  
     };
     
-    const handleConfirmDeleteContact = async (id) => {
+    const handleConfirmDeleteContact = async (contactId) => {
         try {
             showLoader();
-            await removeContact(id);
+            await removeContact(entities.suppliers.contacts.delete(id, contactId));
             setOpenModalConfirmationContact(false);  
             fetchContacts();
         } catch (error) {

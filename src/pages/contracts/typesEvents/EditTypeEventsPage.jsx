@@ -14,7 +14,7 @@ import { entities } from '../../../constants/entities';
 const EditTypeEventsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchById, update, formErrors } = useBaseService(entities.contractEventTypes, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(typeEventsFields));
 
@@ -22,7 +22,7 @@ const EditTypeEventsPage = () => {
         const fetchData = async () => {
             showLoader();
             try {
-                const typeData = await fetchById(id);
+                const typeData = await fetchById(entities.contracts.eventsTypes.getByColumn(null, id));
                 formatData(typeData.result, typeEventsFields);
             } catch (error) {
                 console.log(error)
@@ -37,7 +37,7 @@ const EditTypeEventsPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await update(id, formData);
+            await update(entities.contracts.eventsTypes.update(null, id), formData);
         } catch (error) {
             console.error('Erro ao atualizar o tipo:', error);
         } finally {

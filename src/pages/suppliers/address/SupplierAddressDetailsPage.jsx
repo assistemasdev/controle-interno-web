@@ -10,7 +10,7 @@ import useNotification from '../../../hooks/useNotification';
 import { maskCep } from '../../../utils/maskUtils';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const SupplierAddressDetailsPage = () => {
@@ -19,13 +19,13 @@ const SupplierAddressDetailsPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields))
-    const { fetchById } = useAddressService(entities.suppliers, id, navigate);
+    const { getByColumn: fetchById } = useBaseService(navigate);
 
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
-                const response = await fetchById(addressId);
+                const response = await fetchById(entities.suppliers.addresses.getByColumn(id, addressId));
                 formatData(response.result, addressFields);
                 setFormData(prev => ({
                     ...prev,

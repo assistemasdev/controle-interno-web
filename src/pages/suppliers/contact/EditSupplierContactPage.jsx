@@ -8,21 +8,21 @@ import { contactFields } from '../../../constants/forms/contactFields';
 import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useContactService from '../../../hooks/services/useContactService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const EditSupplierContactPage = () => {
     const navigate = useNavigate();
     const { supplierId, contactId } = useParams();
     const { showLoader, hideLoader } = useLoader();
-    const { fetchById, update, formErrors } = useContactService(entities.suppliers, supplierId, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(contactFields));
 
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
-                const contact = await fetchById(contactId);
+                const contact = await fetchById(entities.suppliers.contacts.getByColumn(supplierId, contactId));
                 formatData(contact.result, contactFields)
             } catch (error) {
                 console.error(error);
@@ -37,7 +37,7 @@ const EditSupplierContactPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await update(contactId, formData);
+            await update(entities.suppliers.contacts.update(supplierId, contactId), formData);
         } catch (error) {
             console.error(error);
         } finally {

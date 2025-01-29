@@ -19,27 +19,29 @@ const DetailsContractPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, formatData, setFormData } = useForm(setDefaultFieldValues(contractFields))
-    const { fetchById } = useBaseService(entities.contracts, navigate);
-    const { fetchById: fetchOrganizationById } = useBaseService(entities.organizations, navigate);
-    const { fetchById: fetchCustomersById } = useBaseService(entities.customers, navigate);
-    const { fetchById: fetchContractTypeById } = useBaseService(entities.contractTypes, navigate);
-    const { fetchById: fetchContractStatusById } = useBaseService(entities.contractStatus, navigate);
-    const { fetchInfos } = useContractService(navigate)
+    const { 
+        getByColumn: fetchById,
+        getByColumn: fetchOrganizationById,
+        getByColumn: fetchCustomersById,
+        getByColumn: fetchContractTypeById,
+        getByColumn: fetchContractStatusById,
+        get: fetchContractInfos
+    } = useBaseService(navigate);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
             try {
                 showLoader();
                 const [contractResponse, contractInfosResponse] = await Promise.all([
-                    fetchById(id),
-                    fetchInfos(id)
+                    fetchById(entities.contracts.getByColumn(id)),
+                    fetchContractInfos(entities.contracts.infos.getByColumn(id))
                 ]);
-
+                
                 const [organization, customer, contractType, contractStatus] = await Promise.all([
-                    fetchOrganizationById(contractResponse.result.organization_id),
-                    fetchCustomersById(contractResponse.result.customer_id),
-                    fetchContractTypeById(contractResponse.result.contract_type_id),
-                    fetchContractStatusById(contractResponse.result.contract_status_id)
+                    fetchOrganizationById(entities.organizations.getByColumn(contractResponse.result.organization_id)),
+                    fetchCustomersById(entities.customers.getByColumn(contractResponse.result.customer_id)),
+                    fetchContractTypeById(entities.contracts.types.getByColumn(null, contractResponse.result.contract_type_id)),
+                    fetchContractStatusById(entities.contracts.status.getByColumn(null, contractResponse.result.contract_status_id))
                 ]);
 
                 formatData({

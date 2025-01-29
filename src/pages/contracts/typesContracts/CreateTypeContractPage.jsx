@@ -12,12 +12,12 @@ import { entities } from '../../../constants/entities';
 
 const CreateTypeContractPage = () => {
     const navigate = useNavigate();
-    const { create, formErrors } = useBaseService(entities.contractTypes, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(typeContractsFields));
 
     const handleSubmit = async () => {
         try {
-            const success = await create(formData);
+            const success = await create(entities.contracts.types.create(), formData);
             if (success) {
                 resetForm();
             }

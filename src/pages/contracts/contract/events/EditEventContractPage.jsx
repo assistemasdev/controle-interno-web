@@ -16,13 +16,16 @@ const EditEventContractPage = () => {
     const navigate = useNavigate();
     const { id, eventId } = useParams();
     const { showNotification } = useNotification();
-    const { fetchAll: fetchEventTypes } = useBaseService(entities.contractEventTypes, navigate);
-    const { fetchAll: fetchContracts } = useBaseService(entities.contracts, navigate);
-    const { fetchContractEventById, updateContractEvent, formErrors } = useContractService(navigate)
+    const { 
+        get: fetchEventTypes,
+        get: fetchContracts,
+        getByColumn: fetchContractEventById, 
+        put: updateContractEvent, 
+        formErrors
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const {
         formData,
-        setFormData,
         handleChange,
         initializeData,
         formatData
@@ -41,9 +44,9 @@ const EditEventContractPage = () => {
                     contractEventTypesResponse,
                     contractsResponse
                 ] = await Promise.all([
-                    fetchContractEventById(id, eventId),
-                    fetchEventTypes(),
-                    fetchContracts()
+                    fetchContractEventById(entities.contracts.events.getByColumn(id, eventId)),
+                    fetchEventTypes(entities.contracts.eventsTypes.get()),
+                    fetchContracts(entities.contracts.get)
                 ]);
 
                 formatData(contractEventResponse.result, editEventFields);
@@ -69,7 +72,7 @@ const EditEventContractPage = () => {
     const handleSubmit = async () => {
         try {
             showLoader();
-            await updateContractEvent(id, eventId, formData);
+            await updateContractEvent(entities.contracts.events.update(id, eventId), formData);
         } catch (error) {
             console.log(error)
         } finally {

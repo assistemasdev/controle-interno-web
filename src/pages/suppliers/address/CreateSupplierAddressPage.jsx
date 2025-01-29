@@ -10,7 +10,7 @@ import { addressFields } from '../../../constants/forms/addressFields';
 import useForm from '../../../hooks/useForm';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../../utils/objectUtils'
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const CreateSupplierAddressPage = () => {
@@ -18,7 +18,7 @@ const CreateSupplierAddressPage = () => {
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { create, formErrors } = useAddressService(entities.suppliers, id, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(addressFields));
     
     const handleCepChange = useCallback(async (cep) => {
@@ -74,7 +74,7 @@ const CreateSupplierAddressPage = () => {
         };
     
         try {
-            const success = await create(sanitizedData);
+            const success = await create(entities.suppliers.addresses.create(id), sanitizedData);
             if (success) {
                 resetForm();
             }

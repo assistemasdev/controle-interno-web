@@ -17,7 +17,7 @@ import { buildFilteredArray } from "../../../utils/arrayUtils";
 const TypeEventsPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchAll, remove } = useBaseService(entities.contractEventTypes, navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const [selectedTypes, setSelectedTypes] = useState([]);
     const [types, setTypes] = useState([]);
@@ -55,8 +55,8 @@ const TypeEventsPage = () => {
     const loadTypes = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(filtersSubmit || filters);
-            console.log(response)
+            const response = await fetchAll(entities.contracts.eventsTypes.get(), filtersSubmit || filters);
+
             setTypes(response.result.data.map((type) => ({
                 id: type.id,
                 name: type.name,
@@ -144,7 +144,7 @@ const TypeEventsPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.contracts.eventsTypes.delete(null, id));
             setOpenModalConfirmation(false);  
             loadTypes();
         } catch (error) {

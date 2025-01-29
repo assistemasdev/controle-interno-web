@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import '../../../assets/styles/custom-styles.css';
 import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
-import useOrganizationService from '../../../hooks/services/useOrganizationService';
-import useTypeGroupsService from '../../../hooks/services/useTypeGroupsService';
 import useForm from '../../../hooks/useForm';
 import Form from '../../../components/Form'; 
 import FormSection from '../../../components/FormSection';
@@ -17,15 +15,18 @@ import { entities } from '../../../constants/entities';
 const CreateContractPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
-    const { create, formErrors } = useBaseService(entities.contracts, navigate);
-    const { fetchAll: fetchOrganizations } = useBaseService(entities.organizations, navigate);
-    const { fetchAll: fetchTypes } = useBaseService(entities.contractTypes, navigate);
-    const { fetchAll: fetchCustomers } = useBaseService(entities.customers, navigate);
-    const { fetchAll: fetchStatus } = useBaseService(entities.contractStatus, navigate);
+    const { 
+        post: create, 
+        get: fetchOrganizations,
+        get: fetchContractTypes,
+        get: fetchCustomers,
+        get: fetchStatus,
+        formErrors 
+    } = useBaseService(entities.contracts, navigate);
     const { showLoader, hideLoader } = useLoader();
-    const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(contractFields));
+    const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(contractFields));
     const [organizations, setOrganizations] = useState([]);
-    const [types, setTypes] = useState([]);
+    const [contractsTypes, setContractsTypes] = useState([]);
     const [status, setStatus] = useState([]);
     const [customers, setCustomers] = useState([]);
 
@@ -39,14 +40,14 @@ const CreateContractPage = () => {
                     customersResponse,
                     statusResponse
                 ] = await Promise.all([
-                    fetchOrganizations(),
-                    fetchTypes(),
-                    fetchCustomers(),
-                    fetchStatus()
+                    fetchOrganizations(entities.organizations.get),
+                    fetchContractTypes(entities.contracts.types.get()),
+                    fetchCustomers(entities.customers.get),
+                    fetchStatus(entities.contracts.status.get())
                 ]);
 
                 setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
-                setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
+                setContractsTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
                 setStatus(statusResponse.result.data.map(status => ({ value: status.id, label: status.name })));
                 setCustomers(customersResponse.result.data.map(customer => ({ value: customer.id, label: customer.name })));
             } catch (error) {
@@ -65,7 +66,7 @@ const CreateContractPage = () => {
             case "contract.organization_id":
                 return organizations || [];
             case "contract.contract_type_id":
-                return types || [];
+                return contractsTypes || [];
             case "contract.customer_id":
                 return customers || [];
             case "contract.contract_status_id":
@@ -84,10 +85,10 @@ const CreateContractPage = () => {
         return null;
     };
 
-    const handleSubmit = async (data) => {
+    const handleSubmit = async () => {
         showLoader();
         try {
-            const success = await create(data);
+            const success = await create(entities.contracts.create, formData);
             if (success) {
                 resetForm();
             }

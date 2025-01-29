@@ -21,7 +21,7 @@ const SuppliersPage = () => {
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchAll, remove } = useBaseService(entities.suppliers, navigate);
+    const { get: fetchAll, del: remove } = useBaseService( navigate);
     const [suppliers, setSuppliers] = useState([]);
     const [selectedSuppliers, setSelectedSuppliers] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
@@ -46,7 +46,7 @@ const SuppliersPage = () => {
     const fetchSuppliersData = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.suppliers.get, filtersSubmit || filters);
             const formattedSuppliers = response.result.data.map(supplier => {
                 const numericValue = supplier.cpf_cnpj.replace(/\D/g, '');
                 return {
@@ -102,7 +102,7 @@ const SuppliersPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.suppliers.getByColumn(id));
             setOpenModalConfirmation(false);  
             fetchSuppliersData();
         } catch (error) {

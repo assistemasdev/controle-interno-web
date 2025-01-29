@@ -17,8 +17,14 @@ import { useParams } from 'react-router-dom';
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
-    const { createContractEvent, formErrors, setFormErrors } = useContractService(navigate);
-    const { fetchAll: fetchTypes } = useBaseService(entities.contractTypes, navigate);
+    const {  } = useContractService(navigate);
+    const { 
+        get: fetchEventTypes,
+        post: createContractEvent, 
+        formErrors, 
+        setFormErrors
+
+    } = useBaseService(entities.contractTypes, navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(eventFields));
     const [types, setTypes] = useState([]);
@@ -37,7 +43,7 @@ const CreateEventContractPage = () => {
                 const [
                     typesResponse,
                 ] = await Promise.all([
-                    fetchTypes(),
+                    fetchEventTypes(entities.contracts.eventsTypes.get()),
                 ]);
                 setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
             } catch (error) {
@@ -73,7 +79,7 @@ const CreateEventContractPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            const success = await createContractEvent(id, formData);
+            const success = await createContractEvent(entities.contracts.events.create(id), formData);
             if (success) {
                 resetForm();
             }

@@ -18,14 +18,14 @@ const EditSupplierPage = () => {
     const { id } = useParams();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { fetchById, update, formErrors } = useBaseService(entities.suppliers, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
 
     const { formData, setFormData, handleChange, formatData } = useForm(setDefaultFieldValues(supplierFields));
 
     const fetchSupplier = useCallback(async () => {
         showLoader();
         try {
-            const supplier = await fetchById(id);
+            const supplier = await fetchById(entities.suppliers.getByColumn(id));
             formatData(supplier.result, supplierFields);
             setFormData(prev => ({
                 ...prev,
@@ -51,7 +51,7 @@ const EditSupplierPage = () => {
         };
         
         try {
-            await update(id, sanitizedData);
+            await update(entities.suppliers.update(id), sanitizedData);
         } catch (error) {
             console.log(error);
             showNotification('error', 'Erro ao atualizar o fornecedor.');

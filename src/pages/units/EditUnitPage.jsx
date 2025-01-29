@@ -16,7 +16,7 @@ import { entities } from '../../constants/entities';
 const EditUnitPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchById, update, formErrors } = useBaseService(entities.units,navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(unitFields));
@@ -25,8 +25,8 @@ const EditUnitPage = () => {
         const fetchUnitData = async () => {
             try {
                 showLoader();
-                const unit = await fetchById(id);
-                formatData(unit, unitFields);
+                const unit = await fetchById(entities.units.getByColumn(id));
+                formatData(unit.result, unitFields);
             } catch (error) {
                 console.log(error)
             } finally {
@@ -40,7 +40,7 @@ const EditUnitPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await update(id, formData);
+            await update(entities.units.update(id), formData);
         } catch (error) {
             console.log(error)
         } finally {

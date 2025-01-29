@@ -16,8 +16,7 @@ import { entities } from '../../../constants/entities';
 const AttachUnitsRelatedPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchAll } = useBaseService(entities.units, navigate)
-    const { fetchAttachedUnits, syncRelatedUnits, formErrors } = useUnitService(navigate);
+    const { get: fetchAll, get:fetchAttachedUnits, post: syncRelatedUnits, formErrors } = useBaseService(entities.units, navigate)
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData } = useForm(setDefaultFieldValues(unitAssociationFields));
@@ -28,17 +27,17 @@ const AttachUnitsRelatedPage = () => {
             showLoader();
 
             const [allUnits, attachedUnits] = await Promise.all([
-                fetchAll({}),
-                fetchAttachedUnits(id),
+                fetchAll(entities.units.get),
+                fetchAttachedUnits(entities.units.units.get(id)),
             ]);
-            
-            setUnits(allUnits.data.map((unit) => ({
+
+            setUnits(allUnits.result.data.map((unit) => ({
                 value: unit.id,
                 label: unit.name
             })))
 
             setFormData({
-                units: attachedUnits.map((unit) => unit.id),
+                units: attachedUnits.result.map((unit) => unit.id),
             });
         } catch (error) {
             console.log(error)
@@ -54,7 +53,7 @@ const AttachUnitsRelatedPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            await syncRelatedUnits(id, formData);
+            await syncRelatedUnits(entities.units.units.create(id), formData);
         } catch (error) {
             console.log(error)
             showNotification('error', 'Erro ao associar unidades.');

@@ -5,7 +5,6 @@ import FormSection from '../../components/FormSection';
 import '../../assets/styles/custom-styles.css';
 import { useNavigate } from 'react-router-dom';
 import { unitFields } from '../../constants/forms/unitFields';
-import useUnitService from '../../hooks/services/useUnitService';
 import useForm from '../../hooks/useForm';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
@@ -15,7 +14,7 @@ import { entities } from '../../constants/entities';
 
 const CreateUnitPage = () => {
     const navigate = useNavigate();
-    const { create, formErrors } = useBaseService(entities.units,navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(unitFields));
@@ -23,7 +22,7 @@ const CreateUnitPage = () => {
     const handleSubmit = useCallback(async () => {
         try {
             showLoader();
-            const success = await create(formData);
+            const success = await create(entities.units.create, formData);
             if (success) {
                 resetForm();
             }

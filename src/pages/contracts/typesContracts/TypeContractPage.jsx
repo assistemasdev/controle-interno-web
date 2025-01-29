@@ -17,7 +17,7 @@ import { buildFilteredArray } from "../../../utils/arrayUtils";
 const TypeContractPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchAll, remove } = useBaseService(entities.contractTypes, navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const [selectedTypes, setSelectedTypes] = useState([]);
     const [types, setTypes] = useState([]);
@@ -55,7 +55,7 @@ const TypeContractPage = () => {
     const loadTypes = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.contracts.types.get(), filtersSubmit || filters);
             setTypes(response.result.data.map((type) => ({
                 id: type.id,
                 name: type.name,
@@ -139,7 +139,7 @@ const TypeContractPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.contracts.types.delete(id));
             setOpenModalConfirmation(false);  
             loadTypes();
         } catch (error) {

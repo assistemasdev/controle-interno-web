@@ -17,7 +17,7 @@ const CreateSupplierPage = () => {
     const navigate = useNavigate(); 
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { create, formErrors } = useBaseService(entities.suppliers, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { formData, setFormData, handleChange, resetForm } = useForm(setDefaultFieldValues(createSupplierFields));
 
     const handleCepChange = useCallback(async (fieldId, value) => {
@@ -72,7 +72,7 @@ const CreateSupplierPage = () => {
         };
 
         try {
-            const success = await create(sanitizedData);
+            const success = await create(entities.suppliers.create, sanitizedData);
             if (success) {
                 resetForm();
             }

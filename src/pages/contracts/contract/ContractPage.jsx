@@ -17,8 +17,7 @@ import { buildFilteredArray } from "../../../utils/arrayUtils";
 const ContractPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchAll, remove } = useBaseService(entities.contracts, navigate);
-    const { fetchAll: fetchAllCustomers } = useBaseService(entities.customers, navigate);
+    const { get: fetchAll, del: remove, get: fetchAllCustomers } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const [selectedContracts, setSelectedContracts] = useState([]);
     const [contracts, setContracts] = useState([]);
@@ -70,8 +69,8 @@ const ContractPage = () => {
     const loadContracts = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(filtersSubmit || filters);
-            const customersReponse = await fetchAllCustomers();
+            const response = await fetchAll(entities.contracts.get, filtersSubmit || filters);
+            const customersReponse = await fetchAllCustomers(entities.customers.get);
 
             const customersMap = mapCustomers(customersReponse.result.data);
             const filteredContracts = transformContracts(response.result.data, customersMap)
@@ -157,7 +156,7 @@ const ContractPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.contracts.delete(id));
             setOpenModalConfirmation(false);  
             loadContracts();
         } catch (error) {

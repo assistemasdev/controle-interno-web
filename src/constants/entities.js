@@ -8,13 +8,28 @@ function createEntityRoutes(baseUrl) {
     };
 }
 
-function createNestedRoutes(baseUrl, subPath) {
+function createNestedRoutes(baseUrl, subPath, subPathBeforeId = false) {
     return {
-        get: (id) => id ? `/${baseUrl}/${id}/${subPath}` : `/${baseUrl}/${subPath}`,
-        getByColumn: (id, column) => id && column ? `/${baseUrl}/${id}/${subPath}/${column}` : `/${baseUrl}/${id}/${subPath}`,
-        create: (id) => id ? `/${baseUrl}/${id}/${subPath}` : `/${baseUrl}/${subPath}`,
-        update: (id, column) => id && column ? `/${baseUrl}/${id}/${subPath}/${column}` : `/${baseUrl}/${id}/${subPath}`,
-        delete: (id, column) => id && column ? `/${baseUrl}/${id}/${subPath}/${column}` : `/${baseUrl}/${id}/${subPath}`
+        get: (id) =>
+            subPathBeforeId
+                ? `/${baseUrl}/${subPath}${id ? `/${id}` : ''}`
+                : `/${baseUrl}${id ? `/${id}` : ''}/${subPath}`,
+        getByColumn: (id, column) =>
+            subPathBeforeId
+                ? `/${baseUrl}/${subPath}${column ? `/${column}` : ''}`
+                : `/${baseUrl}${id ? `/${id}` : ''}/${subPath}${column ? `/${column}` : ''}`,
+        create: (id) =>
+            subPathBeforeId
+                ? `/${baseUrl}/${subPath}`
+                : `/${baseUrl}${id ? `/${id}` : ''}/${subPath}`,
+        update: (id, column) =>
+            subPathBeforeId
+                ? `/${baseUrl}/${subPath}${column ? `/${column}` : ''}`
+                : `/${baseUrl}${id ? `/${id}` : ''}/${subPath}${column ? `/${column}` : ''}`,
+        delete: (id, column) =>
+            subPathBeforeId
+                ? `/${baseUrl}/${subPath}${column ? `/${column}` : ''}`
+                : `/${baseUrl}${id ? `/${id}` : ''}/${subPath}${column ? `/${column}` : ''}`,
     };
 }
 
@@ -51,11 +66,31 @@ export const entities = {
         groups: createNestedRoutes('products', 'groups')
     },
     status: createEntityRoutes('status'),
-    suppliers: createEntityRoutes('suppliers'),
+    suppliers: {
+        ...createEntityRoutes('suppliers'),
+        addresses: createNestedRoutes('suppliers', 'addresses'),
+        contacts: createNestedRoutes('suppliers', 'contacts'),
+    },
     types: {
         ...createEntityRoutes('types'),
         groups: createNestedRoutes('types','groups')
     },
     groups: createEntityRoutes('groups'),
+    units: {
+        ...createEntityRoutes('units'),
+        units: createNestedRoutes('units', 'units')
+    },
+    contracts: {
+        ...createEntityRoutes('contracts'),
+        infos: createNestedRoutes('contracts', 'infos'),
+        events: {
+            ...createNestedRoutes('contracts', 'events'),
+            infos: createNestedRoutes('events', 'infos'),
+
+        },
+        types: createNestedRoutes('contracts', 'types', true),
+        status: createNestedRoutes('contracts', 'status', true),
+        eventsTypes: createNestedRoutes('contracts', 'events/types', true)
+    },
 
 };

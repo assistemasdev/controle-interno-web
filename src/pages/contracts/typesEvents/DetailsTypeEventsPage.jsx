@@ -18,14 +18,14 @@ const DetailsTypeEventsPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, formatData } = useForm(setDefaultFieldValues(typeEventsFields))
-    const { fetchById } = useBaseService(entities.contractEventTypes, navigate);
+    const { getByColumn: fetchById } = useBaseService(navigate);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
             try {
                 showLoader();
                 const [typesEventResponse] = await Promise.all([
-                    fetchById(id),
+                    fetchById(entities.contracts.eventsTypes.getByColumn(null, id)),
                 ]);
     
                 formatData(typesEventResponse.result, typeEventsFields);

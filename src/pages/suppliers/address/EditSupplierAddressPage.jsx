@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
-import useAddressService from '../../../hooks/services/useAddressService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
@@ -16,7 +16,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 const EditSupplierAddressPage = () => {
     const navigate = useNavigate();
     const { id, addressId } = useParams();
-    const { fetchById, update, formErrors } = useAddressService(entities.suppliers, id, navigate)
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate)
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, formatData, setFormData } = useForm(setDefaultFieldValues(addressFields));
@@ -68,7 +68,7 @@ const EditSupplierAddressPage = () => {
     const fetchAddress = async () => {
         try {
             showLoader();
-            const response = await fetchById(addressId);
+            const response = await fetchById(entities.suppliers.addresses.getByColumn(id, addressId));
             const address = response.result;
 
             formatData(address, addressFields);
@@ -91,7 +91,7 @@ const EditSupplierAddressPage = () => {
         };
 
         try {
-            await update(addressId, sanitizedData);
+            await update(entities.suppliers.addresses.update(id, addressId), sanitizedData);
         } catch (error) {
             console.error(error);
         }

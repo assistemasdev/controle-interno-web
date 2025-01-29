@@ -17,7 +17,7 @@ import { buildFilteredArray } from "../../../utils/arrayUtils";
 const StatusContractPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchAll, remove } = useBaseService(entities.contractStatus, navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const [selectedStatuses, setSelectedStatuses] = useState([]);
     const [status, setStatus] = useState([]);
@@ -55,7 +55,7 @@ const StatusContractPage = () => {
     const loadStatus = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(filtersSubmit || filters);
+            const response = await fetchAll(entities.contracts.status.get(), filtersSubmit || filters);
             setStatus(response.result.data.map((type) => ({
                 id: type.id,
                 name: type.name,
@@ -139,7 +139,7 @@ const StatusContractPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.contracts.status.delete(null,id));
             setOpenModalConfirmation(false);  
             loadStatus();
         } catch (error) {

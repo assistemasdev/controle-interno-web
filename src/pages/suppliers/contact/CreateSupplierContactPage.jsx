@@ -7,10 +7,9 @@ import FormSection from '../../../components/FormSection';
 import { contactFields } from '../../../constants/forms/contactFields';
 import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
-import useSupplierService from '../../../hooks/services/useSupplierService';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useContactService from '../../../hooks/services/useContactService';
+import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 
 const CreateSupplierContactPage = () => {
@@ -18,13 +17,13 @@ const CreateSupplierContactPage = () => {
     const { id } = useParams();
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { create, formErrors } = useContactService(entities.suppliers, id, navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(contactFields));
 
     const handleSubmit = async () => {
         showLoader();
         try {
-            const success = await create(formData);
+            const success = await create(entities.suppliers.contacts.create(id), formData);
             if (success) {
                 resetForm();
             }

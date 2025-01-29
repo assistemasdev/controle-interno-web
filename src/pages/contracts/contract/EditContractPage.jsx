@@ -15,15 +15,18 @@ const EditContractPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { showNotification } = useNotification();
-    const { fetchAll: fetchOrganizations } = useBaseService(entities.organizations, navigate);
-    const { fetchAll: fetchTypes } = useBaseService(entities.contractTypes, navigate);
-    const { fetchAll: fetchCustomers } = useBaseService(entities.customers, navigate);
-    const { fetchAll: fetchStatus } = useBaseService(entities.contractStatus, navigate);
-    const { fetchById, update, formErrors } = useBaseService(entities.contracts, navigate);
+    const { 
+        getByColumn: fetchById,
+        get: fetchOrganizations, 
+        get: fetchContractTypes,
+        get: fetchCustomers,
+        get: fetchContractStatus,
+        put: update, 
+        formErrors 
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const {
         formData,
-        setFormData,
         handleChange,
         initializeData,
         formatData
@@ -46,11 +49,11 @@ const EditContractPage = () => {
                     customersResponse,
                     statusResponse
                 ] = await Promise.all([
-                    fetchById(id),
-                    fetchOrganizations(),
-                    fetchTypes(),
-                    fetchCustomers(),
-                    fetchStatus()
+                    fetchById(entities.contracts.getByColumn(id)),
+                    fetchOrganizations(entities.organizations.get),
+                    fetchContractTypes(entities.contracts.types.get()),
+                    fetchCustomers(entities.customers.get),
+                    fetchContractStatus(entities.contracts.status.get())
                 ]);
                 setOrganizations(orgResponse.result.data.map((org) => ({ value: org.id, label: org.name })));
                 setTypes(typesResponse.result.data.map((type) => ({value: type.id, label: type.name}) ));
@@ -71,7 +74,7 @@ const EditContractPage = () => {
     const handleSubmit = async () => {
         try {
             showLoader();
-            await update(id, formData);
+            await update(entities.contracts.update(id), formData);
         } catch (error) {
             console.log(error)
         } finally {

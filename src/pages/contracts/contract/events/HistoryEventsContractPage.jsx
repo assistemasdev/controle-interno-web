@@ -6,7 +6,6 @@ import useNotification from '../../../../hooks/useNotification';
 import useLoader from '../../../../hooks/useLoader';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
-import useContractService from '../../../../hooks/services/useContractService';
 import { useParams } from 'react-router-dom';
 import Timeline from '../../../../components/Timeline';
 import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
@@ -16,8 +15,11 @@ import Button from '../../../../components/Button';
 const HistoryEventsContractPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
-    const { fetchEventsContract, deleteEventContract } = useContractService(navigate);
-    const { fetchAll: fetchContractEventTypes } = useBaseService(entities.contractEventTypes, navigate);
+    const { 
+        get: fetchContractEventTypes,
+        get: fetchEventsContract,
+        del: deleteEventContract
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const [contractEvents, setContractEvents] = useState([])
     const { id } = useParams();
@@ -53,7 +55,7 @@ const HistoryEventsContractPage = () => {
     const handleConfirmDelete = async (eventId) => {
         try {
             showLoader();
-            await deleteEventContract(id, eventId);
+            await deleteEventContract(entities.contracts.events.delete(id, eventId));
             setOpenModalConfirmation(false);  
             fetchData();
         } catch (error) {
@@ -106,10 +108,10 @@ const HistoryEventsContractPage = () => {
                 contractEventsResponse,
                 contractEventTypesResponse
             ] = await Promise.all([
-                fetchEventsContract(id),
-                fetchContractEventTypes()
+                fetchEventsContract(entities.contracts.events.get(id)),
+                fetchContractEventTypes(entities.contracts.eventsTypes.get())
             ]);
-
+            
             const eventTypesMap = mapEventTypes(contractEventTypesResponse.result.data);
             const filteredContractEvents = transformContractEvents(contractEventsResponse.result.data, eventTypesMap);
             setContractEvents(filteredContractEvents);

@@ -113,6 +113,7 @@ import EditEventContractPage from "../pages/contracts/contract/events/EditEventC
 import OsItemTypePage from "../pages/contracts/OsItemType/OsItemTypePage";
 import CreateOsItemTypePage from "../pages/contracts/OsItemType/CreateOsItemTypePage";
 import EditOsItemTypePage from "../pages/contracts/OsItemType/EditOsItemTypePage";
+import EditStatusContractPage from "../pages/contracts/status/EditStatusContractPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -376,7 +377,7 @@ const AppRoutesContent = () => {
         },
         {
             path: "/contratos/status/editar/:id",
-            element: <PrivateRoute element={EditTypeContractPage}/>
+            element: <PrivateRoute element={EditStatusContractPage}/>
         },
     ];
 

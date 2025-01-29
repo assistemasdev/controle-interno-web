@@ -14,7 +14,7 @@ import { entities } from '../../../constants/entities';
 const EditTypeContractPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchById, update, formErrors } = useBaseService(entities.contractTypes, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(typeContractsFields));
 
@@ -22,7 +22,7 @@ const EditTypeContractPage = () => {
         const fetchData = async () => {
             showLoader();
             try {
-                const typeData = await fetchById(id);
+                const typeData = await fetchById(entities.contracts.types.getByColumn(id));
                 formatData(typeData.result, typeContractsFields);
             } catch (error) {
                 console.log(error)
@@ -37,7 +37,7 @@ const EditTypeContractPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await update(id, formData);
+            await update(entities.contracts.types.update(id), formData);
         } catch (error) {
             console.error('Erro ao atualizar o tipo:', error);
         } finally {

@@ -22,7 +22,7 @@ const UnitPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const navigate = useNavigate();
-    const { fetchAll, remove } = useBaseService(entities.units, navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const location = useLocation();
     const [selectedUnits, setSelectedUnits] = useState([]);
     const [units, setUnits] = useState([]);
@@ -48,15 +48,15 @@ const UnitPage = () => {
     const fetchUnitList = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-            const result = await fetchAll(filtersSubmit || filters);
-            setUnits(result.data.map((unit) => ({
+            const response = await fetchAll(entities.units.get, filtersSubmit || filters);
+            setUnits(response.result.data.map((unit) => ({
                 id: unit.id,
                 name: unit.name,
                 abbreviation: unit.abbreviation,
                 deleted_at: unit.deleted_at ? 'deleted-' + unit.deleted_at : 'deleted-null'
             })));
-            setCurrentPage(result.current_page);
-            setTotalPages(result.last_page);
+            setCurrentPage(response.result.current_page);
+            setTotalPages(response.result.last_page);
         } catch (error) {
             console.log(error)
         } finally {
@@ -97,7 +97,7 @@ const UnitPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(id);
+            await remove(entities.units.delete(id));
             setOpenModalConfirmation(false);  
             fetchUnitList();
         } catch (error) {

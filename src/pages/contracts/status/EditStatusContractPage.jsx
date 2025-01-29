@@ -14,7 +14,7 @@ import { entities } from '../../../constants/entities';
 const EditStatusContractPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchById, update, formErrors } = useBaseService(entities.contractStatus, navigate);
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(statusContractFields));
 
@@ -22,7 +22,7 @@ const EditStatusContractPage = () => {
         const fetchData = async () => {
             showLoader();
             try {
-                const statusData = await fetchById(id);
+                const statusData = await fetchById(entities.contracts.status.getByColumn(null, id));
                 formatData(statusData.result, statusContractFields);
             } catch (error) {
                 console.log(error)
@@ -37,7 +37,7 @@ const EditStatusContractPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await update(id, formData);
+            await update(entities.contracts.status.update(null,id), formData);
         } catch (error) {
             console.error('Erro ao atualizar o status:', error);
         } finally {
