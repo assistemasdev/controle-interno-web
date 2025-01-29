@@ -114,6 +114,7 @@ import OsItemTypePage from "../pages/contracts/OsItemType/OsItemTypePage";
 import CreateOsItemTypePage from "../pages/contracts/OsItemType/CreateOsItemTypePage";
 import EditOsItemTypePage from "../pages/contracts/OsItemType/EditOsItemTypePage";
 import EditStatusContractPage from "../pages/contracts/status/EditStatusContractPage";
+import NotFound from "../pages/NotFound";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -543,6 +544,8 @@ const AppRoutesContent = () => {
     return (
 
         <Routes location={location}>
+            <Route path="*" element={<NotFound/>}/> {/* Página 404 */}
+
         {applicationRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}

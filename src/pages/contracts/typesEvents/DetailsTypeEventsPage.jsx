@@ -51,11 +51,7 @@ const DetailsTypeEventsPage = () => {
                     Detalhes do Tipo de Eventos
                 </div>
 
-                <DetailsSectionRenderer formData={formData} sections={typeEventsFields}/>
-
-                <div className="form-row gap-2">
-                    <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                </div>
+                <DetailsSectionRenderer formData={formData} sections={typeEventsFields} handleBack={handleBack}/>
             </div>
         </MainLayout>
     );

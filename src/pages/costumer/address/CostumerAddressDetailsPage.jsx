@@ -53,11 +53,7 @@ const CostumerAddressDetailsPage = () => {
                     Detalhes do Endereço do Cliente
                 </div>
 
-                <DetailsSectionRenderer sections={addressFields} formData={formData} />
-
-                <div className="mt-3 d-flex gap-2">
-                    <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                </div>
+                <DetailsSectionRenderer sections={addressFields} formData={formData} handleBack={handleBack}/>
             </div>
         </MainLayout>
     );

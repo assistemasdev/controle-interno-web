@@ -135,11 +135,7 @@ const DetailsProductPage = () => {
                     Detalhes do Produto
                 </div>
 
-                <DetailsSectionRenderer formData={formData} sections={detailsProductFields}/>
-
-                <div className="form-row gap-2">
-                    <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                </div>
+                <DetailsSectionRenderer formData={formData} sections={detailsProductFields} handleBack={handleBack}/>
             </div>
         </MainLayout>
     );

@@ -37,7 +37,7 @@ const CompanySelection = () => {
         if (user && selectedApplication) {
             try {
                 showLoader();
-                const response = await getUserApplicationOrganizations(entities.users.applications.organizations(user.id).get(selectedApplication.id));
+                const response = await getUserApplicationOrganizations(entities.users.applicationsAndOrganizations(user.id).get(selectedApplication.id));
                 const formattedOrgans = response.result.data
                     .filter(organ => organ.active)  
                     .map((organ) => ({

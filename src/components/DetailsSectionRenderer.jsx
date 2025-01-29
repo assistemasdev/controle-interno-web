@@ -1,5 +1,6 @@
 import React from 'react';
 import InputField from '../components/InputField';
+import Button from './Button';
 
 const resolveFieldValue = (formData, fieldId) => {
     if (fieldId.includes('.')) {
@@ -10,7 +11,7 @@ const resolveFieldValue = (formData, fieldId) => {
     return formData[fieldId] || '';
 };
 
-const DetailsSectionRenderer = ({ sections, formData }) => {
+const DetailsSectionRenderer = ({ sections, formData, handleBack }) => {
     return (
         <div className="row p-3 rounded shadow-sm">
             {sections.map((section) => (
@@ -56,6 +57,17 @@ const DetailsSectionRenderer = ({ sections, formData }) => {
                     </div>
                 </div>
             ))}
+
+            {handleBack && (
+                <div className="form-row gap-2">
+                    <Button
+                        type="button"
+                        text="Voltar"
+                        className="btn btn-blue-light fw-semibold"
+                        onClick={handleBack}
+                    />
+                </div>
+            )}
         </div>
     );
 };
