@@ -1,11 +1,9 @@
 import MainLayout from "../../../layouts/MainLayout";
-import useUserService from "../../../hooks/services/useUserService";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Form from "../../../components/Form";
 import useLoader from "../../../hooks/useLoader";
 import useNotification from "../../../hooks/useNotification";
-import useOrganizationService from "../../../hooks/services/useOrganizationService";
 import '../../../assets/styles/NestedCheckboxSelector/index.css';
 import { faBuilding, faDesktop } from "@fortawesome/free-solid-svg-icons";
 import GenericBox from "../../../components/GenericBox";
@@ -15,9 +13,12 @@ import { entities } from "../../../constants/entities";
 const UserOrganizationsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { getUserAppsAndOrgs, syncMultipleUserAppOrganizations } = useUserService(navigate);
-    const { fetchAll: fetchApplications } = useBaseService(entities.applications, navigate);
-    const { fetchAll: getOrganizations } = useBaseService(entities.organizations, navigate);
+    const { 
+        get: getUserAppsAndOrgs, 
+        post: syncMultipleUserAppOrganizations ,
+        get: fetchApplications,
+        get: getOrganizations
+    } = useBaseService(navigate);
     const [applications, setApplications] = useState([]);
     const [organizations, setOrganizations] = useState([]);
     const { showNotification } = useNotification();
@@ -32,14 +33,14 @@ const UserOrganizationsPage = () => {
         try {
             showLoader();
             const [responseApplications, responseOrganizations, responseUserAppsAndOrgs] = await Promise.all([
-                fetchApplications(),
-                getOrganizations({}),
-                getUserAppsAndOrgs(id)
+                fetchApplications(entities.applications.get),
+                getOrganizations(entities.organizations.get),
+                getUserAppsAndOrgs(entities.users.applicationsAndOrganizations(id).get())
             ]);
-
+            console.log(responseUserAppsAndOrgs)
             setApplications(responseApplications.result.data);
             setOrganizations(responseOrganizations.result.data);
-            setFormData(generateInitialFormData(responseApplications.result.data, responseOrganizations.result.data, responseUserAppsAndOrgs.data));
+            setFormData(generateInitialFormData(responseApplications.result.data, responseOrganizations.result.data, responseUserAppsAndOrgs.result.data));
         } catch (error) {
             console.error(error);
             showNotification('error', 'Erro ao carregar aplicações e organizações');
@@ -52,7 +53,7 @@ const UserOrganizationsPage = () => {
         return applications.reduce((acc, application) => {
             acc[application.id] = organizations.reduce((accOrg, org) => {
                 accOrg[org.id] = userAppsAndOrgs.some(
-                    (item) => item.application_id === application.id && item.organization_id === org.id
+                    (item) => item.application_id == application.id && item.organization_id == org.id
                 );
                 return accOrg;
             }, {});
@@ -108,7 +109,7 @@ const UserOrganizationsPage = () => {
                 return acc;
             }, []);
 
-            await syncMultipleUserAppOrganizations(id, data);
+            await syncMultipleUserAppOrganizations(entities.users.applications.create(id), {applications_organizations: data});
         } catch (error) {
             console.error(error);
             showNotification('error', 'Erro ao associar organizações');

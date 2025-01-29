@@ -4,19 +4,20 @@ import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
 import DynamicTable from "../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faLayerGroup, faUndo } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
 import AutoCompleteFilter from "../../../components/AutoCompleteFilter";
 import baseService from "../../../services/baseService";
-import useOrderService from "../../../hooks/services/useOrderService";
+import useBaseService from "../../../hooks/services/useBaseService";
 import { buildFilteredArray } from "../../../utils/arrayUtils";
+import { entities } from "../../../constants/entities";
 
 const OsItemTypePage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { fetchAllOsItemsType, removeOsItemType } = useOrderService(navigate);
+    const { get: fetchAllOsItemsType, del: removeOsItemType } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const [selectedOsItemsTypes, setSelectedOsItemsTypes] = useState([]);
     const [OsItemsTypes, setOsItemsTypes] = useState([]);
@@ -54,7 +55,7 @@ const OsItemTypePage = () => {
     const loadOsItemsTypes = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAllOsItemsType(filtersSubmit || filters);
+            const response = await fetchAllOsItemsType(entities.orders.itemsTypes.get() ,filtersSubmit || filters);
             setOsItemsTypes(response.result.data.map((type) => ({
                 id: type.id,
                 name: type.name,
@@ -138,7 +139,7 @@ const OsItemTypePage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await removeOsItemType(id);
+            await removeOsItemType(entities.orders.itemsTypes.delete(null, id));
             setOpenModalConfirmation(false);  
             loadOsItemsTypes();
         } catch (error) {

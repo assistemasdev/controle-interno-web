@@ -8,9 +8,8 @@ import { usePermissions } from '../../hooks/usePermissions';
 import useNotification from '../../hooks/useNotification';
 import useForm from '../../hooks/useForm';
 import { loginFields } from '../../constants/forms/loginFields';
-import useLoginService from '../../hooks/services/useLoginService';
-import useRoleService from '../../hooks/services/useRoleService';
-import usePermissionService from '../../hooks/services/usePermissionService';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 
 const LoginCard = () => {
     const navigate = useNavigate();  
@@ -20,9 +19,11 @@ const LoginCard = () => {
     const { formData, handleChange } = useForm({ username: '', password: '' })
     const [formErrors, setFormErrors] = useState({ username: '', password: '' }); 
     const { showNotification } = useNotification();
-    const { login: loginUser } = useLoginService(navigate);
-    const { fetchRolesUser } = useRoleService(navigate);
-    const { fetchPermissionsForUser } = usePermissionService(navigate)
+    const { 
+        post: loginUser,
+        get: fetchRolesUser,
+        get: fetchPermissionsForUser
+    } = useBaseService(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -35,12 +36,12 @@ const LoginCard = () => {
         setFormErrors({ username: '', password: '' });
 
         try {
-            const response = await loginUser(formData);
+            const response = await loginUser(entities.login.create, formData);
             login(response.result);
 
             const storedUser = JSON.parse(localStorage.getItem('user'));
-            const userRoles = await fetchRolesUser(storedUser.id);
-            const userPermissions = await fetchPermissionsForUser(storedUser.id);
+            const userRoles = await fetchRolesUser(entities.users.roles.get(storedUser.id));
+            const userPermissions = await fetchPermissionsForUser(entities.users.permissions.get(storedUser.id));
 
             addRoles(userRoles.result);
             addPermissions(userPermissions);

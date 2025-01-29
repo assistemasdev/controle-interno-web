@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import ProductService from '../../services/ProductService';
 import Button from '../../components/Button';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';

@@ -4,7 +4,6 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import useGroupService from '../../hooks/services/useGroupService';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';

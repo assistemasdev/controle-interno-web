@@ -8,12 +8,13 @@ import useForm from '../../../hooks/useForm';
 import useLoader from '../../../hooks/useLoader';
 import { osItemTypeFields } from '../../../constants/forms/osItemTypeFields';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import useOrderService from '../../../hooks/services/useOrderService';
+import useBaseService from '../../../hooks/services/useBaseService';
+import { entities } from '../../../constants/entities';
 
 const EditOsItemTypePage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { fetchOsItemTypeById, updateOsItemType, formErrors } = useOrderService(navigate);
+    const { getByColumn: fetchOsItemTypeById, put: updateOsItemType, formErrors } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(osItemTypeFields));
 
@@ -21,7 +22,7 @@ const EditOsItemTypePage = () => {
         const fetchData = async () => {
             showLoader();
             try {
-                const typeData = await fetchOsItemTypeById(id);
+                const typeData = await fetchOsItemTypeById(entities.orders.itemsTypes.getByColumn(null, id));
                 formatData(typeData.result, osItemTypeFields);
             } catch (error) {
                 console.log(error)
@@ -36,7 +37,7 @@ const EditOsItemTypePage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            await updateOsItemType(id, formData);
+            await updateOsItemType(entities.orders.itemsTypes.update(null, id), formData);
         } catch (error) {
             console.error('Erro ao atualizar o tipo:', error);
         } finally {

@@ -1,9 +1,9 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
-import LoginService from '../services/LoginService';
 import { CircularProgress } from '@mui/material';
-
+import useBaseService from '../hooks/services/useBaseService';
+import { entities } from '../constants/entities';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
+  const { post: userLogout} = useBaseService(navigate)
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await LoginService.logout();
+      await userLogout(entities.logout.create);
     } catch (error) {
       console.error('Erro ao desconectar do servidor:', error);
     } finally {

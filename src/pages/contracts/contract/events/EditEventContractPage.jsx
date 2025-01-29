@@ -10,7 +10,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { setDefaultFieldValues } from '../../../../utils/objectUtils';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
-import useContractService from '../../../../hooks/services/useContractService';
 
 const EditEventContractPage = () => {
     const navigate = useNavigate();

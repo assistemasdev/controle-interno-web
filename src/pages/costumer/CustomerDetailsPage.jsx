@@ -16,7 +16,6 @@ import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import { entities } from '../../constants/entities';
 import useBaseService from '../../hooks/services/useBaseService';
-import useContactService from '../../hooks/services/useContactService';
 
 const CustomerDetailsPage = () => {
     const navigate = useNavigate();

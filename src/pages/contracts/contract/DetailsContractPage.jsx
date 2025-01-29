@@ -11,7 +11,6 @@ import { contractFields } from '../../../constants/forms/contractFields';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
-import useContractService from '../../../hooks/services/useContractService';
 
 const DetailsContractPage = () => {
     const navigate = useNavigate();

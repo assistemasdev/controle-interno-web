@@ -11,20 +11,18 @@ import { eventFields } from "../../../../constants/forms/eventFields";
 import { setDefaultFieldValues } from '../../../../utils/objectUtils';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
-import useContractService from '../../../../hooks/services/useContractService';
 import { useParams } from 'react-router-dom';
 
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
-    const {  } = useContractService(navigate);
     const { 
         get: fetchEventTypes,
         post: createContractEvent, 
         formErrors, 
         setFormErrors
 
-    } = useBaseService(entities.contractTypes, navigate);
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(eventFields));
     const [types, setTypes] = useState([]);

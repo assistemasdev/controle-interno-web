@@ -13,9 +13,10 @@ import ApplicationCard from '../components/application/ApplicationCard';
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
-import useUserService from "../hooks/services/useUserService";
+import useBaseService from "../hooks/services/useBaseService";
 import useLoader from "../hooks/useLoader";
 import useNotification from "../hooks/useNotification";
+import { entities } from "../constants/entities";
 
 const ApplicationSelection = () => {
     const { selectApplication } = useApplication();
@@ -23,7 +24,7 @@ const ApplicationSelection = () => {
     const navigate = useNavigate();
     const [applications, setApplications] = useState([]);
     const [selectedApplication, setSelectedApplication] = useState(null);
-    const { getUserApplications} = useUserService(navigate);
+    const { get: getUserApplications} = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
 
@@ -31,9 +32,9 @@ const ApplicationSelection = () => {
         const fetchApplications = async () => {
             try {
                 showLoader();
-                const response = await getUserApplications(user.id);
-                setApplications(response.data);
-                setSelectedApplication(response.data[0]);
+                const response = await getUserApplications(entities.users.applications.get(user.id));
+                setApplications(response.result.data);
+                setSelectedApplication(response.result.data[0]);
             } catch (error) {
                 showNotification("error", "Erro ao carregar as aplicações.");
                 console.error("Erro ao buscar aplicações:", error);

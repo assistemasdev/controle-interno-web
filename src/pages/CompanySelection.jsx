@@ -15,8 +15,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../assets/styles/sb-admin-2.min.css';
 import '../assets/styles/custom-styles.css'; 
 import OrganCard from '../components/organ/OrganCard';
-import useUserService from '../hooks/services/useUserService';
+import useBaseService from '../hooks/services/useBaseService';
 import useLoader from '../hooks/useLoader';
+import { entities } from '../constants/entities';
 
 const CompanySelection = () => {
     const { selectOrgan } = useOrgan();
@@ -27,7 +28,7 @@ const CompanySelection = () => {
     const navigate = useNavigate();
     const [options, setOptions] = useState([]);
     const [selectedOption, setSelectedOption] = useState(null);
-    const { getUserApplicationOrganizations } = useUserService(navigate);
+    const { get: getUserApplicationOrganizations } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
 
     useEffect(() => {
@@ -36,11 +37,8 @@ const CompanySelection = () => {
         if (user && selectedApplication) {
             try {
                 showLoader();
-                const response = await getUserApplicationOrganizations(
-                    user.id,
-                    selectedApplication.id,            );
-
-                    const formattedOrgans = response.data
+                const response = await getUserApplicationOrganizations(entities.users.applications.organizations(user.id).get(selectedApplication.id));
+                const formattedOrgans = response.result.data
                     .filter(organ => organ.active)  
                     .map((organ) => ({
                         ...organ,

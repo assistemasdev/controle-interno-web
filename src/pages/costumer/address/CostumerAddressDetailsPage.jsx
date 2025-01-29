@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import Button from '../../../components/Button';
 import '../../../assets/styles/custom-styles.css';
-import CustomerService from '../../../services/CustomerService';
 import { maskCep } from '../../../utils/maskUtils';
 import useLoader from '../../../hooks/useLoader';
 import { addressFields } from '../../../constants/forms/addressFields';

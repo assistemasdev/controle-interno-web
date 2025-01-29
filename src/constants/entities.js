@@ -34,9 +34,16 @@ function createNestedRoutes(baseUrl, subPath, subPathBeforeId = false) {
 }
 
 export const entities = {
+    login: createEntityRoutes('login'),
+    logout: createEntityRoutes('logout'),
     users: {
         ...createEntityRoutes('users'),
-        permissions: createNestedRoutes('users', 'permissions')
+        permissions: createNestedRoutes('users', 'permissions'),
+        roles: createNestedRoutes('users', 'roles'),
+        applications: {
+            ...createNestedRoutes('users', 'applications'),
+        },
+        applicationsAndOrganizations: (userColumn) => createNestedRoutes(`users/${userColumn}/applications`, 'organizations')
     },
     roles: {
         ...createEntityRoutes('roles'),
@@ -92,5 +99,9 @@ export const entities = {
         status: createNestedRoutes('contracts', 'status', true),
         eventsTypes: createNestedRoutes('contracts', 'events/types', true)
     },
+    orders: {
+        ...createEntityRoutes('orders'),
+        itemsTypes: createNestedRoutes('orders', 'items/types', true)
+    }
 
 };

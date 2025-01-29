@@ -5,7 +5,6 @@ import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import '../../../assets/styles/custom-styles.css';
 import { unitAssociationFields } from '../../../constants/forms/unitFields';
-import useUnitService from '../../../hooks/services/useUnitService';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';

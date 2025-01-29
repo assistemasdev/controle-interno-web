@@ -5,7 +5,6 @@ import '../../../assets/styles/custom-styles.css';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
-import useCustomerService from '../../../hooks/services/useCustomerService';
 import useForm from '../../../hooks/useForm';
 import { addressFields } from '../../../constants/forms/addressFields';
 import Form from '../../../components/Form';
