@@ -8,7 +8,7 @@ import useForm from '../../../../hooks/useForm';
 import Form from '../../../../components/Form'; 
 import FormSection from '../../../../components/FormSection';
 import { eventFields } from "../../../../constants/forms/eventFields";
-import { setDefaultFieldValues } from '../../../../utils/objectUtils';
+import { setDefaultFieldValues, transformValues } from '../../../../utils/objectUtils';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
 import { useParams } from 'react-router-dom';
@@ -77,7 +77,12 @@ const CreateEventContractPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            const success = await createContractEvent(entities.contracts.events.create(id), formData);
+            const transformedData = {
+                ...formData,
+                products: transformValues(formData.products),
+                jobs: transformValues(formData.jobs)
+            }
+            const success = await createContractEvent(entities.contracts.events.create(id), transformedData);
             if (success) {
                 resetForm();
             }

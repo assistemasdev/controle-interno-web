@@ -30,3 +30,21 @@ export const removeEmptyValues = (obj) => {
         Object.entries(obj).filter(([key, value]) => value !== null && value !== '')
     );
 };
+
+export const transformValues = (array) => {
+    return array.map(item => {
+        const modifiedItem = {};
+
+        Object.keys(item).forEach(key => {
+            const value = item[key];
+
+            if (value && value.hasOwnProperty('value') && value.hasOwnProperty('label')) {
+                modifiedItem[key] = value.value;
+            } else {
+                modifiedItem[key] = value;
+            }
+        });
+
+        return modifiedItem;
+    });
+};

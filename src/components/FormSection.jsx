@@ -6,6 +6,24 @@ import DynamicTable from './DynamicTable';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { v4 as uuidv4 } from 'uuid';
 
+
+const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date"];
+
+const getFormErrorKey = (sectionFieldId) => {
+    const [category, field] = sectionFieldId.split('.');
+    return `${category}.0.${field}`;
+};
+
+const getArrayFieldValue = (fieldId, fieldsData) => {
+    const fieldKey = fieldId.split('.')[1];
+    return fieldsData[fieldKey]?.value || "";
+};
+
+const getArrayColumnData = (fieldId, formDataFormatted) => {
+    const fieldKey = fieldId.split('.')[0];
+    return formDataFormatted[fieldKey] || [];
+};
+
 const FormSection = ({ 
     section, 
     formData, 
@@ -14,12 +32,14 @@ const FormSection = ({
     getOptions, 
     getSelectedValue, 
     formErrors ,
-    setFormErrors = null
+    setFormErrors = null,
+    setAllFieldsData = null,
+    allFieldsData = null
 }) => {
     const [fieldsData, setFieldsData] = useState([]);
     const [viewTable, setViewTable] = useState(false);
     const [headers, setHeaders] = useState([]);
-    
+    const [formDataFormated, setFormDatFormated] = useState({});
     useEffect(() => {
         if (section.array) {
             const fields = section.fields;
@@ -43,7 +63,64 @@ const FormSection = ({
         }
     }, [section.array]);
 
+    const handleArraySelectChange = (selectedOption, sectionField) => {
+        if (sectionField.isMulti) {
+            const values = selectedOption 
+                ? selectedOption.map(option => ({ value: option.value, label: option.label })) 
+                : []; 
+            handleArrayFieldChange(sectionField.id, values, sectionField);
+        } else {
+            handleArrayFieldChange(
+                sectionField.id, 
+                selectedOption ? { value: selectedOption.value, label: selectedOption.label } : "", 
+                sectionField
+            );
+        }
+    };
+
+    const handleSelectFieldChange = (selectedOption, field) => {
+        if (field.isMulti) {
+            const values = selectedOption ? selectedOption.map((option) => option.value) : [];
+            handleFieldChange(field.id, values, field);
+        } else {
+            handleFieldChange(
+                field.id,
+                selectedOption ? selectedOption.value : "",
+                field
+            );
+        }
+    };
  
+    const removeValueKey = () => {
+        const field = section.fields[0].id.split('.')[0];
+        if (Array.isArray(formData[field])) {
+            const modifiedData = formData[field].map(currentValue => {
+                const modifiedItem = {};
+            
+                Object.keys(currentValue).forEach(key => {
+                    const value = currentValue[key];
+            
+                    if (value && value.hasOwnProperty('value') && value.hasOwnProperty('label')) {
+                        modifiedItem[key] = value.label;
+                    } else {
+                        modifiedItem[key] = value;
+                    }
+                });
+            
+                return modifiedItem;
+            });
+    
+            setFormDatFormated({
+                ...formData,
+                [field]: modifiedData
+            })
+    
+        }
+    };
+
+    useEffect(() => {
+        console.log(formDataFormated)
+    }, [formDataFormated])
     const handleEdit = (item) => {
         setViewTable(false)
         setFieldsData(item)
@@ -70,7 +147,8 @@ const FormSection = ({
 
         section.fields.forEach((field) => {
             const fieldKey = `${key}.0.${field.id.split('.')[1]}`;
-            if (!fieldsData[field.id.split('.')[1]] || fieldsData[field.id.split('.')[1]].trim() === "") {
+            
+            if (!fieldsData[field.id.split('.')[1]] || fieldsData[field.id.split('.')[1]]?.toString().trim() === "") {
                 hasError = true;
                 newFormErrors[fieldKey] = `O campo ${field.label} é obrigatório.`;
             }
@@ -127,10 +205,36 @@ const FormSection = ({
     
     const handleArrayFieldChange = (fieldId, value, field) => {
         const column = fieldId.split('.')[1];
-        setFieldsData(prev => ({
-            ...prev,
-            [column]: value
-        }));
+
+        setFieldsData((prev) => {
+            const newFieldsData = {
+                ...prev,
+                [column]: value
+            };
+            
+            if (allFieldsData) {
+                const sectionField = field.id.split('.')[0]
+                setAllFieldsData((prev) => ({
+                    ...prev,
+                    [sectionField]: newFieldsData
+                }));
+            }
+
+            return newFieldsData;
+        });
+    };
+    useEffect(() => {
+        removeValueKey(formData);
+
+    }, [formData]);
+
+    const getSelectedValueArrayField = (fieldId) => {
+        const [category, key] = fieldId.split(".");
+        if (key) {
+            const value = fieldsData[key];
+            return getOptions(fieldId).find((option) => option.value === value?.value) || null;
+        }
+        return null;
     };
 
     const handleViewTable = () => {
@@ -156,13 +260,7 @@ const FormSection = ({
             },
     ], []);
     
-
-    // const handleRemoveField = (fieldId) => {
-    //     const updatedFields = fieldsData.filter((item) => item.id !== fieldId);
-    //     setFieldsData(updatedFields);
-    //     setCount(updatedFields.length);
-    // };
-
+    
     const flattenObject = (obj, parentKey = '', result = {}) => {
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
@@ -206,7 +304,7 @@ const FormSection = ({
                     <>
                         <DynamicTable
                             headers={headers}
-                            data={formData[section.fields[0].id.split('.')[0]]}
+                            data={getArrayColumnData(section.fields[0].id, formDataFormated)}
                             actions={actions}
                         />
                     </>
@@ -217,15 +315,19 @@ const FormSection = ({
                                 className={`d-flex flex-column ${sectionField.fullWidth ? 'col-md-12' : 'col-md-6'}`}
                                 key={sectionField.id}
                             >
-                                {sectionField.type === "text" || sectionField.type === "textarea" || sectionField.type === "email" || sectionField.type === "color" || sectionField.type === "password" || sectionField.type === "number" || sectionField.type === "date" ? (
+                                {inputTypes.includes(sectionField.type) ? (
                                     <InputField
                                         label={sectionField.label}
                                         type={sectionField.type}
                                         id={`${sectionField.id}`}
-                                        value={fieldsData[sectionField.id.split('.')[1]] || ""}
-                                        onChange={(e) => handleArrayFieldChange(sectionField.id, e.target.value, sectionField)}
+                                        value={getArrayFieldValue(sectionField.id, fieldsData)}
+                                        onChange={(e) => handleArrayFieldChange(
+                                            sectionField.id, 
+                                            { value: e.target.value, label: e.target.value },  
+                                            sectionField
+                                          )}
                                         placeholder={sectionField.placeholder}
-                                        error={formErrors[`${sectionField.id.split('.')[0]}.0.${sectionField.id.split('.')[1]}`]}
+                                        error={formErrors[getFormErrorKey(sectionField.id)]}
                                     />
                                 ) : (
                                     <>
@@ -238,21 +340,14 @@ const FormSection = ({
                                             options={getOptions(sectionField.id)}
                                             className={`basic-multi-select ${formErrors[sectionField.id] ? "is-invalid" : ""}`}
                                             classNamePrefix="select"
-                                            value={getSelectedValue(sectionField.id)}
-                                            onChange={(selectedOption) => {
-                                                if (sectionField.isMulti) {
-                                                    const values = selectedOption ? selectedOption.map(option => option.value) : [];
-                                                    handleArrayFieldChange(sectionField.id, values, sectionField);
-                                                } else {
-                                                    handleArrayFieldChange(sectionField.id, selectedOption ? selectedOption.value : "", sectionField);
-                                                }
-                                            }}
+                                            value={getSelectedValueArrayField(sectionField.id)}
+                                            onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
                                             noOptionsMessage={() => `Nenhuma opção encontrada para ${sectionField.label}`}
                                             placeholder={sectionField.placeholder}
                                         />
-                                        {formErrors[`${sectionField.id.split('.')[0]}.0.${sectionField.id.split('.')[1]}`] && (
+                                        {formErrors[getFormErrorKey(sectionField.id)] && (
                                             <div className="invalid-feedback d-block">
-                                                {formErrors[`${sectionField.id.split('.')[0]}.0.${sectionField.id.split('.')[1]}`]}
+                                                {formErrors[getFormErrorKey(sectionField.id)]}
                                             </div>
                                         )}
                                     </>
@@ -265,7 +360,7 @@ const FormSection = ({
                 <div className="form-row">
                     {section.fields.map((field) => (
                         <div className={`d-flex flex-column ${field.fullWidth ? 'col-md-12' : 'col-md-6'}`} key={field.id}>
-                            {field.type === "text" || field.type === "textarea" || field.type === "email" || field.type === "color" || field.type === "password" || field.type === "number" || field.type === "date" ? (
+                            {inputTypes.includes(field.type) ? (
                                 <InputField
                                     label={field.label}
                                     type={field.type}
@@ -274,8 +369,6 @@ const FormSection = ({
                                     onChange={(e) => {
                                         if (e && e.target) {
                                             handleFieldChange(field.id, e.target.value, field);
-                                        } else {
-                                            console.warn(`Evento inválido para o campo ${field.id}`);
                                         }
                                     }}
                                     placeholder={field.placeholder}
@@ -293,18 +386,7 @@ const FormSection = ({
                                         className={`basic-multi-select ${formErrors[field.id] ? "is-invalid" : ""}`}
                                         classNamePrefix="select"
                                         value={getSelectedValue(field.id)}
-                                        onChange={(selectedOption) => {
-                                            if (field.isMulti) {
-                                                const values = selectedOption ? selectedOption.map((option) => option.value) : [];
-                                                handleFieldChange(field.id, values, field);
-                                            } else {
-                                                handleFieldChange(
-                                                    field.id,
-                                                    selectedOption ? selectedOption.value : "",
-                                                    field
-                                                );
-                                            }
-                                        }}
+                                        onChange={(selectedOption) => handleSelectFieldChange(selectedOption, field)}
                                         noOptionsMessage={() => `Nenhuma opção encontrada para ${field.label}`}
                                         placeholder={field.placeholder}
                                     />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faBriefcase, faClipboardList, faCalendarAlt, faCircleInfo, faFileContract, faBars, faCalendar, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faBriefcase, faLocationArrow, faClipboard, faClipboardList, faCalendarAlt, faCircleInfo, faFileContract, faBars, faCalendar, faUser, faMoon, faSignOutAlt, faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, faObjectGroup, faRuler, faBox } from "@fortawesome/free-solid-svg-icons";
 import "../assets/styles/sidebar/header.css";
 import "../assets/styles/sidebar/sidebar.css";
 import perfil from "../assets/img/perfil.png";
@@ -72,12 +72,26 @@ const SideBarTwo = ({ children }) => {
                 }, {
                     title: 'Contratos',
                     items: [
-                        { name: 'Contratos', icon: faFileContract, to: '/contratos/', requiredPermission: 'Listar contratos' }, 
-                        { name: 'Calendário', icon: faCalendar, to: '/calendario', requiredPermission: '' },
+                        { name: 'Contratos', icon: faFileContract, to: '/contratos/', requiredPermission: 'Listar contratos' },
                         { name: 'Tipos de Contratos', icon: faTags, to: '/contratos/tipos', requiredPermission: 'Listar tipos de contratos' },
-                        { name: 'Tipos de Eventos', icon: faCalendarAlt, to: '/contratos/tipos-eventos', requiredPermission: 'Listar tipos de eventos de contratos' },
                         { name: 'Status', icon: faCircleInfo, to: '/contratos/status', requiredPermission: 'Listar status de contratos' },
+                        { name: 'Calendário', icon: faCalendar, to: '/calendario', requiredPermission: '' },
+                    ].filter(item => canAccess(item.requiredPermission))
+                },
+                {
+                    title: 'Eventos de Contratos',
+                    items: [
+                        { name: 'Tipos de Eventos', icon: faCalendarAlt, to: '/contratos/tipos-eventos', requiredPermission: 'Listar tipos de eventos de contratos' }
+                    ].filter(item => canAccess(item.requiredPermission))
+                },
+                {
+                    title: 'Ordem de Serviço',
+                    items: [
+                        { name: 'Ordem de Serviço', icon: faClipboard, to: '/contratos/ordem-servico', requiredPermission: 'Listar ordens de serviço' },
                         { name: 'Tipos de Item OS', icon: faClipboardList, to: '/contratos/ordem-servico/tipos-itens', requiredPermission: 'Listar tipos de itens de ordem de serviço' },
+                        { name: 'Departamentos de OS', icon: faBuilding, to: '/contratos/ordem-servico/departamentos', requiredPermission: 'Listar departamentos de ordem de serviço' },
+                        { name: 'Destinos de OS', icon: faLocationArrow, to: '/contratos/ordem-servico/destinos', requiredPermission: 'Listar destinos de ordem de serviço' },
+                        { name: 'Status de OS', icon: faCircleInfo, to: '/contratos/ordem-servico/status', requiredPermission: 'Listar status de ordem de serviço' }
                     ].filter(item => canAccess(item.requiredPermission))
                 }
             ];

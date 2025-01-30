@@ -115,6 +115,19 @@ import CreateOsItemTypePage from "../pages/contracts/OsItemType/CreateOsItemType
 import EditOsItemTypePage from "../pages/contracts/OsItemType/EditOsItemTypePage";
 import EditStatusContractPage from "../pages/contracts/status/EditStatusContractPage";
 import NotFound from "../pages/NotFound";
+import OsDepartamentsPage from "../pages/contracts/osDepartaments/OsDepartamentsPage";
+import CreateOsDepartamentsPage from "../pages/contracts/osDepartaments/CreateOsDepartamentsPage";
+import EditOsDepartamentsPage from "../pages/contracts/osDepartaments/EditOsDepartamentsPage";
+import OsDestinationsPage from "../pages/contracts/osDestinations/OsDestinationsPage";
+import CreateOsDestinationsPage from "../pages/contracts/osDestinations/CreateOsDestinationsPage";
+import EditOsDestinationsPage from "../pages/contracts/osDestinations/EditOsDestinationsPage";
+import OsStatusPage from "../pages/contracts/osStatus/osStatusPage";
+import CreateOsStatusPage from "../pages/contracts/osStatus/CreateOsStatusPage";
+import EditOsStatusPage from "../pages/contracts/osStatus/EditOsStatusPage";
+import OrderServicePage from "../pages/contracts/contract/orderService/ContractOsPage";
+import CreateOrderServicePage from "../pages/contracts/contract/orderService/CreateContractOsPage";
+import ContractOsPage from "../pages/contracts/contract/orderService/ContractOsPage";
+import CreateContractOsPage from "../pages/contracts/contract/orderService/CreateContractOsPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -333,6 +346,14 @@ const AppRoutesContent = () => {
         {
             path: "/contratos/:id/eventos/:eventId/editar/",
             element: <PrivateRoute element={EditEventContractPage}/>
+        },
+        {
+            path: "/contratos/:id/ordens-servicos/",
+            element: <PrivateRoute element={ContractOsPage}/>
+        },
+        {
+            path: "/contratos/:id/ordens-servicos/criar",
+            element: <PrivateRoute element={CreateContractOsPage}/>
         }
     ];
 
@@ -366,6 +387,55 @@ const AppRoutesContent = () => {
             element: <PrivateRoute element={EditOsItemTypePage}/>
         }
     ];
+
+    const OsDepartamentsRoutes = [
+        {
+            path: "/contratos/ordem-servico/departamentos",
+            element: <PrivateRoute element={OsDepartamentsPage} />,
+        },
+        {
+            path: "/contratos/ordem-servico/departamentos/criar",
+            element: <PrivateRoute element={CreateOsDepartamentsPage} />,
+        },
+        {
+            path: "/contratos/ordem-servico/departamentos/editar/:id",
+            element: <PrivateRoute element={EditOsDepartamentsPage}/>
+        }
+    ];
+
+    const OsDestinationsRoutes = [
+        {
+            path: "/contratos/ordem-servico/destinos",
+            element: <PrivateRoute element={OsDestinationsPage} />,
+        },
+        {
+            path: "/contratos/ordem-servico/destinos/criar",
+            element: <PrivateRoute element={CreateOsDestinationsPage} />,
+        },
+        {
+            path: "/contratos/ordem-servico/destinos/editar/:id",
+            element: <PrivateRoute element={EditOsDestinationsPage}/>
+        }
+    ];
+
+    const OsStatusRoutes = [
+        {
+            path: "/contratos/ordem-servico/status",
+            element: <PrivateRoute element={OsStatusPage} />,
+        },
+        {
+            path: "/contratos/ordem-servico/status/criar",
+            element: <PrivateRoute element={CreateOsStatusPage} />,
+        },
+        {
+            path: "/contratos/ordem-servico/status/editar/:id",
+            element: <PrivateRoute element={EditOsStatusPage}/>
+        }
+    ];
+
+    const OrdersServicesRoutes = [
+    ];
+
 
     const statusContractRoutes = [
         {
@@ -582,6 +652,22 @@ const AppRoutesContent = () => {
             <Route key={index} path={route.path} element={route.element} />
         ))}
 
+        {OsDepartamentsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
+        {OsDestinationsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+    
+        {OsStatusRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
+        {OrdersServicesRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+        
         {statusContractRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}

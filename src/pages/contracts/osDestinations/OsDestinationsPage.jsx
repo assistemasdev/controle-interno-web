@@ -4,32 +4,32 @@ import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
 import DynamicTable from "../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash,faClipboard, faEye, faUndo, faCalendarPlus, faHistory } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
 import AutoCompleteFilter from "../../../components/AutoCompleteFilter";
 import baseService from "../../../services/baseService";
 import useBaseService from "../../../hooks/services/useBaseService";
-import { entities } from "../../../constants/entities";
 import { buildFilteredArray } from "../../../utils/arrayUtils";
+import { entities } from "../../../constants/entities";
 
-const ContractPage = () => {
+const OsDestinationsPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { get: fetchAll, del: remove, get: fetchAllCustomers } = useBaseService(navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const [selectedContracts, setSelectedContracts] = useState([]);
-    const [contracts, setContracts] = useState([]);
+    const [selectedOsDestinations, setSelectedOsDestinations] = useState([]);
+    const [OsDestinations, setOsDestinations] = useState([]);
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedContract, setSelectedContract] = useState(null);  
+    const [selectedOsDepartament, setSelectedOsDestination] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
-        number: '',
+        name: '',
         id: '',
         filledInputs: '',
         deleted_at: false,
@@ -52,29 +52,15 @@ const ContractPage = () => {
         window.location.reload();
     }, []);
 
-    const mapCustomers = useCallback((customers) => {
-        return Object.fromEntries(customers.map((customer) => [customer.id, customer.name]));
-    }, []);
-
-    const transformContracts = useCallback((contractsData, customersMap) => {
-        return contractsData.map((contract) => ({
-            id: contract.id,
-            number: contract.number,
-            customer: customersMap[contract.customer_id] || "N/A",
-            deleted_at: contract.deleted_at ? 'deleted-' + contract.deleted_at : 'deleted-null'
-
-        }));
-    }, []);
-
-    const loadContracts = useCallback(async (filtersSubmit) => {
+    const loadOsDestinations = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAll(entities.contracts.get, filtersSubmit || filters);
-            const customersReponse = await fetchAllCustomers(entities.customers.get);
-
-            const customersMap = mapCustomers(customersReponse.result.data);
-            const filteredContracts = transformContracts(response.result.data, customersMap)
-            setContracts(filteredContracts);
+            const response = await fetchAll(entities.orders.destinations.get() ,filtersSubmit || filters);
+            setOsDestinations(response.result.data.map((departament) => ({
+                id: departament.id,
+                name: departament.name,
+                deleted_at: departament.deleted_at ? 'deleted-' + departament.deleted_at : 'deleted-null'
+            })));
             setTotalPages(response.result.last_page);
             setCurrentPage(response.result.current_page);
         } finally {
@@ -83,38 +69,35 @@ const ContractPage = () => {
     }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
     useEffect(() => {
-        loadContracts();
+        loadOsDestinations();
     }, [itemsPerPage]);
 
-    const handleEdit = useCallback((contract) => {
-        navigate(`/contratos/editar/${contract.id}`);
+    const handleEdit = useCallback((destination) => {
+        navigate(`/contratos/ordem-servico/destinos/editar/${destination.id}`);
     }, [navigate]);
-
-    const handleViewHistory = useCallback((contract) => {
-        navigate(`/contratos/${contract.id}/eventos/historico/`);
-    }, [navigate])
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
     
-        const selectedIds = buildFilteredArray(selectedContracts, 'id', 'numberFilter', false);
-        const selectedNumbers = buildFilteredArray(selectedContracts, 'number', 'numberFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedContracts, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedContracts.map((option) => option.column)).size;
+        const selectedIds = buildFilteredArray(selectedOsDestinations, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedOsDestinations, 'name', 'textFilter', true);
+        const selectedIdLikes = buildFilteredArray(selectedOsDestinations, 'id', 'numberFilter', true);
+        const filledInputs = new Set(selectedOsDestinations.map((option) => option.column)).size;
+    
         const previousFilters = filters || {}; 
-
+    
         setFilters(prev => ({
             ...prev,
             id: selectedIds,
-            number: selectedNumbers,
+            name: selectedNames,
             idLike: selectedIdLikes,
             filledInputs,
             page: 1,
         }));
     
-        loadContracts({
+        loadOsDestinations({
             id: selectedIds,
-            number: selectedNumbers,
+            name: selectedNames,
             idLike: selectedIdLikes,
             filledInputs,
             page: 1,
@@ -123,7 +106,7 @@ const ContractPage = () => {
     };
     
     const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedContracts((prev) => {
+        setSelectedOsDestinations((prev) => {
             if (!newSelected.length) {
                 return prev.filter((option) => option.column !== column);
             }
@@ -135,8 +118,8 @@ const ContractPage = () => {
         });
     }, []);
 
-    const handleActivate = (contract, action) => {
-        setSelectedContract(contract); 
+    const handleActivate = (destination, action) => {
+        setSelectedOsDestination(destination); 
         setAction({
             action,
             text:'Você tem certeza que deseja ativar: '
@@ -144,8 +127,8 @@ const ContractPage = () => {
         setOpenModalConfirmation(true);  
     };
 
-    const handleDelete = (contract, action) => {
-        setSelectedContract(contract);  
+    const handleDelete = (destination, action) => {
+        setSelectedOsDestination(destination);  
         setAction({
             action,
             text:'Você tem certeza que deseja excluir: '
@@ -156,9 +139,9 @@ const ContractPage = () => {
     const handleConfirmDelete = async (id) => {
         try {
             showLoader();
-            await remove(entities.contracts.delete(id));
+            await remove(entities.orders.destinations.delete(null, id));
             setOpenModalConfirmation(false);  
-            loadContracts();
+            loadOsDestinations();
         } catch (error) {
             console.log(error);
             setOpenModalConfirmation(false);  
@@ -171,59 +154,15 @@ const ContractPage = () => {
         setOpenModalConfirmation(false);  
     };
 
-    const handleViewDetails = (contract) => {
-        navigate(`/contratos/detalhes/${contract.id}`);
-    };
-
-    const handleAddEvent = (contract) => {
-        navigate(`/contratos/${contract.id}/eventos/adicionar`)
-    };
-
-    const handleManageOs = (contract) => {
-        navigate(`/contratos/${contract.id}/ordens-servicos/`)
-    }
-
-    const headers = useMemo(() => ['Id', 'Número', 'Cliente'], []);
+    const headers = useMemo(() => ['id', 'Nome'], []);
 
     const actions = useMemo(() => [
         {
-            id:'details',
-            icon: faEye,
-            title: "Ver Detalhes",
-            buttonClass: "btn-info",
-            permission: "Ver contratos",
-            onClick: handleViewDetails,
-        },
-        {
-            id: 'add-event',
-            icon: faCalendarPlus,
-            title: 'Adicionar Evento',
-            buttonClass: 'btn-success',
-            permission: 'Adicionar eventos',
-            onClick: handleAddEvent,
-        },
-        {
-            id: 'history',
-            icon: faHistory, 
-            title: 'Ver Histórico',
-            buttonClass: 'btn-warning',
-            permission: 'Ver histórico',
-            onClick: handleViewHistory, 
-        },
-        {
-            id: 'os',
-            icon: faClipboard,  
-            title: 'Ordens de Serviços',
-            buttonClass: 'btn-secondary',  
-            permission: 'Listar ordens de serviço',  
-            onClick: handleManageOs,  
-        },
-        {
             id:'edit',
             icon: faEdit,
-            title: 'Editar Contratos',
+            title: 'Editar Cargos',
             buttonClass: 'btn-primary',
-            permission: 'Atualizar contratos',
+            permission: 'Atualizar destinos de ordens de serviço',
             onClick: handleEdit
         },
         {
@@ -231,7 +170,7 @@ const ContractPage = () => {
             icon: faTrash,
             title: 'Excluir Tipo',
             buttonClass: 'btn-danger',
-            permission: 'Excluir contratos',
+            permission: 'Excluir destinos de ordens de serviço',
             onClick: handleDelete
         },
         {
@@ -239,7 +178,7 @@ const ContractPage = () => {
             icon: faUndo,
             title: 'Ativar usuário',
             buttonClass: 'btn-info',
-            permission: 'Atualizar contratos',
+            permission: 'Atualizar destinos de ordens de serviço',
             onClick: handleActivate,
         },
     ], [handleEdit, handleDelete]);
@@ -248,37 +187,37 @@ const ContractPage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Contratos
+                    Destino de Ordem de Serviço
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Id:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='contract'
-                            value={selectedContracts.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os contratos pelo id"
-                            isMulti
-                        />
-                    </div>
                     <div className="form-group col-md-6">
                         <label htmlFor="name" className="text-dark font-weight-bold mt-1">
                             Número:
                         </label>
                         <AutoCompleteFilter
                             service={baseService}
-                            columnDataBase="number"
-                            model='contract'
-                            value={selectedContracts.filter((option) => option.column === 'number')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'number')}
+                            columnDataBase="id"
+                            model='contractType'
+                            value={selectedOsDestinations.filter((option) => option.column === 'id')}
+                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
                             onBlurColumn="numberFilter"
-                            placeholder="Filtre os contratos pelo número"
+                            placeholder="Filtre os tipos pelo número"
+                            isMulti
+                        />
+                    </div>
+                    <div className="form-group col-md-6">
+                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
+                            Nome:
+                        </label>
+                        <AutoCompleteFilter
+                            service={baseService}
+                            columnDataBase="name"
+                            model='contractType'
+                            value={selectedOsDestinations.filter((option) => option.column === 'name')}
+                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
+                            onBlurColumn="textFilter"
+                            placeholder="Filtre os tipos pelo nome"
                             isMulti
                         />
                     </div>
@@ -290,24 +229,24 @@ const ContractPage = () => {
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Contratos
+                        Lista de Destino de Ordem de Serviço
                     </div>
-                    {canAccess('Criar contratos') && (
+                    {canAccess('Criar destinos de ordens de serviço') && (
                         <Button
-                            text="Novo Contrato"
+                            text="Novo Destino"
                             className="btn btn-blue-light fw-semibold"
-                            link="/contratos/criar"
+                            link="/contratos/ordem-servico/destinos/criar"
                         />
                     )}
                 </div>
 
                 <DynamicTable
                     headers={headers}
-                    data={contracts}
+                    data={OsDestinations}
                     actions={actions}
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={loadContracts}
+                    onPageChange={loadOsDestinations}
                     filters={filters}
                     setFilters={setFilters}
                 />
@@ -315,8 +254,8 @@ const ContractPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedContract.id) : console.log('oi')}
-                    itemName={selectedContract ? `${selectedContract.number} - ${selectedContract.customer}` : ''}
+                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOsDepartament.id) : console.log('oi')}
+                    itemName={selectedOsDepartament ? selectedOsDepartament.name : ''}
                     text={action.text}
                 />
             </div>
@@ -324,4 +263,4 @@ const ContractPage = () => {
     );
 };
 
-export default ContractPage
+export default OsDestinationsPage

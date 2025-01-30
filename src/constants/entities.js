@@ -97,11 +97,15 @@ export const entities = {
         },
         types: createNestedRoutes('contracts', 'types', true),
         status: createNestedRoutes('contracts', 'status', true),
-        eventsTypes: createNestedRoutes('contracts', 'events/types', true)
+        eventsTypes: createNestedRoutes('contracts', 'events/types', true),
+        orders: createNestedRoutes('contracts', 'orders')
     },
     orders: {
         ...createEntityRoutes('orders'),
-        itemsTypes: createNestedRoutes('orders', 'items/types', true)
+        itemsTypes: createNestedRoutes('orders', 'items/types', true),
+        departaments: createNestedRoutes('orders', 'departaments', true),
+        destinations: createNestedRoutes('orders', 'destinations', true),
+        status: createNestedRoutes('orders', 'status', true)
     }
 
 };
