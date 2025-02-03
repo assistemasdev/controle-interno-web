@@ -98,7 +98,10 @@ export const entities = {
         types: createNestedRoutes('contracts', 'types', true),
         status: createNestedRoutes('contracts', 'status', true),
         eventsTypes: createNestedRoutes('contracts', 'events/types', true),
-        orders: createNestedRoutes('contracts', 'orders')
+        orders: {
+            ...createNestedRoutes('contracts', 'orders'),
+            items: (contractId) => createNestedRoutes(`contracts/${contractId}/orders`, 'items')
+        }
     },
     orders: {
         ...createEntityRoutes('orders'),

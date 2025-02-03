@@ -35,7 +35,8 @@ export const productFields = [
                 label: "Data de Garantia:", 
                 type: "date", 
                 placeholder: "Adicione data de garantia", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange" ,
+                fullWidth:true
             },
         ],
     },
@@ -64,7 +65,8 @@ export const productFields = [
                 isMulti: false, 
                 type: "select", 
                 placeholder: "Selecione o fornecedor", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange" ,
+                fullWidth:true
             },
         ],
     },
@@ -114,7 +116,8 @@ export const productFields = [
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione a categoria", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                fullWidth:true
             },
         ],
     },

@@ -87,23 +87,82 @@ export const orderServiceFields = [
 
 ];
 
+export const DetailsOrderServiceFields = [
+    {
+        section: "Order de Serviço",
+        fields: [
+            { 
+                id: "status", 
+                label: "Status de OS:", 
+                type: "text", 
+            },
+            { 
+                id: "user", 
+                label: "Responsável pela OS:", 
+                type: "text", 
+            },
+            { 
+                id: "departament", 
+                label: "Departamento de OS:", 
+                type: "text", 
+            },
+            { 
+                id: "deadline", 
+                label: "Prazo Final:", 
+                type: "date", 
+            },
+            { 
+                id: "destination", 
+                label: "Destino de OS:", 
+                type: "text",
+                fullWidth:true 
+            },
+            { 
+                id: "details", 
+                label: "Detalhes:", 
+                type: "textarea", 
+                fullWidth: true
+            },
+        ],
+    }
+];
 
-// export const editEventFields = [
-//     {
-//         section: "Dados do Evento",
-//         fields: [
-//             { 
-//                 id: "contract_event_type_id", 
-//                 label: "Tipo de Evento:", 
-//                 type: "multi-select", 
-//                 placeholder: "Selecione o tipo", 
-//             },
-//             { 
-//                 id: "contract_id", 
-//                 label: "Contrato:", 
-//                 type: "multi-select", 
-//                 placeholder: "Selecione o contrato", 
-//             },
-//         ],
-//     },
-// ];
+export const editOrderServiceFields = [
+    {
+        section: "Order de Serviço",
+        fields: [
+            { 
+                id: "status_id", 
+                label: "Status de OS:", 
+                type: "multi-select", 
+                placeholder: "Selecione o status", 
+            },
+            { 
+                id: "departament_id", 
+                label: "Departamento de OS:", 
+                type: "multi-select", 
+                placeholder: "Selecione o departamento", 
+            },
+            { 
+                id: "destination_id", 
+                label: "Destino de OS:", 
+                type: "multi-select", 
+                placeholder: "Selecione o destino", 
+            },
+            { 
+                id: "deadline", 
+                label: "Prazo Final:", 
+                type: "date", 
+                placeholder: "Selecione a data do prazo final", 
+            },
+            { 
+                id: "details", 
+                label: "Detalhes:", 
+                type: "textarea", 
+                placeholder: "Digite o detalhes", 
+                fullWidth: true
+            },
+        ],
+    }
+
+];

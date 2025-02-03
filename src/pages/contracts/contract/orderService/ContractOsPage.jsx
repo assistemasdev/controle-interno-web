@@ -4,7 +4,7 @@ import Button from "../../../../components/Button";
 import { usePermissions } from "../../../../hooks/usePermissions";
 import DynamicTable from "../../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faUndo, faEye } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../../constants/pagination";
 import useLoader from "../../../../hooks/useLoader";
@@ -98,7 +98,7 @@ const ContractOsPage = () => {
     }, [itemsPerPage]);
 
     const handleEdit = useCallback((status) => {
-        navigate(`/contratos/ordem-servico/editar/${status.id}`);
+        navigate(`/contratos/${id}/ordens-servicos/editar/${status.id}`);
     }, [navigate]);
 
     const handleFilterSubmit = (e) => {
@@ -128,6 +128,10 @@ const ContractOsPage = () => {
             page: 1,
             deleted_at: previousFilters.deleted_at, 
         });
+    };
+
+    const handleViewDetails = (contractOs) => {
+        navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOs.id}`);
     };
     
     const handleChangeCustomers = useCallback((newSelected, column) => {
@@ -182,6 +186,14 @@ const ContractOsPage = () => {
     const headers = useMemo(() => ['id', 'Nº Contrato', 'Cliente'], []);
 
     const actions = useMemo(() => [
+        {
+            id:'details',
+            icon: faEye,
+            title: "Ver Detalhes",
+            buttonClass: "btn-info",
+            permission: "Ver ordens de serviço",
+            onClick: handleViewDetails,
+        },
         {
             id:'edit',
             icon: faEdit,

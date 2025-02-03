@@ -175,7 +175,6 @@ const CreateContractOsPage = () => {
                 ...formData,
                 items: transformValues(formData.items)
             }
-            console.log(transformedData)
             const success = await create(entities.contracts.orders.create(id) ,transformedData);
             if (success) {
                 resetForm();

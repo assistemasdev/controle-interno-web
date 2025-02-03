@@ -6,7 +6,6 @@ import DynamicTable from './DynamicTable';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { v4 as uuidv4 } from 'uuid';
 
-
 const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date"];
 
 const getFormErrorKey = (sectionFieldId) => {

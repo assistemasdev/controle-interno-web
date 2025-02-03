@@ -128,6 +128,11 @@ import OrderServicePage from "../pages/contracts/contract/orderService/ContractO
 import CreateOrderServicePage from "../pages/contracts/contract/orderService/CreateContractOsPage";
 import ContractOsPage from "../pages/contracts/contract/orderService/ContractOsPage";
 import CreateContractOsPage from "../pages/contracts/contract/orderService/CreateContractOsPage";
+import EditContractOsPage from "../pages/contracts/contract/orderService/EditContractOsPage";
+import DetailsContractOsPage from "../pages/contracts/contract/orderService/DetailsContractOsPage";
+import DetailsContractOsItensPage from "../pages/contracts/contract/orderService/itensOs/DetailsContractOsItensPage";
+import EditContractOsItemPage from "../pages/contracts/contract/orderService/itensOs/EditContractOsItemPage";
+import CreateContractOsItemPage from "../pages/contracts/contract/orderService/itensOs/CreateContractOsItemPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -354,6 +359,26 @@ const AppRoutesContent = () => {
         {
             path: "/contratos/:id/ordens-servicos/criar",
             element: <PrivateRoute element={CreateContractOsPage}/>
+        },
+        {
+            path: "/contratos/:id/ordens-servicos/editar/:contractOsId",
+            element: <PrivateRoute element={EditContractOsPage}/>
+        },
+        {
+            path: "/contratos/:id/ordens-servicos/detalhes/:contractOsId",
+            element: <PrivateRoute element={DetailsContractOsPage}/>
+        },
+        {
+            path: "/contratos/:id/ordens-servicos/detalhes/:contractOsId/itens/detalhes/:contractOsItemId",
+            element: <PrivateRoute element={DetailsContractOsItensPage}/>
+        },
+        {
+            path: "/contratos/:id/ordens-servicos/detalhes/:contractOsId/itens/editar/:contractOsItemId",
+            element: <PrivateRoute element={EditContractOsItemPage}/>
+        },
+        {
+            path: "/contratos/:id/ordens-servicos/detalhes/:contractOsId/itens/criar/",
+            element: <PrivateRoute element={CreateContractOsItemPage}/>
         }
     ];
 
