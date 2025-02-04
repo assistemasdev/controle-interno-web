@@ -1,22 +1,26 @@
+import { faBuilding, faMapMarkerAlt, faPalette } from '@fortawesome/free-solid-svg-icons';
+
 export const organizationFields = [
     {
         section: 'Dados da Organização',
         fields: [
             { 
                 id: 'organization.name', 
-                label: 'Nome:', 
+                label: 'Nome', 
                 type: 'text', 
                 placeholder: 'Digite o nome', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faBuilding
             },
             { 
                 id: 'organization.color', 
-                label: 'Cor:', 
+                label: 'Cor', 
                 type: 'color', 
                 placeholder: '', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faPalette
             },
         ],
     },
@@ -25,59 +29,66 @@ export const organizationFields = [
         fields: [
             { 
                 id: 'address.alias', 
-                label: 'Apelido:', 
+                label: 'Apelido', 
                 type: 'text', 
                 placeholder: 'Digite o apelido', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faMapMarkerAlt
             },
             { 
                 id: 'address.zip', 
-                label: 'CEP:', 
+                label: 'CEP', 
                 type: 'text', 
                 placeholder: 'Digite o CEP', 
                 fullWidth: false, 
-                handleChange: 'handleCepChange' 
+                handleChange: 'handleCepChange', 
+                icon: faMapMarkerAlt
             },
             { 
                 id: 'address.street', 
-                label: 'Rua:', 
+                label: 'Rua', 
                 type: 'text', 
                 placeholder: 'Digite a rua', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faMapMarkerAlt
             },
             { 
                 id: 'address.number', 
-                label: 'Número:', 
+                label: 'Número', 
                 type: 'text', 
                 placeholder: 'Digite o número', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faMapMarkerAlt
             },
             { 
                 id: 'address.city', 
-                label: 'Cidade:', 
+                label: 'Cidade', 
                 type: 'text', 
                 placeholder: 'Digite a cidade', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faMapMarkerAlt
             },
             { 
                 id: 'address.state', 
-                label: 'Estado:', 
+                label: 'Estado', 
                 type: 'text', 
                 placeholder: 'Digite o estado', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faMapMarkerAlt
             },
             { 
                 id: 'address.country', 
-                label: 'País:', 
+                label: 'País', 
                 type: 'text', 
                 placeholder: 'Digite o país', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faMapMarkerAlt
             },
         ],
     },
@@ -89,19 +100,21 @@ export const editOrganizationFields = [
         fields: [
             { 
                 id: 'name', 
-                label: 'Nome:', 
+                label: 'Nome', 
                 type: 'text', 
                 placeholder: 'Digite o nome da organização', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faBuilding
             },
             { 
                 id: 'color', 
-                label: 'Cor:', 
+                label: 'Cor', 
                 type: 'color', 
                 placeholder: '', 
                 fullWidth: false, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faPalette
             },
         ],
     },
@@ -110,12 +123,13 @@ export const editOrganizationFields = [
         fields: [
             { 
                 id: 'active', 
-                label: 'Status:', 
+                label: 'Status', 
                 type: 'multi-select', 
                 isMulti: false,
                 placeholder: 'Selecione o status da organização', 
                 fullWidth: true, 
-                handleChange: 'handleChange' 
+                handleChange: 'handleChange', 
+                icon: faBuilding
             },
         ],
     },

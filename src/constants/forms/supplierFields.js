@@ -1,3 +1,5 @@
+import { faUser, faTag, faIdCard, faHome, faPhoneAlt, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+
 export const supplierFields = [
     {
         section: 'Informações Gerais',
@@ -8,6 +10,7 @@ export const supplierFields = [
                 type: 'text',
                 placeholder: 'Nome completo do fornecedor',
                 fullWidth: true,
+                icon: faUser,
             },
             {
                 id: 'alias',
@@ -15,14 +18,14 @@ export const supplierFields = [
                 type: 'text',
                 placeholder: 'Apelido do fornecedor',
                 fullWidth: false,
+                icon: faTag,
             },
-
             {
                 id: 'cpf_cnpj',
                 label: 'CPF/CNPJ',
                 type: 'text',
                 placeholder: 'Documento do fornecedor',
-                fullWidth: false,
+                icon: faIdCard,
             },
         ],
     }
@@ -38,6 +41,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o apelido do fornecedor',
                 required: true,
+                icon: faTag,
             },
             {
                 id: 'supplier.name',
@@ -45,6 +49,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o nome do fornecedor',
                 required: true,
+                icon: faUser,
             },
             {
                 id: 'supplier.cpf_cnpj',
@@ -52,6 +57,8 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o CPF ou CNPJ',
                 required: true,
+                icon: faIdCard,
+                fullWidth: true,
             },
         ],
     },
@@ -64,6 +71,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o apelido do endereço',
                 required: true,
+                icon: faHome,
             },
             {
                 id: 'address.zip',
@@ -71,6 +79,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o CEP',
                 required: true,
+                icon: faHome,
             },
             {
                 id: 'address.street',
@@ -78,6 +87,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite a rua',
                 required: true,
+                icon: faHome,
             },
             {
                 id: 'address.number',
@@ -85,6 +95,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o número',
                 required: true,
+                icon: faHome,
             },
             {
                 id: 'address.details',
@@ -92,6 +103,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite detalhes adicionais',
                 required: false,
+                icon: faHome,
             },
             {
                 id: 'address.district',
@@ -99,6 +111,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o bairro',
                 required: true,
+                icon: faHome,
             },
             {
                 id: 'address.city',
@@ -106,6 +119,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite a cidade',
                 required: true,
+                icon: faHome,
             },
             {
                 id: 'address.state',
@@ -113,6 +127,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o estado',
                 required: true,
+                icon: faHome,
             },
             {
                 id: 'address.country',
@@ -120,6 +135,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o país',
                 required: true,
+                icon: faHome,
             },
             {
                 id: 'address.ddd',
@@ -127,6 +143,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o DDD',
                 required: false,
+                icon: faPhoneAlt,
             },
             {
                 id: 'address.phone',
@@ -134,6 +151,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o telefone',
                 required: false,
+                icon: faPhoneAlt,
             },
             {
                 id: 'address.email',
@@ -141,6 +159,7 @@ export const createSupplierFields = [
                 type: 'email',
                 placeholder: 'Digite o e-mail',
                 required: false,
+                icon: faEnvelope,
             },
         ],
     },
@@ -153,6 +172,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o nome do contato',
                 required: true,
+                icon: faUser,
             },
             {
                 id: 'contact.surname',
@@ -160,6 +180,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o sobrenome do contato',
                 required: false,
+                icon: faUser,
             },
             {
                 id: 'contact.role',
@@ -167,6 +188,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o cargo',
                 required: false,
+                icon: faUser,
             },
             {
                 id: 'contact.ddd',
@@ -174,6 +196,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o DDD',
                 required: true,
+                icon: faPhoneAlt,
             },
             {
                 id: 'contact.phone',
@@ -181,6 +204,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o telefone',
                 required: true,
+                icon: faPhoneAlt,
             },
             {
                 id: 'contact.cell_ddd',
@@ -188,6 +212,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o DDD do celular',
                 required: false,
+                icon: faPhoneAlt,
             },
             {
                 id: 'contact.cell',
@@ -195,6 +220,7 @@ export const createSupplierFields = [
                 type: 'text',
                 placeholder: 'Digite o número do celular',
                 required: false,
+                icon: faPhoneAlt,
             },
             {
                 id: 'contact.email',
@@ -202,8 +228,8 @@ export const createSupplierFields = [
                 type: 'email',
                 placeholder: 'Digite o e-mail do contato',
                 required: true,
+                icon: faEnvelope,
             },
         ],
     },
 ];
-

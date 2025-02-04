@@ -165,37 +165,32 @@ const OrganizationDetailsPage = () => {
                     Detalhes da Organização
                 </div>
 
-                <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    <>
-                        <DetailsSectionRenderer sections={editOrganizationFields} formData={formData} />
+                <DetailsSectionRenderer sections={editOrganizationFields} formData={formData}  handleBack={() => navigate('/organizacoes/dashboard')}/>
 
-                        <div className="form-row d-flex justify-content-between align-items-center mt-1">
-                            <h5 className="text-dark font-weight-bold mt-3">Endereços da Organização</h5>
-                            {canAccess('Adicionar endereço') && (
-                                <Button
-                                    text="Adicionar Endereço"
-                                    className="btn btn-blue-light fw-semibold"
-                                    link={`/organizacoes/detalhes/${organizationId}/enderecos/adicionar`}
-                                />
-                            )}
-                        </div>
-                        
-                        <hr />
-                        <DynamicTable
-                            headers={['ID', 'CEP', 'Rua']}
-                            data={addresses}
-                            actions={actions}
-                            currentPage={currentPageAddresses}
-                            totalPages={totalPagesAddresses}
-                            onPageChange={fetchAddresses}
-                            filters={filtersAddresses}
-                            setFilters={setFiltersAddresses}
+                <div className="form-row d-flex justify-content-between align-items-center mt-1">
+                    <h5 className="text-dark font-weight-bold mt-3">Endereços da Organização</h5>
+                    {canAccess('Adicionar endereço') && (
+                        <Button
+                            text="Adicionar Endereço"
+                            className="btn btn-blue-light fw-semibold"
+                            link={`/organizacoes/detalhes/${organizationId}/enderecos/adicionar`}
                         />
+                    )}
+                </div>
+                
+                <DynamicTable
+                    headers={['ID', 'CEP', 'Rua']}
+                    data={addresses}
+                    actions={actions}
+                    currentPage={currentPageAddresses}
+                    totalPages={totalPagesAddresses}
+                    onPageChange={fetchAddresses}
+                    filters={filtersAddresses}
+                    setFilters={setFiltersAddresses}
+                />
 
-                        <div className="mt-3 d-flex gap-2">
-                            <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={() => navigate('/organizacoes/')} />
-                        </div>
-                    </>
+                <div className="mt-3 d-flex gap-2">
+                    <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={() => navigate('/organizacoes/')} />
                 </div>
             </div>
 

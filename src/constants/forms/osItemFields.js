@@ -1,42 +1,51 @@
+import { faWeightHanging, faRuler, faIdBadge, faBox, faCogs, faSortNumericUp, faMapMarkerAlt, faLocationArrow, faInfoCircle, faKey, faTags } from '@fortawesome/free-solid-svg-icons';
+
 export const DetailsOsItemFields = [
     {
         section: "Item da Order de Serviço",
         fields: [
             { 
                 id: "identify", 
-                label: "Identificador:", 
+                label: "Identificador", 
                 type: "text", 
+                icon: faIdBadge
             },
             { 
                 id: "osItemType", 
-                label: "Tipo de Item de OS:", 
+                label: "Tipo de Item de OS", 
                 type: "text", 
+                icon: faBox
             },
             { 
                 id: "product", 
-                label: "Produto:", 
+                label: "Produto", 
                 type: "text", 
+                icon: faCogs
             },
             { 
                 id: "quantity", 
-                label: "Quantidade:", 
+                label: "Quantidade", 
                 type: "number", 
+                icon: faSortNumericUp
             },
             { 
                 id: "address", 
-                label: "Endereço:", 
+                label: "Endereço", 
                 type: "text",
+                icon: faMapMarkerAlt
             },
             { 
                 id: "location", 
-                label: "Localização:", 
+                label: "Localização", 
                 type: "text",
+                icon: faLocationArrow
             },
             { 
                 id: "details", 
-                label: "Detalhes:", 
+                label: "Detalhes", 
                 type: "textarea", 
-                fullWidth: true
+                fullWidth: true,
+                icon: faInfoCircle
             },
         ],
     }
@@ -48,47 +57,53 @@ export const osItemFields = [
         fields: [
             { 
                 id: "item_id", 
-                label: "Identificador:", 
+                label: "Identificador", 
                 type: "text", 
-                placeholder:'Digite o identificador'
+                placeholder:'Digite o identificador',
+                icon: faKey
             },
             { 
                 id: "service_order_item_type_id", 
-                label: "Tipo de Item de OS:", 
+                label: "Tipo de Item de OS", 
                 type: "multi-select", 
-                placeholder:'Selecione o tipo'
+                placeholder:'Selecione o tipo',
+                icon: faTags
             },
             { 
                 id: "product_id", 
-                label: "Produto:", 
+                label: "Produto", 
                 type: "multi-select", 
-                placeholder:'Selecione o produto'
+                placeholder:'Selecione o produto',
+                icon: faCogs
             },
             { 
                 id: "quantity", 
-                label: "Quantidade:", 
+                label: "Quantidade", 
                 type: "number", 
-                placeholder:'Digita a quantidade'
+                placeholder:'Digite a quantidade',
+                icon: faSortNumericUp
             },
             { 
                 id: "address_id", 
-                label: "Endereço:", 
+                label: "Endereço", 
                 type: "multi-select",
-                placeholder:'Selecione o endereço'
+                placeholder:'Selecione o endereço',
+                icon: faMapMarkerAlt
             },
             { 
                 id: "location_id", 
-                label: "Localização:", 
+                label: "Localização", 
                 type: "multi-select",
-                placeholder:'Selecione a localização'
+                placeholder:'Selecione a localização',
+                icon: faLocationArrow
             },
             { 
                 id: "details", 
-                label: "Detalhes:", 
+                label: "Detalhes", 
                 type: "textarea", 
                 fullWidth: true,
-                placeholder:'Digite os detalhes'
-
+                placeholder:'Digite os detalhes',
+                icon: faInfoCircle
             },
         ],
     }

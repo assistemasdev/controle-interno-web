@@ -243,58 +243,53 @@ const SupplierDetailsPage = () => {
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
                     Detalhes do Fornecedor
                 </div>
-                <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-                    <DetailsSectionRenderer
-                        sections={supplierFields}
-                        formData={formData}
-                    />
+                <DetailsSectionRenderer
+                    sections={supplierFields}
+                    formData={formData}
+                    handleBack={() => navigate('/fornecedores')}
+                />
 
-                    <div className='form-row d-flex justify-content-between align-items-center mt-1'>
-                        <h5 className='text-dark font-weight-bold mt-3'>Endereços</h5>
-                        {canAccess('Adicionar endereço ao fornecedor') && (
-                            <Button
-                                text="Adicionar Endereço"
-                                className="btn btn-blue-light fw-semibold"
-                                link={`/fornecedores/${id}/endereco/adicionar`}
-                            />
-                        )}
-                    </div>
-                    <DynamicTable
-                        headers={addressHeaders}
-                        data={addresses}
-                        actions={addressActions}
-                        currentPage={currentPageAddress}
-                        totalPages={totalPagesAddress}
-                        onPageChange={fetchAddress}
-                        filters={filtersAddresses}
-                        setFilters={setFiltersAddresses}
-                    />
-
-                    <div className='form-row d-flex justify-content-between align-items-center mt-1'>
-                        <h5 className='text-dark font-weight-bold mt-3'>Contatos</h5>
-                        {canAccess('Adicionar contato ao fornecedor') && (
-                            <Button
-                                text="Adicionar Contato"
-                                className="btn btn-blue-light fw-semibold"
-                                link={`/fornecedores/${id}/contato/adicionar`}
-                            />
-                        )}
-                    </div>
-                    <DynamicTable
-                        headers={contactHeaders}
-                        data={contacts}
-                        actions={contactActions}
-                        currentPage={currentPageContact}
-                        totalPages={totalPagesContact}
-                        onPageChange={fetchContacts}
-                        filters={filtersContacts}
-                        setFilters={setFiltersContacts}
-                    />
-
-                    <div className="mt-3 d-flex gap-2">
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={() => navigate('/fornecedores')} />
-                    </div>
+                <div className='form-row d-flex justify-content-between align-items-center mt-1'>
+                    <h5 className='text-dark font-weight-bold mt-3'>Endereços</h5>
+                    {canAccess('Adicionar endereço ao fornecedor') && (
+                        <Button
+                            text="Adicionar Endereço"
+                            className="btn btn-blue-light fw-semibold"
+                            link={`/fornecedores/${id}/endereco/adicionar`}
+                        />
+                    )}
                 </div>
+                <DynamicTable
+                    headers={addressHeaders}
+                    data={addresses}
+                    actions={addressActions}
+                    currentPage={currentPageAddress}
+                    totalPages={totalPagesAddress}
+                    onPageChange={fetchAddress}
+                    filters={filtersAddresses}
+                    setFilters={setFiltersAddresses}
+                />
+
+                <div className='form-row d-flex justify-content-between align-items-center mt-1'>
+                    <h5 className='text-dark font-weight-bold mt-3'>Contatos</h5>
+                    {canAccess('Adicionar contato ao fornecedor') && (
+                        <Button
+                            text="Adicionar Contato"
+                            className="btn btn-blue-light fw-semibold"
+                            link={`/fornecedores/${id}/contato/adicionar`}
+                        />
+                    )}
+                </div>
+                <DynamicTable
+                    headers={contactHeaders}
+                    data={contacts}
+                    actions={contactActions}
+                    currentPage={currentPageContact}
+                    totalPages={totalPagesContact}
+                    onPageChange={fetchContacts}
+                    filters={filtersContacts}
+                    setFilters={setFiltersContacts}
+                />
 
                 <ConfirmationModal
                     open={openModalConfirmationAddress}

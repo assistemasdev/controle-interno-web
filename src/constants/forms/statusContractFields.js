@@ -1,3 +1,5 @@
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+
 export const statusContractFields = [
     {
         section: 'Dados do Status',
@@ -8,8 +10,9 @@ export const statusContractFields = [
                 type: 'text',
                 placeholder: "Digite o nome do status", 
                 handleChange: 'handleChange',
-                fullWidth: true
+                fullWidth: true,
+                icon: faCircleInfo 
             }
         ]
     }
-]
+];

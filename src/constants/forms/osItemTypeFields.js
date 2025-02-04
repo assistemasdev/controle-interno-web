@@ -1,3 +1,5 @@
+import { faTags } from '@fortawesome/free-solid-svg-icons';
+
 export const osItemTypeFields = [
     {
         section: 'Dados do Tipo',
@@ -8,8 +10,9 @@ export const osItemTypeFields = [
                 type: 'text',
                 placeholder: "Digite o nome do tipo", 
                 handleChange: 'handleChange',
-                fullWidth: true
+                fullWidth: true,
+                icon: faTags 
             }
         ]
     }
-]
+];

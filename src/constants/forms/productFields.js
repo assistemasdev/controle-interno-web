@@ -1,42 +1,52 @@
+import { 
+    faBox, faHashtag, faBarcode, faCalendarDay, faBuilding, faIndustry, faMapMarkerAlt, 
+    faMapPin, faLayerGroup, faClipboardCheck, faList, faClipboardList, faTag, faUsers
+} from '@fortawesome/free-solid-svg-icons';
+
 export const productFields = [
     {
         section: "Dados do Produto",
         fields: [
             { 
                 id: "product.name", 
-                label: "Nome:", 
+                label: "Nome", 
                 type: "text", 
                 placeholder: "Digite o nome do produto", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faBox
             },
             { 
                 id: "product.number", 
-                label: "Número:", 
+                label: "Número", 
                 type: "number", 
                 placeholder: "Digite o número do produto", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faHashtag
             },
             { 
                 id: "product.serial_number", 
-                label: "Número de Série:", 
+                label: "Número de Série", 
                 type: "text", 
                 placeholder: "Digite o número de série", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faBarcode
             },
             { 
                 id: "product.purchase_date", 
-                label: "Data de Compra:", 
+                label: "Data de Compra", 
                 type: "date", 
                 placeholder: "Adicione data de compra", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faCalendarDay
             },
             { 
                 id: "product.warranty_date", 
-                label: "Data de Garantia:", 
+                label: "Data de Garantia", 
                 type: "date", 
                 placeholder: "Adicione data de garantia", 
                 handleChange: "handleChange" ,
-                fullWidth:true
+                fullWidth: true,
+                icon: faCalendarDay
             },
         ],
     },
@@ -45,28 +55,31 @@ export const productFields = [
         fields: [
             { 
                 id: "product.current_organization_id", 
-                label: "Organização Atual:", 
+                label: "Organização Atual", 
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione a organização", 
-                handleChange: "handleOrganizationChange" 
+                handleChange: "handleOrganizationChange",
+                icon: faBuilding
             },
             { 
                 id: "product.owner_organization_id", 
-                label: "Empresa de Aquisição:", 
+                label: "Empresa de Aquisição", 
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione a organização", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faIndustry
             },
             { 
                 id: "product.supplier_id", 
-                label: "Fornecedor:",
+                label: "Fornecedor",
                 isMulti: false, 
                 type: "select", 
                 placeholder: "Selecione o fornecedor", 
                 handleChange: "handleChange" ,
-                fullWidth:true
+                fullWidth: true,
+                icon: faIndustry
             },
         ],
     },
@@ -75,19 +88,21 @@ export const productFields = [
         fields: [
             { 
                 id: "product.address_id", 
-                label: "Endereço:", 
+                label: "Endereço", 
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione um endereço", 
-                handleChange: "handleAddressChange" 
+                handleChange: "handleAddressChange",
+                icon: faMapMarkerAlt
             },
             { 
                 id: "product.location_id", 
-                label: "Localização:", 
+                label: "Localização", 
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione uma localização", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faMapPin
             },
         ],
     },
@@ -96,28 +111,31 @@ export const productFields = [
         fields: [
             { 
                 id: "product.condition_id", 
-                label: "Condição:", 
+                label: "Condição", 
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione a condição", 
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faClipboardCheck
             },
             { 
                 id: "product.type_id", 
-                label: "Tipo:", 
+                label: "Tipo", 
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione o tipo", 
-                handleChange: "handleTypeChange" 
+                handleChange: "handleTypeChange",
+                icon: faList
             },
             { 
                 id: "product.category_id", 
-                label: "Categoria:", 
+                label: "Categoria", 
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione a categoria", 
                 handleChange: "handleChange",
-                fullWidth:true
+                fullWidth: true,
+                icon: faClipboardList
             },
         ],
     },
@@ -127,11 +145,12 @@ export const productFields = [
             { 
                 id: "groups", 
                 isMulti: true,
-                label: "Grupos:", 
+                label: "Grupos", 
                 type: "multi-select", 
                 placeholder: "Selecione os grupos", 
                 handleChange: "handleGroupChange" ,
-                fullWidth: true
+                fullWidth: true,
+                icon: faUsers
             },
         ],
     },
@@ -144,39 +163,44 @@ export const detailsProductFields = [
         fields: [
             { 
                 id: "product.name", 
-                label: "Nome:", 
+                label: "Nome", 
                 type: "text", 
                 placeholder: "Digite o nome do produto",
                 handleChange: "handleChange",
-                fullWidth: true
+                fullWidth: true,
+                icon: faBox
             },
             { 
                 id: "product.number", 
-                label: "Número:", 
+                label: "Número", 
                 type: "text", 
                 placeholder: "Digite o número do produto",
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faHashtag
             },
             { 
                 id: "product.serial_number", 
-                label: "Número de Série:", 
+                label: "Número de Série", 
                 type: "text", 
                 placeholder: "Digite o número de série",
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faBarcode
             },
             { 
                 id: "product.purchase_date", 
-                label: "Data de Compra:", 
+                label: "Data de Compra", 
                 type: "text", 
                 placeholder: "Adicione data de compra",
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faCalendarDay
             },
             { 
                 id: "product.warranty_date", 
-                label: "Data de Garantia:", 
+                label: "Data de Garantia", 
                 type: "text", 
                 placeholder: "Adicione data de garantia",
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faCalendarDay
             },
         ],
     },
@@ -185,25 +209,28 @@ export const detailsProductFields = [
         fields: [
             { 
                 id: "product.current_organization", 
-                label: "Organização Atual:", 
+                label: "Organização Atual", 
                 type: "text", 
                 placeholder: "Digite a organização atual",
-                handleChange: "handleOrganizationChange" 
+                handleChange: "handleOrganizationChange",
+                icon: faBuilding
             },
             { 
                 id: "product.owner_organization", 
-                label: "Empresa de Aquisição:", 
+                label: "Empresa de Aquisição", 
                 type: "text", 
                 placeholder: "Digite a empresa de aquisição",
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faIndustry
             },
             { 
                 id: "product.supplier", 
-                label: "Fornecedor:",
+                label: "Fornecedor",
                 type: "text", 
                 placeholder: "Digite o fornecedor",
-                handleChange: "handleChange" ,
-                fullWidth: true
+                handleChange: "handleChange",
+                fullWidth: true,
+                icon: faIndustry
             },
         ],
     },
@@ -212,25 +239,28 @@ export const detailsProductFields = [
         fields: [
             { 
                 id: "product.condition", 
-                label: "Condição:", 
+                label: "Condição", 
                 type: "text", 
                 placeholder: "Digite a condição",
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faClipboardCheck
             },
             { 
                 id: "product.type", 
-                label: "Tipo:", 
+                label: "Tipo", 
                 type: "text", 
                 placeholder: "Digite o tipo",
-                handleChange: "handleTypeChange" 
+                handleChange: "handleTypeChange",
+                icon: faList
             },
             { 
                 id: "product.category", 
-                label: "Categoria:", 
+                label: "Categoria", 
                 type: "text", 
                 placeholder: "Digite a categoria",
                 handleChange: "handleChange",
-                fullWidth: true
+                fullWidth: true,
+                icon: faClipboardList
             },
         ],
     },
@@ -239,17 +269,19 @@ export const detailsProductFields = [
         fields: [
             { 
                 id: "product.status", 
-                label: "Status:", 
+                label: "Status", 
                 type: "text", 
                 placeholder: "Digite o status",
-                handleChange: "handleChange" 
+                handleChange: "handleChange",
+                icon: faTag
             },
             { 
                 id: "product.groups", 
-                label: "Grupos:", 
+                label: "Grupos", 
                 type: "text", 
                 placeholder: "Digite os grupos",
-                handleChange: "handleGroupChange" 
+                handleChange: "handleGroupChange",
+                icon: faUsers
             },
         ],
     },

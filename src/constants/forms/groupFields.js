@@ -1,3 +1,5 @@
+import { faUsers, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
+
 export const associeteGroupFields =  [
     {
         section: 'Grupos',
@@ -5,16 +7,16 @@ export const associeteGroupFields =  [
             {
                 id: 'groups',
                 isMulti: true,
-                label: 'Grupos:',
+                label: 'Grupos',
                 type: 'multi-select',
                 placeholder: 'Selecione os grupos',
                 handleChange: 'handleGroupsChange',
-                fullWidth: true
+                fullWidth: true,
+                icon: faUsers
             },
         ],
     },
 ];
-
 
 export const groupFields = [
     {
@@ -22,10 +24,11 @@ export const groupFields = [
         fields: [
             {
                 id: 'name',
-                label: 'Nome do Grupo:',
+                label: 'Nome do Grupo',
                 type: 'text',
                 placeholder: 'Digite o nome do grupo',
                 fullWidth: true,
+                icon: faLayerGroup
             },
         ],
     },

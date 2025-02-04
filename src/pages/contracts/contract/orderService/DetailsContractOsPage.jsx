@@ -235,7 +235,7 @@ const DetailsContractOsPage = () => {
                     Detalhes de Ordem de Serviço
                 </div>
 
-                <DetailsSectionRenderer sections={DetailsOrderServiceFields} formData={formData}/>
+                <DetailsSectionRenderer sections={DetailsOrderServiceFields} formData={formData} handleBack={handleBack}/>
 
                 <div className='form-row d-flex justify-content-between align-items-center mt-1'>
                     <h5 className='text-dark font-weight-bold mt-3'>Itens da Ordem de Serviço</h5>

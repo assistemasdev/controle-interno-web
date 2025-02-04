@@ -1,3 +1,5 @@
+import { faDesktop, faCode, faToggleOn } from '@fortawesome/free-solid-svg-icons'; 
+
 export const applicationFields = [
     {
         section: 'Dados da Aplicação',
@@ -8,6 +10,7 @@ export const applicationFields = [
                 type: 'text',
                 placeholder: 'Digite o nome da aplicação',
                 fullWidth: false,
+                icon: faDesktop, 
             },
             {
                 id: 'session_code',
@@ -15,6 +18,7 @@ export const applicationFields = [
                 type: 'text',
                 placeholder: 'Digite o código de sessão',
                 fullWidth: false,
+                icon: faCode, 
             },
             {
                 id: 'active',
@@ -26,6 +30,7 @@ export const applicationFields = [
                     { label: 'Inativo', value: 0 },
                 ],
                 fullWidth: true,
+                icon: faToggleOn,
             },
         ],
     },

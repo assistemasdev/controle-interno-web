@@ -117,9 +117,6 @@ const FormSection = ({
         }
     };
 
-    useEffect(() => {
-        console.log(formDataFormated)
-    }, [formDataFormated])
     const handleEdit = (item) => {
         setViewTable(false)
         setFieldsData(item)
@@ -278,9 +275,14 @@ const FormSection = ({
 
     return (
         <div>
-            <hr />
             <div className='d-flex align-items-center justify-content-between'>
-                <h5>{section.section}</h5>
+                <div className='d-flex align-items-end'>
+                    <h5 
+                        className='mb-0 text-dark fw-bold section-border' 
+                    >
+                        Seção: {section.section}
+                    </h5>                
+                </div>
                 {section.array && (
                     <div className='d-flex '>
                         <Button 
@@ -297,7 +299,6 @@ const FormSection = ({
                     </div>
                 )}
             </div>
-            <hr />
             {section.array ? (
                 viewTable? (
                     <>
@@ -308,7 +309,7 @@ const FormSection = ({
                         />
                     </>
                 ) : (
-                    <div className='form-row'>
+                    <div className='form-row my-3'>
                         {section.fields.map((sectionField) => (
                             <div
                                 className={`d-flex flex-column ${sectionField.fullWidth ? 'col-md-12' : 'col-md-6'}`}
@@ -319,6 +320,7 @@ const FormSection = ({
                                         label={sectionField.label}
                                         type={sectionField.type}
                                         id={`${sectionField.id}`}
+                                        icon={sectionField.icon}
                                         value={getArrayFieldValue(sectionField.id, fieldsData)}
                                         onChange={(e) => handleArrayFieldChange(
                                             sectionField.id, 
@@ -356,7 +358,7 @@ const FormSection = ({
                     </div>
                 )
             ) : (
-                <div className="form-row">
+                <div className="form-row my-3">
                     {section.fields.map((field) => (
                         <div className={`d-flex flex-column ${field.fullWidth ? 'col-md-12' : 'col-md-6'}`} key={field.id}>
                             {inputTypes.includes(field.type) ? (
@@ -365,6 +367,7 @@ const FormSection = ({
                                     type={field.type}
                                     id={field.id}
                                     value={flatData[field.id] || ""}
+                                    icon={field.icon}
                                     onChange={(e) => {
                                         if (e && e.target) {
                                             handleFieldChange(field.id, e.target.value, field);

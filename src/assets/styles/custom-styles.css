@@ -103,8 +103,9 @@ label {
 }
 
 .btn-blue-light {
-    color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
+    color: #fff !important;
+    background-color: var(--primary-color) !important;
+    margin-left: 5px;
 }
   
 .btn-blue-light:hover,
@@ -112,6 +113,7 @@ label {
     background-color: var(--primary-color) !important;
     color: var(--secondary-color) !important;
     border-color: var(--primary-color) !important;
+    opacity: 0.9; /* Reduz a opacidade da cor no hover */
 }
 
 .sidebar-divider {
@@ -175,6 +177,25 @@ hr {
     overflow: visible;
     max-width: none;
     word-break: break-word; /* Quebra palavras muito grandes */
+}
+
+.section-border {
+    position: relative;
+    margin: 10px 0;
+    padding-bottom: 5px;
+    display: inline-block; /* Faz o h5 se ajustar ao conteúdo */
+}
+
+.section-border::after {
+    content: "";
+    display: block;
+    width: 75%; /* Define a largura da borda */
+    height: 3px;
+    background-color: var(--primary-color);
+    position: absolute;
+    margin-top: 5px;
+    bottom: -3px;
+    left: 0; /* Centraliza a borda */
 }
 
 @media (max-width: 767px) {

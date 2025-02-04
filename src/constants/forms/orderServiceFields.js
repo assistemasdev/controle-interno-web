@@ -1,37 +1,44 @@
+import { faClipboardCheck, faBoxOpen, faMapMarkerAlt, faCalendarAlt, faFileAlt } from '@fortawesome/free-solid-svg-icons';
+
 export const orderServiceFields = [
     {
         section: "Order de Serviço",
         fields: [
             { 
                 id: "order.status_id", 
-                label: "Status de OS:", 
+                label: "Status de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o status", 
+                icon: faClipboardCheck
             },
             { 
                 id: "order.departament_id", 
-                label: "Departamento de OS:", 
+                label: "Departamento de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o departamento", 
+                icon: faClipboardCheck
             },
             { 
                 id: "order.destination_id", 
-                label: "Destino de OS:", 
+                label: "Destino de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o destino", 
+                icon: faMapMarkerAlt
             },
             { 
                 id: "order.deadline", 
-                label: "Prazo Final:", 
+                label: "Prazo Final", 
                 type: "date", 
                 placeholder: "Selecione a data do prazo final", 
+                icon: faCalendarAlt
             },
             { 
                 id: "order.details", 
-                label: "Detalhes:", 
+                label: "Detalhes", 
                 type: "textarea", 
                 placeholder: "Digite o detalhes", 
-                fullWidth: true
+                fullWidth: true,
+                icon: faFileAlt
             },
         ],
     },
@@ -41,46 +48,53 @@ export const orderServiceFields = [
         fields: [
             { 
                 id: "items.service_order_item_type_id", 
-                label: "Tipo de Item de OS:", 
+                label: "Tipo de Item de OS", 
                 type: "multi-select", 
                 placeholder:"Digite a Descrição",
+                icon: faClipboardCheck
             },
             { 
                 id: "items.item_id", 
-                label: "ID:", 
+                label: "ID", 
                 type: "text", 
-                placeholder:"Digite o Identificador"
+                placeholder:"Digite o Identificador",
+                icon: faBoxOpen
             },
             { 
                 id: "items.product_id", 
-                label: "Produto:", 
+                label: "Produto", 
                 type: "multi-select", 
                 placeholder:"Digite a Descrição",
+                icon: faBoxOpen
             },
             { 
                 id: "items.quantity", 
-                label: "Quantidade:", 
+                label: "Quantidade", 
                 type: "number", 
                 placeholder:"Digite a Quantidade",
+                icon: faBoxOpen
             },
             {
                 id: "items.address_id",
-                label: "Endereço:", 
+                label: "Endereço", 
                 type: "multi-select", 
                 placeholder:"Selecione o endereço",
+                icon: faMapMarkerAlt
             },
             {
                 id: "items.location_id",
-                label: "Localização:", 
+                label: "Localização", 
                 type: "multi-select", 
                 placeholder:"Selecione a localização",
+                icon: faMapMarkerAlt
             },
             { 
                 id: "items.details", 
-                label: "Detalhes:", 
+                label: "Detalhes", 
                 type: "textarea", 
                 placeholder:"Digite os detalhes",
-                fullWidth: true
+                fullWidth: true,
+                icon: faFileAlt
             },
         ]
     },
@@ -93,35 +107,41 @@ export const DetailsOrderServiceFields = [
         fields: [
             { 
                 id: "status", 
-                label: "Status de OS:", 
+                label: "Status de OS", 
                 type: "text", 
+                icon: faClipboardCheck
             },
             { 
                 id: "user", 
-                label: "Responsável pela OS:", 
+                label: "Responsável pela OS", 
                 type: "text", 
+                icon: faClipboardCheck
             },
             { 
                 id: "departament", 
-                label: "Departamento de OS:", 
+                label: "Departamento de OS", 
                 type: "text", 
+                icon: faClipboardCheck
             },
             { 
                 id: "deadline", 
-                label: "Prazo Final:", 
+                label: "Prazo Final", 
                 type: "date", 
+                icon: faCalendarAlt
             },
             { 
                 id: "destination", 
-                label: "Destino de OS:", 
+                label: "Destino de OS", 
                 type: "text",
-                fullWidth:true 
+                fullWidth:true, 
+                icon: faMapMarkerAlt
             },
             { 
                 id: "details", 
-                label: "Detalhes:", 
+                label: "Detalhes", 
                 type: "textarea", 
-                fullWidth: true
+                fullWidth: true,
+                icon: faFileAlt
             },
         ],
     }
@@ -133,36 +153,40 @@ export const editOrderServiceFields = [
         fields: [
             { 
                 id: "status_id", 
-                label: "Status de OS:", 
+                label: "Status de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o status", 
+                icon: faClipboardCheck
             },
             { 
                 id: "departament_id", 
-                label: "Departamento de OS:", 
+                label: "Departamento de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o departamento", 
+                icon: faClipboardCheck
             },
             { 
                 id: "destination_id", 
-                label: "Destino de OS:", 
+                label: "Destino de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o destino", 
+                icon: faMapMarkerAlt
             },
             { 
                 id: "deadline", 
-                label: "Prazo Final:", 
+                label: "Prazo Final", 
                 type: "date", 
                 placeholder: "Selecione a data do prazo final", 
+                icon: faCalendarAlt
             },
             { 
                 id: "details", 
-                label: "Detalhes:", 
+                label: "Detalhes", 
                 type: "textarea", 
                 placeholder: "Digite o detalhes", 
-                fullWidth: true
+                fullWidth: true,
+                icon: faFileAlt
             },
         ],
     }
-
 ];

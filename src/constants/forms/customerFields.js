@@ -1,3 +1,8 @@
+import { 
+    faBuilding, faIdCard, faRoad, faMapMarkedAlt, faCity, faFlag, 
+    faPhone, faEnvelope, faUser, faMapPin, faLayerGroup 
+} from '@fortawesome/free-solid-svg-icons';
+
 export const customerFields = [
     {
         section: 'Cliente',
@@ -8,6 +13,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o nome fantasia',
                 required: true,
+                icon: faBuilding,
             },
             {
                 id: 'customer.name',
@@ -15,6 +21,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o nome do cliente',
                 required: true,
+                icon: faUser,
             },
             {
                 id: 'customer.cpf_cnpj',
@@ -22,6 +29,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o CPF ou CNPJ',
                 required: true,
+                icon: faIdCard,
             },
         ],
     },
@@ -34,6 +42,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o apelido do endereço',
                 required: true,
+                icon: faMapMarkedAlt,
             },
             {
                 id: 'address.zip',
@@ -41,6 +50,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o CEP',
                 required: true,
+                icon: faMapPin,
             },
             {
                 id: 'address.street',
@@ -48,6 +58,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite a rua',
                 required: true,
+                icon: faRoad,
             },
             {
                 id: 'address.number',
@@ -55,6 +66,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o número',
                 required: true,
+                icon: faMapPin,
             },
             {
                 id: 'address.district',
@@ -62,6 +74,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o bairro',
                 required: true,
+                icon: faMapPin,
             },
             {
                 id: 'address.city',
@@ -69,6 +82,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite a cidade',
                 required: true,
+                icon: faCity,
             },
             {
                 id: 'address.state',
@@ -76,6 +90,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o estado',
                 required: true,
+                icon: faLayerGroup,
             },
             {
                 id: 'address.country',
@@ -83,6 +98,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o país',
                 required: true,
+                icon: faFlag,
             },
         ],
     },
@@ -94,24 +110,28 @@ export const customerFields = [
                 label: 'Área',
                 type: 'text',
                 placeholder: 'Digite a área',
+                icon: faMapMarkedAlt,
             },
             {
                 id: 'location.section',
                 label: 'Seção',
                 type: 'text',
                 placeholder: 'Digite a seção',
+                icon: faLayerGroup,
             },
             {
                 id: 'location.spot',
                 label: 'Ponto',
                 type: 'text',
                 placeholder: 'Digite o ponto',
+                icon: faMapPin,
             },
             {
                 id: 'location.details',
                 label: 'Detalhes',
                 type: 'text',
                 placeholder: 'Digite os detalhes',
+                icon: faMapPin,
             },
         ],
     },
@@ -124,6 +144,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o nome do contato',
                 required: true,
+                icon: faUser,
             },
             {
                 id: 'contact.surname',
@@ -131,36 +152,42 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o sobrenome do contato',
                 required: true,
+                icon: faUser,
             },
             {
                 id: 'contact.role',
                 label: 'Cargo',
                 type: 'text',
                 placeholder: 'Digite o cargo',
+                icon: faUser,
             },
             {
                 id: 'contact.ddd',
                 label: 'DDD',
                 type: 'text',
                 placeholder: 'Digite o DDD',
+                icon: faPhone,
             },
             {
                 id: 'contact.phone',
                 label: 'Telefone',
                 type: 'text',
                 placeholder: 'Digite o telefone',
+                icon: faPhone,
             },
             {
                 id: 'contact.cell_ddd',
                 label: 'DDD (Celular)',
                 type: 'text',
                 placeholder: 'Digite o DDD do celular',
+                icon: faPhone,
             },
             {
                 id: 'contact.cell',
                 label: 'Celular',
                 type: 'text',
                 placeholder: 'Digite o celular',
+                icon: faPhone,
             },
             {
                 id: 'contact.email',
@@ -168,6 +195,7 @@ export const customerFields = [
                 type: 'email',
                 placeholder: 'Digite o e-mail',
                 required: true,
+                icon: faEnvelope,
             },
         ],
     },
@@ -183,6 +211,7 @@ export const editCustomerFields = [
                 type: 'text',
                 placeholder: 'Digite o nome fantasia',
                 required: true,
+                icon: faBuilding,
             },
             {
                 id: 'name',
@@ -190,6 +219,7 @@ export const editCustomerFields = [
                 type: 'text',
                 placeholder: 'Digite o nome do cliente',
                 required: true,
+                icon: faUser,
             },
             {
                 id: 'cpf_cnpj',
@@ -197,7 +227,8 @@ export const editCustomerFields = [
                 type: 'text',
                 placeholder: 'Digite o CPF ou CNPJ',
                 required: true,
-                fullWidth: true
+                fullWidth: true,
+                icon: faIdCard,
             },
         ],
     },

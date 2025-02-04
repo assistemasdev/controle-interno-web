@@ -1,26 +1,27 @@
+import { faUserTag } from '@fortawesome/free-solid-svg-icons'; 
 export const roleFields = [
     {
         section: "Dados do Cargo",
         fields: [
             { 
                 id: "name", 
-                label: "Nome:", 
+                label: "Nome", 
                 type: "text", 
                 placeholder: "Digite o nome do cargo", 
                 handleChange: "handleChange",
-                fullWidth: true
+                fullWidth: true,
+                icon: faUserTag 
             },
             { 
                 id: "permissions", 
                 isMulti: true,
-                label: "Permissões:", 
+                label: "Permissões", 
                 type: "multi-select", 
                 placeholder: "Selecione as permissões", 
                 handleChange: "handleGroupChange",
-                fullWidth: true
+                fullWidth: true,
+                icon: faUserTag 
             },
         ],
     },
 ];
-
-

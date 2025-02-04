@@ -255,7 +255,7 @@ const CustomerDetailsPage = () => {
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">Detalhes do Cliente</div>
 
-                <DetailsSectionRenderer sections={editCustomerFields} formData={formData} />
+                <DetailsSectionRenderer sections={editCustomerFields} formData={formData} handleBack={handleBack}/>
                 
                 <div className="form-row d-flex justify-content-between align-items-center mt-1">
                     <h5 className="text-dark font-weight-bold mt-3">Endereços do Cliente</h5>
@@ -301,10 +301,6 @@ const CustomerDetailsPage = () => {
                     filters={filtersContacts}
                     setFilters={setFiltersContacts}
                 />
-
-                <div className="mt-3 d-flex gap-2">
-                    <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                </div>
         
                 <ConfirmationModal
                     open={openModalConfirmationAddress}

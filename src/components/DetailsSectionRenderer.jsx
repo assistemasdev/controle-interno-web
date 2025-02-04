@@ -13,13 +13,27 @@ const resolveFieldValue = (formData, fieldId) => {
 
 const DetailsSectionRenderer = ({ sections, formData, handleBack }) => {
     return (
-        <div className="row p-3 rounded shadow-sm">
-            {sections.map((section) => (
-                <div key={section.section} className="form-section mb-4">
-                    <hr />
-                    <h5 className="text-dark font-weight-bold">{section.section}</h5>
-                    <hr />
-                    <div className="form-row">
+        <div className='p-3 mt-2 rounded shadow-sm'>
+            {sections.map((section, index) => (
+                <div key={section.section}>
+                    <div className='d-flex align-items-end justify-content-between'>
+                        <h5 
+                            className='mb-0 text-dark fw-bold section-border' 
+                        >
+                            Seção: {section.section}
+                        </h5>      
+                        {handleBack && index == 0 && (
+                            <div className="form-row gap-2">
+                                <Button
+                                    type="button"
+                                    text="Voltar"
+                                    className="btn btn-blue-light fw-semibold"
+                                    onClick={handleBack}
+                                />
+                            </div>
+                        )}          
+                    </div>
+                    <div className="form-row my-3">
                         {section.fields.map((field) => {
                             const value = resolveFieldValue(formData, field.id);
 
@@ -28,46 +42,21 @@ const DetailsSectionRenderer = ({ sections, formData, handleBack }) => {
                                     key={field.id}
                                     className={`d-flex flex-column ${field.fullWidth ? 'col-md-12' : 'col-md-6'}`}
                                 >
-                                    {field.type === "textarea" ? (
-                                        <>
-                                            <label htmlFor={field.id} className="font-weight-bold mt-1">
-                                                {field.label}
-                                            </label>
-                                            <textarea
-                                                id={field.id}
-                                                className={`form-control`}
-                                                value={value || "-"}
-                                                placeholder={field.placeholder}
-                                                disabled={field.disabled !== false}
-                                            />
-                                        </>
-                                    ) : (
-                                        <InputField
-                                            label={field.label}
-                                            id={field.id}
-                                            value={value || "-"}
-                                            type={field.type}
-                                            placeholder={field.placeholder}
-                                            disabled={field.disabled !== false}
-                                        />
-                                    )}
+                                    <InputField
+                                        label={field.label}
+                                        id={field.id}
+                                        value={value || "-"}
+                                        type={field.type}
+                                        icon={field.icon}
+                                        placeholder={field.placeholder}
+                                        disabled={field.disabled !== false}
+                                    />
                                 </div>
                             );
                         })}
                     </div>
                 </div>
             ))}
-
-            {handleBack && (
-                <div className="form-row gap-2">
-                    <Button
-                        type="button"
-                        text="Voltar"
-                        className="btn btn-blue-light fw-semibold"
-                        onClick={handleBack}
-                    />
-                </div>
-            )}
         </div>
     );
 };

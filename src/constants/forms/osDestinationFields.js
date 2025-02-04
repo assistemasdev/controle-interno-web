@@ -1,3 +1,5 @@
+import { faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
+
 export const osDestinationFields = [
     {
         section: 'Dados do Destino',
@@ -8,8 +10,9 @@ export const osDestinationFields = [
                 type: 'text',
                 placeholder: "Digite o nome do destino", 
                 handleChange: 'handleChange',
-                fullWidth: true
+                fullWidth: true,
+                icon: faMapMarkerAlt 
             }
         ]
     }
-]
+];
