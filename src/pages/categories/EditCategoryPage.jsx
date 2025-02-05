@@ -11,6 +11,7 @@ import { categoryFields } from '../../constants/forms/categoryFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import { entities } from '../../constants/entities';
 import useBaseService from '../../hooks/services/useBaseService';
+import PageHeader from '../../components/PageHeader'; 
 
 const EditCategoryPage = () => {
     const navigate = useNavigate();
@@ -53,11 +54,9 @@ const EditCategoryPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Categoria" showBackButton={true} backUrl="/categorias/" /> 
+            
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Categoria
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     textSubmit="Atualizar"

@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import MainLayout from "../../layouts/MainLayout";
-import Button from "../../components/Button";
-import { usePermissions } from "../../hooks/usePermissions";
-import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrashAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
-import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import { faEdit, faTrashAlt, faUndo } from "@fortawesome/free-solid-svg-icons";
+import MainLayout from "../../layouts/MainLayout";
+import { usePermissions } from "../../hooks/usePermissions";
 import { PAGINATION } from "../../constants/pagination";
+import { entities } from "../../constants/entities";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
-import AutoCompleteFilter from "../../components/AutoCompleteFilter";
-import baseService from "../../services/baseService";
 import useBaseService from "../../hooks/services/useBaseService";
-import { entities } from "../../constants/entities";
-import { buildFilteredArray } from "../../utils/arrayUtils";
+import useAction from "../../hooks/useAction";
+import { useConditionFilters } from "../../hooks/filters/useConditionFilters";
+import PageHeader from "../../components/PageHeader";
+import ListHeader from "../../components/ListHeader";
+import FilterForm from "../../components/FilterForm";
+import DynamicTable from "../../components/DynamicTable";
+import ConfirmationModal from "../../components/modals/ConfirmationModal";
 
 const ConditionPage = () => {
     const { canAccess } = usePermissions();
@@ -24,48 +25,35 @@ const ConditionPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const { get: fetchAll, del: remove} = useBaseService(navigate)
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const [selectedCondition, setSelectedCondition] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const { action, selectedItem, openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation } = useAction();
     const [filters, setFilters] = useState({
         id: '',
         name: '',
-        id: '',
-        filledInputs: '',
+        session_code: '',
         deleted_at: false,
         page: 1,
-        perPage:itemsPerPage
-    })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
+        perPage: itemsPerPage
     });
 
     useEffect(() => {
         if (location.state?.message) {
-          showNotification('error', location.state.message);
-          navigate(location.pathname, { replace: true, state: {} });
+            showNotification('error', location.state.message);
+            navigate(location.pathname, { replace: true, state: {} });
         }
-      }, [location, navigate]);
-      
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
+    }, [location, navigate]);
 
-    const fetchCondition = useCallback (async (filtersSubmit) => {
+    const fetchCondition = useCallback(async (filtersSubmit) => {
         try {
             showLoader();
-        
             const response = await fetchAll(entities.conditions.get, filtersSubmit || filters);
-
             const filteredCondition = response.result.data.map(condition => ({
                 id: condition.id,
                 name: condition.name,
                 deleted_at: condition.deleted_at ? 'deleted-' + condition.deleted_at : 'deleted-null'
             }));
-        
             setConditions(filteredCondition);
             setTotalPages(response.result.last_page);
             setCurrentPage(response.result.current_page);
@@ -75,93 +63,11 @@ const ConditionPage = () => {
             hideLoader();
         }
     }, [fetchAll, showLoader, hideLoader, showNotification, itemsPerPage]);
-    
-    useEffect(() => {
-        fetchCondition();
-    }, []);
 
-    const handleFilterSubmit = useCallback((e) => {
-        e.preventDefault();
-    
-        const selectedCondIds = buildFilteredArray(selectedConditions, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedConditions, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedConditions, 'id', 'numberFilter', true);
+    const { handleFilterSubmit, inputsFilters, handleClearFilters } = useConditionFilters(selectedConditions, fetchCondition);
 
-        const filledInputs = new Set(selectedConditions.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedCondIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1
-        }));
-    
-        fetchCondition({
-            id: selectedCondIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at
-        });
-    }, [selectedConditions, fetchCondition, setFilters]);
-    
-
-    const handleChangeOrg = useCallback((newSelected, column) => {
-        setSelectedConditions((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleEdit = useCallback((condition) => {
-        navigate(`/condicoes/editar/${condition.id}`);
-    }, []);
-
-    const handleActivate = (condition, action) => {
-        setSelectedCondition(condition); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleDelete = (condition, action) => {
-        setSelectedCondition(condition);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.conditions.delete);
-            setOpenModalConfirmation(false);  
-            fetchCondition();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
+    const handleEdit = (conditionId) => {
+        navigate(`/condicoes/editar/${conditionId}`);
     };
 
     const headers = useMemo(() => ['id', 'Nome'], []);
@@ -172,105 +78,71 @@ const ConditionPage = () => {
             title: 'Editar Categoria',
             buttonClass: 'btn-primary',
             permission: 'Atualizar condições de produto',
-            onClick: handleEdit
+            onClick: (condition) => navigate(`/condicoes/editar/${condition.id}`)
         },
         {
             id: 'delete',
             icon: faTrashAlt,
-            title: 'Excluir usuário',
+            title: 'Excluir condição',
             buttonClass: 'btn-danger',
             permission: 'Excluir condições de produto',
-            onClick: handleDelete,
+            onClick: (condition) => handleDelete(
+                condition, 
+                'Você tem certeza que deseja excluir: ', 
+                entities.conditions.delete(condition.id), 
+                fetchCondition
+            ),
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar condição',
             buttonClass: 'btn-info',
             permission: 'Atualizar condições de produto',
-            onClick: handleActivate,
+            onClick: (condition) => handleActivate(
+                condition, 
+                'Você tem certeza que deseja ativar: ', 
+                fetchCondition
+            ),
         },
     ], [handleDelete, handleEdit]);
-    
+
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Condições" showBackButton backUrl="/dashboard" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Condições
-                </div>
-
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='condition'
-                            value={selectedConditions.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeOrg(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os grupos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='condition'
-                            value={selectedConditions.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeOrg(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os grupos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Condições
-                    </div>
-                    {canAccess('Criar condições de produtos') && (
-                        <Button
-                        text="Nova Condição"
-                        className="btn btn-blue-light fw-semibold"
-                        link="/condicoes/criar"
-                        />
-                    )}
-                </div>
-
+                <FilterForm 
+                    autoCompleteFields={inputsFilters}
+                    onSubmit={handleFilterSubmit}
+                    onClear={handleClearFilters}
+                />
+                <ListHeader 
+                    title="Lista de Condições" 
+                    buttonText="Nova Condição" 
+                    buttonLink="/condicoes/criar" 
+                    canAccess={canAccess} 
+                    permission="Criar condições de produtos" 
+                />
                 <DynamicTable 
-                    headers={headers} 
-                    data={conditions} 
-                    actions={actions} 
+                    headers={headers}
+                    data={conditions}
+                    actions={actions}
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={fetchCondition}
                     filters={filters}
                     setFilters={setFilters}
                 />
-                
-                <ConfirmationModal
+                <ConfirmationModal 
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedCondition.id) : console.log('oi')}
-                    itemName={selectedCondition ? selectedCondition.name : ''}
+                    onConfirm={() => action.action === 'delete' ? handleConfirmAction(selectedItem.id) : console.log('oi')}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>
         </MainLayout>
-
-    )
-}
+    );
+};
 
 export default ConditionPage;

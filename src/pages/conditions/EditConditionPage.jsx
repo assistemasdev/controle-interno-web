@@ -10,6 +10,7 @@ import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const EditConditionPage = () => {
     const navigate = useNavigate();
@@ -18,7 +19,6 @@ const EditConditionPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(conditionFields));
-
 
     const fetchCondition = useCallback(async () => {
         showLoader();
@@ -54,9 +54,7 @@ const EditConditionPage = () => {
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Condição
-                </div>
+                <PageHeader title="Edição de Condição" showBackButton backUrl="/condicoes/" />
 
                 <Form
                     onSubmit={handleSubmit}
