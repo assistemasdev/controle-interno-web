@@ -198,7 +198,7 @@ const StatusContractPage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="id"
-                            model='type'
+                            model='contractStatusInterface'
                             value={selectedStatuses.filter((option) => option.column === 'id')}
                             onChange={(selected) => handleChangeCustomers(selected, 'id')}
                             onBlurColumn="numberFilter"
@@ -213,7 +213,7 @@ const StatusContractPage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="name"
-                            model='type'
+                            model='contractStatusInterface'
                             value={selectedStatuses.filter((option) => option.column === 'name')}
                             onChange={(selected) => handleChangeCustomers(selected, 'name')}
                             onBlurColumn="textFilter"

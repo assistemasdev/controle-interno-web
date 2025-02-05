@@ -198,11 +198,11 @@ const OsDestinationsPage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="id"
-                            model='contractType'
+                            model='serviceOrderDestination'
                             value={selectedOsDestinations.filter((option) => option.column === 'id')}
                             onChange={(selected) => handleChangeCustomers(selected, 'id')}
                             onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
+                            placeholder="Filtre os destinos pelo número"
                             isMulti
                         />
                     </div>
@@ -213,11 +213,11 @@ const OsDestinationsPage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="name"
-                            model='contractType'
+                            model='serviceOrderDestination'
                             value={selectedOsDestinations.filter((option) => option.column === 'name')}
                             onChange={(selected) => handleChangeCustomers(selected, 'name')}
                             onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
+                            placeholder="Filtre os destinos pelo nome"
                             isMulti
                         />
                     </div>

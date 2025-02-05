@@ -34,5 +34,5 @@ export function removeByCondition(array, condition) {
 }
 
 export const buildFilteredArray = (selectedItems, column, filterType, filterValue) => 
-    selectedItems.filter(item => item.column === column && item[filterType] === filterValue)
+    selectedItems.filter(item => item[filterType] === filterValue)
                 .map(item => item.value);

@@ -198,7 +198,7 @@ const OsDepartamentsPage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="id"
-                            model='contractType'
+                            model='serviceOrderDepartament'
                             value={selectedOsDepartaments.filter((option) => option.column === 'id')}
                             onChange={(selected) => handleChangeCustomers(selected, 'id')}
                             onBlurColumn="numberFilter"
@@ -213,7 +213,7 @@ const OsDepartamentsPage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="name"
-                            model='contractType'
+                            model='serviceOrderDepartament'
                             value={selectedOsDepartaments.filter((option) => option.column === 'name')}
                             onChange={(selected) => handleChangeCustomers(selected, 'name')}
                             onBlurColumn="textFilter"

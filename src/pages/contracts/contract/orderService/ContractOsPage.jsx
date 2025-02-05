@@ -104,8 +104,7 @@ const ContractOsPage = () => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
     
-        const selectedIds = buildFilteredArray(selectedOrdersServices, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedOrdersServices, 'name', 'textFilter', true);
+        const selectedIds = buildFilteredArray(selectedOrdersServices, 'id', 'numberFilter', false);
         const selectedIdLikes = buildFilteredArray(selectedOrdersServices, 'id', 'numberFilter', true);
         const filledInputs = new Set(selectedOrdersServices.map((option) => option.column)).size;
     
@@ -114,7 +113,6 @@ const ContractOsPage = () => {
         setFilters(prev => ({
             ...prev,
             id: selectedIds,
-            name: selectedNames,
             idLike: selectedIdLikes,
             filledInputs,
             page: 1,
@@ -122,7 +120,6 @@ const ContractOsPage = () => {
     
         loadOrdersServices({
             id: selectedIds,
-            name: selectedNames,
             idLike: selectedIdLikes,
             filledInputs,
             page: 1,
@@ -228,33 +225,18 @@ const ContractOsPage = () => {
                 </div>
 
                 <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
+                    <div className="form-group col-md-12">
                         <label htmlFor="name" className="text-dark font-weight-bold mt-1">
                             Número:
                         </label>
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="id"
-                            model='contractType'
+                            model='serviceOrder'
                             value={selectedOrdersServices.filter((option) => option.column === 'id')}
                             onChange={(selected) => handleChangeCustomers(selected, 'id')}
                             onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='contractType'
-                            value={selectedOrdersServices.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
+                            placeholder="Filtre as ordem de serviço pelo número"
                             isMulti
                         />
                     </div>

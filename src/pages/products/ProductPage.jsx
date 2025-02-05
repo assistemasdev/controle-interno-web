@@ -13,6 +13,7 @@ import useNotification from "../../hooks/useNotification";
 import baseService from "../../services/baseService";
 import useBaseService from "../../hooks/services/useBaseService";
 import { entities } from "../../constants/entities";
+import { buildFilteredArray } from "../../utils/arrayUtils";
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
@@ -110,14 +111,9 @@ const ProductsPage = () => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
     
-        const selectedIds = selectedProducts
-            .filter((product) => product.column === 'id' && !product.numberFilter)
-            .map((product) => product.value);
-    
-        const selectedNumbers = selectedProducts
-            .filter((product) => product.column === 'number' && product.numberFilter)
-            .map((product) => product.value);
-    
+        const selectedIds = buildFilteredArray(selectedProducts, 'id', 'numberFilter', false)
+        const selectedNumbers = buildFilteredArray(selectedProducts, 'number', 'numberFilter', true)
+
         const filledInputs = new Set(selectedProducts.map((option) => option.column)).size;
     
         const previousFilters = filters || {};

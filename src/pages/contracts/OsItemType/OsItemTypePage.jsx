@@ -78,14 +78,11 @@ const OsItemTypePage = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-    
         const selectedIds = buildFilteredArray(selectedOsItemsTypes, 'id', 'textFilter', false);
         const selectedNames = buildFilteredArray(selectedOsItemsTypes, 'name', 'textFilter', true);
         const selectedIdLikes = buildFilteredArray(selectedOsItemsTypes, 'id', 'numberFilter', true);
         const filledInputs = new Set(selectedOsItemsTypes.map((option) => option.column)).size;
-    
         const previousFilters = filters || {}; 
-    
         setFilters(prev => ({
             ...prev,
             id: selectedIds,
@@ -198,8 +195,8 @@ const OsItemTypePage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="id"
-                            model='contractType'
-                            value={selectedOsItemsTypes.filter((option) => option.column === 'id')}
+                            model='serviceOrderItemType'
+                            value={selectedOsItemsTypes.filter((option) => option.column == 'id')}
                             onChange={(selected) => handleChangeCustomers(selected, 'id')}
                             onBlurColumn="numberFilter"
                             placeholder="Filtre os tipos pelo número"
@@ -213,8 +210,8 @@ const OsItemTypePage = () => {
                         <AutoCompleteFilter
                             service={baseService}
                             columnDataBase="name"
-                            model='contractType'
-                            value={selectedOsItemsTypes.filter((option) => option.column === 'name')}
+                            model='serviceOrderItemType'
+                            value={selectedOsItemsTypes.filter((option) => option.column == 'name')}
                             onChange={(selected) => handleChangeCustomers(selected, 'name')}
                             onBlurColumn="textFilter"
                             placeholder="Filtre os tipos pelo nome"
