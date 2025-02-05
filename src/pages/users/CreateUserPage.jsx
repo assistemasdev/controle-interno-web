@@ -8,7 +8,9 @@ import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
-import { entities } from '../../constants/entities'
+import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader'; 
+
 const CreateUserPage = () => {
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
@@ -35,11 +37,8 @@ const CreateUserPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Usuário" showBackButton={true} backUrl="/usuarios"/>
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Usuário
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     textSubmit="Cadastrar Usuário"

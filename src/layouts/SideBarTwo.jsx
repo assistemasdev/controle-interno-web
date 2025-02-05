@@ -42,7 +42,7 @@ const SideBarTwo = ({ children }) => {
                 {
                     title: 'Administração',
                     items: [
-                        { name: 'Usuários', icon: faUserFriends, to: '/usuarios', requiredPermission: 'show all users' },
+                        { name: 'Usuários', icon: faUserFriends, to: '/usuarios', requiredPermission: 'Listar usuários' },
                         { name: 'Cargos', icon: faBriefcase, to: '/cargos', requiredPermission: 'Listar cargos' },
                         { name: 'Aplicações', icon: faDesktop, to: '/aplicacoes/dashboard', requiredPermission: 'Listar aplicações' },
                         { name: 'Organizações', icon: faBuilding, to: '/organizacoes/dashboard', requiredPermission: 'Listar organizações' },

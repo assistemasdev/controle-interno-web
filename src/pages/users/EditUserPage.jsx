@@ -11,6 +11,7 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import { removeEmptyValues } from '../../utils/objectUtils';
+import PageHeader from '../../components/PageHeader';
 
 const EditUserPage = () => {
     const navigate = useNavigate();
@@ -72,7 +73,6 @@ const EditUserPage = () => {
         if (addedRoles.length > 0) {
             for (const addedRole of addedRoles) {
                 const response = await fetchPermissionsForRole(entities.roles.permissions.getByColumn(addedRole.value));
-                console.log(response)
                 const permissionsFromRole = response.result || [];
 
                 setSelectedPermissions((prevPermissions) => {
@@ -148,11 +148,9 @@ const EditUserPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Usuário" showBackButton={true} backUrl="/usuarios" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Usuário
-                </div>
-
+                
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}

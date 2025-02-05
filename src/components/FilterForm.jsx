@@ -3,7 +3,7 @@ import Button from "./Button";
 
 const FilterForm = ({ autoCompleteFields, onSubmit, onClear }) => {
     return (
-        <form className="form-row p-3 mt-2 rounded shadow-sm mb-2 theme-background" onSubmit={onSubmit}>
+        <form className="form-row p-3 rounded shadow-sm mb-2 theme-background" onSubmit={onSubmit}>
             {autoCompleteFields.map(({ label, component }, index) => (
                 <div
                     className={`form-group ${autoCompleteFields.length % 2 !== 0 && index === autoCompleteFields.length - 1 ? 'col-md-12' : 'col-md-6'}`}

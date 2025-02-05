@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { faEdit, faTrashAlt, faBuilding, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import DynamicTable from '../../components/DynamicTable';
@@ -13,9 +13,10 @@ import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
-import { buildFilteredArray } from '../../utils/arrayUtils';
 import FilterForm from '../../components/FilterForm';
 import { useUserFilters } from '../../hooks/filters/userFilters';
+import PageHeader from '../../components/PageHeader';
+import ListHeader from '../../components/ListHeader';
 
 const UsersPage = () => {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ const UsersPage = () => {
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { get: fetchAll, del:remove} = useBaseService(navigate);
+    const { get: fetchAll, del: remove } = useBaseService(navigate);
     const [users, setUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -37,8 +38,8 @@ const UsersPage = () => {
         filledInputs: '',
         deleted_at: false,
         page: 1,
-        perPage:itemsPerPage
-    })
+        perPage: itemsPerPage
+    });
 
     const [action, setAction] = useState({
         action: '',
@@ -73,12 +74,11 @@ const UsersPage = () => {
         }
     };
 
-    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useUserFilters(fetchUsers,filters, setFilters);
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useUserFilters(fetchUsers, filters, setFilters);
 
     useEffect(() => {
         fetchUsers();
     }, []);
-
 
     const handleEdit = (user) => {
         navigate(`/usuarios/editar/${user.id}`);
@@ -88,8 +88,8 @@ const UsersPage = () => {
         setSelectedUser(user); 
         setAction({
             action,
-            text:'Você tem certeza que deseja ativar: '
-        })
+            text: 'Você tem certeza que deseja ativar: '
+        });
         setOpenModalConfirmation(true);  
     };
 
@@ -97,8 +97,8 @@ const UsersPage = () => {
         setSelectedUser(user);  
         setAction({
             action,
-            text:'Você tem certeza que deseja excluir: '
-        })
+            text: 'Você tem certeza que deseja excluir: '
+        });
         setOpenModalConfirmation(true);  
     };
     
@@ -121,8 +121,8 @@ const UsersPage = () => {
     };
 
     const handleViewOrganizationUsers = (user) => {
-        navigate(`/usuarios/organizacoes/${user.id}`)
-    }
+        navigate(`/usuarios/organizacoes/${user.id}`);
+    };
 
     const headers = ['id', 'Nome', 'E-mail'];
 
@@ -160,28 +160,21 @@ const UsersPage = () => {
             onClick: handleActivate,
         },
     ];
-    
+
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Usuários" showBackButton={true} backUrl="/dashboard" /> 
+            
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                    Usuários
-                </div>
-
                 <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 d-flex">
-                        Lista de usuários
-                    </div>
-                    {canAccess('create users') && (
-                        <Button
-                            text="Novo usuário"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/usuarios/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de usuários" 
+                    buttonText="Novo usuário" 
+                    buttonLink="/usuarios/criar" 
+                    canAccess={canAccess} 
+                    permission="Criar usuários"
+                />
 
                 <DynamicTable 
                     headers={headers} 
@@ -197,7 +190,7 @@ const UsersPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedUser.id) : console.log('oi')}
+                    onConfirm={() => action.action === 'delete' ? handleConfirmDelete(selectedUser.id) : console.log('oi')}
                     itemName={selectedUser ? selectedUser.name : ''}
                     text={action.text}
                 />

@@ -9,6 +9,7 @@ import { faBuilding, faDesktop } from "@fortawesome/free-solid-svg-icons";
 import GenericBox from "../../../components/GenericBox";
 import useBaseService from "../../../hooks/services/useBaseService";
 import { entities } from "../../../constants/entities";
+import PageHeader from "../../../components/PageHeader";
 
 const UserOrganizationsPage = () => {
     const navigate = useNavigate();
@@ -122,11 +123,12 @@ const UserOrganizationsPage = () => {
 
     return (
         <MainLayout>
+            <PageHeader 
+                title="Organizações do Usuário" 
+                showBackButton={true} 
+                backUrl="/usuarios/" 
+            />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                    Organizações do Usuário
-                </div>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}
