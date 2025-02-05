@@ -9,13 +9,14 @@ import MainLayout from '../../layouts/MainLayout';
 import { useLocation } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
-import AutoCompleteFilter from '../../components/AutoCompleteFilter';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
-import baseService from '../../services/baseService';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import { buildFilteredArray } from '../../utils/arrayUtils';
+import FilterForm from '../../components/FilterForm';
+import { useUserFilters } from '../../hooks/filters/userFilters';
+
 const UsersPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -27,7 +28,6 @@ const UsersPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedUsers, setSelectedUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);  
     const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
@@ -39,6 +39,7 @@ const UsersPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
+
     const [action, setAction] = useState({
         action: '',
         text: '',
@@ -72,56 +73,13 @@ const UsersPage = () => {
         }
     };
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useUserFilters(fetchUsers,filters, setFilters);
+
     useEffect(() => {
         fetchUsers();
     }, []);
 
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-        const selectedUserIds = buildFilteredArray(selectedUsers, 'id', 'numberFilter', false);
-        const selectedNames = buildFilteredArray(selectedUsers, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedUsers, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedUsers.map((option) => option.column)).size;
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedUserIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1
-        }));
-    
-        fetchUsers({
-            id: selectedUserIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at
-        });
-    };
-    
 
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
-    
-    const handleChangeUsers = useCallback((newSelected, column) => {
-        setSelectedUsers((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    
     const handleEdit = (user) => {
         navigate(`/usuarios/editar/${user.id}`);
     };
@@ -210,43 +168,7 @@ const UsersPage = () => {
                     Usuários
                 </div>
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2 theme-background" onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='user'
-                            value={selectedUsers.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeUsers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='user'
-                            value={selectedUsers.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeUsers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
-                            isMulti
-                        />
-                    </div>
-
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
                 <div className="form-row mt-4 d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold text-primary text-uppercase mb-1 d-flex">

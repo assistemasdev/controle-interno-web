@@ -124,8 +124,6 @@ import EditOsDestinationsPage from "../pages/contracts/osDestinations/EditOsDest
 import OsStatusPage from "../pages/contracts/osStatus/osStatusPage";
 import CreateOsStatusPage from "../pages/contracts/osStatus/CreateOsStatusPage";
 import EditOsStatusPage from "../pages/contracts/osStatus/EditOsStatusPage";
-import OrderServicePage from "../pages/contracts/contract/orderService/ContractOsPage";
-import CreateOrderServicePage from "../pages/contracts/contract/orderService/CreateContractOsPage";
 import ContractOsPage from "../pages/contracts/contract/orderService/ContractOsPage";
 import CreateContractOsPage from "../pages/contracts/contract/orderService/CreateContractOsPage";
 import EditContractOsPage from "../pages/contracts/contract/orderService/EditContractOsPage";
