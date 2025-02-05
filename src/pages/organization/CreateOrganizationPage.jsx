@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -13,6 +13,7 @@ import colorToHex from '../../utils/colorToHex';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';  
 
 const CreateOrganizationPage = () => {
     const navigate = useNavigate();
@@ -20,9 +21,9 @@ const CreateOrganizationPage = () => {
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(organizationFields));
     const { 
-        post: create
-        , formErrors
-     } = useBaseService(navigate);
+        post: create,
+        formErrors
+    } = useBaseService(navigate);
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
         if (fieldId === 'address.zip') {
@@ -34,13 +35,16 @@ const CreateOrganizationPage = () => {
         }
     }, [handleChange]);
 
-    const handleColorChange = (useCallback ((value) => {
+    const handleColorChange = useCallback((value) => {
         const hexColor = colorToHex(value);
-        setFormData((prev) => ({ ...prev, organization: {
-            ...prev.organization,
-            color: hexColor
-        } }));
-    }, [setFormData]))
+        setFormData((prev) => ({ 
+            ...prev, 
+            organization: {
+                ...prev.organization,
+                color: hexColor
+            } 
+        }));
+    }, [setFormData]);
 
     const handleCepChange = useCallback(async (cep) => {
         const value = maskCep(cep);
@@ -105,11 +109,11 @@ const CreateOrganizationPage = () => {
                 resetForm();
             }
         } catch (error) {
-            console.log(error)
+            console.log(error);
         } finally {
             hideLoader();
         }
-    }, [formData, showLoader, hideLoader, showNotification, navigate, ]);
+    }, [formData, showLoader, hideLoader, showNotification, navigate]);
 
     const handleBack = useCallback(() => {
         navigate(`/organizacoes/dashboard`);
@@ -117,10 +121,8 @@ const CreateOrganizationPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Organizações" showBackButton={true} backUrl="/organizacoes/dashboard" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Organizações
-                </div>
 
                 <Form
                     onSubmit={handleSubmit}

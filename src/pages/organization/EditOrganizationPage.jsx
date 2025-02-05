@@ -12,6 +12,7 @@ import colorToHex from '../../utils/colorToHex';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';  
 
 const EditOrganizationPage = () => {
     const navigate = useNavigate();
@@ -19,7 +20,7 @@ const EditOrganizationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
-    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate)
+    const { getByColumn: fetchById, put: update, formErrors } = useBaseService(navigate);
 
     const handleFieldChange = useCallback((fieldId, value) => {
         if (fieldId === 'color') {
@@ -56,11 +57,11 @@ const EditOrganizationPage = () => {
             try {
                 const response = await fetchById(entities.organizations.getByColumn(organizationId));
 
-                formatData(response.result, editOrganizationFields)
+                formatData(response.result, editOrganizationFields);
                 setFormData(prev => ({
                     ...prev,
                     active: response.result.active ? '1' : '0'
-                }))
+                }));
             } catch (error) {
                 navigate('/aplicacoes/dashboard');
             } finally {
@@ -76,23 +77,20 @@ const EditOrganizationPage = () => {
         try {
             await update(entities.organizations.update(organizationId), formData.organization);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         } finally {
             hideLoader();
         }
-    }, [formData, update, organizationId , navigate, showLoader, hideLoader, showNotification]);
+    }, [formData, update, organizationId, navigate, showLoader, hideLoader, showNotification]);
 
     const handleBack = useCallback(() => {
         navigate(`/organizacoes/dashboard`);
-    }, [navigate, ]);
+    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Organização" showBackButton={true} backUrl="/organizacoes/dashboard" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Organização
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}

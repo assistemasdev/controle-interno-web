@@ -11,6 +11,8 @@ import { locationFields } from '../../../constants/forms/locationFields';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
+
 const DetailsOrganizationLocationPage = () => {
     const navigate = useNavigate();
     const { organizationId, addressId, locationId } = useParams();
@@ -18,12 +20,12 @@ const DetailsOrganizationLocationPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { formData, formatData } = useForm(setDefaultFieldValues(locationFields));
-    
+
     const fetchLocationData = useCallback(async () => {
         showLoader();
         try {
-            const response = await fetchById(entities.organizations.addresses.locations(organizationId).getByColumn(addressId,locationId));
-            formatData(response.result, locationFields)
+            const response = await fetchById(entities.organizations.addresses.locations(organizationId).getByColumn(addressId, locationId));
+            formatData(response.result, locationFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização.');
         } finally {
@@ -41,19 +43,13 @@ const DetailsOrganizationLocationPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader 
+                title="Detalhes da Localização" 
+                showBackButton={true} 
+                backUrl={`/organizacoes/detalhes/${organizationId}/enderecos/${addressId}/localizacoes`} 
+            />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes da Localização
-                </div>
-
-                <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
-
-                    <DetailsSectionRenderer sections={locationFields} formData={formData} />
-
-                    <div className="mt-3 d-flex gap-2">
-                        <Button type="button" text="Voltar" className="btn btn-blue-light fw-semibold" onClick={handleBack} />
-                    </div>
-                </div>
+                <DetailsSectionRenderer sections={locationFields} formData={formData} />
             </div>
         </MainLayout>
     );

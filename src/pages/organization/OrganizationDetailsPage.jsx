@@ -16,6 +16,9 @@ import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
+import ListHeader from '../../components/ListHeader';
+import useAction from '../../hooks/useAction';
 
 const OrganizationDetailsPage = () => {
     const navigate = useNavigate();
@@ -26,24 +29,27 @@ const OrganizationDetailsPage = () => {
     const { 
         getByColumn: fetchById,
         get: fetchAllAddresses, 
-        del: removeAddress
     } = useBaseService(navigate);
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(editOrganizationFields));
     const [addresses, setAddresses] = useState([]);
     const [currentPageAddresses, setCurrentPageAddresses] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPageAddresses, setItemsPerPageAddresses] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPagesAddresses, setTotalPagesAddresses] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [openModalConfirmationAddress, setOpenModalConfirmationAddress] = useState(false);
-    const [selectedAddress, setSelectedAddress] = useState(null);
     const [filtersAddresses, setFiltersAddresses] = useState({
         deleted_at:false,
         page: 1,
         perPage:itemsPerPageAddresses
     });
-    const [actionAddress, setActionAddress] = useState({
-        action: '',
-        text: '',
-    });
+
+    const { 
+        openModalConfirmation,
+        action,
+        handleActivate,
+        handleDelete,
+        handleConfirmAction,
+        handleCancelConfirmation,
+        selectedItem
+    } = useAction(navigate); 
 
     const fetchAddresses = useCallback(async (filtersSubmit) => {
         try {
@@ -67,7 +73,6 @@ const OrganizationDetailsPage = () => {
 
         try {
             const response = await fetchById(entities.organizations.getByColumn(organizationId));
-            console.log(response)
             formatData(response.result, editOrganizationFields)
             setFormData(prev => ({
                 ...prev,
@@ -81,42 +86,6 @@ const OrganizationDetailsPage = () => {
             hideLoader();
         }
     }, [fetchById, fetchAddresses, currentPageAddresses]);
-
-    const handleActivateAddress = (address, action) => {
-        setSelectedAddress(address); 
-        setActionAddress({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmationAddress(true);  
-    };
-
-    const handleDeleteAddress = (address, action) => {
-        setSelectedAddress(address);  
-        setActionAddress({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmationAddress(true);  
-    };
-    
-    const handleConfirmDeleteAddress = async (id) => {
-        try {
-            showLoader();
-            await removeAddress(entities.organizations.addresses.delete(organizationId, id));
-            setOpenModalConfirmationAddress(false);  
-            fetchAddresses();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmationAddress(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmationAddress = () => {
-        setOpenModalConfirmationAddress(false);  
-    };
 
     useEffect(() => {
         fetchData();
@@ -153,30 +122,36 @@ const OrganizationDetailsPage = () => {
             title: 'Excluir Endereço',
             buttonClass: 'btn-danger',
             permission: 'Excluir endereço da organização',
-            onClick: handleDeleteAddress,
+            onClick: (address) => {
+                handleDelete(address, `Você tem certeza que deseja excluir o endereço: `, entities.organizations.addresses.delete(organizationId, address.id), fetchAddresses);
+            },
+        },
+        {
+            id:'activate',
+            icon: faMapMarkerAlt,
+            title: 'Ativar Endereço',
+            buttonClass: 'btn-success',
+            permission: 'Ativar endereço da organização',
+            onClick: (address) => {
+                handleActivate(address, `Você tem certeza que deseja ativar o endereço: `, entities.organizations.addresses.activate(organizationId, address.id), fetchAddresses);
+            },
         }
-        
-    ], [navigate, organizationId]);
+    ], [navigate, organizationId, handleDelete, handleActivate, fetchAddresses]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Detalhes da Organização" showBackButton={true} backUrl="/organizacoes/dashboard" />
+
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes da Organização
-                </div>
+                <DetailsSectionRenderer sections={editOrganizationFields} formData={formData}/>
 
-                <DetailsSectionRenderer sections={editOrganizationFields} formData={formData}  handleBack={() => navigate('/organizacoes/dashboard')}/>
-
-                <div className="form-row d-flex justify-content-between align-items-center mt-1">
-                    <h5 className="text-dark font-weight-bold mt-3">Endereços da Organização</h5>
-                    {canAccess('Adicionar endereço') && (
-                        <Button
-                            text="Adicionar Endereço"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/organizacoes/detalhes/${organizationId}/enderecos/adicionar`}
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Endereços da Organização"
+                    buttonText="Adicionar Endereço"
+                    buttonLink={`/organizacoes/detalhes/${organizationId}/enderecos/adicionar`}
+                    canAccess={canAccess}
+                    permission="Adicionar endereço"
+                />
                 
                 <DynamicTable
                     headers={['ID', 'CEP', 'Rua']}
@@ -195,11 +170,11 @@ const OrganizationDetailsPage = () => {
             </div>
 
             <ConfirmationModal
-                open={openModalConfirmationAddress}
-                onClose={handleCancelConfirmationAddress}
-                onConfirm={() => actionAddress.action == 'delete'? handleConfirmDeleteAddress(selectedAddress.id) : console.log('oi')}
-                itemName={selectedAddress ? selectedAddress.street : ''}
-                text={actionAddress.text}
+                open={openModalConfirmation}
+                onClose={handleCancelConfirmation}
+                onConfirm={handleConfirmAction}
+                itemName={selectedItem ? selectedItem.street : ''}
+                text={action.text}
             />
         </MainLayout>
     );

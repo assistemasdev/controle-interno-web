@@ -12,6 +12,7 @@ import { maskCep, removeMask } from '../../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';  
 
 const CreateOrganizationAddressPage = () => {
     const navigate = useNavigate();
@@ -94,11 +95,8 @@ const CreateOrganizationAddressPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Endereço da Organização" showBackButton={true} backUrl={`/organizacoes/detalhes/${organizationId}/`} />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Endereço da Organização
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}

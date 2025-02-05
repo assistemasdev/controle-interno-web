@@ -11,6 +11,7 @@ import useForm from '../../../hooks/useForm';
 import { locationFields } from '../../../constants/forms/locationFields';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const EditOrganizationLocationPage = () => {
     const navigate = useNavigate();
@@ -25,7 +26,7 @@ const EditOrganizationLocationPage = () => {
         showLoader();
         try {
             const response = await fetchById(entities.organizations.addresses.locations(organizationId).getByColumn(addressId, locationId));
-            formatData(response.result, locationFields)
+            formatData(response.result, locationFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da localização');
         } finally {
@@ -43,7 +44,7 @@ const EditOrganizationLocationPage = () => {
         try {
             await update(entities.organizations.addresses.locations(organizationId).update(addressId, locationId), data);
         } catch (error) {
-            console.log(error)
+            console.log(error);
             showNotification('error', 'Erro ao atualizar localização');
         } finally {
             hideLoader();
@@ -57,9 +58,11 @@ const EditOrganizationLocationPage = () => {
     return (
         <MainLayout selectedCompany="ALUCOM">
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Editar Localização
-                </div>
+                <PageHeader 
+                    title="Editar Localização" 
+                    showBackButton={true} 
+                    backUrl={`/organizacoes/detalhes/${organizationId}/enderecos/${addressId}/localizacoes`} 
+                />
 
                 <Form
                     onSubmit={handleSubmit}

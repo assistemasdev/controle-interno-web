@@ -1,277 +1,135 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import MainLayout from "../../layouts/MainLayout";
-import Button from "../../components/Button";
-import { usePermissions } from "../../hooks/usePermissions";
-import DynamicTable from "../../components/DynamicTable";
-import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrashAlt, faUndo, faEye } from '@fortawesome/free-solid-svg-icons';
-import useLoader from '../../hooks/useLoader';
-import useNotification from "../../hooks/useNotification";
+import React, { useState, useEffect } from 'react';
+import { faEdit, faTrashAlt, faBuilding, faUndo } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
+import DynamicTable from '../../components/DynamicTable';
+import ConfirmationModal from '../../components/modals/ConfirmationModal'; 
+import '../../assets/styles/custom-styles.css';
+import MainLayout from '../../layouts/MainLayout';  
+import { useLocation } from 'react-router-dom';
+import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
-import AutoCompleteFilter from "../../components/AutoCompleteFilter";
-import baseService from "../../services/baseService";
-import ConfirmationModal from "../../components/modals/ConfirmationModal";
-import useBaseService from "../../hooks/services/useBaseService";
-import { entities } from "../../constants/entities";
+import useLoader from '../../hooks/useLoader';
+import useNotification from '../../hooks/useNotification';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
+import FilterForm from '../../components/FilterForm';
+import useOrganizationFilters from '../../hooks/filters/useOrganizationFilters';
+import PageHeader from '../../components/PageHeader';
+import ListHeader from '../../components/ListHeader';
+import useAction from '../../hooks/useAction';
 
 const OrganizationPage = () => {
-    const { canAccess } = usePermissions();
-    const [organizations, setOrganizations] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
-    const { get: fetchAll, put: remove } = useBaseService(navigate);
-    const [selectedOrgs, setSelectedOrgs] = useState([]);
+    const { get: fetchAll } = useBaseService(navigate);
+    const [organizations, setOrganizations] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedOrg, setSelectedOrg] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
     const [filters, setFilters] = useState({
         id: '',
         name: '',
-        id: '',
-        filledInputs: '',
         deleted_at: false,
         page: 1,
-        perPage:itemsPerPage
-    })
-    
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
+        perPage: itemsPerPage
     });
 
     useEffect(() => {
         if (location.state?.message) {
-            showNotification(location.state.type, location.state.message);
-            navigate(location.pathname, { replace: true });
+            showNotification('error', location.state.message);
         }
-    }, [location.state]); 
-    
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
+    }, [location.state, showNotification]);
 
-    const fetchOrganizations = useCallback(async (filtersSubmit) => {
+    const fetchOrganizations = async (filtersSubmit) => {
         try {
             showLoader();
-        
             const response = await fetchAll(entities.organizations.get, filtersSubmit || filters);
-            const filteredOrganizations = response.result.data.map(organization => ({
-                id: organization.id,
-                name: organization.name,
-                color: organization.color,
-                deleted_at: organization.deleted_at ? 'deleted-' + organization.deleted_at : 'deleted-null'
+            
+            const filteredOrganizations = response.result.data.map(org => ({
+                id: org.id,
+                name: org.name,
+                color: org.color,
+                deleted_at: org.deleted_at ? 'deleted-' + org.deleted_at : 'deleted-null'
             }));
             
-            setCurrentPage(response.result.current_page)
-            setTotalPages(response.result.last_page);
             setOrganizations(filteredOrganizations);
+            setTotalPages(response.result.last_page);
+            setCurrentPage(response.result.current_page);
         } catch (error) {
             console.error(error);
         } finally {
             hideLoader();
         }
-    },[showLoader, fetchAll, showNotification, hideLoader]);
-    
+    };
+
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useOrganizationFilters(fetchOrganizations, filters, setFilters);
+
     useEffect(() => {
         fetchOrganizations();
     }, []);
 
-    const handleFilterSubmit = useCallback((e) => {
-        e.preventDefault();
-    
-        const selectedOrgIds = selectedOrgs
-            .filter((type) => type.textFilter === false || (type.column === 'id' && type.numberFilter === false))
-            .map((type) => type.value);
-    
-        const selectedNames = selectedOrgs
-            .filter((type) => type.textFilter === true && type.column === 'name')
-            .map((type) => type.value);
-    
-        const selectedIdLikes = selectedOrgs
-            .filter((type) => type.numberFilter === true && type.column === 'id')
-            .map((type) => type.value);
-    
-        const filledInputs = new Set(selectedOrgs.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedOrgIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1
-        }));
+    const headers = ['id', 'Nome', 'Cor'];
 
-        fetchOrganizations({
-            id: selectedOrgIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at
-        });
-    }, [selectedOrgs, fetchOrganizations]);
-
-    const handleChangeOrg = useCallback((newSelected, column) => {
-        setSelectedOrgs((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleEdit = useCallback((organization) => {
-        navigate(`/organizacoes/editar/${organization.id}`);
-    }, [navigate, ]);
-
-    const handleDetails = useCallback((organization) => {
-        navigate(`/organizacoes/detalhes/${organization.id}`);
-    }, [navigate, ])
-
-    const handleActivate = (user, action) => {
-        setSelectedOrg(user); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleDelete = (user, action) => {
-        setSelectedOrg(user);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.organizations.delete(id));
-            setOpenModalConfirmation(false);  
-            fetchOrganizations();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
-
-    const headers = useMemo(() => ['id', 'Nome', 'Cor'], []);
-
-    const actions = useMemo(() => [
+    const actions = [
         {
+            id: 'edit',
             icon: faEdit,
-            title: 'Editar Organização',
+            title: 'Editar organização',
             buttonClass: 'btn-primary',
             permission: 'Atualizar organizações',
-            onClick: handleEdit
+            onClick: (organization) => navigate(`/organizacoes/editar/${organization.id}`) 
         },
         {
-            icon: faEye,
-            title: 'Ver Detalhes',
+            id: 'viewDetails',
+            icon: faBuilding,
+            title: 'Ver detalhes',
             buttonClass: 'btn-info',
             permission: 'Ver organizações',
-            onClick: handleDetails
+            onClick: (organization) => navigate(`/organizacoes/detalhes/${organization.id}`) 
         },
         {
             id: 'delete',
             icon: faTrashAlt,
-            title: 'Excluir usuário',
+            title: 'Excluir organização',
             buttonClass: 'btn-danger',
             permission: 'Excluir organizações',
-            onClick: handleDelete,
+            onClick: (organization) => handleDelete(organization, 'Você tem certeza que deseja excluir: ', entities.organizations.delete(organization.id), fetchOrganizations)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar organização',
             buttonClass: 'btn-info',
             permission: 'Atualizar organizações',
-            onClick: handleActivate,
+            onClick: (organization) => handleActivate(organization, 'Você tem certeza que deseja ativar: ', fetchOrganizations)
         },
-    ], [handleEdit, handleDetails]);
-    
+    ];
+
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Organizações
-                </div>
+            <PageHeader title="Organizações" showBackButton={true} backUrl="/dashboard" /> 
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='organization'
-                            value={selectedOrgs.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeOrg(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os grupos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='organization'
-                            value={selectedOrgs.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeOrg(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os grupos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Organizações
-                    </div>
-                    {canAccess('create organizations') && (
-                        <Button
-                        text="Nova Organização"
-                        className="btn btn-blue-light fw-semibold"
-                        link={`/organizacoes/criar/`}
-                        />
-                    )}
-                </div>
+            <div className="container-fluid p-1">
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
+
+                <ListHeader 
+                    title="Lista de organizações" 
+                    buttonText="Nova organização" 
+                    buttonLink="/organizacoes/criar" 
+                    canAccess={canAccess} 
+                    permission="Criar organizações"
+                />
 
                 <DynamicTable 
                     headers={headers} 
                     data={organizations} 
                     actions={actions} 
                     currentPage={currentPage} 
-                    totalPages={totalPages} 
+                    totalPages={totalPages}
                     onPageChange={fetchOrganizations}
                     filters={filters}
                     setFilters={setFilters}
@@ -280,15 +138,13 @@ const OrganizationPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOrg.id) : console.log('oi')}
-                    itemName={selectedOrg ? selectedOrg.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
-
             </div>
         </MainLayout>
-
-    )
-}
+    );
+};
 
 export default OrganizationPage;

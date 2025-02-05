@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import Button from '../../../components/Button';
 import '../../../assets/styles/custom-styles.css';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
@@ -12,6 +11,7 @@ import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader'; 
 
 const OrganizationAddressDetailsPage = () => {
     const navigate = useNavigate();
@@ -48,10 +48,12 @@ const OrganizationAddressDetailsPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader 
+                title="Detalhes do Endereço da Organização" 
+                showBackButton={true} 
+                backUrl={`/organizacoes/detalhes/${organizationId}/`}
+            />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes do Endereço da Organização
-                </div>
 
                 <div className="p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }}>
                     <DetailsSectionRenderer sections={addressFields} formData={formData} handleBack={handleBack} />
