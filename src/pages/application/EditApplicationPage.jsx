@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
+import PageHeader from '../../components/PageHeader';  
 import '../../assets/styles/custom-styles.css';
 import { applicationFields } from '../../constants/forms/applicationFields';
 import useNotification from '../../hooks/useNotification';
@@ -67,10 +68,12 @@ const EditApplicationPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader
+                title="Edição de Aplicação"
+                showBackButton={true}  
+                backUrl="/aplicacoes/dashboard"  
+            />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Aplicação
-                </div>
 
                 <Form
                     onSubmit={handleSubmit}

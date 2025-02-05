@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader'; 
 
 const CreateApplicationPage = () => {
     const navigate = useNavigate();
@@ -53,11 +54,13 @@ const CreateApplicationPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader
+                title="Cadastro de Aplicações"
+                showBackButton={true}  
+                backUrl="/aplicacoes/dashboard"  
+            />
+            
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Aplicações
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}
