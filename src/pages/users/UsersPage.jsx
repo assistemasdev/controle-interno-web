@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { faEdit, faTrashAlt, faBuilding, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import DynamicTable from '../../components/DynamicTable';
-import Button from '../../components/Button';
 import ConfirmationModal from '../../components/modals/ConfirmationModal'; 
 import '../../assets/styles/custom-styles.css';
 import MainLayout from '../../layouts/MainLayout';  
@@ -17,6 +16,7 @@ import FilterForm from '../../components/FilterForm';
 import { useUserFilters } from '../../hooks/filters/userFilters';
 import PageHeader from '../../components/PageHeader';
 import ListHeader from '../../components/ListHeader';
+import useAction from '../../hooks/useAction';
 
 const UsersPage = () => {
     const navigate = useNavigate();
@@ -29,8 +29,7 @@ const UsersPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedUser, setSelectedUser] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -39,11 +38,6 @@ const UsersPage = () => {
         deleted_at: false,
         page: 1,
         perPage: itemsPerPage
-    });
-
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
     });
 
     useEffect(() => {
@@ -80,50 +74,6 @@ const UsersPage = () => {
         fetchUsers();
     }, []);
 
-    const handleEdit = (user) => {
-        navigate(`/usuarios/editar/${user.id}`);
-    };
-    
-    const handleActivate = (user, action) => {
-        setSelectedUser(user); 
-        setAction({
-            action,
-            text: 'Você tem certeza que deseja ativar: '
-        });
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (user, action) => {
-        setSelectedUser(user);  
-        setAction({
-            action,
-            text: 'Você tem certeza que deseja excluir: '
-        });
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.users.delete(id));
-            setOpenModalConfirmation(false);  
-            fetchUsers();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
-
-    const handleViewOrganizationUsers = (user) => {
-        navigate(`/usuarios/organizacoes/${user.id}`);
-    };
-
     const headers = ['id', 'Nome', 'E-mail'];
 
     const actions = [
@@ -132,8 +82,8 @@ const UsersPage = () => {
             icon: faEdit,
             title: 'Editar usuário',
             buttonClass: 'btn-primary',
-            permission: 'update users',
-            onClick: handleEdit
+            permission: 'Atualizar usuários',
+            onClick: (user) => navigate(`/usuarios/editar/${user.id}`) 
         },
         {
             id: 'viewOrganizations',
@@ -141,30 +91,30 @@ const UsersPage = () => {
             title: 'Organizações do usuário',
             buttonClass: 'btn-success',
             permission: 'Listar organizações de usuários',
-            onClick: handleViewOrganizationUsers,
+            onClick: (user) => navigate(`/usuarios/organizacoes/${user.id}`) 
         },
         {
             id: 'delete',
             icon: faTrashAlt,
             title: 'Excluir usuário',
             buttonClass: 'btn-danger',
-            permission: 'delete users',
-            onClick: handleDelete,
+            permission: 'Excluir usuários',
+            onClick: (user) => handleDelete(user, 'Você tem certeza que deseja excluir: ', entities.users.delete(user.id), fetchUsers)
         },
         {
             id: 'activate',
             icon: faUndo,
             title: 'Ativar usuário',
             buttonClass: 'btn-info',
-            permission: 'activate users',
-            onClick: handleActivate,
+            permission: 'Atualizar usuários',
+            onClick: (user) => handleActivate(user, 'Você tem certeza que deseja ativar: ', fetchUsers)
         },
     ];
 
     return (
         <MainLayout selectedCompany="ALUCOM">
             <PageHeader title="Usuários" showBackButton={true} backUrl="/dashboard" /> 
-            
+
             <div className="container-fluid p-1">
                 <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
@@ -190,8 +140,8 @@ const UsersPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action === 'delete' ? handleConfirmDelete(selectedUser.id) : console.log('oi')}
-                    itemName={selectedUser ? selectedUser.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

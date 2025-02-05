@@ -10,6 +10,7 @@ import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader'; 
 
 const CreateRolePage = () => {
     const navigate = useNavigate(); 
@@ -100,33 +101,30 @@ const CreateRolePage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-        <div className="container-fluid p-1">
-            <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                Cadastro de Cargos
+             <PageHeader title="Cadastro de Cargo" showBackButton={true} backUrl="/cargos" />
+            <div className="container-fluid p-1">
+                <Form
+                    onSubmit={handleSubmit}
+                    initialFormData={formData}
+                    handleBack={handleBack}
+                    textSubmit='Cadastrar'
+                    textLoadingSubmit='Cadastrando...'
+                >
+                    {() => (
+                        roleFields.map((section) => (
+                            <FormSection
+                                key={section.section}
+                                section={section}
+                                formData={formData}
+                                handleFieldChange={handleFieldChange}
+                                formErrors={formErrors}
+                                getOptions={getOptions}
+                                getSelectedValue={getSelectedValue}
+                            />
+                        ))
+                    )}
+                </Form>
             </div>
-
-            <Form
-                onSubmit={handleSubmit}
-                initialFormData={formData}
-                handleBack={handleBack}
-                textSubmit='Cadastrar'
-                textLoadingSubmit='Cadastrando...'
-            >
-                {() => (
-                    roleFields.map((section) => (
-                        <FormSection
-                            key={section.section}
-                            section={section}
-                            formData={formData}
-                            handleFieldChange={handleFieldChange}
-                            formErrors={formErrors}
-                            getOptions={getOptions}
-                            getSelectedValue={getSelectedValue}
-                        />
-                    ))
-                )}
-            </Form>
-        </div>
         </MainLayout>
     );
 };
