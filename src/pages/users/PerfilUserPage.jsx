@@ -11,6 +11,7 @@ import { useAuth } from '../../hooks/useAuth';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import { removeEmptyValues } from '../../utils/objectUtils';
+import PageHeader from '../../components/PageHeader'; 
 
 const PerfilUserPage = () => {
     const navigate = useNavigate();
@@ -18,13 +19,14 @@ const PerfilUserPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, formatData } = useForm(setDefaultFieldValues(userProfileFields));
     const { user } = useAuth();
-    const { formErrors, getByColumn: fetchById, put: update} = useBaseService(navigate);
+    const { formErrors, getByColumn: fetchById, put: update } = useBaseService(navigate);
+
     useEffect(() => {
         const fetchData = async () => {
             showLoader();
             try {
                 if (user.id != id) {
-                    navigate('/dashboard', { state: { type:'error', message: 'Usuário inválido!'}})
+                    navigate('/dashboard', { state: { type: 'error', message: 'Usuário inválido!' } });
                 }
 
                 const userData = await fetchById(entities.users.getByColumn(id));
@@ -42,8 +44,8 @@ const PerfilUserPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            const formatData = removeEmptyValues(formData);
-            await update(entities.users.update(id), formatData);
+            const formattedData = removeEmptyValues(formData);
+            await update(entities.users.update(id), formattedData);
         } catch (error) {
             console.error('Error updating user:', error);
         } finally {
@@ -57,11 +59,9 @@ const PerfilUserPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Perfil do Usuário" showBackButton={true} backUrl="/dashboard" /> 
+            
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Perfil do Usuário
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     textSubmit="Atualizar"

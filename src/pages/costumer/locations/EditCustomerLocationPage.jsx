@@ -11,6 +11,7 @@ import Form from '../../../components/Form';
 import FormSection from '../../../components/FormSection';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const EditCustomerLocationPage = () => {
     const navigate = useNavigate();
@@ -52,11 +53,9 @@ const EditCustomerLocationPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Editar Localização
-                </div>
+            <PageHeader title="Editar Localização" showBackButton={true} backUrl={`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes`} />
 
+            <div className="container-fluid p-1">
                 <Form
                     handleBack={handleBack}
                     onSubmit={handleSubmit}

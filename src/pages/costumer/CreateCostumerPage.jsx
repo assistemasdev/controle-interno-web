@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
+import PageHeader from '../../components/PageHeader';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
 import { customerFields } from '../../constants/forms/customerFields';
@@ -20,7 +21,6 @@ const CreateCustomerPage = () => {
     const { post: create, formErrors } = useBaseService(navigate);
     const { formData, handleChange, setFormData, initializeData, resetForm } = useForm(setDefaultFieldValues(customerFields));
 
-    
     const handleCepChange = useCallback(async (e) => {
         const value = maskCep(e.target.value);
         const zip = removeMask(value);
@@ -72,18 +72,18 @@ const CreateCustomerPage = () => {
 
     const handleSubmit = useCallback(async () => {
         showLoader();
-         const sanitizedData = {
-                    customer: {
-                        ...formData.customer
-                    },
-                    address: {
-                        ...formData.address,
-                        zip: removeMask(formData.address.zip),
-                    },
-                    contact: {
-                        ...formData.contact
-                    }
-                };
+        const sanitizedData = {
+            customer: {
+                ...formData.customer
+            },
+            address: {
+                ...formData.address,
+                zip: removeMask(formData.address.zip),
+            },
+            contact: {
+                ...formData.contact
+            }
+        };
         try {
             const success = await create(entities.customers.create, sanitizedData);
             if (success) {
@@ -97,23 +97,15 @@ const CreateCustomerPage = () => {
         }
     }, [create, formData, showLoader, hideLoader, showNotification, initializeData]);
 
-    const handleBack = useCallback(() => {
-        navigate('/clientes/');
-    }, [navigate]);
-
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Clientes" showBackButton={true} backUrl="/clientes/" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Clientes
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     textSubmit="Cadastrar"
                     initialFormData={formData}
                     textLoadingSubmit="Cadastrando..."
-                    handleBack={handleBack}
                 >
                     {() => (
                         <>

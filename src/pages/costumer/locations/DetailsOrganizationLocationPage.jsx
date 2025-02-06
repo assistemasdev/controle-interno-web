@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import Button from '../../../components/Button';
 import '../../../assets/styles/custom-styles.css';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
@@ -11,6 +10,7 @@ import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const DetailsCustomerLocationPage = () => {
     const navigate = useNavigate();
@@ -37,21 +37,13 @@ const DetailsCustomerLocationPage = () => {
         }
     }, [id, addressId, locationId, fetchById, setFormData, showLoader, hideLoader, showNotification]);
 
-    const handleBack = useCallback(() => {
-        navigate(`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes`);
-    }, [id, addressId, navigate]);
-
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Detalhes da Localização" showBackButton={true} backUrl={`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes`} />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes da Localização
-                </div>
-
                 <DetailsSectionRenderer
                     formData={formData}
                     sections={locationFields}
-                    handleBack={handleBack}
                 />
             </div>
         </MainLayout>

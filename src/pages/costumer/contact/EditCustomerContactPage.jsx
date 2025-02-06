@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
 import useLoader from '../../../hooks/useLoader';
-import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
 import { contactFields } from '../../../constants/forms/contactFields';
 import Form from '../../../components/Form';
@@ -11,6 +10,7 @@ import FormSection from '../../../components/FormSection';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const EditCustomerContactPage = () => {
     const navigate = useNavigate();
@@ -49,11 +49,9 @@ const EditCustomerContactPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Editar Contato do Cliente
-                </div>
+            <PageHeader title="Editar Contato do Cliente" showBackButton={true} backUrl={`/clientes/detalhes/${id}`} />
 
+            <div className="container-fluid p-1">
                 <Form 
                     handleBack={handleBack}
                     onSubmit={handleSubmit}

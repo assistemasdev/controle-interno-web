@@ -11,6 +11,7 @@ import FormSection from '../../../components/FormSection';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const CreateCustomerLocationPage = () => {
     const navigate = useNavigate();
@@ -41,11 +42,9 @@ const CreateCustomerLocationPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Localização
-                </div>
+            <PageHeader title="Cadastro de Localização" showBackButton={true} backUrl={`/clientes/detalhes/${id}/enderecos/${addressId}/localizacoes`} />
 
+            <div className="container-fluid p-1">
                 <Form
                     handleBack={handleBack}
                     textSubmit="Cadastrar"

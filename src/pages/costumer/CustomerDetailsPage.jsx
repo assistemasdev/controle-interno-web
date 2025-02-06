@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
-import Button from '../../components/Button';
 import '../../assets/styles/custom-styles.css';
-import { faEdit, faTrash, faEye, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faMapMarkerAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import DynamicTable from '../../components/DynamicTable';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -16,7 +15,10 @@ import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import { entities } from '../../constants/entities';
 import useBaseService from '../../hooks/services/useBaseService';
-
+import PageHeader from '../../components/PageHeader';
+import ListHeader from '../../components/ListHeader';
+import useAction from '../../hooks/useAction';
+import { maskCep } from '../../utils/maskUtils'
 const CustomerDetailsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -26,17 +28,11 @@ const CustomerDetailsPage = () => {
     const { 
         get: fetchAllAddresses, 
         getByColumn: fetchById,
-        del: removeAddress, 
         get: fetchAllContacts, 
-        del: removeContact  
     } = useBaseService(navigate);
     const { formData, setFormData } = useForm(setDefaultFieldValues(editCustomerFields));
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
-    const [openModalConfirmationAddress, setOpenModalConfirmationAddress] = useState(false);
-    const [openModalConfirmationContact, setOpenModalConfirmationContact] = useState(false);
-    const [selectedAddress, setSelectedAddress] = useState(null);
-    const [selectedContact, setSelectedContact] = useState(null);
     const [currentPageAddress, setCurrentPageAddress] = useState(PAGINATION.DEFAULT_PAGE);
     const [totalPagesAddress, setTotalPagesAddress] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [currentPageContact, setCurrentPageContact] = useState(PAGINATION.DEFAULT_PAGE);
@@ -51,14 +47,26 @@ const CustomerDetailsPage = () => {
         page: 1,
         perPage:totalPagesContact
     });
-    const [actionAddress, setActionAddress] = useState({
-        action: '',
-        text: '',
-    });
-    const [actionContact, setActionContact] = useState({
-        action: '',
-        text: '',
-    });
+
+    const { 
+        openModalConfirmation: openModalConfirmationContact, 
+        action: actionContact, 
+        handleActivate: handleActivateContact, 
+        handleDelete: handleDeleteContact, 
+        handleConfirmAction: handleConfirmActionContact, 
+        handleCancelConfirmation: handleCancelConfirmationContact, 
+        selectedItem: selectedContact
+    } = useAction(navigate); 
+
+    const { 
+        openModalConfirmation: openModalConfirmationAddress, 
+        action: actionAddress, 
+        handleActivate: handleActivateAddress, 
+        handleDelete: handleDeleteAddress, 
+        handleConfirmAction: handleConfirmActionAddress, 
+        handleCancelConfirmation: handleCancelConfirmationAddress, 
+        selectedItem: selectedAddress
+    } = useAction(navigate); 
 
     const fetchData = async () => {
         showLoader();
@@ -77,120 +85,44 @@ const CustomerDetailsPage = () => {
     };
 
     const fetchAddress = useCallback(async (filtersSubmit) => {
-            try {
-                const addressesResponse = await fetchAllAddresses(entities.customers.addresses.get(id), filtersSubmit || filtersAddresses);
-                setAddresses(addressesResponse.result.data.map((address) => ({
-                    id: address.id,
-                    zip: address.zip,
-                    street: address.street,
-                    deleted_at: address.deleted_at ? 'deleted-' + address.deleted_at : 'deleted-null'
-                })));
-    
-                setTotalPagesAddress(addressesResponse.result.last_page);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                hideLoader();
-            }
-        });
-    
-        const fetchContacts = useCallback(async (filtersSubmit) => {
-            try {
-                const contactsResponse = await fetchAllContacts(entities.customers.contacts.get(id), filtersSubmit || filtersContacts);
-                
-                setContacts(contactsResponse.result.data.map((contact) => ({
-                    id: contact.id,
-                    name: contact.name,
-                    number: contact.ddd + '-' + contact.phone,
-                    deleted_at: contact.deleted_at ? 'deleted-' + contact.deleted_at : 'deleted-null'
-                })));
-                setTotalPagesContact(contactsResponse.result.last_page);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                hideLoader();
-            }
-        });
+        try {
+            const addressesResponse = await fetchAllAddresses(entities.customers.addresses.get(id), filtersSubmit || filtersAddresses);
+            setAddresses(addressesResponse.result.data.map((address) => ({
+                id: address.id,
+                zip: maskCep(address.zip),
+                street: address.street,
+                deleted_at: address.deleted_at ? 'deleted-' + address.deleted_at : 'deleted-null'
+            })));
+
+            setTotalPagesAddress(addressesResponse.result.last_page);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            hideLoader();
+        }
+    });
+
+    const fetchContacts = useCallback(async (filtersSubmit) => {
+        try {
+            const contactsResponse = await fetchAllContacts(entities.customers.contacts.get(id), filtersSubmit || filtersContacts);
+            
+            setContacts(contactsResponse.result.data.map((contact) => ({
+                id: contact.id,
+                name: contact.name,
+                number: contact.ddd + '-' + contact.phone,
+                deleted_at: contact.deleted_at ? 'deleted-' + contact.deleted_at : 'deleted-null'
+            })));
+            setTotalPagesContact(contactsResponse.result.last_page);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            hideLoader();
+        }
+    });
 
     useEffect(() => {
         fetchData();
     }, [id]);
-
-    const handleActivateAddress = (address, action) => {
-        setSelectedAddress(address); 
-        setActionAddress({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmationAddress(true);  
-    };
-
-    const handleDeleteAddress = (address, action) => {
-        setSelectedAddress(address);  
-        setActionAddress({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmationAddress(true);  
-    };
-    
-    const handleConfirmDeleteAddress = async (addressId) => {
-        try {
-            showLoader();
-            await removeAddress(entities.customers.addresses.delete(id, addressId));
-            setOpenModalConfirmationAddress(false);  
-            fetchAddress();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmationAddress(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmationAddress = () => {
-        setOpenModalConfirmationAddress(false);  
-    };
-
-    const handleActivateContact = (contact, action) => {
-        setSelectedContact(contact); 
-        setActionContact({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmationContact(true);  
-    };
-
-    const handleDeleteContact = (contact, action) => {
-        setSelectedContact(contact);  
-        setActionContact({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmationContact(true);  
-    };
-    
-    const handleConfirmDeleteContact = async (contactId) => {
-        try {
-            showLoader();
-            await removeContact(entities.customers.contacts.delete(id, contactId));
-            setOpenModalConfirmationContact(false);  
-            fetchContacts();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmationContact(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmationContact = () => {
-        setOpenModalConfirmationContact(false);  
-    };
-
-    const handleBack = useCallback(() => {
-        navigate('/clientes/');
-    }, [navigate]);
 
     const addressHeaders = useMemo(() => ['ID', 'CEP', 'Rua'], []);
     const contactHeaders = useMemo(() => ['ID', 'Nome', 'Número'], []);
@@ -221,13 +153,21 @@ const CustomerDetailsPage = () => {
             onClick: (address) => navigate(`/clientes/${id}/endereco/editar/${address.id}`)
         },
         {
-            id:'delete',
+            id: 'delete',
             icon: faTrash,
             title: 'Excluir Endereço',
             buttonClass: 'btn-danger',
             permission: 'Excluir endereço do cliente',
-            onClick: handleDeleteAddress,
-        }
+            onClick: (address) => handleDeleteAddress(address, 'Você tem certeza que deseja excluir: ', entities.customers.addresses.delete(id, address.id), fetchAddress),
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar Endereço',
+            buttonClass: 'btn-info',
+            permission: '',
+            onClick: (address) => handleActivateAddress(address, 'Você tem certeza que deseja ativar: '),
+        },
     ], [handleDeleteAddress]);
 
     const contactActions = useCallback([
@@ -245,28 +185,31 @@ const CustomerDetailsPage = () => {
             title: 'Excluir Contato',
             buttonClass: 'btn-danger',
             permission: 'Excluir contato do cliente',
-            onClick: handleDeleteContact,
-
-        }
+            onClick: (contact) => handleDeleteContact(contact, 'Você tem certeza que deseja excluir: ', entities.customers.contacts.delete(id, contact.id), fetchContacts),
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar Contato',
+            buttonClass: 'btn-info',
+            permission: '',
+            onClick: (contact) => handleActivateContact(contact, 'Você tem certeza que deseja ativar: '),
+        },
     ], [handleDeleteContact]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Detalhes do Cliente" showBackButton={true} backUrl='/clientes/'/>
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">Detalhes do Cliente</div>
-
-                <DetailsSectionRenderer sections={editCustomerFields} formData={formData} handleBack={handleBack}/>
+                <DetailsSectionRenderer sections={editCustomerFields} formData={formData}/>
                 
-                <div className="form-row d-flex justify-content-between align-items-center mt-1">
-                    <h5 className="text-dark font-weight-bold mt-3">Endereços do Cliente</h5>
-                    {canAccess('Adicionar endereço ao cliente') && (
-                        <Button
-                            text="Adicionar Endereço"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/clientes/${id}/endereco/adicionar`}
-                        />
-                    )}
-                </div>
+                <ListHeader
+                    title='Endereços do Cliente'
+                    buttonText="Adicionar Endereço"
+                    buttonLink={`/clientes/${id}/endereco/adicionar`}
+                    canAccess={canAccess}
+                    permission="Adicionar endereço ao cliente"
+                />
 
                 <DynamicTable
                     headers={addressHeaders}
@@ -279,17 +222,13 @@ const CustomerDetailsPage = () => {
                     setFilters={setFiltersAddresses}
                 />
 
-
-                <div className="form-row d-flex justify-content-between align-items-center mt-1">
-                    <h5 className="text-dark font-weight-bold mt-3">Contatos do Cliente</h5>
-                    {canAccess('Adicionar contatos de cliente') && (
-                        <Button
-                            text="Adicionar Contato"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/clientes/${id}/contato/adicionar`}
-                        />
-                    )}
-                </div>
+                <ListHeader
+                    title='Contatos do Cliente'
+                    buttonText="Adicionar Contato"
+                    buttonLink={`/clientes/${id}/contato/adicionar`}
+                    canAccess={canAccess}
+                    permission="Adicionar contatos de cliente"
+                />
 
                 <DynamicTable
                     headers={contactHeaders}
@@ -305,16 +244,16 @@ const CustomerDetailsPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmationAddress}
                     onClose={handleCancelConfirmationAddress}
-                    onConfirm={() => actionAddress.action == 'delete'? handleConfirmDeleteAddress(selectedAddress.id) : console.log('oi')}
-                    itemName={selectedAddress ? selectedAddress.street : ''}
+                    onConfirm={handleConfirmActionAddress}
+                    itemName={selectedAddress ? `${selectedAddress.street} - ${selectedAddress.zip}` : ''}
                     text={actionAddress.text}
                 />
 
                 <ConfirmationModal
                     open={openModalConfirmationContact}
                     onClose={handleCancelConfirmationContact}
-                    onConfirm={() => actionContact.action == 'delete'? handleConfirmDeleteContact(selectedContact.id) : console.log('oi')}
-                    itemName={selectedContact ? selectedContact.number : ''}
+                    onConfirm={handleConfirmActionContact}
+                    itemName={selectedContact ? selectedContact.name : ''}
                     text={actionContact.text}
                 />
             </div>

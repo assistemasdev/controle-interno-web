@@ -1,13 +1,12 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
-import Button from '../../../components/Button';
+import PageHeader from '../../../components/PageHeader';
 import '../../../assets/styles/custom-styles.css';
 import { maskCep } from '../../../utils/maskUtils';
 import useLoader from '../../../hooks/useLoader';
 import { addressFields } from '../../../constants/forms/addressFields';
 import useForm from '../../../hooks/useForm';
-import useNotification from '../../../hooks/useNotification';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
@@ -18,13 +17,13 @@ const CostumerAddressDetailsPage = () => {
     const { id, addressId } = useParams();
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(addressFields));
     const { showLoader, hideLoader } = useLoader();
-    const { showNotification } = useNotification();
     const { getByColumn: fetchById } = useBaseService(navigate);
+    
     useEffect(() => {
         fetchAddress();
     }, [id]);
 
-    const fetchAddress = useCallback(async () => {
+    const fetchAddress = async () => {
         try {
             showLoader();
             const response = await fetchById(entities.customers.addresses.getByColumn(id, addressId));
@@ -40,20 +39,13 @@ const CostumerAddressDetailsPage = () => {
         } finally {
             hideLoader();
         }
-    }, [id, addressId, navigate, setFormData, showLoader, hideLoader, showNotification]);
-
-    const handleBack = useCallback(() => {
-        navigate(`/clientes/detalhes/${id}`);
-    }, [id, navigate]);
+    };
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Detalhes do Endereço do Cliente" showBackButton={true} backUrl={`/clientes/detalhes/${id}`} />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes do Endereço do Cliente
-                </div>
-
-                <DetailsSectionRenderer sections={addressFields} formData={formData} handleBack={handleBack}/>
+                <DetailsSectionRenderer sections={addressFields} formData={formData}/>
             </div>
         </MainLayout>
     );

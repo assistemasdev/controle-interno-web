@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
+import PageHeader from '../../../components/PageHeader';
 import '../../../assets/styles/custom-styles.css';
 import { maskCep, removeMask } from '../../../utils/maskUtils';
 import useLoader from '../../../hooks/useLoader';
@@ -85,11 +86,8 @@ const CreateCustomerAddressPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Endereço do Cliente" showBackButton={true} backUrl={`/clientes/detalhes/${id}`} />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Endereço do Cliente
-                </div>
-
                 <Form
                     initialFormData={formData}
                     handleBack={handleBack}

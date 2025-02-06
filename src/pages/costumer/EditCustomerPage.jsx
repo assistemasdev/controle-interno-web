@@ -2,9 +2,10 @@ import React, { useEffect, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
+import PageHeader from '../../components/PageHeader';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import { editCustomerFields  } from '../../constants/forms/customerFields';
+import { editCustomerFields } from '../../constants/forms/customerFields';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
@@ -26,13 +27,13 @@ const EditCustomerPage = () => {
             showLoader();
             try {
                 const response = await fetchById(entities.customers.getByColumn(id));
-                formatData(response.result, editCustomerFields)
+                formatData(response.result, editCustomerFields);
                 setFormData(prev => ({
                     ...prev,
                     cpf_cnpj: maskCpfCnpj(response.result.cpf_cnpj)
-                }))
+                }));
             } catch (error) {
-                console.log(error)
+                console.log(error);
             } finally {
                 hideLoader();
             }
@@ -59,29 +60,22 @@ const EditCustomerPage = () => {
         try {
             await update(entities.customers.update(id), sanitizedData);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         } finally {
             hideLoader();
         }
-    }, [formData, update, id, navigate, showLoader, hideLoader, showNotification]);
-
-    const handleBack = useCallback(() => {
-        navigate('/clientes/');
-    }, [navigate]);
+    }, [formData, update, id, showLoader, hideLoader]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Editar Cliente" showBackButton={true} backUrl="/clientes/" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Editar Cliente
-                </div>
 
                 <Form
                     onSubmit={handleSubmit}
                     textSubmit="Atualizar"
                     initialFormData={formData}
                     textLoadingSubmit="Atualizando..."
-                    handleBack={handleBack}
                 >
                     {() => (
                         <>
@@ -97,7 +91,6 @@ const EditCustomerPage = () => {
                         </>
                     )}
                 </Form>
-                
             </div>
         </MainLayout>
     );
