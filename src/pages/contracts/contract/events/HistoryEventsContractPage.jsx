@@ -10,7 +10,6 @@ import { useParams } from 'react-router-dom';
 import Timeline from '../../../../components/Timeline';
 import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from '../../../../components/modals/ConfirmationModal';
-import Button from '../../../../components/Button';
 import PageHeader from '../../../../components/PageHeader';
 
 const HistoryEventsContractPage = () => {
@@ -136,18 +135,14 @@ const HistoryEventsContractPage = () => {
     }, []);
 
     const transformContractEvents = useCallback((contractEvents, eventTypesMap) => {
-            return contractEvents.map((event) => ({
-                id: event.id,
-                title: eventTypesMap[event.contract_event_type_id].name || "Nome não informado",
-                description: eventTypesMap[event.contract_event_type_id].description || "Descrição não informada",
-                date: event.created_at,
-                deleted_at: event.deleted_at ? 'deleted-' + event.deleted_at : 'deleted-null'
-            }));
-        }, []);
-
-    const handleBack = () => {
-        navigate(`/contratos/`);  
-    };
+        return contractEvents.map((event) => ({
+            id: event.id,
+            title: eventTypesMap[event.contract_event_type_id].name || "Nome não informado",
+            description: eventTypesMap[event.contract_event_type_id].description || "Descrição não informada",
+            date: event.created_at,
+            deleted_at: event.deleted_at ? 'deleted-' + event.deleted_at : 'deleted-null'
+        }));
+    }, []);
 
     return (
         <MainLayout selectedCompany="ALUCOM">

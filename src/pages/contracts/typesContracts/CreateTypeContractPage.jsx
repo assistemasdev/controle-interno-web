@@ -9,6 +9,7 @@ import { typeContractsFields } from '../../../constants/forms/typeContractsField
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const CreateTypeContractPage = () => {
     const navigate = useNavigate();
@@ -32,11 +33,8 @@ const CreateTypeContractPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Tipo de Contrato" showBackButton={true} backUrl="/contratos/tipos" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Tipo de Contrato
-                </div>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}
