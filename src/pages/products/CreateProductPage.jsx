@@ -11,6 +11,7 @@ import { productFields } from "../../constants/forms/productFields";
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const CreateProductPage = () => {
     const navigate = useNavigate();
@@ -280,11 +281,8 @@ const CreateProductPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Produto" showBackButton={true} backUrl="/produtos/" /> 
             <div className="container-fluid p-1">
-                <p className="text-xs font-weight-bold text-uppercase mb-1">
-                    Cadastro de Produto
-                </p>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

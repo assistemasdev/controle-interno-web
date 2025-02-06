@@ -1,24 +1,24 @@
 import React, { useState, useEffect, useCallback } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrash, faEye, faUndo } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
-import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import useLoader from "../../hooks/useLoader";
 import useNotification from "../../hooks/useNotification";
-import baseService from "../../services/baseService";
 import useBaseService from "../../hooks/services/useBaseService";
 import { entities } from "../../constants/entities";
-import { buildFilteredArray } from "../../utils/arrayUtils";
+import PageHeader from "../../components/PageHeader";
+import ListHeader from "../../components/ListHeader";
+import useAction from "../../hooks/useAction";
+import useProductFilters from "../../hooks/filters/useProductFilters";
+import FilterForm from "../../components/FilterForm";
 
 const ProductsPage = () => {
     const { canAccess } = usePermissions();
     const [products, setProducts] = useState([]);;
-    const [statusOptions, setStatusOptions] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
@@ -31,9 +31,6 @@ const ProductsPage = () => {
     } = useBaseService(navigate);
     const { hideLoader, showLoader } = useLoader();
     const { showNotification } = useNotification();
-    const [selectedProducts, setSelectedProducts] = useState([]);
-    const [selectedProduct, setSelectedProduct] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         number: '',
@@ -42,10 +39,8 @@ const ProductsPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
+
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -75,7 +70,6 @@ const ProductsPage = () => {
                 fetchAll(entities.products.get, filtersSubmit || filters),
             ]);
             const statusMap = mapStatus(statusResponse.result.data);
-            setStatusOptions(statusMap);
             
             const filteredProducts = transformProducts(productsResponse.result.data, statusMap);
             setProducts(filteredProducts);
@@ -88,9 +82,7 @@ const ProductsPage = () => {
         }
     }, [fetchAllStatus, fetchAll, itemsPerPage, mapStatus, transformProducts, showLoader, hideLoader, showNotification]);
 
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useProductFilters(fetchData, filters, setFilters);
 
     useEffect(() => {
         const initializeData = async () => {
@@ -100,87 +92,16 @@ const ProductsPage = () => {
         initializeData();
     }, []);
 
-    const handleEdit = (product) => {
-        navigate(`/produtos/editar/${product.id}`);
-    };
-
-    const handleViewDetails = (product) => {
-        navigate(`/produtos/detalhes/${product.id}`);
-    };
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedProducts, 'id', 'numberFilter', false)
-        const selectedNumbers = buildFilteredArray(selectedProducts, 'number', 'numberFilter', true)
-
-        const filledInputs = new Set(selectedProducts.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {};
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            number: selectedNumbers,
-            filledInputs,
-            page: 1, 
-        }));
-    
-        fetchData({
-            id: selectedIds,
-            number: selectedNumbers,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at,
-        });
-    };
-    
-    const handleActivate = (user, action) => {
-        setSelectedProduct(user); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (user, action) => {
-        setSelectedProduct(user);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.products.delete(id));
-            setOpenModalConfirmation(false);  
-            fetchAll();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
-
     const headers = ["Id", "Nome", "Número", "Status"];
 
     const actions = [
         {
             id:'edit',
             icon: faEdit,
-            title: "Editar Produto",
+            title: "Editar",
             buttonClass: "btn-primary",
             permission: "Atualizar produtos",
-            onClick: handleEdit,
+            onClick: (product) => navigate(`/produtos/editar/${product.id}`),
         },
         {
             id:'details',
@@ -188,71 +109,39 @@ const ProductsPage = () => {
             title: "Ver Detalhes",
             buttonClass: "btn-info",
             permission: "Ver produtos",
-            onClick: handleViewDetails,
+            onClick: (product) => navigate(`/produtos/detalhes/${product.id}`)
         },
         {
-            id:'delete',
+            id: 'delete',
             icon: faTrash,
-            title: "Excluir Produto",
-            buttonClass: "btn-danger",
-            permission: "Excluir produtos",
-            onClick: handleDelete,
+            title: 'Excluir',
+            buttonClass: 'btn-danger',
+            permission: 'Excluir produtos',
+            onClick: (product) => handleDelete(product, 'Você tem certeza que deseja excluir: ', entities.products.delete(product.id), fetchData)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Atualizar produtos',
-            onClick: handleActivate,
+            onClick: (product) => handleActivate(product, 'Você tem certeza que deseja ativar: ', fetchData)
         },
     ];
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Produtos" showBackButton={true} backUrl="/dashboard" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Produtos
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form
-                    className="form-row p-3 mt-2 rounded shadow-sm mb-2"
-                    style={{ backgroundColor: "#FFFFFF" }}
-                    onSubmit={handleFilterSubmit}
-                >
-                    <div className="form-group col-md-12">
-                        <label htmlFor="number" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="number"
-                            model='product'
-                            value={selectedProducts}
-                            onChange={(selected) => setSelectedProducts(selected)}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os produtos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Produtos
-                    </div>
-                    {canAccess("Criar Produtos") && (
-                        <Button
-                            text="Novo Produto"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/produtos/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Produtos" 
+                    buttonText="Novo Produto" 
+                    buttonLink="/produtos/criar" 
+                    canAccess={canAccess} 
+                    permission="Criar Produtos"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -268,8 +157,8 @@ const ProductsPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedProduct.id) : console.log('oi')}
-                    itemName={selectedProduct ? selectedProduct.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

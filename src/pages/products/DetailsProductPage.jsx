@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
-import Button from '../../components/Button';
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
@@ -11,6 +10,7 @@ import { detailsProductFields } from '../../constants/forms/productFields';
 import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const DetailsProductPage = () => {
     const navigate = useNavigate();
@@ -124,18 +124,12 @@ const DetailsProductPage = () => {
         fetchOptions();
     }, [productDetails]);
 
-    const handleBack = () => {
-        navigate(`/produtos/`);
-    };
-
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes do Produto
-                </div>
+            <PageHeader title="Detalhes do Produto" showBackButton={true} backUrl="/produtos/" /> 
 
-                <DetailsSectionRenderer formData={formData} sections={detailsProductFields} handleBack={handleBack}/>
+            <div className="container-fluid p-1">
+                <DetailsSectionRenderer formData={formData} sections={detailsProductFields} />
             </div>
         </MainLayout>
     );
