@@ -11,6 +11,7 @@ import Timeline from '../../../../components/Timeline';
 import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from '../../../../components/modals/ConfirmationModal';
 import Button from '../../../../components/Button';
+import PageHeader from '../../../../components/PageHeader';
 
 const HistoryEventsContractPage = () => {
     const navigate = useNavigate();
@@ -150,18 +151,8 @@ const HistoryEventsContractPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Histórico de Eventos do Contrato" showBackButton={true} backUrl="/contratos" />
             <div className="container-fluid p-1">
-                <div className='d-flex align-items-center justify-content-between'>
-                    <p className="text-xs font-weight-bold text-uppercase mb-1">
-                        Histórico de Eventos do Contrato
-                    </p>
-                    <Button
-                        text="Voltar"
-                        onClick={handleBack}
-                        className='btn btn-blue-light fw-semibold'
-                    />
-                </div>
-
                 <Timeline data={contractEvents} actions={actions}/>
 
                 <ConfirmationModal

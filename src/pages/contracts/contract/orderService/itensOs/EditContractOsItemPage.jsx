@@ -11,6 +11,7 @@ import useBaseService from '../../../../../hooks/services/useBaseService';
 import { entities } from '../../../../../constants/entities';
 import useLoader from '../../../../../hooks/useLoader';
 import useNotification from '../../../../../hooks/useNotification';
+import PageHeader from '../../../../../components/PageHeader';
 
 const EditContractOsItemPage = () => {
     const { id, contractOsId, contractOsItemId } = useParams();
@@ -156,11 +157,8 @@ const EditContractOsItemPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Item da Ordem de Serviço" showBackButton={true} backUrl={`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}`} />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Item da Ordem de Serviço
-                </div>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

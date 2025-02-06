@@ -12,6 +12,7 @@ import { entities } from '../../../../constants/entities';
 import useLoader from '../../../../hooks/useLoader';
 import useNotification from '../../../../hooks/useNotification';
 import { transformValues } from '../../../../utils/objectUtils';
+import PageHeader from '../../../../components/PageHeader';
 
 const CreateContractOsPage = () => {
     const { id } = useParams();
@@ -190,11 +191,8 @@ const CreateContractOsPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Ordem de Serviço" showBackButton={true} backUrl={`/contratos/${id}/ordens-servicos/`} />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Ordem de Serviço
-                </div>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

@@ -11,6 +11,7 @@ import { contractFields } from "../../../constants/forms/contractFields";
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const CreateContractPage = () => {
     const navigate = useNavigate();
@@ -103,8 +104,6 @@ const CreateContractPage = () => {
         navigate(`/contratos/`);  
     };
 
-
-    
     const handleFieldChange = useCallback((fieldId, value, field) => {
         handleChange(fieldId, value);
     
@@ -112,11 +111,8 @@ const CreateContractPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Contrato" showBackButton={true} backUrl="/contratos" />
             <div className="container-fluid p-1">
-                <p className="text-xs font-weight-bold text-uppercase mb-1">
-                    Cadastro de Contrato
-                </p>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

@@ -12,6 +12,7 @@ import { setDefaultFieldValues, transformValues } from '../../../../utils/object
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
 import { useParams } from 'react-router-dom';
+import PageHeader from '../../../../components/PageHeader';
 
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
@@ -117,11 +118,9 @@ const CreateEventContractPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <p className="text-xs font-weight-bold text-uppercase mb-1">
-                    Adicionar Evento no Contrato
-                </p>
+            <PageHeader title="Adicionar Evento no Contrato" showBackButton={true} backUrl="/contratos" />
 
+            <div className="container-fluid p-1">
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

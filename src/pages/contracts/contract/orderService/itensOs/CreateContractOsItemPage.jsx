@@ -11,6 +11,7 @@ import useBaseService from '../../../../../hooks/services/useBaseService';
 import { entities } from '../../../../../constants/entities';
 import useLoader from '../../../../../hooks/useLoader';
 import useNotification from '../../../../../hooks/useNotification';
+import PageHeader from '../../../../../components/PageHeader';
 
 const CreateContractOsItemPage = () => {
     const { id, contractOsId } = useParams();
@@ -154,6 +155,8 @@ const CreateContractOsItemPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Ordens de Serviços do Contrato" showBackButton={true} backUrl={`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}`} />
+
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
                     Cadastro de Item da Ordem de Serviço

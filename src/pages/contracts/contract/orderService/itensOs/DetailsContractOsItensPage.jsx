@@ -10,6 +10,7 @@ import { entities } from '../../../../../constants/entities';
 import useLoader from '../../../../../hooks/useLoader';
 import useNotification from '../../../../../hooks/useNotification';
 import DetailsSectionRenderer from '../../../../../components/DetailsSectionRenderer';
+import PageHeader from '../../../../../components/PageHeader';
 
 const DetailsContractOsItensPage = () => {
     const { id, contractOsId, contractOsItemId } = useParams();
@@ -20,7 +21,6 @@ const DetailsContractOsItensPage = () => {
         getByColumn: fetchOsItemById,
         getByColumn: fetchOsItemTypeById,
         getByColumn: fetchProductById,
-        getByColumn: fetchAddress
     } = useBaseService(navigate);
     const { formData, setFormData } = useForm(setDefaultFieldValues(DetailsOsItemFields));
 
@@ -69,13 +69,9 @@ const DetailsContractOsItensPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Detalhes do Item da Ordem de Serviço" showBackButton={true} backUrl={`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}`} />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes do Item da Ordem de Serviço
-                </div>
-
-                <DetailsSectionRenderer sections={DetailsOsItemFields} formData={formData} handleBack={handleBack}/>
-
+                <DetailsSectionRenderer sections={DetailsOsItemFields} formData={formData}/>
             </div>
         </MainLayout>
     );

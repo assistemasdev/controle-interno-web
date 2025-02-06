@@ -10,12 +10,14 @@ import { entities } from '../../../../constants/entities';
 import useLoader from '../../../../hooks/useLoader';
 import useNotification from '../../../../hooks/useNotification';
 import DetailsSectionRenderer from '../../../../components/DetailsSectionRenderer';
-import Button from '../../../../components/Button';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import { faEdit, faTrash, faEye, faUndo } from '@fortawesome/free-solid-svg-icons';
 import DynamicTable from '../../../../components/DynamicTable';
 import { PAGINATION } from '../../../../constants/pagination';
 import ConfirmationModal from '../../../../components/modals/ConfirmationModal';
+import PageHeader from '../../../../components/PageHeader';
+import ListHeader from '../../../../components/ListHeader';
+import useAction from '../../../../hooks/useAction';
 
 const DetailsContractOsPage = () => {
     const { id, contractOsId } = useParams();
@@ -32,9 +34,8 @@ const DetailsContractOsPage = () => {
         get: fetchOsItens,
         get: fetchOsItensTypes,
         get: fetchProducts,
-        del: remove
     } = useBaseService(navigate);
-    const { formData, handleChange, resetForm, formatData, setFormData } = useForm(setDefaultFieldValues(DetailsOrderServiceFields));
+    const { formData,  setFormData } = useForm(setDefaultFieldValues(DetailsOrderServiceFields));
     const [osItens, setOsItens] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
@@ -44,12 +45,8 @@ const DetailsContractOsPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
-    const [selectedOsItem, setSelectedOsItem] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     useEffect(() => {
         fetchData();
@@ -138,50 +135,6 @@ const DetailsContractOsPage = () => {
         }));
     }, []);
 
-    const handleViewDetails = (osItem) => {
-        navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/detalhes/${osItem.id}`);
-    };
-
-    const handleEdit = (osItem) => {
-        navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/editar/${osItem.id}`);
-    };
-
-    const handleActivate = (osItem, action) => {
-        setSelectedOsItem(osItem); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (osItem, action) => {
-        setSelectedOsItem(osItem);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (osItemId) => {
-        try {
-            showLoader();
-            await remove(entities.contracts.orders.items(id).delete(contractOsId, osItemId));
-            setOpenModalConfirmation(false);  
-            fetchOsItensDatas();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
-
     const osItensHeaders = [
         'Id',
         'Tipo de Item de OS',
@@ -196,57 +149,48 @@ const DetailsContractOsPage = () => {
             title: "Ver Detalhes",
             buttonClass: "btn-info",
             permission: "Ver contratos",
-            onClick: handleViewDetails,
+            onClick: (osItem) => navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/detalhes/${osItem.id}`),
         },
         {
             id:'edit',
             icon: faEdit,
-            title: 'Editar Contratos',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar contratos',
-            onClick: handleEdit
+            onClick: (osItem) => navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/editar/${osItem.id}`)
         },
         {
             id: 'delete',
             icon: faTrash,
-            title: 'Excluir Tipo',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir contratos',
-            onClick: handleDelete
+            onClick: (osItem) => handleDelete(osItem, 'Você tem certeza que deseja excluir: ', entities.contracts.orders.items(id).delete(contractOsId, osItem.id), fetchData)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Atualizar contratos',
-            onClick: handleActivate,
+            onClick: (osItem) => handleActivate(osItem, 'Você tem certeza que deseja ativar: ', fetchData)
         },
     ], []);
 
-    const handleBack = useCallback(() => {
-        navigate(`/contratos/${id}/ordens-servicos/`);
-    }, [navigate]);
-
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Ordem de Serviço" showBackButton={true} backUrl={`/contratos/${id}/ordens-servicos/`} />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes de Ordem de Serviço
-                </div>
+                <DetailsSectionRenderer sections={DetailsOrderServiceFields} formData={formData}/>
 
-                <DetailsSectionRenderer sections={DetailsOrderServiceFields} formData={formData} handleBack={handleBack}/>
+                <ListHeader 
+                    title="Itens da Ordem de Serviço" 
+                    buttonText="Adicionar Item" 
+                    buttonLink={`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/criar`}
+                    canAccess={canAccess} 
+                    permission="Criar ordens de serviço"
+                />
 
-                <div className='form-row d-flex justify-content-between align-items-center mt-1'>
-                    <h5 className='text-dark font-weight-bold mt-3'>Itens da Ordem de Serviço</h5>
-                    {canAccess('') && (
-                        <Button
-                            text="Adicionar Item"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/criar`}
-                        />
-                    )}
-                </div>
                 <DynamicTable
                     headers={osItensHeaders}
                     data={osItens}
@@ -262,8 +206,8 @@ const DetailsContractOsPage = () => {
             <ConfirmationModal
                 open={openModalConfirmation}
                 onClose={handleCancelConfirmation}
-                onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOsItem.id) : console.log('oi')}
-                itemName={selectedOsItem ? `${selectedOsItem.id} - ${selectedOsItem.osItemType}` : ''}
+                onConfirm={handleConfirmAction}
+                itemName={selectedItem ? `${selectedItem.id} - ${selectedItem.osItemType}` : ''}
                 text={action.text}
             />
         </MainLayout>

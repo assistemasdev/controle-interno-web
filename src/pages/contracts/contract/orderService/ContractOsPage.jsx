@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
-import Button from "../../../../components/Button";
 import { usePermissions } from "../../../../hooks/usePermissions";
 import DynamicTable from "../../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -8,12 +7,14 @@ import { faEdit, faTrash, faUndo, faEye } from '@fortawesome/free-solid-svg-icon
 import ConfirmationModal from "../../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../../constants/pagination";
 import useLoader from "../../../../hooks/useLoader";
-import AutoCompleteFilter from "../../../../components/AutoCompleteFilter";
-import baseService from "../../../../services/baseService";
 import useBaseService from "../../../../hooks/services/useBaseService";
-import { buildFilteredArray } from "../../../../utils/arrayUtils";
 import { entities } from "../../../../constants/entities";
 import { useParams } from "react-router-dom";
+import PageHeader from "../../../../components/PageHeader";
+import ListHeader from '../../../../components/ListHeader';
+import useAction from "../../../../hooks/useAction";
+import useOrderServiceFilters from "../../../../hooks/filters/useOrderServiceFilters";
+import FilterForm from "../../../../components/FilterForm";
 
 const ContractOsPage = () => {
     const { id } = useParams();
@@ -23,17 +24,13 @@ const ContractOsPage = () => {
         get: fetchAll, 
         get: fetchContracts,
         get: fetchOsStatus,
-        del: remove 
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const [selectedOrdersServices, setSelectedOrdersServices] = useState([]);
     const [OsStatuses, setOrdersServices] = useState([]);
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedOrderService, setSelectedOrderService] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -43,10 +40,8 @@ const ContractOsPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
+
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -54,10 +49,6 @@ const ContractOsPage = () => {
             setTimeout(() => navigate(location.pathname, { replace: true }), 0); 
         }
     }, [location.state, navigate]);
-
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
 
     const mapContracts = useCallback((contractsData) => {
         return Object.fromEntries(contractsData.map((contract) => [contract.id, contract.number]));
@@ -93,92 +84,11 @@ const ContractOsPage = () => {
         }
     }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useOrderServiceFilters(loadOrdersServices, filters, setFilters);
+
     useEffect(() => {
         loadOrdersServices();
     }, [itemsPerPage]);
-
-    const handleEdit = useCallback((status) => {
-        navigate(`/contratos/${id}/ordens-servicos/editar/${status.id}`);
-    }, [navigate]);
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedOrdersServices, 'id', 'numberFilter', false);
-        const selectedIdLikes = buildFilteredArray(selectedOrdersServices, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedOrdersServices.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-        }));
-    
-        loadOrdersServices({
-            id: selectedIds,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at, 
-        });
-    };
-
-    const handleViewDetails = (contractOs) => {
-        navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOs.id}`);
-    };
-    
-    const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedOrdersServices((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleActivate = (status, action) => {
-        setSelectedOrderService(status); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (status, action) => {
-        setSelectedOrderService(status);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.orders.delete(id));
-            setOpenModalConfirmation(false);  
-            loadOrdersServices();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
 
     const headers = useMemo(() => ['id', 'Nº Contrato', 'Cliente'], []);
 
@@ -189,75 +99,47 @@ const ContractOsPage = () => {
             title: "Ver Detalhes",
             buttonClass: "btn-info",
             permission: "Ver ordens de serviço",
-            onClick: handleViewDetails,
+            onClick: (os) => navigate(`/contratos/${id}/ordens-servicos/detalhes/${os.id}`),
         },
         {
             id:'edit',
             icon: faEdit,
-            title: 'Editar Cargos',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar ordens de serviço',
-            onClick: handleEdit
+            onClick: (os) => navigate(`/contratos/${id}/ordens-servicos/editar/${os.id}`)
         },
         {
             id: 'delete',
             icon: faTrash,
-            title: 'Excluir Tipo',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir ordens de serviço',
-            onClick: handleDelete
+            onClick: (os) => handleDelete(os, 'Você tem certeza que deseja excluir: ', entities.contracts.orders.delete(id,os.id), loadOrdersServices)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Atualizar ordens de serviço',
-            onClick: handleActivate,
+            onClick: (os) => handleActivate(os, 'Você tem certeza que deseja ativar: ', loadOrdersServices)
         },
-    ], [handleEdit, handleDelete]);
+    ], [handleActivate, handleDelete]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Ordens de Serviços do Contrato" showBackButton={true} backUrl="/contratos" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Ordens de Serviços do Contrato
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-12">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='serviceOrder'
-                            value={selectedOrdersServices.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre as ordem de serviço pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Ordens de Serviços do Contrato
-                    </div>
-                    {canAccess('Criar ordens de serviço') && (
-                        <Button
-                            text="Nova Ordem de Serviço"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/contratos/${id}/ordens-servicos/criar`}
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Ordens de Serviços do Contrato" 
+                    buttonText="Nova Ordem de Serviço" 
+                    buttonLink={`/contratos/${id}/ordens-servicos/criar`}
+                    canAccess={canAccess} 
+                    permission="Criar ordens de serviço"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -273,10 +155,10 @@ const ContractOsPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOrderService.id) : console.log('oi')}
-                    itemName={selectedOrderService ? selectedOrderService.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.number : ''}
                     text={action.text}
-                />
+                />  
             </div>
         </MainLayout>
     );

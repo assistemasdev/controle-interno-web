@@ -10,6 +10,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { setDefaultFieldValues } from '../../../../utils/objectUtils';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
+import PageHeader from '../../../../components/PageHeader';
 
 const EditEventContractPage = () => {
     const navigate = useNavigate();
@@ -109,11 +110,9 @@ const EditEventContractPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <p className="text-xs font-weight-bold text-uppercase mb-1">
-                    Editar Contrato
-                </p>
+            <PageHeader title="Editar Contrato" showBackButton={true} backUrl="/contratos" />
 
+            <div className="container-fluid p-1">
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

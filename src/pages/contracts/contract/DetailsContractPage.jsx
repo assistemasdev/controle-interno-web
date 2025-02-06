@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import MainLayout from '../../../layouts/MainLayout';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../../assets/styles/custom-styles.css';
-import Button from '../../../components/Button';
 import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
@@ -11,6 +10,7 @@ import { contractFields } from '../../../constants/forms/contractFields';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const DetailsContractPage = () => {
     const navigate = useNavigate();
@@ -69,18 +69,11 @@ const DetailsContractPage = () => {
         fetchProductDetails();
     }, [id, navigate]);
 
-    const handleBack = () => {
-        navigate(`/contratos/`);
-    };
-
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Detalhes do Contrato" showBackButton={true} backUrl="/contratos" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes do Contrato
-                </div>
-
-                <DetailsSectionRenderer formData={formData} sections={contractFields} handleBack={handleBack}/>
+                <DetailsSectionRenderer formData={formData} sections={contractFields}/>
             </div>
         </MainLayout>
     );
