@@ -10,6 +10,7 @@ import { typeFields } from '../../constants/forms/typeFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const EditTypePage = () => {
     const navigate = useNavigate();
@@ -51,11 +52,8 @@ const EditTypePage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Tipos" showBackButton={true} backUrl="/tipos" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Tipo
-                </div>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

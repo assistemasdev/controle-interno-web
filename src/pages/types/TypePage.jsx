@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -8,27 +7,25 @@ import { faEdit, faTrash, faLayerGroup, faUndo } from '@fortawesome/free-solid-s
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
-import AutoCompleteFilter from "../../components/AutoCompleteFilter";
-import baseService from "../../services/baseService";
-import useNotification from "../../hooks/useNotification";
 import useBaseService from "../../hooks/services/useBaseService";
 import { entities } from "../../constants/entities";
-import { buildFilteredArray } from "../../utils/arrayUtils";
+import PageHeader from "../../components/PageHeader";
+import ListHeader from "../../components/ListHeader";
+import useTypeFilters from "../../hooks/filters/useTypeFilters";
+import FilterForm from "../../components/FilterForm";
+import useAction from "../../hooks/useAction";
 
 const TypePage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
     const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const { showNotification } = useNotification();
-    const [selectedTypes, setSelectedTypes] = useState([]);
     const [types, setTypes] = useState([]);
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedType, setSelectedType] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -38,10 +35,6 @@ const TypePage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
 
     useEffect(() => {
         if (location.state?.message) {
@@ -49,10 +42,6 @@ const TypePage = () => {
             setTimeout(() => navigate(location.pathname, { replace: true }), 0); 
         }
     }, [location.state, navigate]);
-
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
 
     const loadTypes = useCallback(async (filtersSubmit) => {
         showLoader();
@@ -70,96 +59,11 @@ const TypePage = () => {
         }
     }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useTypeFilters(loadTypes, filters, setFilters);
+
     useEffect(() => {
         loadTypes();
     }, [itemsPerPage]);
-
-    const handleEdit = useCallback((type) => {
-        navigate(`/tipos/editar/${type.id}`);
-    }, [navigate]);
-
-
-    const handleViewGroups = useCallback((type) => {
-        navigate(`/tipos/${type.id}/grupos/associar`);
-    }, [navigate]);
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedTypes, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedTypes, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedTypes, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedTypes.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-        }));
-    
-        loadTypes({
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at, 
-        });
-    };
-    
-    const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedTypes((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleActivate = (type, action) => {
-        setSelectedType(type); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (type, action) => {
-        setSelectedType(type);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.types.delete(id));
-            setOpenModalConfirmation(false);  
-            loadTypes();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
 
     const headers = useMemo(() => ['id', 'Nome'], []);
 
@@ -170,7 +74,7 @@ const TypePage = () => {
             title: 'Editar Cargos',
             buttonClass: 'btn-primary',
             permission: 'Atualizar tipos de produto',
-            onClick: handleEdit
+            onClick: (type) => navigate(`/tipos/editar/${type.id}`)
         },
         {
             id: 'viewGroups',
@@ -178,7 +82,7 @@ const TypePage = () => {
             title: 'Ver Grupos do Tipo',
             buttonClass: 'btn-info',
             permission: 'Visualizar grupos do tipo',
-            onClick: handleViewGroups
+            onClick: (type) => navigate(`/tipos/${type.id}/grupos/associar`)
         },
         {
             id: 'delete',
@@ -186,7 +90,8 @@ const TypePage = () => {
             title: 'Excluir Tipo',
             buttonClass: 'btn-danger',
             permission: 'Excluir tipos de produto',
-            onClick: handleDelete
+            onClick: (type) => handleDelete(type, 'Você tem certeza que deseja excluir: ', entities.types.delete(type.id), loadTypes)
+
         },
         {
             id: 'activate',
@@ -194,66 +99,23 @@ const TypePage = () => {
             title: 'Ativar usuário',
             buttonClass: 'btn-info',
             permission: 'Atualizar tipos de produto',
-            onClick: handleActivate,
+            onClick: (type) => handleActivate(type, 'Você tem certeza que deseja ativar: ', loadTypes)
         },
-    ], [handleEdit, handleDelete, handleViewGroups]);
+    ], [handleDelete, handleActivate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Tipos" showBackButton={true} backUrl="/dashboard" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Tipos
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='type'
-                            value={selectedTypes.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='type'
-                            value={selectedTypes.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Tipos
-                    </div>
-                    {canAccess('Criar tipos de produto') && (
-                        <Button
-                            text="Novo Tipo"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/tipos/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Tipos" 
+                    buttonText="Novo Tipo" 
+                    buttonLink="/tipos/criar" 
+                    canAccess={canAccess} 
+                    permission="Criar tipos de produto"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -269,8 +131,8 @@ const TypePage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedType.id) : console.log('oi')}
-                    itemName={selectedType ? selectedType.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

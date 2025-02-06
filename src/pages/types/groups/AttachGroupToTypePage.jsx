@@ -11,6 +11,7 @@ import { associeteGroupFields } from '../../../constants/forms/groupFields'
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const AttachGroupToTypePage = () => {
     const navigate = useNavigate();
@@ -90,11 +91,9 @@ const AttachGroupToTypePage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Associar Grupos
-                </div>
+            <PageHeader title="Associar Grupos" showBackButton={true} backUrl="/tipos"/> 
 
+            <div className="container-fluid p-1">
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}
