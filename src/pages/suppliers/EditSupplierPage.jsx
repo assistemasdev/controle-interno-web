@@ -12,6 +12,7 @@ import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const EditSupplierPage = () => {
     const navigate = useNavigate();
@@ -66,11 +67,8 @@ const EditSupplierPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Fornecedor" showBackButton={true} backUrl="/fornecedores/" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Fornecedor
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}

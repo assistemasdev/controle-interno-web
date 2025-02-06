@@ -5,7 +5,7 @@ import DetailsSectionRenderer from '../../components/DetailsSectionRenderer';
 import DynamicTable from '../../components/DynamicTable';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { useNavigate, useParams } from 'react-router-dom';
-import { faEdit, faTrash, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faUndo } from '@fortawesome/free-solid-svg-icons';
 import useLoader from '../../hooks/useLoader';
 import useNotification from '../../hooks/useNotification';
 import { supplierFields } from '../../constants/forms/supplierFields';
@@ -15,6 +15,9 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useForm from '../../hooks/useForm';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import useAction from '../../hooks/useAction';
+import PageHeader from '../../components/PageHeader';
+import ListHeader from '../../components/ListHeader';
 
 const SupplierDetailsPage = () => {
     const navigate = useNavigate();
@@ -25,17 +28,11 @@ const SupplierDetailsPage = () => {
     const { 
         getByColumn:fetchById,
         get: fetchAllAddresses, 
-        del: removeAddress,
         get: fetchAllContacts, 
-        del: removeContact
     } = useBaseService(navigate);
     const { formData, formatData } = useForm(setDefaultFieldValues(supplierFields));
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
-    const [openModalConfirmationAddress, setOpenModalConfirmationAddress] = useState(false);
-    const [openModalConfirmationContact, setOpenModalConfirmationContact] = useState(false);
-    const [selectedAddress, setSelectedAddress] = useState(null);
-    const [selectedContact, setSelectedContact] = useState(null);
     const [currentPageAddress, setCurrentPageAddress] = useState(PAGINATION.DEFAULT_PAGE);
     const [totalPagesAddress, setTotalPagesAddress] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [currentPageContact, setCurrentPageContact] = useState(PAGINATION.DEFAULT_PAGE);
@@ -50,14 +47,25 @@ const SupplierDetailsPage = () => {
         page: 1,
         perPage:totalPagesContact
     });
-    const [actionAddress, setActionAddress] = useState({
-        action: '',
-        text: '',
-    });
-    const [actionContact, setActionContact] = useState({
-        action: '',
-        text: '',
-    });
+    const { 
+        openModalConfirmation: openModalConfirmationContact, 
+        action: actionContact, 
+        handleActivate: handleActivateContact, 
+        handleDelete: handleDeleteContact, 
+        handleConfirmAction: handleConfirmActionContact, 
+        handleCancelConfirmation: handleCancelConfirmationContact, 
+        selectedItem: selectedContact
+    } = useAction(navigate); 
+
+    const { 
+        openModalConfirmation: openModalConfirmationAddress, 
+        action: actionAddress, 
+        handleActivate: handleActivateAddress, 
+        handleDelete: handleDeleteAddress, 
+        handleConfirmAction: handleConfirmActionAddress, 
+        handleCancelConfirmation: handleCancelConfirmationAddress, 
+        selectedItem: selectedAddress
+    } = useAction(navigate); 
 
     const fetchData = useCallback(async () => {
         showLoader();
@@ -116,84 +124,12 @@ const SupplierDetailsPage = () => {
         fetchData();
     }, [id]);
 
-    const handleActivateAddress = (address, action) => {
-        setSelectedAddress(address); 
-        setActionAddress({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmationAddress(true);  
-    };
-
-    const handleDeleteAddress = (address, action) => {
-        setSelectedAddress(address);  
-        setActionAddress({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmationAddress(true);  
-    };
-    
-    const handleConfirmDeleteAddress = async (addressId) => {
-        try {
-            showLoader();
-            await removeAddress(entities.suppliers.addresses.delete(id,addressId));
-            setOpenModalConfirmationAddress(false);  
-            fetchAddress();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmationAddress(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmationAddress = () => {
-        setOpenModalConfirmationAddress(false);  
-    };
-
-    const handleActivateContact = (contact, action) => {
-        setSelectedContact(contact); 
-        setActionContact({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmationContact(true);  
-    };
-
-    const handleDeleteContact = (contact, action) => {
-        setSelectedContact(contact);  
-        setActionContact({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmationContact(true);  
-    };
-    
-    const handleConfirmDeleteContact = async (contactId) => {
-        try {
-            showLoader();
-            await removeContact(entities.suppliers.contacts.delete(id, contactId));
-            setOpenModalConfirmationContact(false);  
-            fetchContacts();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmationContact(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmationContact = () => {
-        setOpenModalConfirmationContact(false);  
-    };
-
     const addressHeaders = useMemo(() => ['ID', 'CEP', 'Rua'], []);
     const addressActions = useMemo(() => [
         {
             id: 'viewAddresses',
             icon: faEye, 
-            title: 'Ver endereços de fornecedores',
+            title: 'Ver endereço',
             buttonClass: 'btn-info',
             permission: 'Visualizar endereço do fornecedor',
             onClick: (address) => navigate(`/fornecedores/${id}/endereco/${address.id}/detalhes/`),
@@ -201,7 +137,7 @@ const SupplierDetailsPage = () => {
         {
             id: 'edit',
             icon: faEdit,
-            title: 'Editar Endereço',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar endereço do fornecedor',
             onClick: (address) => navigate(`/fornecedores/editar/${id}/endereco/${address.id}`),
@@ -209,10 +145,18 @@ const SupplierDetailsPage = () => {
         {
             id: 'delete',
             icon: faTrash,
-            title: 'Excluir Endereço',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir endereço do fornecedor',
-            onClick: handleDeleteAddress,
+            onClick: (address) => handleDeleteAddress(address, 'Você tem certeza que deseja excluir: ', entities.suppliers.addresses.delete(id, address.id), fetchAddress),
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar Endereço',
+            buttonClass: 'btn-info',
+            permission: '',
+            onClick: (address) => handleActivateAddress(address, 'Você tem certeza que deseja ativar: '),
         },
 
     ], [navigate, id, handleDeleteAddress]);
@@ -222,7 +166,7 @@ const SupplierDetailsPage = () => {
         {
             id: 'edit',
             icon: faEdit,
-            title: 'Editar Contato',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar contato do fornecedor',
             onClick: (contact) => navigate(`/fornecedores/${id}/contato/editar/${contact.id}`),
@@ -230,35 +174,38 @@ const SupplierDetailsPage = () => {
         {
             id: 'delete',
             icon: faTrash,
-            title: 'Excluir Contato',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir contato do fornecedor',
-            onClick: handleDeleteContact,
-        }
+            onClick: (contact) => handleDeleteContact(contact, 'Você tem certeza que deseja excluir: ', entities.suppliers.contacts.delete(id, contact.id), fetchContacts),
+        },
+        {
+            id: 'activate',
+            icon: faUndo,
+            title: 'Ativar Contato',
+            buttonClass: 'btn-info',
+            permission: '',
+            onClick: (contact) => handleActivateContact(contact, 'Você tem certeza que deseja ativar: '),
+        },
     ], [navigate, id, handleDeleteContact]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Detalhes do Fornecedor" showBackButton={true} backUrl="/fornecedores/" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes do Fornecedor
-                </div>
                 <DetailsSectionRenderer
                     sections={supplierFields}
                     formData={formData}
-                    handleBack={() => navigate('/fornecedores')}
                 />
 
-                <div className='form-row d-flex justify-content-between align-items-center mt-1'>
-                    <h5 className='text-dark font-weight-bold mt-3'>Endereços</h5>
-                    {canAccess('Adicionar endereço ao fornecedor') && (
-                        <Button
-                            text="Adicionar Endereço"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/fornecedores/${id}/endereco/adicionar`}
-                        />
-                    )}
-                </div>
+                <ListHeader
+                    title='Endereços'
+                    buttonText="Adicionar Endereço"
+                    buttonLink={`/fornecedores/${id}/endereco/adicionar`}
+                    canAccess={canAccess}
+                    permission="Adicionar endereço ao fornecedor"
+                />
+
                 <DynamicTable
                     headers={addressHeaders}
                     data={addresses}
@@ -270,16 +217,14 @@ const SupplierDetailsPage = () => {
                     setFilters={setFiltersAddresses}
                 />
 
-                <div className='form-row d-flex justify-content-between align-items-center mt-1'>
-                    <h5 className='text-dark font-weight-bold mt-3'>Contatos</h5>
-                    {canAccess('Adicionar contato ao fornecedor') && (
-                        <Button
-                            text="Adicionar Contato"
-                            className="btn btn-blue-light fw-semibold"
-                            link={`/fornecedores/${id}/contato/adicionar`}
-                        />
-                    )}
-                </div>
+                <ListHeader
+                    title='Contatos'
+                    buttonText="Adicionar Contato"
+                    buttonLink={`/fornecedores/${id}/contato/adicionar`}
+                    canAccess={canAccess}
+                    permission="Adicionar contato ao fornecedor"
+                />
+        
                 <DynamicTable
                     headers={contactHeaders}
                     data={contacts}
@@ -294,16 +239,16 @@ const SupplierDetailsPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmationAddress}
                     onClose={handleCancelConfirmationAddress}
-                    onConfirm={() => actionAddress.action == 'delete'? handleConfirmDeleteAddress(selectedAddress.id) : console.log('oi')}
-                    itemName={selectedAddress ? selectedAddress.street : ''}
+                    onConfirm={handleConfirmActionAddress}
+                    itemName={selectedAddress ? `${selectedAddress.street} - ${selectedAddress.zip}` : ''}
                     text={actionAddress.text}
                 />
 
                 <ConfirmationModal
                     open={openModalConfirmationContact}
                     onClose={handleCancelConfirmationContact}
-                    onConfirm={() => actionContact.action == 'delete'? handleConfirmDeleteContact(selectedContact.id) : console.log('oi')}
-                    itemName={selectedContact ? selectedContact.number : ''}
+                    onConfirm={handleConfirmActionContact}
+                    itemName={selectedContact ? selectedContact.name : ''}
                     text={actionContact.text}
                 />
             </div>

@@ -10,6 +10,7 @@ import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const EditSupplierContactPage = () => {
     const navigate = useNavigate();
@@ -51,11 +52,9 @@ const EditSupplierContactPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Editar Contato do Fornecedor
-                </div>
+            <PageHeader title="Editar Contato do Fornecedor" showBackButton={true} backUrl={`/fornecedores/detalhes/${supplierId}/`} /> 
 
+            <div className="container-fluid p-1">
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}

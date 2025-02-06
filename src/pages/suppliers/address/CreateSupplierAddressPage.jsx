@@ -12,6 +12,7 @@ import { maskCep, removeMask } from '../../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../../utils/objectUtils'
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const CreateSupplierAddressPage = () => {
     const navigate = useNavigate();
@@ -91,11 +92,9 @@ const CreateSupplierAddressPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Endereço do Fornecedor
-                </div>
+            <PageHeader title="Cadastro de Endereço do Fornecedor" showBackButton={true} backUrl={`/fornecedores/detalhes/${id}/`} /> 
 
+            <div className="container-fluid p-1">
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}

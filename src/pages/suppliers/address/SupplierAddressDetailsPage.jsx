@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../../layouts/MainLayout';
 import '../../../assets/styles/custom-styles.css';
-import Button from '../../../components/Button';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { addressFields } from '../../../constants/forms/addressFields';
 import useLoader from '../../../hooks/useLoader';
@@ -12,6 +11,7 @@ import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const SupplierAddressDetailsPage = () => {
     const navigate = useNavigate();
@@ -48,15 +48,11 @@ const SupplierAddressDetailsPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Detalhes do Endereço do Fornecedor" showBackButton={true} backUrl={`/fornecedores/detalhes/${id}`} /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Detalhes do Endereço do Fornecedor
-                </div>
-                
                 <DetailsSectionRenderer
                     sections={addressFields}
                     formData={formData}
-                    handleBack={handleBack}
                 />
             </div>
         </MainLayout>

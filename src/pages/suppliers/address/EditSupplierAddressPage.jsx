@@ -12,6 +12,7 @@ import { addressFields } from '../../../constants/forms/addressFields';
 import FormSection from '../../../components/FormSection';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import PageHeader from '../../../components/PageHeader';
 
 const EditSupplierAddressPage = () => {
     const navigate = useNavigate();
@@ -103,11 +104,8 @@ const EditSupplierAddressPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Endereço do Fornecedor" showBackButton={true} backUrl={`/fornecedores/detalhes/${id}/`} /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Endereço do Fornecedor
-                </div>
-
                 <Form
                     initialFormData={formData}
                     textSubmit="Editar"

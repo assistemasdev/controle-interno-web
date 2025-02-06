@@ -15,6 +15,11 @@ import baseService from "../../services/baseService";
 import useBaseService from "../../hooks/services/useBaseService";
 import { entities } from "../../constants/entities";
 import { buildFilteredArray } from "../../utils/arrayUtils";
+import PageHeader from "../../components/PageHeader";
+import ListHeader from "../../components/ListHeader";
+import useAction from "../../hooks/useAction";
+import useSupplierFilters from "../../hooks/filters/useSupplierFilters";
+import FilterForm from "../../components/FilterForm";
 
 const SuppliersPage = () => {
     const { canAccess } = usePermissions();
@@ -27,8 +32,6 @@ const SuppliersPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedUser, setSelectedUser] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -38,10 +41,9 @@ const SuppliersPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
+
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
+
 
     const fetchSuppliersData = useCallback(async (filtersSubmit) => {
         showLoader();
@@ -69,111 +71,21 @@ const SuppliersPage = () => {
         }
     }, [fetchAll, itemsPerPage, showLoader, hideLoader, showNotification]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useSupplierFilters(fetchSuppliersData, filters, setFilters);
+
     useEffect(() => {
         fetchSuppliersData();
     }, []);
-
-    const handleEdit = (supplier) => {
-        navigate(`/fornecedores/editar/${supplier.id}`);
-    };
-
-    const handleViewDetails = (supplier) => {
-        navigate(`/fornecedores/detalhes/${supplier.id}`);
-    };
-
-    const handleActivate = (user, action) => {
-        setSelectedUser(user); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (user, action) => {
-        setSelectedUser(user);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.suppliers.getByColumn(id));
-            setOpenModalConfirmation(false);  
-            fetchSuppliersData();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
-
-    const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedSuppliers((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-        
-        const selectedIds = buildFilteredArray(selectedSuppliers, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedSuppliers, 'name', 'textFilter', true);
-        const selectedICpfCnpjs = buildFilteredArray(selectedSuppliers, 'cpf_cnpj', 'textFilter', true);
-        const filledInputs = new Set(selectedSuppliers.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            cpf_cnpj: selectedICpfCnpjs,
-            filledInputs,
-            page: 1, 
-        }));
-    
-        fetchSuppliersData({
-            id: selectedIds,
-            name: selectedNames,
-            cpf_cnpj: selectedICpfCnpjs,
-            filledInputs,
-            page: 1,
-            perPage: previousFilters.perPage, 
-            deleted_at: previousFilters.deleted_at, 
-        });
-    };
-    
 
     const headers = ['ID', 'Apelido', 'Nome', 'CPF/CNPJ'];
     const actions = [
         {
             id: 'edit',
             icon: faEdit,
-            title: 'Editar Fornecedor',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar fornecedores',
-            onClick: handleEdit
+            onClick: (supplier) => navigate(`/fornecedores/editar/${supplier.id}`)
         },
         {
             id:'details',
@@ -181,91 +93,39 @@ const SuppliersPage = () => {
             title: 'Ver Detalhes',
             buttonClass: 'btn-info',
             permission: 'Ver fornecedores',
-            onClick: handleViewDetails
+            onClick: (supplier) => navigate(`/fornecedores/detalhes/${supplier.id}`)
         },
         {
             id:'delete',
             icon: faTrash,
-            title: 'Excluir Fornecedor',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir fornecedores',
-            onClick: handleDelete
+            onClick: (supplier) => handleDelete(supplier, 'Você tem certeza que deseja excluir: ', entities.suppliers.delete(supplier.id), fetchSuppliersData)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Atualizar fornecedores',
-            onClick: handleActivate,
+            onClick: (supplier) => handleActivate(supplier, 'Você tem certeza que deseja ativar: ', fetchSuppliersData)
         },
     ];
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Fornecedores" showBackButton={true} backUrl="/fornecedores/" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Fornecedores
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='supplier'
-                            value={selectedSuppliers.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os fornecedores pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            CPF/CNPJ:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="cpf_cnpj"
-                            model='supplier'
-                            value={selectedSuppliers.filter((option) => option.column === 'cpf_cnpj')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'cpf_cnpj')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os fornecedores pelo cpf/cnpj"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button
-                            type="submit"
-                            text="Filtrar"
-                            className="btn btn-blue-light fw-semibold m-1"
-                        />
-                        <Button
-                            type="button"
-                            text="Limpar filtros"
-                            className="btn btn-blue-light fw-semibold m-1"
-                            onClick={handleClearFilters}
-                        />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Fornecedores
-                    </div>
-                    {canAccess('Criar fornecedores') && (
-                        <Button
-                            text="Novo Fornecedor"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/fornecedores/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Fornecedores" 
+                    buttonText="Novo Fornecedor" 
+                    buttonLink="/fornecedores/criar" 
+                    canAccess={canAccess} 
+                    permission="Criar fornecedores"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -277,15 +137,16 @@ const SuppliersPage = () => {
                     filters={filters}
                     setFilters={setFilters}
                 />
+
+                <ConfirmationModal
+                    open={openModalConfirmation}
+                    onClose={handleCancelConfirmation}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
+                    text={action.text}
+                />
             </div>
 
-            <ConfirmationModal
-                open={openModalConfirmation}
-                onClose={handleCancelConfirmation}
-                onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedUser.id) : console.log('oi')}
-                itemName={selectedUser ? selectedUser.name : ''}
-                text={action.text}
-            />
         </MainLayout>
     );
 };
