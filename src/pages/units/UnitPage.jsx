@@ -9,26 +9,25 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrashAlt, faUndo, faLink } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
-import baseService from "../../services/baseService";
-import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import useBaseService from "../../hooks/services/useBaseService";
 import { entities } from "../../constants/entities";
-import { buildFilteredArray } from "../../utils/arrayUtils";
+import PageHeader from "../../components/PageHeader";
+import useUnitFilters from "../../hooks/filters/useUnitFilters";
+import FilterForm from "../../components/FilterForm";
+import ListHeader from '../../components/ListHeader';
+import useAction from "../../hooks/useAction";
 
 const UnitPage = () => {
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const navigate = useNavigate();
-    const { get: fetchAll, del: remove } = useBaseService(navigate);
+    const { get: fetchAll } = useBaseService(navigate);
     const location = useLocation();
-    const [selectedUnits, setSelectedUnits] = useState([]);
     const [units, setUnits] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedUser, setSelectedUser] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -38,10 +37,8 @@ const UnitPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
+
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     const fetchUnitList = useCallback(async (filtersSubmit) => {
         try {
@@ -60,7 +57,9 @@ const UnitPage = () => {
         } finally {
             hideLoader();
         }
+
     }, [fetchAll, itemsPerPage, showLoader, hideLoader, showNotification]);
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useUnitFilters(fetchUnitList, filters, setFilters);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -70,94 +69,12 @@ const UnitPage = () => {
         fetchUnitList();
     }, [location.state]);
 
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
-
-    const handleActivate = (user, action) => {
-        setSelectedUser(user); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (user, action) => {
-        setSelectedUser(user);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.units.delete(id));
-            setOpenModalConfirmation(false);  
-            fetchUnitList();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedUnits, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedUnits, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedUnits, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedUnits.map((option) => option.column)).size;
-        const previousFilters = filters || {};
-    
-        setFilters((prev) => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1, 
-        }));
-    
-        fetchUnitList({
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at,
-        });
-    };
-    
-    
-    const handleChangeUnits = useCallback((newSelected, column) => {
-        setSelectedUnits((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
     const headers = useMemo(() => ['id', 'Nome', 'Abreviação'], []);
     const actions = useMemo(() => [
         {
             id:'edit',
             icon: faEdit,
-            title: 'Editar Unidade',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar tipos de produto',
             onClick: (unit) => navigate(`/unidades/editar/${unit.id}`),
@@ -173,77 +90,34 @@ const UnitPage = () => {
         {
             id: 'delete',
             icon: faTrashAlt,
-            title: 'Excluir usuário',
+            title: 'Excluir ',
             buttonClass: 'btn-danger',
             permission: 'Excluir tipos de produto',
-            onClick: handleDelete,
+            onClick: (group) => handleDelete(group, 'Você tem certeza que deseja excluir: ', entities.units.delete(group.id), fetchUnitList)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar ',
             buttonClass: 'btn-info',
             permission: 'activate users',
-            onClick: handleActivate,
+            onClick: (group) => handleActivate(group, 'Você tem certeza que deseja ativar: ', fetchUnitList)
         },
     ], [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Unidades" showBackButton={true} backUrl="/dashboard" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Unidades
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='unit'
-                            value={selectedUnits.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeUnits(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='unit'
-                            value={selectedUnits.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeUnits(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Unidades
-                    </div>
-                    {canAccess('Criar unidades de medida') && (
-                        <Button
-                            text="Nova Unidade"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/unidades/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Unidades" 
+                    buttonText="Nova Unidade" 
+                    buttonLink="/unidades/criar" 
+                    canAccess={canAccess} 
+                    permission="Criar unidades de medida"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -259,8 +133,8 @@ const UnitPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedUser.id) : console.log('oi')}
-                    itemName={selectedUser ? selectedUser.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

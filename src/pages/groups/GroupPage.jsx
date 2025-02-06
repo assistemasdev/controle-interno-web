@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Button from "../../components/Button";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import useLoader from "../../hooks/useLoader";
@@ -9,11 +8,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { faEdit, faTrashAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
-import AutoCompleteFilter from "../../components/AutoCompleteFilter";
-import baseService from "../../services/baseService";
 import useBaseService from "../../hooks/services/useBaseService";
 import { entities } from "../../constants/entities";
-import { buildFilteredArray } from "../../utils/arrayUtils";
+import PageHeader from '../../components/PageHeader';
+import useGroupsFilters from "../../hooks/filters/useGroupsFilters";
+import FilterForm from "../../components/FilterForm";
+import useAction from "../../hooks/useAction";
+import ListHeader from "../../components/ListHeader";
 
 const GroupPage = () => {
     const { canAccess } = usePermissions();
@@ -26,9 +27,7 @@ const GroupPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedGroups, setSelectedGroups] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -37,11 +36,8 @@ const GroupPage = () => {
         deleted_at: false,
         page: 1,
         perPage:itemsPerPage
-    })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
     });
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     const fetchGroup = useCallback(async (filtersSubmit) => {
         try {
@@ -61,6 +57,8 @@ const GroupPage = () => {
         }
     }, [fetchAll, itemsPerPage, showLoader, hideLoader, showNotification]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useGroupsFilters(fetchGroup, filters, setFilters);
+
     useEffect(() => {
         fetchGroup();
     }, []);
@@ -72,92 +70,11 @@ const GroupPage = () => {
         }
     }, [location.state, navigate]);
 
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
-
-    const handleFilterSubmit = useCallback((e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedGroups, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedGroups, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedGroups, 'id', 'numberFilter', false);
-        const filledInputs = new Set(selectedGroups.map((option) => option.column)).size;
-        const previousFilters = filters || {}; 
-    
-        setFilters((prev) => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1, 
-        }));
-    
-        fetchGroup({
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at, 
-        });
-    }, [selectedGroups, fetchGroup, filters, setFilters]);
-    
-
-    const handleChangeGroup = useCallback((newSelected, column) => {
-        setSelectedGroups((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleActivate = (user, action) => {
-        setSelectedGroup(user); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (user, action) => {
-        setSelectedGroup(user);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.groups.delete(id));
-            setOpenModalConfirmation(false);  
-            fetchGroup();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
     const headers = useMemo(() => ['id', 'Nome'], []);
     const actions = useMemo(() => [
         {
             icon: faEdit,
-            title: 'Editar Grupo',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar grupos de produto',
             onClick: (group) => navigate(`/grupos/editar/${group.id}`),
@@ -165,77 +82,34 @@ const GroupPage = () => {
         {
             id: 'delete',
             icon: faTrashAlt,
-            title: 'Excluir Grupo',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir grupos de produto',
-            onClick: handleDelete,
+            onClick: (group) => handleDelete(group, 'Você tem certeza que deseja excluir: ', entities.groups.delete(group.id), fetchGroup)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar grupo',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Atualizar grupos de produto',
-            onClick: handleActivate,
+            onClick: (group) => handleActivate(group, 'Você tem certeza que deseja ativar: ', fetchGroup)
         },
     ], [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Grupos" showBackButton={true} backUrl="/dashboard" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Grupos
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='type'
-                            value={selectedGroups.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeGroup(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os grupos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='type'
-                            value={selectedGroups.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeGroup(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os grupos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Grupos
-                    </div>
-                    {canAccess('Criar grupos de produto') && (
-                        <Button
-                            text="Novo Grupo"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/grupos/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Grupos" 
+                    buttonText="Novo Grupo" 
+                    buttonLink="/grupos/criar" 
+                    canAccess={canAccess} 
+                    permission="Criar grupos de produto"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -251,8 +125,8 @@ const GroupPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedGroup.id) : console.log('oi')}
-                    itemName={selectedGroup ? selectedGroup.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

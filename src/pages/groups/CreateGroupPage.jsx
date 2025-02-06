@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
 import FormSection from '../../components/FormSection';
@@ -11,6 +11,7 @@ import { groupFields } from '../../constants/forms/groupFields';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const CreateGroupPage = () => {
     const navigate = useNavigate();
@@ -39,11 +40,8 @@ const CreateGroupPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Grupo" showBackButton={true} backUrl="/grupos" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Grupo
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}

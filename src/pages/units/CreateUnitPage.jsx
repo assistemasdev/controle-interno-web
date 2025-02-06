@@ -11,6 +11,7 @@ import useNotification from '../../hooks/useNotification';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const CreateUnitPage = () => {
     const navigate = useNavigate();
@@ -39,11 +40,8 @@ const CreateUnitPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Unidades" showBackButton={true} backUrl="/dashboard" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Unidades
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}

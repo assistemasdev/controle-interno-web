@@ -11,6 +11,7 @@ import useNotification from '../../hooks/useNotification';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const EditUnitPage = () => {
     const navigate = useNavigate();
@@ -53,11 +54,8 @@ const EditUnitPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Unidade" showBackButton={true} backUrl="/dashboard" /> 
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Unidade
-                </div>
-
                 <Form
                     onSubmit={handleSubmit}
                     initialFormData={formData}
