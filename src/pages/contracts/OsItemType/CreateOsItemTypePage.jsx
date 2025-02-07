@@ -9,6 +9,7 @@ import { osItemTypeFields } from '../../../constants/forms/osItemTypeFields';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const CreateOsItemTypePage = () => {
     const navigate = useNavigate();
@@ -32,11 +33,8 @@ const CreateOsItemTypePage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Cadastro de Tipo de Item de Ordem de Serviço" showBackButton={true} backUrl="/contratos/ordem-servico/tipos-itens"/>
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Cadastro de Tipo de Item de Ordem de Serviço
-                </div>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

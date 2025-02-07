@@ -6,7 +6,7 @@ export const osStatusFields = [
         fields: [
             {
                 id: 'name',
-                label: 'Nome: ',
+                label: 'Nome',
                 type: 'text',
                 placeholder: "Digite o nome do status", 
                 handleChange: 'handleChange',

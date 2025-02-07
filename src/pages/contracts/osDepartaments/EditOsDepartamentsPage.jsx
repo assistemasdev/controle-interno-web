@@ -10,6 +10,7 @@ import { osDepartamentsFields } from '../../../constants/forms/osDepartamentsFie
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const EditOsDepartamentsPage = () => {
     const navigate = useNavigate();
@@ -51,11 +52,9 @@ const EditOsDepartamentsPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Departamento de Ordem de Serviço
-                </div>
+            <PageHeader title="Edição de Departamento de Ordem de Serviço" showBackButton={true} backUrl="/contratos/ordem-servico/departamentos"/>
 
+            <div className="container-fluid p-1">
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

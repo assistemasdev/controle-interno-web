@@ -6,7 +6,7 @@ export const osItemTypeFields = [
         fields: [
             {
                 id: 'name',
-                label: 'Tipo: ',
+                label: 'Tipo',
                 type: 'text',
                 placeholder: "Digite o nome do tipo", 
                 handleChange: 'handleChange',

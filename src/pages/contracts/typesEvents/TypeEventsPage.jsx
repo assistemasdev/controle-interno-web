@@ -13,6 +13,11 @@ import baseService from "../../../services/baseService";
 import useBaseService from "../../../hooks/services/useBaseService";
 import { entities } from "../../../constants/entities";
 import { buildFilteredArray } from "../../../utils/arrayUtils";
+import PageHeader from "../../../components/PageHeader";
+import ListHeader from "../../../components/ListHeader";
+import useAction from "../../../hooks/useAction";
+import useTypeEventFilters from "../../../hooks/filters/useTypeEventFilters";
+import FilterForm from "../../../components/FilterForm";
 
 const TypeEventsPage = () => {
     const navigate = useNavigate();
@@ -26,7 +31,6 @@ const TypeEventsPage = () => {
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const [selectedType, setSelectedType] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -36,10 +40,7 @@ const TypeEventsPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -47,10 +48,6 @@ const TypeEventsPage = () => {
             setTimeout(() => navigate(location.pathname, { replace: true }), 0); 
         }
     }, [location.state, navigate]);
-
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
 
     const loadTypes = useCallback(async (filtersSubmit) => {
         showLoader();
@@ -69,95 +66,11 @@ const TypeEventsPage = () => {
         }
     }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useTypeEventFilters(loadTypes, filters, setFilters);
+
     useEffect(() => {
         loadTypes();
     }, [itemsPerPage]);
-
-    const handleEdit = useCallback((type) => {
-        navigate(`/contratos/tipos-eventos/editar/${type.id}`);
-    }, [navigate]);
-
-    const handleViewDetails = (product) => {
-        navigate(`/contratos/tipos-eventos/detalhes/${product.id}`);
-    };
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedTypes, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedTypes, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedTypes, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedTypes.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-        }));
-    
-        loadTypes({
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at, 
-        });
-    };
-    
-    const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedTypes((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleActivate = (type, action) => {
-        setSelectedType(type); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (type, action) => {
-        setSelectedType(type);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.contracts.eventsTypes.delete(null, id));
-            setOpenModalConfirmation(false);  
-            loadTypes();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
 
     const headers = useMemo(() => ['id', 'Nome'], []);
 
@@ -165,10 +78,10 @@ const TypeEventsPage = () => {
         {
             id:'edit',
             icon: faEdit,
-            title: 'Editar Cargos',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar tipos de eventos de contratos',
-            onClick: handleEdit
+            onClick: (type) => navigate(`/contratos/tipos-eventos/editar/${type.id}`)
         },
         {
             id:'details',
@@ -176,83 +89,40 @@ const TypeEventsPage = () => {
             title: "Ver Detalhes",
             buttonClass: "btn-info",
             permission: "Ver tipos de eventos de contratos",
-            onClick: handleViewDetails,
+            onClick: (type) => navigate(`/contratos/tipos-eventos/detalhes/${type.id}`),
         },
         {
             id: 'delete',
             icon: faTrash,
-            title: 'Excluir Tipo',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir tipos de eventos de contratos',
-            onClick: handleDelete
+            onClick: (typeEvent) => handleDelete(typeEvent, 'Você tem certeza que deseja excluir: ', entities.contracts.eventsTypes.delete(null, typeEvent.id), loadTypes)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Atualizar tipos de eventos de contratos',
-            onClick: handleActivate,
+            onClick: (typEvent) => handleActivate(typEvent, 'Você tem certeza que deseja ativar: ', loadTypes)
         },
-    ], [handleEdit, handleDelete]);
+    ], [handleActivate, handleDelete]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Tipos de Eventos de Contrato" showBackButton={true} backUrl="/dashboard"/>
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Tipos de Eventos de Contrato
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='contractEventType'
-                            value={selectedTypes.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='contractEventType'
-                            value={selectedTypes.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Tipos
-                    </div>
-                    {canAccess('Criar tipos de eventos de contratos') && (
-                        <Button
-                            text="Novo Tipo"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/contratos/tipos-eventos/criar"
-                        />
-                    )}
-                </div>
-
+                <ListHeader 
+                    title="Lista de Tipos de Eventos" 
+                    buttonText="Novo Tipo" 
+                    buttonLink='/contratos/tipos-eventos/criar'
+                    canAccess={canAccess} 
+                    permission="Criar tipos de eventos de contratos"
+                />
+                
                 <DynamicTable
                     headers={headers}
                     data={types}
@@ -267,8 +137,8 @@ const TypeEventsPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedType.id) : console.log('oi')}
-                    itemName={selectedType ? selectedType.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

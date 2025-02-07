@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
 import DynamicTable from "../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -8,25 +7,24 @@ import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
-import AutoCompleteFilter from "../../../components/AutoCompleteFilter";
-import baseService from "../../../services/baseService";
 import useBaseService from "../../../hooks/services/useBaseService";
-import { buildFilteredArray } from "../../../utils/arrayUtils";
 import { entities } from "../../../constants/entities";
+import PageHeader from "../../../components/PageHeader";
+import ListHeader from "../../../components/ListHeader";
+import useAction from "../../../hooks/useAction";
+import useTypeOsFilters from "../../../hooks/filters/useTypeOsFilters";
+import FilterForm from "../../../components/FilterForm";
 
 const OsItemTypePage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { get: fetchAllOsItemsType, del: removeOsItemType } = useBaseService(navigate);
+    const { get: fetchAllOsItemsType } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const [selectedOsItemsTypes, setSelectedOsItemsTypes] = useState([]);
     const [OsItemsTypes, setOsItemsTypes] = useState([]);
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedOsItemType, setSelectedOsItemType] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -36,10 +34,7 @@ const OsItemTypePage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -47,10 +42,6 @@ const OsItemTypePage = () => {
             setTimeout(() => navigate(location.pathname, { replace: true }), 0); 
         }
     }, [location.state, navigate]);
-
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
 
     const loadOsItemsTypes = useCallback(async (filtersSubmit) => {
         showLoader();
@@ -68,88 +59,11 @@ const OsItemTypePage = () => {
         }
     }, [fetchAllOsItemsType, itemsPerPage, showLoader, hideLoader]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useTypeOsFilters(loadOsItemsTypes, filters, setFilters);
+
     useEffect(() => {
         loadOsItemsTypes();
     }, [itemsPerPage]);
-
-    const handleEdit = useCallback((type) => {
-        navigate(`/contratos/ordem-servico/tipos-itens/editar/${type.id}`);
-    }, [navigate]);
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-        const selectedIds = buildFilteredArray(selectedOsItemsTypes, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedOsItemsTypes, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedOsItemsTypes, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedOsItemsTypes.map((option) => option.column)).size;
-        const previousFilters = filters || {}; 
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-        }));
-    
-        loadOsItemsTypes({
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at, 
-        });
-    };
-    
-    const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedOsItemsTypes((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleActivate = (type, action) => {
-        setSelectedOsItemType(type); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (type, action) => {
-        setSelectedOsItemType(type);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await removeOsItemType(entities.orders.itemsTypes.delete(null, id));
-            setOpenModalConfirmation(false);  
-            loadOsItemsTypes();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
 
     const headers = useMemo(() => ['id', 'Nome'], []);
 
@@ -157,85 +71,42 @@ const OsItemTypePage = () => {
         {
             id:'edit',
             icon: faEdit,
-            title: 'Editar Cargos',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar tipos de contratos',
-            onClick: handleEdit
+            onClick: (osItemType) => navigate(`/contratos/ordem-servico/tipos-itens/editar/${osItemType.id}`)
         },
         {
             id: 'delete',
             icon: faTrash,
-            title: 'Excluir Tipo',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Atualizar tipos de contratos',
-            onClick: handleDelete
+            onClick: (osItemType) => handleDelete(osItemType, 'Você tem certeza que deseja excluir: ', entities.orders.itemsTypes.delete(null, osItemType.id), loadOsItemsTypes)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Excluir tipos de contratos',
-            onClick: handleActivate,
+            onClick: (osItemType) => handleActivate(osItemType, 'Você tem certeza que deseja ativar: ', loadOsItemsTypes)
         },
-    ], [handleEdit, handleDelete]);
+    ], [handleActivate, handleDelete]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Tipos de Item de Ordem de Serviço" showBackButton={true} backUrl="/dashboard"/>
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Tipos de Item de Ordem de Serviço
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='serviceOrderItemType'
-                            value={selectedOsItemsTypes.filter((option) => option.column == 'id')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='serviceOrderItemType'
-                            value={selectedOsItemsTypes.filter((option) => option.column == 'name')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Tipos de Item de Ordem de Serviço
-                    </div>
-                    {canAccess('Criar tipos de itens de ordem de serviço') && (
-                        <Button
-                            text="Novo Tipo"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/contratos/ordem-servico/tipos-itens/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Tipos de Item de Ordem de Serviço" 
+                    buttonText="Novo Tipo" 
+                    buttonLink='/contratos/ordem-servico/tipos-itens/criar'
+                    canAccess={canAccess} 
+                    permission="Criar tipos de itens de ordem de serviço"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -251,8 +122,8 @@ const OsItemTypePage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOsItemType.id) : console.log('oi')}
-                    itemName={selectedOsItemType ? selectedOsItemType.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

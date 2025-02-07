@@ -11,13 +11,17 @@ import useLoader from "../../../hooks/useLoader";
 import AutoCompleteFilter from "../../../components/AutoCompleteFilter";
 import baseService from "../../../services/baseService";
 import useBaseService from "../../../hooks/services/useBaseService";
-import { buildFilteredArray } from "../../../utils/arrayUtils";
 import { entities } from "../../../constants/entities";
+import PageHeader from "../../../components/PageHeader";
+import ListHeader from "../../../components/ListHeader";
+import useAction from "../../../hooks/useAction";
+import useDestinationOsFilters from "../../../hooks/filters/useDestinationOsFilters";
+import FilterForm from "../../../components/FilterForm";
 
 const OsDestinationsPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { get: fetchAll, del: remove } = useBaseService(navigate);
+    const { get: fetchAll } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const [selectedOsDestinations, setSelectedOsDestinations] = useState([]);
     const [OsDestinations, setOsDestinations] = useState([]);
@@ -25,8 +29,6 @@ const OsDestinationsPage = () => {
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedOsDepartament, setSelectedOsDestination] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -36,10 +38,7 @@ const OsDestinationsPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -47,10 +46,6 @@ const OsDestinationsPage = () => {
             setTimeout(() => navigate(location.pathname, { replace: true }), 0); 
         }
     }, [location.state, navigate]);
-
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
 
     const loadOsDestinations = useCallback(async (filtersSubmit) => {
         showLoader();
@@ -68,6 +63,8 @@ const OsDestinationsPage = () => {
         }
     }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useDestinationOsFilters(loadOsDestinations, filters, setFilters);
+
     useEffect(() => {
         loadOsDestinations();
     }, [itemsPerPage]);
@@ -76,35 +73,6 @@ const OsDestinationsPage = () => {
         navigate(`/contratos/ordem-servico/destinos/editar/${destination.id}`);
     }, [navigate]);
 
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedOsDestinations, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedOsDestinations, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedOsDestinations, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedOsDestinations.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-        }));
-    
-        loadOsDestinations({
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at, 
-        });
-    };
-    
     const handleChangeCustomers = useCallback((newSelected, column) => {
         setSelectedOsDestinations((prev) => {
             if (!newSelected.length) {
@@ -118,49 +86,13 @@ const OsDestinationsPage = () => {
         });
     }, []);
 
-    const handleActivate = (destination, action) => {
-        setSelectedOsDestination(destination); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (destination, action) => {
-        setSelectedOsDestination(destination);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.orders.destinations.delete(null, id));
-            setOpenModalConfirmation(false);  
-            loadOsDestinations();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
-
     const headers = useMemo(() => ['id', 'Nome'], []);
 
     const actions = useMemo(() => [
         {
             id:'edit',
             icon: faEdit,
-            title: 'Editar Cargos',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar destinos de ordens de serviço',
             onClick: handleEdit
@@ -168,77 +100,34 @@ const OsDestinationsPage = () => {
         {
             id: 'delete',
             icon: faTrash,
-            title: 'Excluir Tipo',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir destinos de ordens de serviço',
-            onClick: handleDelete
+            onClick: (destination) => handleDelete(destination, 'Você tem certeza que deseja excluir: ', entities.orders.destinations.delete(null, destination.id), loadOsDestinations)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Atualizar destinos de ordens de serviço',
-            onClick: handleActivate,
+            onClick: (destination) => handleActivate(destination, 'Você tem certeza que deseja ativar: ', loadOsDestinations)
         },
     ], [handleEdit, handleDelete]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Destino de Ordem de Serviço" showBackButton={true} backUrl="/dashboard"/>
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Destino de Ordem de Serviço
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='serviceOrderDestination'
-                            value={selectedOsDestinations.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os destinos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='serviceOrderDestination'
-                            value={selectedOsDestinations.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os destinos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Destino de Ordem de Serviço
-                    </div>
-                    {canAccess('Criar destinos de ordens de serviço') && (
-                        <Button
-                            text="Novo Destino"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/contratos/ordem-servico/destinos/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Destino de Ordem de Serviço" 
+                    buttonText="Novo Destino" 
+                    buttonLink='/contratos/ordem-servico/destinos/criar'
+                    canAccess={canAccess} 
+                    permission="Criar destinos de ordens de serviço"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -254,8 +143,8 @@ const OsDestinationsPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOsDepartament.id) : console.log('oi')}
-                    itemName={selectedOsDepartament ? selectedOsDepartament.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

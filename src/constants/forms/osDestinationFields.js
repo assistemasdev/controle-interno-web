@@ -6,7 +6,7 @@ export const osDestinationFields = [
         fields: [
             {
                 id: 'name',
-                label: 'Nome: ',
+                label: 'Nome',
                 type: 'text',
                 placeholder: "Digite o nome do destino", 
                 handleChange: 'handleChange',

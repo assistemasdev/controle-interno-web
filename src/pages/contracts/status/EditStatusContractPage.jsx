@@ -10,6 +10,7 @@ import { statusContractFields } from '../../../constants/forms/statusContractFie
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const EditStatusContractPage = () => {
     const navigate = useNavigate();
@@ -51,11 +52,8 @@ const EditStatusContractPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Status de Contrato" showBackButton={true} backUrl="/contratos/status" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Status de Contrato
-                </div>
-
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}

@@ -10,6 +10,7 @@ import { osItemTypeFields } from '../../../constants/forms/osItemTypeFields';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import PageHeader from '../../../components/PageHeader';
 
 const EditOsItemTypePage = () => {
     const navigate = useNavigate();
@@ -51,9 +52,11 @@ const EditOsItemTypePage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Edição de Tipo de Evento de Contrato" showBackButton={true} backUrl="/contratos/ordem-servico/tipos-itens"/>
+
             <div className="container-fluid p-1">
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Edição de Tipo de Evento de Contrato
+                    
                 </div>
 
                 <Form

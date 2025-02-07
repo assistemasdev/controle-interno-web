@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
 import DynamicTable from "../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -8,25 +7,24 @@ import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
-import AutoCompleteFilter from "../../../components/AutoCompleteFilter";
-import baseService from "../../../services/baseService";
 import useBaseService from "../../../hooks/services/useBaseService";
-import { buildFilteredArray } from "../../../utils/arrayUtils";
 import { entities } from "../../../constants/entities";
+import PageHeader from "../../../components/PageHeader";
+import ListHeader from "../../../components/ListHeader";
+import useStatusOsFilters from "../../../hooks/filters/useStatusOsFilters";
+import FilterForm from "../../../components/FilterForm";
+import useAction from "../../../hooks/useAction";
 
 const OsStatusPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
-    const { get: fetchAll, del: remove } = useBaseService(navigate);
+    const { get: fetchAll } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const [selectedOsStatuses, setSelectedOsStatuses] = useState([]);
     const [OsStatuses, setOsStatuses] = useState([]);
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [selectedOsStatus, setSelectedOsStatus] = useState(null);  
-    const [openModalConfirmation, setOpenModalConfirmation] = useState(false);  
     const [filters, setFilters] = useState({
         id: '',
         name: '',
@@ -36,10 +34,7 @@ const OsStatusPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-    const [action, setAction] = useState({
-        action: '',
-        text: '',
-    });
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -47,10 +42,6 @@ const OsStatusPage = () => {
             setTimeout(() => navigate(location.pathname, { replace: true }), 0); 
         }
     }, [location.state, navigate]);
-
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
 
     const loadOsStatuses = useCallback(async (filtersSubmit) => {
         showLoader();
@@ -68,91 +59,11 @@ const OsStatusPage = () => {
         }
     }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useStatusOsFilters(loadOsStatuses, filters, setFilters);
+
     useEffect(() => {
         loadOsStatuses();
     }, [itemsPerPage]);
-
-    const handleEdit = useCallback((status) => {
-        navigate(`/contratos/ordem-servico/status/editar/${status.id}`);
-    }, [navigate]);
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedOsStatuses, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedOsStatuses, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedOsStatuses, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedOsStatuses.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-        }));
-    
-        loadOsStatuses({
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at, 
-        });
-    };
-    
-    const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedOsStatuses((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
-
-    const handleActivate = (status, action) => {
-        setSelectedOsStatus(status); 
-        setAction({
-            action,
-            text:'Você tem certeza que deseja ativar: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-
-    const handleDelete = (status, action) => {
-        setSelectedOsStatus(status);  
-        setAction({
-            action,
-            text:'Você tem certeza que deseja excluir: '
-        })
-        setOpenModalConfirmation(true);  
-    };
-    
-    const handleConfirmDelete = async (id) => {
-        try {
-            showLoader();
-            await remove(entities.orders.status.delete(null, id));
-            setOpenModalConfirmation(false);  
-            loadOsStatuses();
-        } catch (error) {
-            console.log(error);
-            setOpenModalConfirmation(false);  
-        } finally {
-            hideLoader();
-        }    
-    };
-
-    const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
 
     const headers = useMemo(() => ['id', 'Nome'], []);
 
@@ -160,85 +71,42 @@ const OsStatusPage = () => {
         {
             id:'edit',
             icon: faEdit,
-            title: 'Editar Cargos',
+            title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar status de ordens de serviço',
-            onClick: handleEdit
+            onClick: (status) => navigate(`/contratos/ordem-servico/status/editar/${status.id}`)
         },
         {
             id: 'delete',
             icon: faTrash,
-            title: 'Excluir Tipo',
+            title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir status de ordens de serviço',
-            onClick: handleDelete
+            onClick: (status) => handleDelete(status, 'Você tem certeza que deseja excluir: ', entities.orders.status.delete(null, status.id), loadOsStatuses)
         },
         {
             id: 'activate',
             icon: faUndo,
-            title: 'Ativar usuário',
+            title: 'Ativar',
             buttonClass: 'btn-info',
             permission: 'Atualizar status de ordens de serviço',
-            onClick: handleActivate,
+            onClick: (status) => handleActivate(status, 'Você tem certeza que deseja ativar: ', loadOsStatuses)
         },
-    ], [handleEdit, handleDelete]);
+    ], [handleActivate, handleDelete]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Status de Ordem de Serviço" showBackButton={true} backUrl="/dashboard" />
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Status de Ordem de Serviço
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='serviceOrderStatus'
-                            value={selectedOsStatuses.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='serviceOrderStatus'
-                            value={selectedOsStatuses.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Status de Ordem de Serviço
-                    </div>
-                    {canAccess('Criar status de ordens de serviço') && (
-                        <Button
-                            text="Novo Status"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/contratos/ordem-servico/status/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Status de Ordem de Serviço" 
+                    buttonText="Novo Status" 
+                    buttonLink='/contratos/ordem-servico/status/criar'
+                    canAccess={canAccess} 
+                    permission="Criar status de ordens de serviço"
+                />
 
                 <DynamicTable
                     headers={headers}
@@ -254,8 +122,8 @@ const OsStatusPage = () => {
                 <ConfirmationModal
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
-                    onConfirm={() => action.action == 'delete'? handleConfirmDelete(selectedOsStatus.id) : console.log('oi')}
-                    itemName={selectedOsStatus ? selectedOsStatus.name : ''}
+                    onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
             </div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import Button from "../../../components/Button";
 import { usePermissions } from "../../../hooks/usePermissions";
 import DynamicTable from "../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -8,18 +7,18 @@ import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
-import AutoCompleteFilter from "../../../components/AutoCompleteFilter";
-import baseService from "../../../services/baseService";
 import useBaseService from "../../../hooks/services/useBaseService";
-import { buildFilteredArray } from "../../../utils/arrayUtils";
 import { entities } from "../../../constants/entities";
+import PageHeader from "../../../components/PageHeader";
+import ListHeader from "../../../components/ListHeader";
+import useDepartamentsOsFilters from "../../../hooks/filters/useDepartamentsOsFilters";
+import FilterForm from "../../../components/FilterForm";
 
 const OsDepartamentsPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
     const { get: fetchAll, del: remove } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const [selectedOsDepartaments, setSelectedOsDepartaments] = useState([]);
     const [OsDepartaments, setOsDepartaments] = useState([]);
     const location = useLocation();
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
@@ -48,10 +47,6 @@ const OsDepartamentsPage = () => {
         }
     }, [location.state, navigate]);
 
-    const handleClearFilters = useCallback(() => {
-        window.location.reload();
-    }, []);
-
     const loadOsDepartaments = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
@@ -68,6 +63,8 @@ const OsDepartamentsPage = () => {
         }
     }, [fetchAll, itemsPerPage, showLoader, hideLoader]);
 
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useDepartamentsOsFilters(loadOsDepartaments, filters, setFilters);
+
     useEffect(() => {
         loadOsDepartaments();
     }, [itemsPerPage]);
@@ -75,48 +72,6 @@ const OsDepartamentsPage = () => {
     const handleEdit = useCallback((departament) => {
         navigate(`/contratos/ordem-servico/departamentos/editar/${departament.id}`);
     }, [navigate]);
-
-    const handleFilterSubmit = (e) => {
-        e.preventDefault();
-    
-        const selectedIds = buildFilteredArray(selectedOsDepartaments, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedOsDepartaments, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedOsDepartaments, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedOsDepartaments.map((option) => option.column)).size;
-    
-        const previousFilters = filters || {}; 
-    
-        setFilters(prev => ({
-            ...prev,
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-        }));
-    
-        loadOsDepartaments({
-            id: selectedIds,
-            name: selectedNames,
-            idLike: selectedIdLikes,
-            filledInputs,
-            page: 1,
-            deleted_at: previousFilters.deleted_at, 
-        });
-    };
-    
-    const handleChangeCustomers = useCallback((newSelected, column) => {
-        setSelectedOsDepartaments((prev) => {
-            if (!newSelected.length) {
-                return prev.filter((option) => option.column !== column);
-            }
-
-            const newSelectedArray = Array.isArray(newSelected) ? newSelected : [newSelected];
-
-            const filtered = prev.filter((option) => option.column !== column);
-            return [...filtered, ...newSelectedArray];
-        });
-    }, []);
 
     const handleActivate = (departament, action) => {
         setSelectedOsDepartament(departament); 
@@ -185,60 +140,17 @@ const OsDepartamentsPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
+            <PageHeader title="Departamentos de Ordem de Serviço" showBackButton={true} backUrl="/dashboard"/>
             <div className="container-fluid p-1">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1 text-dark">
-                    Departamentos de Ordem de Serviço
-                </div>
+                <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
-                <form className="form-row p-3 mt-2 rounded shadow-sm mb-2" style={{ backgroundColor: '#FFFFFF' }} onSubmit={handleFilterSubmit}>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Número:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="id"
-                            model='serviceOrderDepartament'
-                            value={selectedOsDepartaments.filter((option) => option.column === 'id')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'id')}
-                            onBlurColumn="numberFilter"
-                            placeholder="Filtre os tipos pelo número"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group col-md-6">
-                        <label htmlFor="name" className="text-dark font-weight-bold mt-1">
-                            Nome:
-                        </label>
-                        <AutoCompleteFilter
-                            service={baseService}
-                            columnDataBase="name"
-                            model='serviceOrderDepartament'
-                            value={selectedOsDepartaments.filter((option) => option.column === 'name')}
-                            onChange={(selected) => handleChangeCustomers(selected, 'name')}
-                            onBlurColumn="textFilter"
-                            placeholder="Filtre os tipos pelo nome"
-                            isMulti
-                        />
-                    </div>
-                    <div className="form-group gap-2">
-                        <Button type="submit" text="Filtrar" className="btn btn-blue-light fw-semibold m-1" />
-                        <Button type="button" text="Limpar Filtros" className="btn btn-blue-light fw-semibold m-1" onClick={handleClearFilters} />
-                    </div>
-                </form>
-
-                <div className="form-row mt-4 d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold text-primary text-uppercase mb-1 text-dark d-flex">
-                        Lista de Departamentos de Ordem de Serviço
-                    </div>
-                    {canAccess('Criar departamentos de ordens de serviço') && (
-                        <Button
-                            text="Novo Departamento"
-                            className="btn btn-blue-light fw-semibold"
-                            link="/contratos/ordem-servico/departamentos/criar"
-                        />
-                    )}
-                </div>
+                <ListHeader 
+                    title="Lista de Departamentos de Ordem de Serviço" 
+                    buttonText="Novo Departamento" 
+                    buttonLink='/contratos/ordem-servico/departamentos/criar'
+                    canAccess={canAccess} 
+                    permission="Criar departamentos de ordens de serviço"
+                />
 
                 <DynamicTable
                     headers={headers}
