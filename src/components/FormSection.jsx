@@ -5,7 +5,8 @@ import Button from './Button';
 import DynamicTable from './DynamicTable';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { v4 as uuidv4 } from 'uuid';
-
+import useNotification
+ from '../hooks/useNotification';
 const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date"];
 
 const getFormErrorKey = (sectionFieldId) => {
@@ -39,6 +40,8 @@ const FormSection = ({
     const [viewTable, setViewTable] = useState(false);
     const [headers, setHeaders] = useState([]);
     const [formDataFormated, setFormDatFormated] = useState({});
+    const { showNotification } = useNotification();
+
     useEffect(() => {
         if (section.array) {
             const fields = section.fields;
@@ -134,7 +137,7 @@ const FormSection = ({
         const key = section.fields[0].id.split('.')[0];
         const newFormErrors = {};
         let hasError = false;
-
+        
         section.fields.forEach((field) => {
             if (fieldsData[field.id.split('.')[1]]) {
                 delete formErrors[fieldsData[field.id.split('.')[1]]];
@@ -144,12 +147,12 @@ const FormSection = ({
         section.fields.forEach((field) => {
             const fieldKey = `${key}.0.${field.id.split('.')[1]}`;
             
-            if (!fieldsData[field.id.split('.')[1]] || fieldsData[field.id.split('.')[1]]?.toString().trim() === "") {
+            if (!field.notRequired && (!fieldsData[field.id.split('.')[1]] || fieldsData[field.id.split('.')[1]]?.toString().trim() === "")) {
+                console.log('oi');
                 hasError = true;
                 newFormErrors[fieldKey] = `O campo ${field.label} é obrigatório.`;
             }
         });
-    
         if (hasError) {
             setFormErrors((prev) => ({
                 ...prev,
@@ -187,16 +190,18 @@ const FormSection = ({
         }
 
         fieldsData.id = uuidv4();
-
-        setFormData((prev) => ({
-            ...prev,
-            [key]: [
-                ...prev[key],
-                fieldsData
-            ],
-        }));
-    
+        if(key && formData) {
+            setFormData((prev) => ({
+                ...prev,
+                [key]: [
+                    ...prev[key],
+                    fieldsData
+                ],
+            }));
+        }
         setFieldsData({});
+
+        showNotification('success', 'Dados adicionados na tabela')
     };
     
     const handleArrayFieldChange = (fieldId, value, field) => {

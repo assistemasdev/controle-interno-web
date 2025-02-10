@@ -14,7 +14,7 @@ const baseService = {
             perPage: data.perPage,
         }, { encode: false });
 
-        return request("get", `${url}/?${query}`, {}, navigate);
+        return request("get", `${url}/${query? '?'+query : ''}`, {}, navigate);
     },
 
     async getByColumn(url, navigate = null) {

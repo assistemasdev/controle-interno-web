@@ -4,7 +4,7 @@ import MainLayout from '../../layouts/MainLayout';
 import Button from '../../components/Button';
 import '../../assets/styles/custom-styles.css';
 import DynamicTable from '../../components/DynamicTable';
-import { faEdit, faTrash, faEye, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faMapMarkerAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PAGINATION } from '../../constants/pagination';
@@ -128,7 +128,7 @@ const OrganizationDetailsPage = () => {
         },
         {
             id:'activate',
-            icon: faMapMarkerAlt,
+            icon: faUndo,
             title: 'Ativar Endereço',
             buttonClass: 'btn-success',
             permission: 'Ativar endereço da organização',

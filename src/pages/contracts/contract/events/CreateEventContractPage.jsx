@@ -22,13 +22,13 @@ const CreateEventContractPage = () => {
         post: createContractEvent, 
         formErrors, 
         setFormErrors
-
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(eventFields));
     const [types, setTypes] = useState([]);
     const { id } = useParams();
-    
+    const [allFieldsData, setAllFieldsData] = useState([])
+
     useEffect(() => {
         setFormData(prev => ({
             ...prev,
@@ -140,6 +140,8 @@ const CreateEventContractPage = () => {
                                 getSelectedValue={getSelectedValue}
                                 formErrors={formErrors}
                                 setFormErrors={setFormErrors}
+                                allFieldsData={allFieldsData}
+                                setAllFieldsData={setAllFieldsData}
                             />
                         ))
                     }

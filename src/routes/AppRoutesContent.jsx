@@ -131,6 +131,13 @@ import DetailsContractOsPage from "../pages/contracts/contract/orderService/Deta
 import DetailsContractOsItensPage from "../pages/contracts/contract/orderService/itensOs/DetailsContractOsItensPage";
 import EditContractOsItemPage from "../pages/contracts/contract/orderService/itensOs/EditContractOsItemPage";
 import CreateContractOsItemPage from "../pages/contracts/contract/orderService/itensOs/CreateContractOsItemPage";
+import MovementsPage from "../pages/Movements/MovementsPage";
+import CreateMovementPage from "../pages/Movements/CreateMovementPage";
+import EditMovementPage from "../pages/Movements/EditMovementPage";
+import DetailsMovementPage from "../pages/Movements/DetailsMovementPage";
+import CreateMovementItemPage from "../pages/Movements/Items/CreateMovementItemPage";
+import EditMovementItemPage from "../pages/Movements/Items/EditMovementItemPage";
+import DetailsMovementItemPage from "../pages/Movements/Items/DetailsMovementItemPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -559,6 +566,37 @@ const AppRoutesContent = () => {
         }
     ];
 
+    const movementsRoutes = [
+        {
+            path: "/movimentos",
+            element: <PrivateRoute element={MovementsPage} />,
+        },
+        {
+            path: "/movimentos/criar",
+            element: <PrivateRoute element={CreateMovementPage} />,
+        },
+        {
+            path: "/movimentos/editar/:id",
+            element: <PrivateRoute element={EditMovementPage}/>
+        },
+        {
+            path: "/movimentos/detalhes/:id",
+            element: <PrivateRoute element={DetailsMovementPage}/>
+        },
+        {
+            path: "/movimentos/detalhes/:id/produtos/adicionar/:orderServiceId",
+            element: <PrivateRoute element={CreateMovementItemPage}/>
+        },
+        {
+            path: "/movimentos/detalhes/:id/produtos/editar/:movementProductId/:orderServiceId",
+            element: <PrivateRoute element={EditMovementItemPage}/>
+        },
+        {
+            path: "/movimentos/detalhes/:id/produtos/detalhes/:movementProductId/",
+            element: <PrivateRoute element={DetailsMovementItemPage}/>
+        }
+    ];
+
     const otherRoutes = [
         {
             path: "/dashboard",
@@ -664,6 +702,10 @@ const AppRoutesContent = () => {
         ))}
 
         {contractRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
+        {movementsRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}
 
