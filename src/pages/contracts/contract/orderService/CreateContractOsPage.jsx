@@ -62,16 +62,16 @@ const CreateContractOsPage = () => {
                 productsResponse,
                 contractResponse
             ] = await Promise.all([
-                fetchOsStatus(entities.orders.status.get()),
-                fetchOsDepartaments(entities.orders.departaments.get()),
-                fetchOsDestinations(entities.orders.destinations.get()),
-                fetcOsTypesItem(entities.orders.itemsTypes.get()),
-                fetchProducts(entities.products.get),
-                fetchContractById(entities.contracts.getByColumn(id))
+                fetchOsStatus(entities.orders.status.get(), {deleted_at: false}),
+                fetchOsDepartaments(entities.orders.departaments.get(), {deleted_at: false}),
+                fetchOsDestinations(entities.orders.destinations.get(), {deleted_at: false}),
+                fetcOsTypesItem(entities.orders.itemsTypes.get(), {deleted_at: false}),
+                fetchProducts(entities.products.get, {deleted_at: false}),
+                fetchContractById(entities.contracts.getByColumn(id), {deleted_at: false})
             ])
     
             const [addressesResponse] = await Promise.all([
-                fetchAddressCustomer(entities.customers.addresses.get(contractResponse.result.customer_id))
+                fetchAddressCustomer(entities.customers.addresses.get(contractResponse.result.customer_id), {deleted_at: false})
             ])
 
             setContract(contractResponse.result);
@@ -149,7 +149,7 @@ const CreateContractOsPage = () => {
         try {
             showLoader()
             if (allFieldsData?.items?.address_id) {
-                const response = await fetchLocationsCustomer(entities.customers.addresses.locations(contract.customer_id).get(allFieldsData?.items?.address_id?.value));
+                const response = await fetchLocationsCustomer(entities.customers.addresses.locations(contract.customer_id).get(allFieldsData?.items?.address_id?.value), {deleted_at: false});
                 setLocations(response.result.data.map((location) => ({
                     label: `${location.area}, ${location.section} - ${location.spot}`,
                     value: location.id

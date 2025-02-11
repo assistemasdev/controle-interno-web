@@ -7,13 +7,25 @@ const baseService = {
         return request("get", `/a/${entity}`, params, navigate);
     },
 
-    async get(url, data, navigate = null) {
+    async get(url, data, entity = null, navigate = null) {
+        let filters = buildDynamicFilters(data);
+        if (entity) {
+            try {
+                const module = await import(`../utils/filters/${entity}Filters.js`);
+                if (module.default) {
+                    filters = module.default(data);
+                }
+            } catch (error) {
+                console.warn(`Nenhum filtro específico encontrado para ${entity}, usando filtro padrão.`);
+            }
+        }
+
         const query = qs.stringify({
-            filters: buildDynamicFilters(data),
+            filters,
             page: data.page,
             perPage: data.perPage,
         }, { encode: false });
-
+        
         return request("get", `${url}/${query? '?'+query : ''}`, {}, navigate);
     },
 

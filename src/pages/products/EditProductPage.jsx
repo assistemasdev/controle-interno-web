@@ -223,10 +223,22 @@ const EditProductPage = () => {
         try {
             showLoader();
             const response = await fetchOrganizationLocations(entities.organizations.addresses.locations(organizationId).get(addressId));
-            const locationsFormatted = response.result.data.map(location => ({
-                value: location.id,
-                label: `${location.area}, ${location.section} - ${location.spot}`
-            }));
+            const locationsFormatted = response.result.data.map(location => {
+                const parts = [location.area];
+            
+                if (location.section) {
+                    parts.push(location.section);
+                }
+            
+                if (location.spot) {
+                    parts.push(`- ${location.spot}`);
+                }
+            
+                return {
+                    value: location.id,
+                    label: parts.join(', ')
+                };
+            });
             setLocations(locationsFormatted);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar localizações';

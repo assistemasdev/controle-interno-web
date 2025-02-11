@@ -41,10 +41,10 @@ const CreateContractPage = () => {
                     customersResponse,
                     statusResponse
                 ] = await Promise.all([
-                    fetchOrganizations(entities.organizations.get),
-                    fetchContractTypes(entities.contracts.types.get()),
-                    fetchCustomers(entities.customers.get),
-                    fetchStatus(entities.contracts.status.get())
+                    fetchOrganizations(entities.organizations.get, {deleted_at: false}),
+                    fetchContractTypes(entities.contracts.types.get(), {deleted_at: false}),
+                    fetchCustomers(entities.customers.get, {deleted_at: false}),
+                    fetchStatus(entities.contracts.status.get(), {deleted_at: false})
                 ]);
 
                 setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));

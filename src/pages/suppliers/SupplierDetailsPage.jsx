@@ -18,7 +18,7 @@ import { entities } from '../../constants/entities';
 import useAction from '../../hooks/useAction';
 import PageHeader from '../../components/PageHeader';
 import ListHeader from '../../components/ListHeader';
-
+import { maskCep, maskCpfCnpj} from '../../utils/maskUtils';
 const SupplierDetailsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -30,7 +30,7 @@ const SupplierDetailsPage = () => {
         get: fetchAllAddresses, 
         get: fetchAllContacts, 
     } = useBaseService(navigate);
-    const { formData, formatData } = useForm(setDefaultFieldValues(supplierFields));
+    const { formData, formatData, setFormData } = useForm(setDefaultFieldValues(supplierFields));
     const [addresses, setAddresses] = useState([]);
     const [contacts, setContacts] = useState([]);
     const [currentPageAddress, setCurrentPageAddress] = useState(PAGINATION.DEFAULT_PAGE);
@@ -72,6 +72,10 @@ const SupplierDetailsPage = () => {
         try {
             const supplier = await fetchById(entities.suppliers.getByColumn(id));
             formatData(supplier.result, supplierFields);
+            setFormData((prev) => ({
+                ...prev,
+                cpf_cnpj: maskCpfCnpj(supplier.result.cpf_cnpj)
+            }))
             fetchAddress()
             fetchContacts();
         } catch (error) {
@@ -88,7 +92,7 @@ const SupplierDetailsPage = () => {
             
             setAddresses(addressesResponse.result.data.map((address) => ({
                 id: address.id,
-                zip: address.zip,
+                zip: maskCep(address.zip),
                 street: address.street,
                 deleted_at: address.deleted_at ? 'deleted-' + address.deleted_at : 'deleted-null'
             })));

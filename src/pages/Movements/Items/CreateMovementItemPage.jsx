@@ -49,10 +49,10 @@ const CreateMovementItemPage = () => {
                     typesItemsOsResponse,
                     response,
                 ] = await Promise.all([
-                    fetchOrganizations(entities.organizations.get),
-                    fetchProducts(entities.products.get),
-                    fetchTypesItemsOs(entities.orders.itemsTypes.get()),
-                    fetchItemsOrdersServices(entities.orders.items.get(orderServiceId))
+                    fetchOrganizations(entities.organizations.get, {deleted_at: false}),
+                    fetchProducts(entities.products.get, {deleted_at: false}),
+                    fetchTypesItemsOs(entities.orders.itemsTypes.get(), {deleted_at: false}),
+                    fetchItemsOrdersServices(entities.orders.items.get(orderServiceId), {deleted_at: false})
                 ]);
 
                 setItemsOrdersServices(response.result.data.map(orderItemService => ({ value: orderItemService.id, label: orderItemService.id })))

@@ -32,8 +32,8 @@ const AttachGroupToTypePage = () => {
         try {
             showLoader();
             const [typeGroups, allGroups] = await Promise.all([
-                fetchTypeGroups(entities.types.groups.get(id)),
-                fetchAll(entities.groups.get),
+                fetchTypeGroups(entities.types.groups.get(id), {deleted_at: false}),
+                fetchAll(entities.groups.get, {deleted_at: false}),
             ]);
             setFormData({
                 groups: typeGroups.result.map((group) => group.id),

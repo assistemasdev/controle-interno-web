@@ -235,6 +235,29 @@ export const detailsProductFields = [
         ],
     },
     {
+        section: "Localização",
+        fields: [
+            { 
+                id: "product.address_id", 
+                label: "Endereço", 
+                isMulti: false,
+                type: "text", 
+                placeholder: "Selecione um endereço", 
+                handleChange: "handleAddressChange",
+                icon: faMapMarkerAlt
+            },
+            { 
+                id: "product.location_id", 
+                label: "Localização", 
+                isMulti: false,
+                type: "text", 
+                placeholder: "Selecione uma localização", 
+                handleChange: "handleChange",
+                icon: faMapPin
+            },
+        ],
+    },
+    {
         section: "Classificação do Produto",
         fields: [
             { 

@@ -29,6 +29,7 @@ export const customerFields = [
                 type: 'text',
                 placeholder: 'Digite o CPF ou CNPJ',
                 required: true,
+                fullWidth: true,
                 icon: faIdCard,
             },
         ],

@@ -29,7 +29,7 @@ const CreateRolePage = () => {
 
     const fetchPermissions = async () => {
         try {
-            const response = await getPermissions(entities.permissions.get);
+            const response = await getPermissions(entities.permissions.get, {deleted_at: false});
             const formattedPermissions = response.result.data.map(permission => ({
                 value: permission.id,
                 label: permission.name

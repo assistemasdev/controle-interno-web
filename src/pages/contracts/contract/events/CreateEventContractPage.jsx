@@ -42,7 +42,7 @@ const CreateEventContractPage = () => {
                 const [
                     typesResponse,
                 ] = await Promise.all([
-                    fetchEventTypes(entities.contracts.eventsTypes.get()),
+                    fetchEventTypes(entities.contracts.eventsTypes.get(), {deleted_at: false}),
                 ]);
                 setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
             } catch (error) {

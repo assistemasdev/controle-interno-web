@@ -38,6 +38,10 @@ const CreateMovementPage = () => {
     const [itemsOrdersServices, setItemsOrdersServices] = useState([]);
     const [allFieldsData, setAllFieldsData] = useState({});
     
+    const mapCustomers = useCallback((customers) => {
+        return Object.fromEntries(customers.map((customer) => [customer.id, customer.name]));
+    }, []);
+
     useEffect(() => {
         setFormData(prev => ({
             ...prev,
@@ -50,22 +54,20 @@ const CreateMovementPage = () => {
                 const [
                     organizationsResponse,
                     customersResponse,
-                    productsResponse,
                     typesItemsOsResponse,
                     ordersServicesResponse                
                 ] = await Promise.all([
-                    fetchOrganizations(entities.organizations.get),
-                    fetchCustomers(entities.customers.get),
-                    fetchProducts(entities.products.get),
-                    fetchTypesItemsOs(entities.orders.itemsTypes.get()),
-                    fetchOrdersServices(entities.orders.get),
+                    fetchOrganizations(entities.organizations.get, {deleted_at: false}),
+                    fetchCustomers(entities.customers.get, {deleted_at: false}),
+                    fetchTypesItemsOs(entities.orders.itemsTypes.get(), {deleted_at: false}),
+                    fetchOrdersServices(entities.orders.get, {deleted_at: false}),
                 ]);
-                
+
                 setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
                 setCustomers(customersResponse.result.data.map(customer => ({ value: customer.id, label: customer.name })));
-                setProducts(productsResponse.result.data.map(product => ({ value: product.id, label: product.name })));
-                setTypesItemsOs(typesItemsOsResponse.result.data.map(typeItemOs => ({ value: typeItemOs.id, label: typeItemOs.name })))
-                setOrdersServices(ordersServicesResponse.result.data.map(orderService => ({ value: orderService.id, label: orderService.id })))
+                setTypesItemsOs(typesItemsOsResponse.result.data.map(typeItemOs => ({ value: typeItemOs.id, label: typeItemOs.name })));
+                setOrdersServices(ordersServicesResponse.result.data.map(orderService => ({ value: orderService.id, label: orderService.id })));
+                fetchProductsData();
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
                 showNotification('error', errorMessage);
@@ -77,11 +79,33 @@ const CreateMovementPage = () => {
         fetchData();
     }, []);
 
+    const fetchProductsData = async () => {
+        try {
+            showLoader();
+            const response = await fetchProducts(entities.products.get, {status_id: 1, deleted_at: false}, 'product')
+            let filteredProducts = response.result.data;
+            if (formData.items.length > 0) {
+                filteredProducts = response.result.data.filter(product =>
+                    !formData.items.some(item => item.product_id.value == product.id)
+                );
+            }
+            setProducts(filteredProducts.map(product => ({ value: product.id, label: `${product.number} - ${product.name}` }))); 
+        } catch (error) {
+            console.log(error)
+        } finally {
+            hideLoader();
+        }
+    }
+
+    useEffect(() => {
+        fetchProductsData()
+    }, [formData.items])
+
     const fetchItemsOs = async () => {
         try {
             showLoader();
             if(formData.movement.service_order_id) {
-                const response = await fetchItemsOrdersServices(entities.orders.items.get(formData.movement.service_order_id))
+                const response = await fetchItemsOrdersServices(entities.orders.items.get(formData.movement.service_order_id), {deleted_at: false})
                 setItemsOrdersServices(response.result.data.map(orderItemService => ({ value: orderItemService.id, label: orderItemService.id })))
             }
         } catch (error) {
@@ -134,7 +158,7 @@ const CreateMovementPage = () => {
         try {
             const transformedData = {
                 ...formData,
-                items: transformValues(formData.items.map((item) => removeEmptyValues(item)))
+                items: transformValues(Array.isArray(formData.items)? formData.items.map((item) => removeEmptyValues(item)) : [])
             }
             const success = await create(entities.movements.create, transformedData);
             if (success) {

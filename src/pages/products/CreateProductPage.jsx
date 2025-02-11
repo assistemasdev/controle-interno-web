@@ -41,9 +41,6 @@ const CreateProductPage = () => {
     const [selectedOrganizationId, setSelectedOrganizationId] = useState();
 
     useEffect(() => {
-    }, [selectedOrganizationId]);
-
-    useEffect(() => {
         const fetchData = async () => {
             try {
                 showLoader();
@@ -54,11 +51,11 @@ const CreateProductPage = () => {
                     categoriesResponse,
                     typesResponse,
                 ] = await Promise.all([
-                    fetchOrganizations(entities.organizations.get),
-                    fetchSuppliers(entities.suppliers.get),
-                    fetchConditions(entities.conditions.get),
-                    fetchCategories(entities.categories.get),
-                    fetchTypes(entities.types.get),
+                    fetchOrganizations(entities.organizations.get, {deleted_at: false}),
+                    fetchSuppliers(entities.suppliers.get, {deleted_at: false}),
+                    fetchConditions(entities.conditions.get, {deleted_at: false}),
+                    fetchCategories(entities.categories.get, {deleted_at: false}),
+                    fetchTypes(entities.types.get, {deleted_at: false}),
                 ]);
 
                 setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
@@ -148,7 +145,7 @@ const CreateProductPage = () => {
     
         try {
             showLoader(true);
-            const response = await fetchTypeGroups(entities.types.groups.get(selectedTypeId));
+            const response = await fetchTypeGroups(entities.types.groups.get(selectedTypeId), {deleted_at: false});
             const groupsFormatted = response.result.map((group) => ({
                 value: group.id,
                 label: group.name,
@@ -166,7 +163,7 @@ const CreateProductPage = () => {
     const fetchAddresses = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchOrganizationAddresses(entities.organizations.addresses.get(selectedOrganizationId));
+            const response = await fetchOrganizationAddresses(entities.organizations.addresses.get(selectedOrganizationId), {deleted_at: false});
             const addressesFormatted = response.result.data.map((address) => ({
                 value: address.id,
                 label: `${address.street}, ${address.city} - ${address.state}`,
@@ -183,11 +180,23 @@ const CreateProductPage = () => {
     const fetchLocations = async (organizationId, addressId) => {
         try {
             showLoader();
-            const response = await fetchOrganizationLocations(entities.organizations.addresses.locations(organizationId).get(addressId));
-            const locationsFormatted = response.result.data.map(location => ({
-                value: location.id,
-                label: `${location.area}, ${location.section} - ${location.spot}`
-            }));
+            const response = await fetchOrganizationLocations(entities.organizations.addresses.locations(organizationId).get(addressId), {deleted_at: false});
+            const locationsFormatted = response.result.data.map(location => {
+                const parts = [location.area];
+            
+                if (location.section) {
+                    parts.push(location.section);
+                }
+            
+                if (location.spot) {
+                    parts.push(`- ${location.spot}`);
+                }
+            
+                return {
+                    value: location.id,
+                    label: parts.join(', ')
+                };
+            });
             setLocations(locationsFormatted);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || 'Erro ao carregar localizações';

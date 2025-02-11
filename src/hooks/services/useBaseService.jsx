@@ -36,8 +36,8 @@ const useBaseService = (navigate) => {
     );
 
     const get = useCallback(
-        async (url, params = {}) => handleRequest(
-            () => baseService.get(url, params, navigate),
+        async (url, params = {}, entity = null) => handleRequest(
+            () => baseService.get(url, params, entity, navigate),
             null,
             'Erro ao buscar os dados.'
         ),

@@ -46,14 +46,14 @@ const CreateContractOsItemPage = () => {
                 osItemsTypesResponse,
                 contractResponse
             ] = await Promise.all([
-                fetchProducts(entities.products.get),
-                fetchOsItemsTypes(entities.orders.itemsTypes.get()),
-                fetchContractById(entities.contracts.getByColumn(id))
+                fetchProducts(entities.products.get, {deleted_at: false}),
+                fetchOsItemsTypes(entities.orders.itemsTypes.get(), {deleted_at: false}),
+                fetchContractById(entities.contracts.getByColumn(id), {deleted_at: false})
             ])
 
             setContract(contractResponse.result);
 
-            const addressResponse = await fetchAddress(entities.customers.addresses.get(contractResponse.result.customer_id))
+            const addressResponse = await fetchAddress(entities.customers.addresses.get(contractResponse.result.customer_id), {deleted_at: false})
 
             setProducts(productsResponse.result.data.map((product) => ({
                 label: product.name,
@@ -91,7 +91,6 @@ const CreateContractOsItemPage = () => {
         }));
     
         if (selectedAddressId) {
-            console.log(selectedAddressId, contract.customer_id)
             fetchLocationsData(contract.customer_id, selectedAddressId);
         } else {
             setLocations([]);
@@ -102,7 +101,7 @@ const CreateContractOsItemPage = () => {
         try {
             showLoader()
 
-            const response = await fetchLocations(entities.customers.addresses.locations(customerId).get(addressId));
+            const response = await fetchLocations(entities.customers.addresses.locations(customerId).get(addressId), {deleted_at: false});
             setLocations(response.result.data.map((location) => ({
                 value: location.id,
                 label: `${location.area}, ${location.section} - ${location.spot}`
