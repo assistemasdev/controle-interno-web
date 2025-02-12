@@ -21,6 +21,10 @@ export const movementFields = [
                 label: "Ordem de Serviço", 
                 type: "multi-select", 
                 placeholder: "Selecione a Ordem de Serviço",
+                entity: 'serviceOrder',
+                column: 'id',
+                columnLabel: 'id',
+                columnDetails: null,
                 icon: faTools
             },
             { 
@@ -28,6 +32,10 @@ export const movementFields = [
                 label: "Cliente", 
                 type: "multi-select", 
                 placeholder: "Selecione o cliente",
+                entity: 'customer',
+                column: 'id',
+                columnLabel: 'id',
+                columnDetails: 'name',
                 icon: faUser
             },
             { 
@@ -35,6 +43,10 @@ export const movementFields = [
                 label: "Organização", 
                 type: "multi-select", 
                 placeholder: "Selecione a organização",
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
+                columnDetails: null,
                 icon: faBuilding,
             },
         ],
@@ -49,6 +61,9 @@ export const movementFields = [
                 label: "Tipo de Item de Ordem de Serviço", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo",
+                entity: 'serviceOrderItemType',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faTools
             },
             { 
@@ -63,6 +78,10 @@ export const movementFields = [
                 label: "Produto", 
                 type: "multi-select", 
                 placeholder: "Selecione o Produto",
+                entity: 'product',
+                column: 'id',
+                columnLabel: 'number',
+                columnDetails: 'name',
                 icon: faBoxOpen
             },
             { 
@@ -77,6 +96,10 @@ export const movementFields = [
                 label: "Organização Antiga", 
                 type: "multi-select", 
                 placeholder: "Selecione a Organização Antiga",
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
+                columnDetails: null,
                 notRequired: true,
                 icon: faBuilding
             },
@@ -85,6 +108,10 @@ export const movementFields = [
                 label: "Organização Nova", 
                 type: "multi-select", 
                 placeholder: "Selecione a Organização Nova",
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
+                columnDetails: null,
                 notRequired: true,
                 icon: faBuilding
             },

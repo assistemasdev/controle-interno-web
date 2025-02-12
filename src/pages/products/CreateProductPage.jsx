@@ -17,81 +17,26 @@ const CreateProductPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { 
-        get: fetchOrganizations,
         get: fetchOrganizationLocations,
-        get: fetchConditions,
-        get: fetchCategories,
-        get: fetchSuppliers,
-        get: fetchTypes,
         get: fetchOrganizationAddresses,
         get: fetchTypeGroups,
         post: create,
         formErrors
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const [suppliers, setSuppliers] = useState();
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(productFields));
-    const [organizations, setOrganizations] = useState([]);
-    const [types, setTypes] = useState([]);
-    const [conditions, setConditions] = useState([]);
-    const [categories, setCategories] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
     const [selectedOrganizationId, setSelectedOrganizationId] = useState();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                showLoader();
-                const [
-                    organizationsResponse,
-                    suppliersResponse,
-                    conditionsResponse,
-                    categoriesResponse,
-                    typesResponse,
-                ] = await Promise.all([
-                    fetchOrganizations(entities.organizations.get, {deleted_at: false}),
-                    fetchSuppliers(entities.suppliers.get, {deleted_at: false}),
-                    fetchConditions(entities.conditions.get, {deleted_at: false}),
-                    fetchCategories(entities.categories.get, {deleted_at: false}),
-                    fetchTypes(entities.types.get, {deleted_at: false}),
-                ]);
-
-                setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
-                setSuppliers(suppliersResponse.result.data.map(supplier => ({ value: supplier.id, label: supplier.name })));
-                setConditions(conditionsResponse.result.data.map(condition => ({ value: condition.id, label: condition.name })));
-                setCategories(categoriesResponse.result.data.map(category => ({ value: category.id, label: category.name })));
-                setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
-            } catch (error) {
-                const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
-                showNotification('error', errorMessage);
-                console.error('Erro no carregamento dos dados:', error);
-            } finally {
-                hideLoader();
-            }
-        };
-        fetchData();
-    }, []);
-
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "product.current_organization_id":
-            case "product.owner_organization_id":
-                return organizations || [];
-            case "product.supplier_id":
-                return suppliers || [];
-            case "product.condition_id":
-                return conditions || [];
-            case "product.category_id":
-                return categories || [];
-            case "product.type_id":
-                return types || [];
             case "product.address_id":
                 return addresses || [];
             case "product.location_id":
                 return locations || [];
-            case "groups":
+            case 'groups':
                 return groups || [];
             default:
                 return [];
@@ -260,7 +205,6 @@ const CreateProductPage = () => {
     
     const handleFieldChange = useCallback((fieldId, value, field) => {
         handleChange(fieldId, value);
-    
         if (field.handleChange) {
             switch (field.handleChange) {
                 case "handleOrganizationChange":

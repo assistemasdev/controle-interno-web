@@ -67,6 +67,9 @@ export const osItemFields = [
                 label: "Tipo de Item de OS", 
                 type: "multi-select", 
                 placeholder:'Selecione o tipo',
+                entity: 'serviceOrderItemType',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faTags
             },
             { 
@@ -74,6 +77,10 @@ export const osItemFields = [
                 label: "Produto", 
                 type: "multi-select", 
                 placeholder:'Selecione o produto',
+                entity: 'product',
+                column: 'id',
+                columnLabel: 'number',
+                columnDetails: 'name',
                 icon: faCogs
             },
             { 

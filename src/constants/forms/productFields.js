@@ -59,6 +59,9 @@ export const productFields = [
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione a organização", 
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
                 handleChange: "handleOrganizationChange",
                 icon: faBuilding
             },
@@ -68,6 +71,9 @@ export const productFields = [
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione a organização", 
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
                 handleChange: "handleChange",
                 icon: faIndustry
             },
@@ -77,6 +83,9 @@ export const productFields = [
                 isMulti: false, 
                 type: "select", 
                 placeholder: "Selecione o fornecedor", 
+                entity: 'supplier',
+                column: 'id',
+                columnLabel: 'name',
                 handleChange: "handleChange" ,
                 fullWidth: true,
                 icon: faIndustry
@@ -116,6 +125,9 @@ export const productFields = [
                 type: "select", 
                 placeholder: "Selecione a condição", 
                 handleChange: "handleChange",
+                entity: 'condition',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faClipboardCheck
             },
             { 
@@ -123,7 +135,10 @@ export const productFields = [
                 label: "Tipo", 
                 isMulti: false,
                 type: "select", 
-                placeholder: "Selecione o tipo", 
+                placeholder: "Selecione o tipo",
+                entity: 'type',
+                column: 'id',
+                columnLabel: 'name', 
                 handleChange: "handleTypeChange",
                 icon: faList
             },
@@ -133,6 +148,9 @@ export const productFields = [
                 isMulti: false,
                 type: "select", 
                 placeholder: "Selecione a categoria", 
+                entity: 'category',
+                column: 'id',
+                columnLabel: 'name',
                 handleChange: "handleChange",
                 fullWidth: true,
                 icon: faClipboardList

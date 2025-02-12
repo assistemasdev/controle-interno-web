@@ -13,6 +13,9 @@ export const movementItemFields = [
                 label: "Tipo de Item de Ordem de Serviço", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo",
+                entity: 'serviceOrderItemType',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faTools
             },
             { 
@@ -27,6 +30,10 @@ export const movementItemFields = [
                 label: "Produto", 
                 type: "multi-select", 
                 placeholder: "Selecione o Produto",
+                entity: 'product',
+                column: 'id',
+                columnLabel: 'number',
+                columnDetails: 'name',
                 icon: faBoxOpen
             },
             { 
@@ -41,6 +48,9 @@ export const movementItemFields = [
                 label: "Organização Antiga", 
                 type: "multi-select", 
                 placeholder: "Selecione a Organização Antiga",
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
                 notRequired: true,
                 icon: faBuilding
             },
@@ -49,14 +59,15 @@ export const movementItemFields = [
                 label: "Organização Nova", 
                 type: "multi-select", 
                 placeholder: "Selecione a Organização Nova",
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
                 notRequired: true,
                 icon: faBuilding
             },
         ]
     },
 ]
-
-
 
 export const detailsMovementItemFields = [
     {

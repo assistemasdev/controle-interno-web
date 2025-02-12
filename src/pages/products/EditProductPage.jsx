@@ -17,15 +17,10 @@ const EditProductPage = () => {
     const { id } = useParams();
     const { showNotification } = useNotification();
     const { 
-        get: fetchOrganizations,
         get: fetchProductGroups,
         get: fetchOrganizationLocations,
         get: fetchTypeGroups,
-        get: fetchConditions,
-        get: fetchCategories,
-        get: fetchSuppliers,
         get: fetchOrganizationAddresses,
-        get: fetchTypes,
         getByColumn: fetchById,
         put: update,
         formErrors
@@ -39,11 +34,6 @@ const EditProductPage = () => {
         initializeData,
         formatData
     } = useForm(setDefaultFieldValues(productFields));
-    const [organizations, setOrganizations] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
-    const [conditions, setConditions] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [types, setTypes] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
@@ -57,40 +47,12 @@ const EditProductPage = () => {
             try {
                 const [
                     product,
-                    orgResponse,
-                    suppliersResponse,
-                    conditionResponse,
-                    categoryResponse,
-                    typeResponse,
                     productGroups
                 ] = await Promise.all([
                     fetchById(entities.products.getByColumn(id)),
-                    fetchOrganizations(entities.organizations.get),
-                    fetchSuppliers(entities.suppliers.get),
-                    fetchConditions(entities.conditions.get),
-                    fetchCategories(entities.categories.get),
-                    fetchTypes(entities.types.get),
                     fetchProductGroups(entities.products.groups.get(id))
                 ]);
 
-                setOrganizations(orgResponse.result.data.map((org) => ({ value: org.id, label: org.name })));
-
-                setSuppliers(suppliersResponse.result.data.map((supplier) => ({
-                    value: supplier.id,
-                    label: supplier.name,
-                })));
-                setConditions(conditionResponse.result.data.map((condition) => ({
-                    value: condition.id,
-                    label: condition.name,
-                })));
-                setCategories(categoryResponse.result.data.map((category) => ({
-                    value: category.id,
-                    label: category.name,
-                })));
-                setTypes(typeResponse.result.data.map((type) => ({
-                    value: type.id,
-                    label: type.name,
-                })));
                 setGroups(productGroups.result.map((group) => ({
                     value: group.id,
                     label: group.name,
@@ -168,17 +130,6 @@ const EditProductPage = () => {
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case 'product.current_organization_id':
-            case 'product.owner_organization_id':
-                return organizations;
-            case 'product.supplier_id':
-                return suppliers;
-            case 'product.condition_id':
-                return conditions;
-            case 'product.category_id':
-                return categories;
-            case 'product.type_id':
-                return types;
             case 'product.address_id':
                 return addresses;
             case 'product.location_id':

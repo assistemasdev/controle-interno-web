@@ -25,7 +25,6 @@ const DetailsMovementPage = () => {
     const { id } = useParams();
     const { canAccess } = usePermissions();
     const { showLoader, hideLoader } = useLoader();
-    const { showNotification } = useNotification();
     const { 
         getByColumn: fetchById,
         getByColumn: fetchCustomerById,
@@ -97,8 +96,10 @@ const DetailsMovementPage = () => {
                 movement_date: response.result.movement_date.split(" ")[0]
             }))
             setProducts(responseProducts.result.data);
-            const productsMap = mapProducts(responseProducts.result.data)
+            const productsMap = mapProducts(responseProducts.result.data)            
             fetchMovementsItemsData(null, productsMap)
+            setCurrentPage(response.result.current_page);
+            setTotalPages(response.result.last_page);
         } catch (error) {
             console.log(error)
         } finally {

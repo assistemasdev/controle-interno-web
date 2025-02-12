@@ -9,12 +9,18 @@ export const orderServiceFields = [
                 label: "Status de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o status", 
+                entity: 'serviceOrderStatus',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faClipboardCheck
             },
             { 
                 id: "order.departament_id", 
                 label: "Departamento de OS", 
                 type: "multi-select", 
+                entity: 'serviceOrderDepartament',
+                column: 'id',
+                columnLabel: 'name',
                 placeholder: "Selecione o departamento", 
                 icon: faClipboardCheck
             },
@@ -22,6 +28,9 @@ export const orderServiceFields = [
                 id: "order.destination_id", 
                 label: "Destino de OS", 
                 type: "multi-select", 
+                entity: 'serviceOrderDestination',
+                column: 'id',
+                columnLabel: 'name',
                 placeholder: "Selecione o destino", 
                 icon: faMapMarkerAlt
             },
@@ -51,6 +60,9 @@ export const orderServiceFields = [
                 label: "Tipo de Item de OS", 
                 type: "multi-select", 
                 placeholder:"Digite a Descrição",
+                entity: 'serviceOrderItemType',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faClipboardCheck
             },
             { 
@@ -65,6 +77,10 @@ export const orderServiceFields = [
                 label: "Produto", 
                 type: "multi-select", 
                 placeholder:"Digite a Descrição",
+                entity: 'product',
+                column: 'id',
+                columnLabel: 'number',
+                columnDetails: 'name',
                 icon: faBoxOpen
             },
             { 
@@ -156,6 +172,9 @@ export const editOrderServiceFields = [
                 label: "Status de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o status", 
+                entity: 'serviceOrderStatus',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faClipboardCheck
             },
             { 
@@ -163,12 +182,18 @@ export const editOrderServiceFields = [
                 label: "Departamento de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o departamento", 
+                entity: 'serviceOrderDepartament',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faClipboardCheck
             },
             { 
                 id: "destination_id", 
                 label: "Destino de OS", 
                 type: "multi-select", 
+                entity: 'serviceOrderDestination',
+                column: 'id',
+                columnLabel: 'name',
                 placeholder: "Selecione o destino", 
                 icon: faMapMarkerAlt
             },

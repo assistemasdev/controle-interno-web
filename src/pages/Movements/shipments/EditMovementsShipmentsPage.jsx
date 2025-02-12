@@ -7,43 +7,31 @@ import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import Form from '../../../components/Form'; 
 import FormSection from '../../../components/FormSection';
-import { movementItemFields } from "../../../constants/forms/movementItemFields";
-import { removeEmptyValues, setDefaultFieldValues } from '../../../utils/objectUtils';
+import { editMovementsFields } from "../../../constants/forms/shipmentFields";
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
 
-const CreateMovementItemPage = () => {
-    const { id,orderServiceId} = useParams();
+const EditMovementsShipmentsPage = () => {
+    const { id, shipmentId } = useParams();
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { 
-        post: create, 
-        get: fetchItemsOrdersServices,
+        put: update, 
+        getByColumn: fetchById,
         formErrors,
         setFormErrors
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const { formData, handleChange, resetForm, setFormData } = useForm(setDefaultFieldValues(movementItemFields));
-    const [itemsOrdersServices, setItemsOrdersServices] = useState([]);
-    const [allFieldsData, setAllFieldsData] = useState({});
+    const { formData, handleChange, resetForm, setFormData, formatData } = useForm(setDefaultFieldValues(editMovementsFields));
     
     useEffect(() => {
-        setFormData(prev => ({
-            ...prev,
-            items: []
-        }))
-
         const fetchData = async () => {
             try {
                 showLoader();
-                const [
-                    response,
-                ] = await Promise.all([
-                    fetchItemsOrdersServices(entities.orders.items.get(orderServiceId), {deleted_at: false})
-                ]);
-
-                setItemsOrdersServices(response.result.data.map(orderItemService => ({ value: orderItemService.id, label: orderItemService.id })))
+                const response = await fetchById(entities.movements.shipments.getByColumn(id,shipmentId))
+                formatData(response.result, editMovementsFields);
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
                 showNotification('error', errorMessage);
@@ -55,29 +43,10 @@ const CreateMovementItemPage = () => {
         fetchData();
     }, []);
 
-    const getOptions = (fieldId) => {
-        switch (fieldId) {
-            case "service_order_item_id":
-                return itemsOrdersServices || [];
-            default:
-                return [];
-        }
-    };
-    
-    const getSelectedValue = (fieldId) => {
-        const key = fieldId;
-        if (key) {
-            const value = formData[key];
-            return getOptions(fieldId).find((option) => option.value === value) || null;
-        }
-        return null;
-    };
-
     const handleSubmit = async () => {
         showLoader();
         try {
-            const transformedData = removeEmptyValues(formData)
-            const success = await create(entities.movements.items.create(id), transformedData);
+            const success = await update(entities.movements.shipments.update(id, shipmentId), formData);
             if (success) {
                 resetForm();
             }
@@ -89,38 +58,29 @@ const CreateMovementItemPage = () => {
     };
 
     const handleBack = () => {
-        navigate(`/movimentos/detalhes/${id}`);  
+        navigate(`/movimentos/${id}/carregamentos`);  
     };
-
-    const handleFieldChange = useCallback((fieldId, value, field) => {
-        console.log(fieldId, value)
-        handleChange(fieldId, value);    
-    }, [getOptions]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <PageHeader title="Adicionar Produto No Movimento" showBackButton={true} backUrl={`/movimentos/detalhes/${id}`} />
+            <PageHeader title="Editar Carregamento do Movimento" showBackButton={true} backUrl={`/movimentos/${id}/carregamentos`}/>
             <div className="container-fluid p-1">
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}
-                    textSubmit="Cadastrar"
-                    textLoadingSubmit="Cadastrando..."
+                    textSubmit="Editar"
+                    textLoadingSubmit="Editando..."
                     handleBack={handleBack}
                 >
                     {() => 
-                        movementItemFields.map((section) => (
+                        editMovementsFields.map((section) => (
                             <FormSection
                                 key={section.section}
                                 section={section}
                                 formData={formData}
-                                handleFieldChange={handleFieldChange}
-                                getOptions={getOptions}
-                                getSelectedValue={getSelectedValue}
+                                handleFieldChange={handleChange}
                                 formErrors={formErrors}
                                 setFormData={setFormData}
-                                allFieldsData={allFieldsData}
-                                setAllFieldsData={setAllFieldsData}
                                 setFormErrors={setFormErrors}
                             />
                         ))
@@ -131,4 +91,4 @@ const CreateMovementItemPage = () => {
     );
 };
 
-export default CreateMovementItemPage;
+export default EditMovementsShipmentsPage;

@@ -138,6 +138,13 @@ import DetailsMovementPage from "../pages/Movements/DetailsMovementPage";
 import CreateMovementItemPage from "../pages/Movements/Items/CreateMovementItemPage";
 import EditMovementItemPage from "../pages/Movements/Items/EditMovementItemPage";
 import DetailsMovementItemPage from "../pages/Movements/Items/DetailsMovementItemPage";
+import MovementsShipmentsPage from "../pages/Movements/shipments/MovementsShipmentsPage";
+import CreateMovementsShipmentsPage from "../pages/Movements/shipments/CreateMovementsShipmentsPage";
+import EditMovementsShipmentsPage from "../pages/Movements/shipments/EditMovementsShipmentsPage";
+import DetailsMovementsShipmentsPage from "../pages/Movements/shipments/DetailsMovementsShipmentsPage";
+import CreateShipmentItemPage from "../pages/Movements/shipments/items/CreateShipmentItemPage";
+import EditShipmentItemPage from "../pages/Movements/shipments/items/EditShipmentItemPage";
+import DetailsShipmentItemPage from "../pages/Movements/shipments/items/DetailsShipmentItemPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -594,6 +601,34 @@ const AppRoutesContent = () => {
         {
             path: "/movimentos/detalhes/:id/produtos/detalhes/:movementProductId/",
             element: <PrivateRoute element={DetailsMovementItemPage}/>
+        },
+        {
+            path: "/movimentos/:id/carregamentos/",
+            element: <PrivateRoute element={MovementsShipmentsPage}/>
+        },
+        {
+            path: "/movimentos/:id/carregamentos/criar",
+            element: <PrivateRoute element={CreateMovementsShipmentsPage}/>
+        },
+        {
+            path: "/movimentos/:id/carregamentos/:shipmentId/editar",
+            element: <PrivateRoute element={EditMovementsShipmentsPage}/>
+        },
+        {
+            path: "/movimentos/:id/carregamentos/:shipmentId/detalhes",
+            element: <PrivateRoute element={DetailsMovementsShipmentsPage}/>
+        },
+        {
+            path: "/movimentos/:id/carregamentos/:shipmentId/itens/adicionar",
+            element: <PrivateRoute element={CreateShipmentItemPage}/>
+        },
+        {
+            path: "/movimentos/:id/carregamentos/:shipmentId/itens/:shipmentItemId/editar",
+            element: <PrivateRoute element={EditShipmentItemPage}/>
+        },
+        {
+            path: "/movimentos/:id/carregamentos/:shipmentId/itens/:shipmentItemId/detalhes",
+            element: <PrivateRoute element={DetailsShipmentItemPage}/>
         }
     ];
 

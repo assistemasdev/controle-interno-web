@@ -21,7 +21,7 @@ const DetailsMovementItemPage = () => {
         getByColumn: fetchProductByColumn,
         getByColumn: fetchTypeItemOsByColumn,
         getByColumn: fetchMovementItemById,
-    } = useBaseService(entities.contracts, navigate);
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(detailsMovementItemFields));
 

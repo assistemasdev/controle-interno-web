@@ -5,8 +5,9 @@ import Button from './Button';
 import DynamicTable from './DynamicTable';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { v4 as uuidv4 } from 'uuid';
-import useNotification
- from '../hooks/useNotification';
+import useNotification from '../hooks/useNotification';
+import AutoCompleteInput from './AutoCompleteInput';
+
 const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date"];
 
 const getFormErrorKey = (sectionFieldId) => {
@@ -233,6 +234,7 @@ const FormSection = ({
         const [category, key] = fieldId.split(".");
         if (key) {
             const value = fieldsData[key];
+            if(!value) return null;
             return getOptions(fieldId).find((option) => option.value === value?.value) || null;
         }
         return null;
@@ -241,6 +243,7 @@ const FormSection = ({
     const handleViewTable = () => {
         setViewTable(!viewTable);
     };
+
 
     const actions = useMemo(() => [
             {
@@ -275,7 +278,6 @@ const FormSection = ({
         }
         return result;
     };
-
     const flatData = useMemo(() => flattenObject(formData), [formData]);
 
     return (
@@ -340,17 +342,32 @@ const FormSection = ({
                                         <label htmlFor={sectionField.id} className="font-weight-bold mt-1">
                                             {sectionField.label}
                                         </label>
-                                        <Select
-                                            name={`${sectionField.id}`}
-                                            isMulti={sectionField.isMulti}
-                                            options={getOptions(sectionField.id)}
-                                            className={`basic-multi-select ${formErrors[sectionField.id] ? "is-invalid" : ""}`}
-                                            classNamePrefix="select"
-                                            value={getSelectedValueArrayField(sectionField.id)}
-                                            onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
-                                            noOptionsMessage={() => `Nenhuma opção encontrada para ${sectionField.label}`}
-                                            placeholder={sectionField.placeholder}
-                                        />
+                                        
+                                        {sectionField.entity ? (
+                                            <AutoCompleteInput
+                                                entity={sectionField.entity}
+                                                column={sectionField.column}
+                                                columnLabel={sectionField.columnLabel}
+                                                columnDetails={sectionField.columnDetails}
+                                                placeholder={sectionField.placeholder}
+                                                isMulti={sectionField.isMulti}
+                                                value={fieldsData?.[sectionField.id.split('.')[1]]?.value || ''}
+                                                onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
+                                            />
+                                        ) : (
+                                            <Select
+                                                name={`${sectionField.id}`}
+                                                isMulti={sectionField.isMulti}
+                                                options={getOptions(sectionField.id)}
+                                                className={`basic-multi-select ${formErrors[sectionField.id] ? "is-invalid" : ""}`}
+                                                classNamePrefix="select"
+                                                value={getSelectedValueArrayField(sectionField.id)}
+                                                onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
+                                                noOptionsMessage={() => `Nenhuma opção encontrada para ${sectionField.label}`}
+                                                placeholder={sectionField.placeholder}
+                                            />
+                                        )}
+
                                         {formErrors[getFormErrorKey(sectionField.id)] && (
                                             <div className="invalid-feedback d-block">
                                                 {formErrors[getFormErrorKey(sectionField.id)]}
@@ -380,23 +397,38 @@ const FormSection = ({
                                     }}
                                     placeholder={field.placeholder}
                                     error={formErrors[field.id]}
+                                    disabled={field.disabled}
                                 />
                             ) : (
                                 <>
                                     <label htmlFor={field.id} className="font-weight-bold mt-1">
                                         {field.label}
                                     </label>
-                                    <Select
-                                        name={field.id}
-                                        isMulti={field.isMulti}
-                                        options={getOptions(field.id)}
-                                        className={`basic-multi-select ${formErrors[field.id] ? "is-invalid" : ""}`}
-                                        classNamePrefix="select"
-                                        value={getSelectedValue(field.id)}
-                                        onChange={(selectedOption) => handleSelectFieldChange(selectedOption, field)}
-                                        noOptionsMessage={() => `Nenhuma opção encontrada para ${field.label}`}
-                                        placeholder={field.placeholder}
-                                    />
+                                    
+                                    {field.entity ? (
+                                        <AutoCompleteInput
+                                            entity={field.entity}
+                                            column={field.column}
+                                            columnLabel={field.columnLabel}
+                                            columnDetails={field.columnDetails}
+                                            placeholder={field.placeholder}
+                                            onChange={(selectedOption) => handleSelectFieldChange(selectedOption, field)} 
+                                            value={flatData[field.id]}
+                                        />
+                                    ) : (
+                                        <Select
+                                            name={field.id}
+                                            isMulti={field.isMulti}
+                                            options={getOptions(field.id)}
+                                            className={`basic-multi-select ${formErrors[field.id] ? "is-invalid" : ""}`}
+                                            classNamePrefix="select"
+                                            value={getSelectedValue(field.id)}
+                                            onChange={(selectedOption) => handleSelectFieldChange(selectedOption, field)}
+                                            noOptionsMessage={() => `Nenhuma opção encontrada para ${field.label}`}
+                                            placeholder={field.placeholder}
+                                        />
+                                    )}
+                                    
                                     {formErrors[field.id] && (
                                         <div className="invalid-feedback d-block">
                                             {formErrors[field.id]}

@@ -19,7 +19,7 @@ const baseService = {
                 console.warn(`Nenhum filtro específico encontrado para ${entity}, usando filtro padrão.`);
             }
         }
-
+        
         const query = qs.stringify({
             filters,
             page: data.page,

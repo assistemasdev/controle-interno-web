@@ -3,7 +3,7 @@ import MainLayout from "../../layouts/MainLayout";
 import { usePermissions } from "../../hooks/usePermissions";
 import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faEye, faUndo } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faUndo, faTruck } from '@fortawesome/free-solid-svg-icons';
 import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../constants/pagination";
 import useLoader from "../../hooks/useLoader";
@@ -27,11 +27,10 @@ const MovementsPage = () => {
         get: fetchAll,
         get: fetchAllCustomers,
         get: fetchAllOrganizations
-        
     } = useBaseService(navigate);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
-    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.itemsPerPage);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [filters, setFilters] = useState({ id: '', idlike: '', filledInputs: '', deleted_at: false, page: currentPage, perPage: itemsPerPage });
     const { openModalConfirmation, action, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem } = useAction(navigate); 
 
@@ -109,6 +108,14 @@ const MovementsPage = () => {
             buttonClass: 'btn-info',
             permission: 'Ver movimentos',
             onClick: (movement) => navigate(`/movimentos/detalhes/${movement.id}`)
+        },
+        {
+            id: 'shipments',
+            icon: faTruck, 
+            title: 'Ver Carregamentos',
+            buttonClass: 'btn-warning',
+            permission: 'Listar carregamentos',
+            onClick: (movement) => navigate(`/movimentos/${movement.id}/carregamentos`)
         },
         {
             id: 'delete',

@@ -20,7 +20,7 @@ export function buildDynamicFilters(data) {
         } else if (Array.isArray(value) && value.length > 0) {
             if (key === 'id' && filledInputs > 1) {
                 // Aplicar $in para IDs
-                filters[key] = { ...(filters[key] || {}), $in: value };
+                filters.id = { ...(filters.id || {}), $in: value };
             } else if (key === 'idLike' && filledInputs > 1) {
                 // Aplicar $contains para idLike
                 filters.id = {

@@ -19,19 +19,13 @@ const EditMovementItemPage = () => {
     const { showNotification } = useNotification();
     const { 
         put: update, 
-        get: fetchOrganizations,
-        get: fetchProducts,
-        get: fetchTypesItemsOs,
         get: fetchItemsOrdersServices,
         getByColumn: fetchMovementItemById,
         formErrors,
         setFormErrors
-    } = useBaseService(entities.contracts, navigate);
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, resetForm, setFormData, formatData } = useForm(setDefaultFieldValues(movementItemFields));
-    const [organizations, setOrganizations] = useState([]);
-    const [products, setProducts] = useState([]);
-    const [typesItemsOs, setTypesItemsOs] = useState([]);
     const [itemsOrdersServices, setItemsOrdersServices] = useState([]);
     const [allFieldsData, setAllFieldsData] = useState({});
     
@@ -46,22 +40,13 @@ const EditMovementItemPage = () => {
                 showLoader();
                 const [
                     response,
-                    organizationsResponse,
-                    productsResponse,
-                    typesItemsOsResponse,
                     responseItemsOrdersServices,
                 ] = await Promise.all([
                     fetchMovementItemById(entities.movements.items.getByColumn(id, movementProductId)),
-                    fetchOrganizations(entities.organizations.get),
-                    fetchProducts(entities.products.get),
-                    fetchTypesItemsOs(entities.orders.itemsTypes.get()),
                     fetchItemsOrdersServices(entities.orders.items.get(orderServiceId))
                 ]);
                 formatData(response.result, movementItemFields)
                 setItemsOrdersServices(responseItemsOrdersServices.result.data.map(orderItemService => ({ value: orderItemService.id, label: orderItemService.id })))
-                setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
-                setProducts(productsResponse.result.data.map(product => ({ value: product.id, label: product.name })));
-                setTypesItemsOs(typesItemsOsResponse.result.data.map(typeItemOs => ({ value: typeItemOs.id, label: typeItemOs.name })))
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
                 showNotification('error', errorMessage);
@@ -75,16 +60,8 @@ const EditMovementItemPage = () => {
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "service_order_item_type_id":
-                return typesItemsOs || [];
-            case "product_id":
-                return products || [];
             case "service_order_item_id":
                 return itemsOrdersServices || [];
-            case "new_organization_id":
-                return organizations || [];
-            case "old_organization_id":
-                return organizations || [];
             default:
                 return [];
         }

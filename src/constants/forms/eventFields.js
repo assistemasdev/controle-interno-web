@@ -9,6 +9,9 @@ export const eventFields = [
                 label: "Tipo de Evento", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo", 
+                entity: 'contractEventType',
+                column: 'id',
+                columnLabel: 'name',
                 fullWidth: true,
                 icon: faClipboardCheck
             },
@@ -129,6 +132,9 @@ export const editEventFields = [
                 label: "Tipo de Evento", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo", 
+                entity: 'contractEventType',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faClipboardCheck
             },
             { 

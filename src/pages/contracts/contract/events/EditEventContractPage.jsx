@@ -48,7 +48,7 @@ const EditEventContractPage = () => {
                     fetchEventTypes(entities.contracts.eventsTypes.get()),
                     fetchContracts(entities.contracts.get)
                 ]);
-
+                console.log(entities.contracts.events.getByColumn(id, eventId))
                 formatData(contractEventResponse.result, editEventFields);
                 setEventTypes(contractEventTypesResponse.result.data.map((item) => ({
                     value: item.id,

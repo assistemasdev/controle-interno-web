@@ -23,7 +23,7 @@ const CreateContractPage = () => {
         get: fetchCustomers,
         get: fetchStatus,
         formErrors 
-    } = useBaseService(entities.contracts, navigate);
+    } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(contractFields));
     const [organizations, setOrganizations] = useState([]);

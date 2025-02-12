@@ -105,7 +105,11 @@ export const entities = {
     },
     movements: {
         ...createEntityRoutes('movements'),
-        items: createNestedRoutes('movements', 'items')
+        items: createNestedRoutes('movements', 'items'),
+        shipments: {
+            ...createNestedRoutes('movements', 'shipments'),
+            items: (movementId) => createNestedRoutes(`movements/${movementId}/shipments`, 'items')
+        }
     },
     orders: {
         ...createEntityRoutes('orders'),
