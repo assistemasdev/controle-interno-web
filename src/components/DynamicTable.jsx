@@ -73,7 +73,7 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
             {/* Corpo da Tabela */}
             {!isCollapsed && (
                 <>
-                    <table className="table table-striped mt-2 table-theme">
+                    <table className="table table-striped mt-2">
                         <thead>
                             <tr>
                                 {headers.map((header, index) => (

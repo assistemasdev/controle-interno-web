@@ -1,32 +1,29 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import MainLayout from '../../../../layouts/MainLayout';
+import MainLayout from '../../../layouts/MainLayout';
 import { useNavigate, useParams } from 'react-router-dom';
-import '../../../../assets/styles/custom-styles.css';
-import useForm from '../../../../hooks/useForm';
-import { DetailsOrderServiceFields } from '../../../../constants/forms/orderServiceFields';
-import { setDefaultFieldValues } from '../../../../utils/objectUtils';
-import useBaseService from '../../../../hooks/services/useBaseService';
-import { entities } from '../../../../constants/entities';
-import useLoader from '../../../../hooks/useLoader';
-import useNotification from '../../../../hooks/useNotification';
-import DetailsSectionRenderer from '../../../../components/DetailsSectionRenderer';
-import { usePermissions } from '../../../../hooks/usePermissions';
+import '../../../assets/styles/custom-styles.css';
+import useForm from '../../../hooks/useForm';
+import { DetailsOrderServiceGlobalFields } from '../../../constants/forms/orderServiceFields';
+import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import useBaseService from '../../../hooks/services/useBaseService';
+import { entities } from '../../../constants/entities';
+import useLoader from '../../../hooks/useLoader';
+import useNotification from '../../../hooks/useNotification';
+import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import { faEdit, faTrash, faEye, faUndo } from '@fortawesome/free-solid-svg-icons';
-import DynamicTable from '../../../../components/DynamicTable';
-import { PAGINATION } from '../../../../constants/pagination';
-import ConfirmationModal from '../../../../components/modals/ConfirmationModal';
-import PageHeader from '../../../../components/PageHeader';
-import ListHeader from '../../../../components/ListHeader';
-import useAction from '../../../../hooks/useAction';
+import DynamicTable from '../../../components/DynamicTable';
+import { PAGINATION } from '../../../constants/pagination';
+import ConfirmationModal from '../../../components/modals/ConfirmationModal';
+import PageHeader from '../../../components/PageHeader';
+import useAction from '../../../hooks/useAction';
 
-const DetailsContractOsPage = () => {
-    const { id, contractOsId } = useParams();
+const DetailsOrderServicesPage = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
     const { showLoader, hideLoader } = useLoader();
-    const { canAccess } = usePermissions();
     const { showNotification } = useNotification();
     const { 
-        getByColumn: fetchByContractOsById,
+        getByColumn: fetchByOsById,
         getByColumn: fetchOsStatusById,
         getByColumn: fetchOsDepartamentById,
         getByColumn: fetchOsDestinationById,
@@ -35,11 +32,12 @@ const DetailsContractOsPage = () => {
         get: fetchOsItensTypes,
         get: fetchProducts,
     } = useBaseService(navigate);
-    const { formData,  setFormData } = useForm(setDefaultFieldValues(DetailsOrderServiceFields));
+    const { formData,  setFormData } = useForm(setDefaultFieldValues(DetailsOrderServiceGlobalFields));
     const [osItens, setOsItens] = useState([]);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
+    const [contractId, setContractId] = useState();
     const [filters, setFilters] = useState({
         deleted_at: false,
         page: 1,
@@ -56,9 +54,9 @@ const DetailsContractOsPage = () => {
         try {
             showLoader()
             const [
-                contractOsResponse,
+                osResponse,
             ] = await Promise.all([
-                fetchByContractOsById(entities.contracts.orders.getByColumn(id, contractOsId)),
+                fetchByOsById(entities.orders.getByColumn(id)),
             ])
 
             const [
@@ -67,18 +65,20 @@ const DetailsContractOsPage = () => {
                 osDestinationResponse,
                 userResponse,
             ] = await Promise.all([
-                fetchOsStatusById(entities.orders.status.getByColumn(null, contractOsResponse.result.status_id)),
-                fetchOsDepartamentById(entities.orders.departaments.getByColumn(null, contractOsResponse.result.departament_id)),
-                fetchOsDestinationById(entities.orders.destinations.getByColumn(null, contractOsResponse.result.destination_id)),
-                fetchUserById(entities.users.getByColumn(contractOsResponse.result.user_id)),
+                fetchOsStatusById(entities.orders.status.getByColumn(null, osResponse.result.status_id)),
+                fetchOsDepartamentById(entities.orders.departaments.getByColumn(null, osResponse.result.departament_id)),
+                fetchOsDestinationById(entities.orders.destinations.getByColumn(null, osResponse.result.destination_id)),
+                fetchUserById(entities.users.getByColumn(osResponse.result.user_id)),
             ]);
 
+            setContractId(osResponse.result.contract_id);
             setFormData({
+                contract: osResponse.result.contract_id,
                 status: osStatusResponse.result.name,
                 departament: osDepartamentResponse.result.name,
                 destination: osDestinationResponse.result.name,
-                deadline: contractOsResponse.result.deadline.split(" ")[0],
-                details: contractOsResponse.result.details,
+                deadline: osResponse.result.deadline.split(" ")[0],
+                details: osResponse.result.details,
                 user: userResponse.result.name
             });
 
@@ -99,7 +99,7 @@ const DetailsContractOsPage = () => {
                 osItensTypesResponse,
                 productsResponse
             ] = await Promise.all([
-                fetchOsItens(entities.contracts.orders.items(id).get(contractOsId), filters),
+                fetchOsItens(entities.orders.items.get(id), filters),
                 fetchOsItensTypes(entities.orders.itemsTypes.get()),
                 fetchProducts(entities.products.get)
             ]);
@@ -149,7 +149,7 @@ const DetailsContractOsPage = () => {
             title: "Ver Detalhes",
             buttonClass: "btn-info",
             permission: "Ver contratos",
-            onClick: (osItem) => navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/detalhes/${osItem.id}`),
+            onClick: (osItem) => navigate(`/ordens-servicos/${id}/detalhes/itens/${osItem.id}`),
         },
         {
             id:'edit',
@@ -157,7 +157,7 @@ const DetailsContractOsPage = () => {
             title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar contratos',
-            onClick: (osItem) => navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/editar/${osItem.id}`)
+            onClick: (osItem) => navigate(`/contratos/${contractId}/ordens-servicos/detalhes/${id}/itens/editar/${osItem.id}`)
         },
         {
             id: 'delete',
@@ -165,7 +165,7 @@ const DetailsContractOsPage = () => {
             title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir contratos',
-            onClick: (osItem) => handleDelete(osItem, 'Você tem certeza que deseja excluir: ', entities.contracts.orders.items(id).delete(contractOsId, osItem.id), fetchData)
+            onClick: (osItem) => handleDelete(osItem, 'Você tem certeza que deseja excluir: ', entities.orders.items.delete(id, osItem.id), fetchData)
         },
         {
             id: 'activate',
@@ -175,21 +175,13 @@ const DetailsContractOsPage = () => {
             permission: 'Atualizar contratos',
             onClick: (osItem) => handleActivate(osItem, 'Você tem certeza que deseja ativar: ', fetchData)
         },
-    ], []);
+    ], [contractId]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <PageHeader title="Detalhes de Ordem de Serviço" showBackButton={true} backUrl={`/contratos/${id}/ordens-servicos/`} />
+            <PageHeader title="Detalhes de Ordem de Serviço" showBackButton={true} backUrl={`/ordens-servicos/`} />
             <div className="container-fluid p-1">
-                <DetailsSectionRenderer sections={DetailsOrderServiceFields} formData={formData}/>
-
-                <ListHeader 
-                    title="Itens da Ordem de Serviço" 
-                    buttonText="Adicionar Item" 
-                    buttonLink={`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/criar`}
-                    canAccess={canAccess} 
-                    permission="Criar ordens de serviço"
-                />
+                <DetailsSectionRenderer sections={DetailsOrderServiceGlobalFields} formData={formData}/>
 
                 <DynamicTable
                     headers={osItensHeaders}
@@ -214,4 +206,4 @@ const DetailsContractOsPage = () => {
     );
 };
 
-export default DetailsContractOsPage;
+export default DetailsOrderServicesPage;

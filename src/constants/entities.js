@@ -118,6 +118,13 @@ export const entities = {
         destinations: createNestedRoutes('orders', 'destinations', true),
         status: createNestedRoutes('orders', 'status', true),
         items: createNestedRoutes('orders', 'items')
+    },
+    shipments: {
+        ...createEntityRoutes('shipments'),
+        items: createNestedRoutes('shipments', 'items')
+    },
+    addresses: {
+        ...createEntityRoutes('addresses'),
+        locations: createNestedRoutes('addresses', 'locations')
     }
-
 };

@@ -37,6 +37,9 @@ export const shipmentFields = [
                 label: "Item do Movimento", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo",
+                entity: 'movementItem',
+                column: 'id',
+                columnLabel: 'id',
                 icon: faBoxOpen 
             },
             { 

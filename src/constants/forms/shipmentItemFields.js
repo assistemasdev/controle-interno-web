@@ -15,6 +15,9 @@ export const shipmentItemFields = [
                 label: "Nº Movimento Item", 
                 type: "multi-select", 
                 icon: faClipboardList, 
+                entity: 'movementItem',
+                column: 'id',
+                columnLabel: 'id',
                 placeholder: "Selecione o Nº do Movimento Item",
             },
             { 

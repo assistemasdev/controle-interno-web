@@ -65,7 +65,6 @@ const CreateMovementsShipmentsPage = () => {
                     value: address.id,
                     label: `${address.street}, ${address.city} - ${address.state}`,
                 })));
-                fetchMovementsItemsData();
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
                 showNotification('error', errorMessage);
@@ -80,29 +79,16 @@ const CreateMovementsShipmentsPage = () => {
     useEffect(() => {
         fetchLocationsData()
     }, [allFieldsData?.items?.address_id])
-        
+    
     useEffect(() => {
-        fetchMovementsItemsData()
-    }, [formData.items])
-
-    const fetchMovementsItemsData = async () => {
-        try {
-            showLoader();
-            const response = await fetchMovementsItems(entities.movements.items.get(id), {deleted_at: false})
-            let filteredMovementsItems = response.result.data;
-            if (formData.items.length > 0) {
-                filteredMovementsItems = response.result.data.filter(movementItem =>
-                    !formData.items.some(item => item.movement_item_id.value == movementItem.id)
-                );
+        setFormData((prev) => ({
+            ...prev,
+            shipment: {
+                ...prev.shipment,
+                movement_id: id
             }
-            setMovementsItems(filteredMovementsItems.map(movementItem => ({ value: movementItem.id, label: movementItem.id }))); 
-        } catch (error) {
-            console.log(error)
-        } finally {
-            hideLoader();
-        }
-    }
-
+        }))
+    }, [formData])
     const fetchLocationsData = async () => {
         try {
             showLoader()
@@ -135,8 +121,6 @@ const CreateMovementsShipmentsPage = () => {
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "items.movement_item_id":
-                return movementsItems || [];
             case "items.address_id":
                 return addresses || [];
             case "items.location_id":

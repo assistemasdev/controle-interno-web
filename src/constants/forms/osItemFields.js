@@ -6,7 +6,7 @@ export const DetailsOsItemFields = [
         fields: [
             { 
                 id: "identify", 
-                label: "Identificador", 
+                label: "Item Id", 
                 type: "text", 
                 icon: faIdBadge
             },
@@ -57,7 +57,7 @@ export const osItemFields = [
         fields: [
             { 
                 id: "item_id", 
-                label: "Identificador", 
+                label: "Item Id", 
                 type: "text", 
                 placeholder:'Digite o identificador',
                 icon: faKey

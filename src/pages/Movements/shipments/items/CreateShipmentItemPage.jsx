@@ -63,7 +63,6 @@ const CreateShipmentItemPage = () => {
                     value: address.id,
                     label: `${address.street}, ${address.city} - ${address.state}`,
                 })));
-                fetchMovementsItemsData();
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
                 showNotification('error', errorMessage);
@@ -79,18 +78,6 @@ const CreateShipmentItemPage = () => {
         fetchLocationsData()
     }, [formData.address_id])
         
-
-    const fetchMovementsItemsData = async () => {
-        try {
-            showLoader();
-            const response = await fetchMovementsItems(entities.movements.items.get(id), {deleted_at: false})           
-            setMovementsItems(response.result.data.map(movementItem => ({ value: movementItem.id, label: movementItem.id }))); 
-        } catch (error) {
-            console.log(error)
-        } finally {
-            hideLoader();
-        }
-    }
 
     const fetchLocationsData = async () => {
         try {
@@ -125,8 +112,6 @@ const CreateShipmentItemPage = () => {
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "movement_item_id":
-                return movementsItems || [];
             case "address_id":
                 return addresses || [];
             case "location_id":

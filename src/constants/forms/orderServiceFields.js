@@ -163,6 +163,58 @@ export const DetailsOrderServiceFields = [
     }
 ];
 
+export const DetailsOrderServiceGlobalFields = [
+    {
+        section: "Order de Serviço",
+        fields: [
+            { 
+                id: "contract", 
+                label: "Contrato", 
+                type: "text", 
+                icon: faClipboardCheck
+            },
+            { 
+                id: "status", 
+                label: "Status de OS", 
+                type: "text", 
+                icon: faClipboardCheck
+            },
+            { 
+                id: "user", 
+                label: "Responsável pela OS", 
+                type: "text", 
+                icon: faClipboardCheck
+            },
+            { 
+                id: "departament", 
+                label: "Departamento de OS", 
+                type: "text", 
+                icon: faClipboardCheck
+            },
+            { 
+                id: "deadline", 
+                label: "Prazo Final", 
+                type: "date", 
+                icon: faCalendarAlt
+            },
+            { 
+                id: "destination", 
+                label: "Destino de OS", 
+                type: "text",
+                icon: faMapMarkerAlt
+            },
+            { 
+                id: "details", 
+                label: "Detalhes", 
+                type: "textarea", 
+                fullWidth: true,
+                icon: faFileAlt
+            },
+        ],
+    }
+];
+
+
 export const editOrderServiceFields = [
     {
         section: "Order de Serviço",

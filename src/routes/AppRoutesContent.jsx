@@ -145,6 +145,12 @@ import DetailsMovementsShipmentsPage from "../pages/Movements/shipments/DetailsM
 import CreateShipmentItemPage from "../pages/Movements/shipments/items/CreateShipmentItemPage";
 import EditShipmentItemPage from "../pages/Movements/shipments/items/EditShipmentItemPage";
 import DetailsShipmentItemPage from "../pages/Movements/shipments/items/DetailsShipmentItemPage";
+import OrdersServicesPage from "../pages/contracts/OrderService/OrdersServicesPage";
+import DetailsOrderServicesPage from "../pages/contracts/OrderService/DetailsOrderServicesPage";
+import DetailsItemOrderServicePage from "../pages/contracts/OrderService/items/DetailsItemOrderServicePage";
+import ShipmentsPage from "../pages/shipments/ShipmentsPage";
+import DetailsShipmentsPage from "../pages/shipments/DetailsShipmentsPage";
+import DetailsShipmentItemGlobalPage from "../pages/shipments/items/DetailsShipmentItemGlobalPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -471,8 +477,34 @@ const AppRoutesContent = () => {
     ];
 
     const OrdersServicesRoutes = [
+        {
+            path: "/ordens-servicos",
+            element: <PrivateRoute element={OrdersServicesPage} />,
+        },
+        {
+            path: "/ordens-servicos/:id/detalhes/",
+            element: <PrivateRoute element={DetailsOrderServicesPage}/>
+        },
+        {
+            path: "/ordens-servicos/:id/detalhes/itens/:osItemId",
+            element: <PrivateRoute element={DetailsItemOrderServicePage}/>
+        }
     ];
 
+    const shipmentsRoutes = [
+        {
+            path: "/carregamentos",
+            element: <PrivateRoute element={ShipmentsPage} />,
+        },
+        {
+            path: "/carregamentos/:id/detalhes/",
+            element: <PrivateRoute element={DetailsShipmentsPage}/>
+        },
+        {
+            path: "/carregamentos/:id/detalhes/itens/:shipmentItemId/detalhes",
+            element: <PrivateRoute element={DetailsShipmentItemGlobalPage}/>
+        }
+    ];
 
     const statusContractRoutes = [
         {
@@ -741,6 +773,10 @@ const AppRoutesContent = () => {
         ))}
 
         {movementsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
+
+        {shipmentsRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}
 
