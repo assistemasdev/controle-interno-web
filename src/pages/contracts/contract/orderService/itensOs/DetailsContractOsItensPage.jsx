@@ -21,6 +21,8 @@ const DetailsContractOsItensPage = () => {
         getByColumn: fetchOsItemById,
         getByColumn: fetchOsItemTypeById,
         getByColumn: fetchProductById,
+        getByColumn: fetchAddress,
+        getByColumn: fetchLocation,
     } = useBaseService(navigate);
     const { formData, setFormData } = useForm(setDefaultFieldValues(DetailsOsItemFields));
 
@@ -40,16 +42,21 @@ const DetailsContractOsItensPage = () => {
             const [
                 osItemTypeResponse,
                 productResponse,
+                addressResponse,
+                locationResponse
             ] = await Promise.all([
                 fetchOsItemTypeById(entities.orders.itemsTypes.getByColumn(null, contractOsItemResponse.result.service_order_item_type_id)),
                 fetchProductById(entities.products.getByColumn(contractOsItemResponse.result.product_id)),
+                fetchAddress(entities.addresses.getByColumn(contractOsItemResponse.result.address_id)),
+                fetchLocation(entities.addresses.locations.getByColumn(contractOsItemResponse.result.address_id, contractOsItemResponse.result.location_id))
             ]);
-            
+            const address = addressResponse.result
+            const location = locationResponse.result
             setFormData({
-                address: contractOsItemResponse.result.address_id,
+                address: (address.street && address.city && address.state) ? `${address.street}, ${address.city} - ${address.state}` : '',
                 details: contractOsItemResponse.result.details,
                 identify: contractOsItemResponse.result.item_id,
-                location: contractOsItemResponse.result.location_id,
+                location: (location.area && location.section && location.spot) ? `${location.area}, ${location.section} - ${location.spot}` : '',
                 osItemType: osItemTypeResponse.result.name,
                 product: productResponse.result.name,
                 quantity: contractOsItemResponse.result.quantity
