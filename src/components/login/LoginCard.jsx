@@ -44,7 +44,7 @@ const LoginCard = () => {
             const userPermissions = await fetchPermissionsForUser(entities.users.permissions.get(storedUser.id));
 
             addRoles(userRoles.result);
-            addPermissions(userPermissions);
+            addPermissions(userPermissions.result);
             
             navigate('/aplicacoes')
 
