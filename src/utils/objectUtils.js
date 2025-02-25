@@ -32,6 +32,10 @@ export const removeEmptyValues = (obj) => {
 };
 
 export const transformValues = (array) => {
+    if(!Array.isArray(array)) {
+        return []
+    }
+    
     return array.map(item => {
         const modifiedItem = {};
 

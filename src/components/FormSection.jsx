@@ -263,11 +263,6 @@ const FormSection = ({
         },
     ], []);
 
-    useEffect(() => {
-        console.log(fieldsData)
-    } , [fieldsData])
-    
-    
     const flattenObject = (obj, parentKey = '', result = {}) => {
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {

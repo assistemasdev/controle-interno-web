@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const FlatList = ({ headers, data, actions }) => {
     const renderData = () => {
-        if (!data || data.length === 0) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
             return <p className="flatlist-empty">Nenhum dado disponível</p>;
         }
 
