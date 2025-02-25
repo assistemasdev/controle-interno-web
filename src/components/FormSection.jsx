@@ -47,14 +47,25 @@ const FormSection = ({
     useEffect(() => {
         if (section.array) {
             const fields = section.fields;
-            
+
             setFieldsData(fields.reduce((acc, currentValue) => {
-                const column = currentValue.id.split('.')[1]
+                const column = currentValue.id.split('.')[1];
+                console.log(column);
+            
+                if (!acc.exclude_ids) {
+                    acc.exclude_ids = {}; 
+                }
+            
+                if (column !== 'exclude_ids') {
+                    acc.exclude_ids[column] = [];
+                }
+            
                 return {
                     ...acc,
                     [column]: ''
-                }
-            }, { identify: '' }));
+                };
+            }, { identify: '', exclude_ids: {} }));
+            
 
             setHeaders(fields.reduce((acc, currentValue) => {
                 const cleanedValue = currentValue.label.replace(/:/g, '');
@@ -66,6 +77,10 @@ const FormSection = ({
             }, ['identify']))
         }
     }, [section.array]);
+
+    useEffect(() => {
+        console.log(fieldsData)
+    }, [fieldsData])
 
     const handleArraySelectChange = (selectedOption, sectionField) => {
         if (sectionField.isMulti) {
@@ -126,26 +141,54 @@ const FormSection = ({
         setViewTable(false)
         setFieldsData(item)
     }
-
+    
     const handleDelete = (item) => {
         const key = section.fields[0].id.split('.')[0];
-
-        setFormData((prev) => ({
-            ...prev,
-            [key]: prev[key].filter((currentItem) => currentItem.identify !== item.identify)
-        }));
+    
+        setFormData((prev) => {
+            const updatedData = prev[key].filter((currentItem) => currentItem.identify !== item.identify);
+    
+            // Encontrar o índice do item a ser removido
+            const indexToRemove = prev[key].findIndex((currentItem) => currentItem.identify === item.identify);
+    
+            setFieldsData((prevFields) => {
+                const updatedExcludeIds = { ...prevFields.exclude_ids };
+    
+                // Remover os valores do exclude_ids com base no índice encontrado
+                Object.keys(updatedExcludeIds).forEach((fieldKey) => {
+                    if (updatedExcludeIds[fieldKey] && Array.isArray(updatedExcludeIds[fieldKey])) {
+                        updatedExcludeIds[fieldKey] = updatedExcludeIds[fieldKey].filter((_, index) => index !== indexToRemove);
+                    }
+                });
+    
+                return {
+                    ...prevFields,
+                    exclude_ids: updatedExcludeIds
+                };
+            });
+    
+            return {
+                ...prev,
+                [key]: updatedData
+            };
+        });
     };
+
     const addFieldsInData = (section) => {
+        console.log(section);
+        console.log(fieldsData);
         const key = section.fields[0].id.split('.')[0];
         const newFormErrors = {};
         let hasError = false;
-        
+    
+        // Remover os erros anteriores de campos do tipo 'key.0.*'
         section.fields.forEach((field) => {
             if (fieldsData[field.id.split('.')[1]]) {
                 delete formErrors[fieldsData[field.id.split('.')[1]]];
             }
         });
-
+    
+        // Validar os campos obrigatórios
         section.fields.forEach((field) => {
             const fieldKey = `${key}.0.${field.id.split('.')[1]}`;
             
@@ -154,14 +197,17 @@ const FormSection = ({
                 newFormErrors[fieldKey] = `O campo ${field.label} é obrigatório.`;
             }
         });
+    
+        // Se houver erro, atualizar os erros no estado e interromper a execução
         if (hasError) {
             setFormErrors((prev) => ({
                 ...prev,
                 ...newFormErrors, 
             }));
-            return; 
+            return;
         }
     
+        // Atualizar os erros removendo os erros antigos que correspondem a esse 'key'
         setFormErrors((prev) => {
             const updatedErrors = Object.keys(prev).reduce((acc, errorKey) => {
                 if (!errorKey.startsWith(`${key}.0.`)) {
@@ -171,39 +217,64 @@ const FormSection = ({
             }, {});
             return updatedErrors;
         });
-        
+    
+        // Se 'identify' existe, ou seja, estamos atualizando um item existente
         if (fieldsData.identify) {
             setFormData((prev) => ({
                 ...prev,
                 [key]: prev[key].some(item => item.identify === fieldsData.identify)
                     ? prev[key].map(item => 
-                        item.id === fieldsData.identify 
+                        item.identify === fieldsData.identify 
                             ? { ...item, ...fieldsData } 
                             : item
-                      )
+                    )
                     : [
                         ...prev[key],
-                        fieldsData 
-                      ]
+                        fieldsData
+                    ]
             }));
-            setFieldsData({});
-            return
+    
+            // Agora, preenche os arrays de 'exclude_ids' (se necessário)
+            setFieldsData(prevState => ({
+                exclude_ids: Object.keys(prevState.exclude_ids).reduce((acc, key) => {
+                    acc[key] = Array.isArray(prevState.exclude_ids[key])
+                        ? [...prevState.exclude_ids[key], fieldsData[key]?.value || '']
+                        : [fieldsData[key]?.value || '']; // Se não for array, cria um
+                    return acc;
+                }, {})
+            }));
+    
+            return;
         }
-
+    
+        // Se 'identify' não existe, geramos um novo UUID
         fieldsData.identify = uuidv4();
-        if(key && formData) {
+    
+        // Adicionar o novo item no formData com os dados preenchidos
+        if (key && formData) {
             setFormData((prev) => ({
                 ...prev,
                 [key]: [
                     ...prev[key],
-                    fieldsData
-                ],
+                    fieldsData // O item é adicionado com os dados inseridos
+                ]
             }));
         }
-        setFieldsData({});
-
-        showNotification('success', 'Dados adicionados na tabela')
+    
+        // Atualizar 'exclude_ids' com os novos dados inseridos
+        setFieldsData(prevState => ({
+            exclude_ids: Object.keys(prevState.exclude_ids).reduce((acc, key) => {
+                acc[key] = Array.isArray(prevState.exclude_ids[key])
+                    ? [...prevState.exclude_ids[key], fieldsData[key]?.value || '']
+                    : [fieldsData[key]?.value || '']; // Preenche o array dentro de 'exclude_ids'
+                return acc;
+            }, {})
+        }));
+    
+        // Mostrar notificação de sucesso
+        showNotification('success', 'Dados adicionados na tabela');
     };
+    
     
     const handleArrayFieldChange = (fieldId, value, field) => {
         const column = fieldId.split('.')[1];
@@ -228,7 +299,7 @@ const FormSection = ({
     // useEffect(() => {
     //     removeValueKey(formData);
     // }, [formData]);
-
+    
     const getSelectedValueArrayField = (fieldId) => {
         const [category, key] = fieldId.split(".");
         if (key) {
@@ -351,6 +422,7 @@ const FormSection = ({
                                                 isMulti={sectionField.isMulti}
                                                 value={fieldsData?.[sectionField.id.split('.')[1]]?.value || ''}
                                                 onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
+                                                exclude_ids={sectionField.isUnique? fieldsData?.exclude_ids?.[sectionField.id.split('.')[1]] : []}
                                             />
                                         ) : (
                                             <Select
@@ -363,6 +435,7 @@ const FormSection = ({
                                                 onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
                                                 noOptionsMessage={() => `Nenhuma opção encontrada para ${sectionField.label}`}
                                                 placeholder={sectionField.placeholder}
+                                                
                                             />
                                         )}
 

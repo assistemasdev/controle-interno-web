@@ -40,6 +40,7 @@ export const shipmentFields = [
                 entity: 'movementItem',
                 column: 'id',
                 columnLabel: 'id',
+                isUnique: true,
                 icon: faBoxOpen 
             },
             { 

@@ -93,7 +93,6 @@ const CreateMovementItemPage = () => {
     };
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
-        console.log(fieldId, value)
         handleChange(fieldId, value);    
     }, [getOptions]);
 

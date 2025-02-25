@@ -4,7 +4,23 @@ import { buildDynamicFilters } from "../utils/filterUtils";
 
 const baseService = {
     async autocomplete(entity, params, navigate = null) {
-        return request("get", `/a/${entity}`, params, navigate);
+        let filters = params;
+        console.log(entity)
+        if (entity) {
+            try {
+                const module = await import(`../utils/filters/${entity}Filters.js`);
+                if (module.default) {
+                    filters = module.default(params);
+                }
+            } catch (error) {
+                console.warn(`Nenhum filtro específico encontrado para ${entity}, usando filtro padrão.`);
+            }
+        }
+        
+        const query = qs.stringify({
+            filters,
+        }, { encode: false });
+        return request("get", `/a/${entity}?${query}`,{}, navigate);
     },
 
     async get(url, data, entity = null, navigate = null) {

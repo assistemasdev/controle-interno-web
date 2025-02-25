@@ -9,6 +9,7 @@
 }
 
 .container-flatlist-title {
+    margin-top: 10px;
     display: flex;
     justify-content: space-between;
     border-bottom: 3px solid var(--primary-color);
