@@ -13,7 +13,7 @@ const AutoCompleteInput = ({
     placeholder = "Digite algo...", 
     isMulti = false, 
     value,
-    isEditing
+    exclude_ids
 }) => {
     const [inputValue, setInputValue] = useState("");
     const [options, setOptions] = useState([]);
@@ -29,7 +29,7 @@ const AutoCompleteInput = ({
         }
 
         try {
-            const response = await baseService.autocomplete(entity, { [column]: inputValue });
+            const response = await baseService.autocomplete(entity, { [column]: inputValue, exclude_ids });
             setOptions(response.result.map((item) => ({
                 value: item.id,
                 label: item[columnLabel] + (item[columnDetails] ? ' - ' + item[columnDetails] : '')
@@ -74,7 +74,7 @@ const AutoCompleteInput = ({
     
         try {
             showLoader();
-            const response = await baseService.autocomplete(entity, { id: idsToFetch });
+            const response = await baseService.autocomplete(entity, { id: idsToFetch, exclude_ids });
             const newLabels = {};
     
             response.result.forEach(item => {

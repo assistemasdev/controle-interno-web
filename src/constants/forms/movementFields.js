@@ -79,7 +79,8 @@ export const movementFields = [
                 type: "multi-select", 
                 placeholder: "Selecione o Produto",
                 entity: 'product',
-                column: 'id',
+                column: 'name',
+                isUnique: true,
                 columnLabel: 'number',
                 columnDetails: 'name',
                 icon: faBoxOpen

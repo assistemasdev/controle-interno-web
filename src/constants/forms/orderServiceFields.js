@@ -77,8 +77,9 @@ export const orderServiceFields = [
                 label: "Produto", 
                 type: "multi-select", 
                 placeholder:"Digite a Descrição",
+                isUnique: true,
                 entity: 'product',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'number',
                 columnDetails: 'name',
                 icon: faBoxOpen

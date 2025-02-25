@@ -88,7 +88,8 @@ const CreateMovementsShipmentsPage = () => {
                 movement_id: id
             }
         }))
-    }, [formData])
+    }, [])
+    
     const fetchLocationsData = async () => {
         try {
             showLoader()
@@ -150,6 +151,13 @@ const CreateMovementsShipmentsPage = () => {
             const success = await create(entities.movements.shipments.create(id), transformedData);
             if (success) {
                 resetForm();
+                setFormData((prev) => ({
+                    ...prev,
+                    shipment: {
+                        ...prev.shipment,
+                        movement_id: id
+                    }
+                }))
             }
         } catch (error) {
             console.error('Error creating movement:', error);
