@@ -7,6 +7,7 @@ import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { v4 as uuidv4 } from 'uuid';
 import useNotification from '../hooks/useNotification';
 import AutoCompleteInput from './AutoCompleteInput';
+import FlatList from './FlatList';
 
 const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date"];
 
@@ -53,7 +54,7 @@ const FormSection = ({
                     ...acc,
                     [column]: ''
                 }
-            }, { id: '' }));
+            }, { identify: '' }));
 
             setHeaders(fields.reduce((acc, currentValue) => {
                 const cleanedValue = currentValue.label.replace(/:/g, '');
@@ -62,7 +63,7 @@ const FormSection = ({
                     ...acc,
                     cleanedValue
                 ]
-            }, ['ID']))
+            }, ['identify']))
         }
     }, [section.array]);
 
@@ -127,13 +128,13 @@ const FormSection = ({
     }
 
     const handleDelete = (item) => {
-        const key = section.fields[0].id.split('.')[0]
+        const key = section.fields[0].id.split('.')[0];
+
         setFormData((prev) => ({
             ...prev,
-            [key]: prev[key].filter((currentItem) => currentItem.id !== item.id)
+            [key]: prev[key].filter((currentItem) => currentItem.identify !== item.identify)
         }));
-    }
-
+    };
     const addFieldsInData = (section) => {
         const key = section.fields[0].id.split('.')[0];
         const newFormErrors = {};
@@ -149,7 +150,6 @@ const FormSection = ({
             const fieldKey = `${key}.0.${field.id.split('.')[1]}`;
             
             if (!field.notRequired && (!fieldsData[field.id.split('.')[1]] || fieldsData[field.id.split('.')[1]]?.toString().trim() === "")) {
-                console.log('oi');
                 hasError = true;
                 newFormErrors[fieldKey] = `O campo ${field.label} é obrigatório.`;
             }
@@ -172,12 +172,12 @@ const FormSection = ({
             return updatedErrors;
         });
         
-        if (fieldsData.id) {
+        if (fieldsData.identify) {
             setFormData((prev) => ({
                 ...prev,
-                [key]: prev[key].some(item => item.id === fieldsData.id)
+                [key]: prev[key].some(item => item.identify === fieldsData.identify)
                     ? prev[key].map(item => 
-                        item.id === fieldsData.id 
+                        item.id === fieldsData.identify 
                             ? { ...item, ...fieldsData } 
                             : item
                       )
@@ -190,7 +190,7 @@ const FormSection = ({
             return
         }
 
-        fieldsData.id = uuidv4();
+        fieldsData.identify = uuidv4();
         if(key && formData) {
             setFormData((prev) => ({
                 ...prev,
@@ -225,10 +225,9 @@ const FormSection = ({
             return newFieldsData;
         });
     };
-    useEffect(() => {
-        removeValueKey(formData);
-
-    }, [formData]);
+    // useEffect(() => {
+    //     removeValueKey(formData);
+    // }, [formData]);
 
     const getSelectedValueArrayField = (fieldId) => {
         const [category, key] = fieldId.split(".");
@@ -246,23 +245,27 @@ const FormSection = ({
 
 
     const actions = useMemo(() => [
-            {
-                id:'edit',
-                icon: faEdit,
-                title: 'Editar',
-                buttonClass: 'btn-primary',
-                permission: '',
-                onClick: handleEdit
-            },
-            {
-                id: 'delete',
-                icon: faTrash,
-                title: 'Excluir',
-                buttonClass: 'btn-danger',
-                permission: '',
-                onClick: handleDelete
-            },
+        {
+            id:'edit',
+            icon: faEdit,
+            title: 'Editar',
+            buttonClass: 'btn-primary',
+            permission: '',
+            onClick: handleEdit
+        },
+        {
+            id: 'delete',
+            icon: faTrash,
+            title: 'Excluir',
+            buttonClass: 'btn-danger',
+            permission: '',
+            onClick: handleDelete
+        },
     ], []);
+
+    useEffect(() => {
+        console.log(fieldsData)
+    } , [fieldsData])
     
     
     const flattenObject = (obj, parentKey = '', result = {}) => {
@@ -309,9 +312,9 @@ const FormSection = ({
             {section.array ? (
                 viewTable? (
                     <>
-                        <DynamicTable
+                        <FlatList
                             headers={headers}
-                            data={getArrayColumnData(section.fields[0].id, formDataFormated)}
+                            data={getArrayColumnData(section.fields[0].id, formData)}
                             actions={actions}
                         />
                     </>

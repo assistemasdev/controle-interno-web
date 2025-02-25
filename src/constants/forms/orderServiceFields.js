@@ -102,7 +102,8 @@ export const orderServiceFields = [
                 label: "Localização", 
                 type: "multi-select", 
                 placeholder:"Selecione a localização",
-                icon: faMapMarkerAlt
+                icon: faMapMarkerAlt,
+                notRequired: true,
             },
             { 
                 id: "items.details", 
