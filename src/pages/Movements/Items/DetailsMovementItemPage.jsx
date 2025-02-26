@@ -19,7 +19,7 @@ const DetailsMovementItemPage = () => {
     const { 
         get: fetchOrganizations,
         getByColumn: fetchProductByColumn,
-        getByColumn: fetchTypeItemOsByColumn,
+        getByColumn: fetchMovementTypeByColumn,
         getByColumn: fetchMovementItemById,
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
@@ -47,17 +47,17 @@ const DetailsMovementItemPage = () => {
                 const [
                     organizationsResponse,
                     productResponse,
-                    typeItemOsResponse,
+                    movementTypeResponse,
                 ] = await Promise.all([
                     fetchOrganizations(entities.organizations.get),
                     fetchProductByColumn(entities.products.getByColumn(response.result.product_id)),
-                    fetchTypeItemOsByColumn(entities.orders.itemsTypes.getByColumn(null, response.result.service_order_item_type_id)),
+                    fetchMovementTypeByColumn(entities.movements.types.getByColumn(null, response.result.movement_type_id)),
                 ])
                 const organizationsMap = mapOrganizations(organizationsResponse.result.data)
                 formatData(response.result, detailsMovementItemFields)
                 setFormData((prev) => ({
                     ...prev,
-                    service_order_item_type_id: typeItemOsResponse.result.name,
+                    movement_type_id: movementTypeResponse.result.name,
                     product_id: productResponse.result.name,
                     new_organization_id: response.result.new_organization_id ? organizationsMap[response.result.new_organization_id] : '-',
                     old_organization_id: response.result.old_organization_id ? organizationsMap[response.result.old_organization_id] : '-'

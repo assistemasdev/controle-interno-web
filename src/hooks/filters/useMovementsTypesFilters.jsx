@@ -3,11 +3,11 @@ import AutoCompleteFilter from "../../components/AutoCompleteFilter";
 import baseService from "../../services/baseService";
 import { buildFilteredArray } from "../../utils/arrayUtils";
 
-const useTypeOsFilters = (fetchTypes, filters, setFilters) => {
-    const [selectedTypesOs, setSelectedTypesOs] = useState([]);
+const useMovementsTypesFilters = (fetchTypes, filters, setFilters) => {
+    const [selectedMovementsTypes, setSelectedMovementsTypes] = useState([]);
 
     const handleChangeTypes = useCallback((newSelected, column) => {
-        setSelectedTypesOs((prev) => {
+        setSelectedMovementsTypes((prev) => {
             if (!newSelected.length) {
                 return prev.filter((option) => option.column !== column);
             }
@@ -21,10 +21,10 @@ const useTypeOsFilters = (fetchTypes, filters, setFilters) => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
         
-        const selectedIds = buildFilteredArray(selectedTypesOs, 'id', 'textFilter', false);
-        const selectedNames = buildFilteredArray(selectedTypesOs, 'name', 'textFilter', true);
-        const selectedIdLikes = buildFilteredArray(selectedTypesOs, 'id', 'numberFilter', true);
-        const filledInputs = new Set(selectedTypesOs.map((option) => option.column)).size;
+        const selectedIds = buildFilteredArray(selectedMovementsTypes, 'id', 'textFilter', false);
+        const selectedNames = buildFilteredArray(selectedMovementsTypes, 'name', 'textFilter', true);
+        const selectedIdLikes = buildFilteredArray(selectedMovementsTypes, 'id', 'numberFilter', true);
+        const filledInputs = new Set(selectedMovementsTypes.map((option) => option.column)).size;
         const previousFilters = filters || {}; 
         
         setFilters(prev => ({
@@ -57,8 +57,8 @@ const useTypeOsFilters = (fetchTypes, filters, setFilters) => {
                 <AutoCompleteFilter
                     service={baseService}
                     columnDataBase="id"
-                    model="serviceOrderItemType"
-                    value={selectedTypesOs.filter((option) => option.column === "id")}
+                    model="movementType"
+                    value={selectedMovementsTypes.filter((option) => option.column === "id")}
                     onChange={(selected) => handleChangeTypes(selected, "id")}
                     onBlurColumn="numberFilter"
                     placeholder="Filtre os tipos pelo número"
@@ -72,8 +72,8 @@ const useTypeOsFilters = (fetchTypes, filters, setFilters) => {
                 <AutoCompleteFilter
                     service={baseService}
                     columnDataBase="name"
-                    model="serviceOrderItemType"
-                    value={selectedTypesOs.filter((option) => option.column === "name")}
+                    model="movementType"
+                    value={selectedMovementsTypes.filter((option) => option.column === "name")}
                     onChange={(selected) => handleChangeTypes(selected, "name")}
                     onBlurColumn="textFilter"
                     placeholder="Filtre os tipos pelo nome"
@@ -83,7 +83,7 @@ const useTypeOsFilters = (fetchTypes, filters, setFilters) => {
         },
     ];
 
-    return { selectedTypesOs, handleChangeTypes, handleFilterSubmit, handleClearFilters, inputsfilters };
+    return { selectedMovementsTypes, handleChangeTypes, handleFilterSubmit, handleClearFilters, inputsfilters };
 };
 
-export default useTypeOsFilters;
+export default useMovementsTypesFilters;

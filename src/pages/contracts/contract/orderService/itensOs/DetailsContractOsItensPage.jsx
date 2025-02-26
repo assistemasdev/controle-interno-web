@@ -19,7 +19,7 @@ const DetailsContractOsItensPage = () => {
     const { showNotification } = useNotification();
     const { 
         getByColumn: fetchOsItemById,
-        getByColumn: fetchOsItemTypeById,
+        getByColumn: fetchMovementTypeById,
         getByColumn: fetchProductById,
         getByColumn: fetchAddress,
         getByColumn: fetchLocation,
@@ -39,12 +39,12 @@ const DetailsContractOsItensPage = () => {
                 fetchOsItemById(entities.contracts.orders.items(id).getByColumn(contractOsId, contractOsItemId)),
             ])
             const [
-                osItemTypeResponse,
+                movementTypeResponse,
                 productResponse,
                 addressResponse,
                 locationResponse
             ] = await Promise.all([
-                fetchOsItemTypeById(entities.orders.itemsTypes.getByColumn(null, contractOsItemResponse.result.service_order_item_type_id)),
+                fetchMovementTypeById(entities.movements.types.getByColumn(null, contractOsItemResponse.result.movement_type_id)),
                 fetchProductById(entities.products.getByColumn(contractOsItemResponse.result.product_id)),
                 fetchAddress(entities.addresses.getByColumn(contractOsItemResponse.result.address_id)),
                 fetchLocation(entities.addresses.locations.getByColumn(contractOsItemResponse.result.address_id, contractOsItemResponse.result.location_id))
@@ -56,7 +56,7 @@ const DetailsContractOsItensPage = () => {
                 details: contractOsItemResponse.result.details,
                 identify: contractOsItemResponse.result.item_id,
                 location: (location.area && location.section && location.spot) ? `${location.area}, ${location.section} - ${location.spot}` : '',
-                osItemType: osItemTypeResponse.result.name,
+                movementType: movementTypeResponse.result.name,
                 product: productResponse.result.name,
                 quantity: contractOsItemResponse.result.quantity
             });

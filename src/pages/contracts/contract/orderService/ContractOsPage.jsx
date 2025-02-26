@@ -90,7 +90,7 @@ const ContractOsPage = () => {
         loadOrdersServices();
     }, [itemsPerPage]);
 
-    const headers = useMemo(() => ['id', 'Nº Contrato', 'Cliente'], []);
+    const headers = useMemo(() => ['id', 'Nº Contrato', 'Status'], []);
 
     const actions = useMemo(() => [
         {

@@ -1,21 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import MainLayout from "../../../layouts/MainLayout";
-import { usePermissions } from "../../../hooks/usePermissions";
-import DynamicTable from "../../../components/DynamicTable";
+import MainLayout from "../../layouts/MainLayout";
+import { usePermissions } from "../../hooks/usePermissions";
+import DynamicTable from "../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
-import ConfirmationModal from "../../../components/modals/ConfirmationModal";
-import { PAGINATION } from "../../../constants/pagination";
-import useLoader from "../../../hooks/useLoader";
-import useBaseService from "../../../hooks/services/useBaseService";
-import { entities } from "../../../constants/entities";
-import PageHeader from "../../../components/PageHeader";
-import ListHeader from "../../../components/ListHeader";
-import useAction from "../../../hooks/useAction";
-import useTypeOsFilters from "../../../hooks/filters/useTypeOsFilters";
-import FilterForm from "../../../components/FilterForm";
+import ConfirmationModal from "../../components/modals/ConfirmationModal";
+import { PAGINATION } from "../../constants/pagination";
+import useLoader from "../../hooks/useLoader";
+import useBaseService from "../../hooks/services/useBaseService";
+import { entities } from "../../constants/entities";
+import PageHeader from "../../components/PageHeader";
+import ListHeader from "../../components/ListHeader";
+import useAction from "../../hooks/useAction";
+import useMovementsTypesFilters from "../../hooks/filters/useMovementsTypesFilters";
+import FilterForm from "../../components/FilterForm";
 
-const OsItemTypePage = () => {
+const MovementsTypesPage = () => {
     const navigate = useNavigate();
     const { canAccess } = usePermissions();
     const { get: fetchAllOsItemsType } = useBaseService(navigate);
@@ -46,7 +45,7 @@ const OsItemTypePage = () => {
     const loadOsItemsTypes = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
-            const response = await fetchAllOsItemsType(entities.orders.itemsTypes.get() ,filtersSubmit || filters);
+            const response = await fetchAllOsItemsType(entities.movements.types.get() ,filtersSubmit || filters);
             setOsItemsTypes(response.result.data.map((type) => ({
                 id: type.id,
                 name: type.name,
@@ -59,7 +58,7 @@ const OsItemTypePage = () => {
         }
     }, [fetchAllOsItemsType, itemsPerPage, showLoader, hideLoader]);
 
-    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useTypeOsFilters(loadOsItemsTypes, filters, setFilters);
+    const { handleFilterSubmit, handleClearFilters, inputsfilters } = useMovementsTypesFilters(loadOsItemsTypes, filters, setFilters);
 
     useEffect(() => {
         loadOsItemsTypes();
@@ -68,44 +67,18 @@ const OsItemTypePage = () => {
     const headers = useMemo(() => ['id', 'Nome'], []);
 
     const actions = useMemo(() => [
-        {
-            id:'edit',
-            icon: faEdit,
-            title: 'Editar',
-            buttonClass: 'btn-primary',
-            permission: 'Atualizar tipos de contratos',
-            onClick: (osItemType) => navigate(`/contratos/ordem-servico/tipos-itens/editar/${osItemType.id}`)
-        },
-        {
-            id: 'delete',
-            icon: faTrash,
-            title: 'Excluir',
-            buttonClass: 'btn-danger',
-            permission: 'Atualizar tipos de contratos',
-            onClick: (osItemType) => handleDelete(osItemType, 'Você tem certeza que deseja excluir: ', entities.orders.itemsTypes.delete(null, osItemType.id), loadOsItemsTypes)
-        },
-        {
-            id: 'activate',
-            icon: faUndo,
-            title: 'Ativar',
-            buttonClass: 'btn-info',
-            permission: 'Excluir tipos de contratos',
-            onClick: (osItemType) => handleActivate(osItemType, 'Você tem certeza que deseja ativar: ', loadOsItemsTypes)
-        },
     ], [handleActivate, handleDelete]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <PageHeader title="Tipos de Item de Ordem de Serviço" showBackButton={true} backUrl="/dashboard"/>
+            <PageHeader title="Tipos de Movimentos" showBackButton={true} backUrl="/dashboard"/>
             <div className="container-fluid p-1">
                 <FilterForm autoCompleteFields={inputsfilters} onSubmit={handleFilterSubmit} onClear={handleClearFilters} />
 
                 <ListHeader 
-                    title="Lista de Tipos de Item de Ordem de Serviço" 
-                    buttonText="Novo Tipo" 
-                    buttonLink='/contratos/ordem-servico/tipos-itens/criar'
+                    title="Lista de Tipos de Movimentos" 
+                    buttonIsNotVisible={true}
                     canAccess={canAccess} 
-                    permission="Criar tipos de itens de ordem de serviço"
                 />
 
                 <DynamicTable
@@ -131,4 +104,4 @@ const OsItemTypePage = () => {
     );
 };
 
-export default OsItemTypePage
+export default MovementsTypesPage

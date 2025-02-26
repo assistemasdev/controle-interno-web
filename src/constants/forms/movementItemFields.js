@@ -9,11 +9,11 @@ export const movementItemFields = [
         section: "Produtos",
         fields: [
             { 
-                id: "service_order_item_type_id", 
-                label: "Tipo de Item de Ordem de Serviço", 
+                id: "movement_type_id", 
+                label: "Tipo de Movimento", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo",
-                entity: 'serviceOrderItemType',
+                entity: 'movementType',
                 column: 'id',
                 columnLabel: 'name',
                 icon: faTools
@@ -74,8 +74,8 @@ export const detailsMovementItemFields = [
         section: "Produto",
         fields: [
             { 
-                id: "service_order_item_type_id", 
-                label: "Tipo de Item de Ordem de Serviço", 
+                id: "movement_type_id", 
+                label: "Tipo de Movimento", 
                 type: "text", 
                 placeholder: "Selecione o tipo",
                 icon: faTools

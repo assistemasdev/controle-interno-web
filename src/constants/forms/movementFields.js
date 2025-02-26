@@ -57,11 +57,11 @@ export const movementFields = [
         count: 0,
         fields: [
             { 
-                id: "items.service_order_item_type_id", 
-                label: "Tipo de Item de Ordem de Serviço", 
+                id: "items.movement_type_id", 
+                label: "Tipo de Movimento", 
                 type: "multi-select", 
-                placeholder: "Selecione o tipo",
-                entity: 'serviceOrderItemType',
+                placeholder: "Selecione o Tipo de Movimento",
+                entity: 'movementType',
                 column: 'id',
                 columnLabel: 'name',
                 icon: faTools

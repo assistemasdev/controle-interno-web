@@ -20,8 +20,6 @@ const EditContractOsItemPage = () => {
     const { showNotification } = useNotification();
     const { 
         getByColumn: fetchContractById,
-        get: fetchProducts,
-        get: fetchOsItemsTypes,
         getByColumn: fetchContractOsItemById,
         get: fetchLocations,
         get: fetchAddress,
@@ -30,11 +28,10 @@ const EditContractOsItemPage = () => {
         setFormErrors
     } = useBaseService(navigate);
     const { formData, handleChange, formatData, setFormData } = useForm(setDefaultFieldValues(osItemFields));
-    const [products, setProducts] = useState([]);
-    const [osItemsTypes, setOsItemsTypes] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [locations, setLocations] = useState([]);
     const [contract, setContract] = useState({});
+    
     useEffect(() => {
         fetchData();
     }, [])
@@ -44,13 +41,9 @@ const EditContractOsItemPage = () => {
             showLoader()
             const [
                 contractOsItemResponse,
-                productsResponse,
-                osItemsTypesResponse,
                 contractResponse
             ] = await Promise.all([
                 fetchContractOsItemById(entities.contracts.orders.items(id).getByColumn(contractOsId, contractOsItemId)),
-                fetchProducts(entities.products.get),
-                fetchOsItemsTypes(entities.orders.itemsTypes.get()),
                 fetchContractById(entities.contracts.getByColumn(id))
             ])
 
@@ -60,14 +53,6 @@ const EditContractOsItemPage = () => {
             fetchLocationsData(contractResponse.result.customer_id, contractOsItemResponse.result.address_id)
             formatData(contractOsItemResponse.result, osItemFields);
 
-            setProducts(productsResponse.result.data.map((product) => ({
-                label: product.name,
-                value: product.id
-            })));
-            setOsItemsTypes(osItemsTypesResponse.result.data.map((item) => ({
-                label: item.name,
-                value: item.id
-            })));
             setAddresses(addressResponse.result.data.map((address) => ({
                 label: `${address.street}, ${address.city} - ${address.state}`,
                 value: address.id
@@ -122,10 +107,6 @@ const EditContractOsItemPage = () => {
     
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "product_id":
-                return products || [];
-            case "service_order_item_type_id":
-                return osItemsTypes || [];
             case "address_id":
                 return addresses || [];
             case "location_id":

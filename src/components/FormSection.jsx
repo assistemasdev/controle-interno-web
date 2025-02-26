@@ -49,7 +49,6 @@ const FormSection = ({
 
             setFieldsData(fields.reduce((acc, currentValue) => {
                 const column = currentValue.id.split('.')[1];
-                console.log(column);
             
                 if (!acc.exclude_ids) {
                     acc.exclude_ids = {}; 
@@ -76,10 +75,6 @@ const FormSection = ({
             }, ['identify']))
         }
     }, [section.array]);
-
-    useEffect(() => {
-        console.log(fieldsData)
-    }, [fieldsData])
 
     const handleArraySelectChange = (selectedOption, sectionField) => {
         if (sectionField.isMulti) {

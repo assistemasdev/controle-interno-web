@@ -20,10 +20,6 @@ const CreateContractOsPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { 
-        get: fetchOsStatus,
-        get: fetchOsDepartaments,
-        get: fetchOsDestinations,
-        get: fetcOsTypesItem,
         get: fetchProducts,
         getByColumn: fetchContractById,
         get: fetchAddressCustomer,
@@ -33,10 +29,6 @@ const CreateContractOsPage = () => {
         setFormErrors
     } = useBaseService(navigate);
     const { formData, handleChange, resetForm, setFormData } = useForm(setDefaultFieldValues(orderServiceFields));
-    const [oSstatus, setOsStatus] = useState([]);
-    const [osDepartaments, setOsDepartaments] = useState([]);
-    const [osDestinations, setOsDestinations] = useState([]);
-    const [osTypesItems, setOsTypesItems] = useState([]);
     const [products, setProducts] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [allFieldsData, setAllFieldsData] = useState({});
@@ -55,17 +47,9 @@ const CreateContractOsPage = () => {
         try {
             showLoader()
             const [
-                osStatusResponse,
-                osDepartamentsResponse,
-                osDestinationsResponse,
-                osTypesItemResponse,
                 productsResponse,
                 contractResponse
             ] = await Promise.all([
-                fetchOsStatus(entities.orders.status.get(), {deleted_at: false}),
-                fetchOsDepartaments(entities.orders.departaments.get(), {deleted_at: false}),
-                fetchOsDestinations(entities.orders.destinations.get(), {deleted_at: false}),
-                fetcOsTypesItem(entities.orders.itemsTypes.get(), {deleted_at: false}),
                 fetchProducts(entities.products.get, {deleted_at: false}),
                 fetchContractById(entities.contracts.getByColumn(id), {deleted_at: false})
             ])
@@ -76,31 +60,6 @@ const CreateContractOsPage = () => {
 
             setContract(contractResponse.result);
 
-            setOsStatus(osStatusResponse.result.data.map((status) => ({
-                label: status.name,
-                value: status.id
-            })));
-    
-            setOsDepartaments(osDepartamentsResponse.result.data.map((departament) => ({
-                label: departament.name,
-                value: departament.id
-            })))
-    
-            setOsDestinations(osDestinationsResponse.result.data.map((destination) => ({
-                label: destination.name,
-                value: destination.id
-            })));
-    
-            setOsTypesItems(osTypesItemResponse.result.data.map((osTypeItem) => ({
-                label: osTypeItem.name,
-                value: osTypeItem.id
-            })));
-    
-            setOsTypesItems(productsResponse.result.data.map((product) => ({
-                label: product.name,
-                value: product.id
-            })));
-    
             setAddresses(addressesResponse.result.data.map((address) => ({
                 value: address.id,
                 label: `${address.street}, ${address.city} - ${address.state}`,
@@ -120,14 +79,6 @@ const CreateContractOsPage = () => {
     
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "order.status_id":
-                return oSstatus || [];
-            case "order.departament_id":
-                return osDepartaments || [];
-            case "order.destination_id":
-                return osDestinations || [];
-            case "items.service_order_item_type_id":
-                return osTypesItems || [];
             case "items.product_id":
                 return products || [];
             case "items.address_id":

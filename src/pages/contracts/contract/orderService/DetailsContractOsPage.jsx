@@ -32,7 +32,7 @@ const DetailsContractOsPage = () => {
         getByColumn: fetchOsDestinationById,
         getByColumn: fetchUserById,
         get: fetchOsItens,
-        get: fetchOsItensTypes,
+        get: fetchMovementsTypes,
         get: fetchProducts,
     } = useBaseService(navigate);
     const { formData,  setFormData } = useForm(setDefaultFieldValues(DetailsOrderServiceFields));
@@ -100,10 +100,10 @@ const DetailsContractOsPage = () => {
                 productsResponse
             ] = await Promise.all([
                 fetchOsItens(entities.contracts.orders.items(id).get(contractOsId), filters),
-                fetchOsItensTypes(entities.orders.itemsTypes.get()),
+                fetchMovementsTypes(entities.movements.types.get()),
                 fetchProducts(entities.products.get)
             ]);
-            const osItensTypesMap = mapsItensTypes(osItensTypesResponse.result.data);
+            const osItensTypesMap = mapsMovementsTypes(osItensTypesResponse.result.data);
             const productsMap = mapsProduct(productsResponse.result.data);
             const filteredOsItens = transformOsItens(osItensResponse.result.data, osItensTypesMap, productsMap);
             setOsItens(filteredOsItens);
@@ -117,18 +117,18 @@ const DetailsContractOsPage = () => {
         }
     }
 
-    const mapsItensTypes = useCallback((osItensTypes) => {
-        return Object.fromEntries(osItensTypes.map((osItemType) => [osItemType.id, osItemType.name]));
+    const mapsMovementsTypes = useCallback((movementsTypes) => {
+        return Object.fromEntries(movementsTypes.map((movementType) => [movementType.id, movementType.name]));
     }, []);
 
     const mapsProduct = useCallback((products) => {
         return Object.fromEntries(products.map((product) => [product.id, product.name]));
     }, []);
 
-    const transformOsItens = useCallback((osItensData, osItensTypesMap, productsMap) => {
+    const transformOsItens = useCallback((osItensData, movementsTypesMap, productsMap) => {
         return osItensData.map((osItem) => ({
             id: osItem.id,
-            osItemType: osItensTypesMap[osItem.service_order_item_type_id] || "N/A",
+            movementsTypes: movementsTypesMap[osItem.movement_type_id] || "N/A",
             product: productsMap[osItem.product_id] || "N/A",
             quantity: osItem.quantity,
             deleted_at: osItem.deleted_at ? 'deleted-' + osItem.deleted_at : 'deleted-null'
@@ -137,7 +137,7 @@ const DetailsContractOsPage = () => {
 
     const osItensHeaders = [
         'Id',
-        'Tipo de Item de OS',
+        'Tipo de Movimento',
         'Produto',
         'Quantidade'
     ];

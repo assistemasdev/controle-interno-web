@@ -79,6 +79,7 @@ const SideBarTwo = ({ children }) => {
                     title: 'Movimentos',
                     items: [
                         { name: 'Movimentos', icon: faExchangeAlt, to: '/movimentos', requiredPermission: 'Listar movimentos' },
+                        { name: 'Tipos de Movimento', icon: faClipboardList, to: '/movimentos/tipos', requiredPermission: 'Listar tipos de movimentos' },
                         { name: 'Carregamentos', icon: faTruck, to: '/carregamentos', requiredPermissions: 'Listar carregamentos'}
                     ].filter(item => canAccess(item.requiredPermission))
                 },
@@ -101,7 +102,6 @@ const SideBarTwo = ({ children }) => {
                     title: 'Ordem de Serviço',
                     items: [
                         { name: 'Ordens de Serviços', icon: faClipboard, to: '/ordens-servicos', requiredPermission: 'Listar ordens de serviço' },
-                        { name: 'Tipos de Item OS', icon: faClipboardList, to: '/contratos/ordem-servico/tipos-itens', requiredPermission: 'Listar tipos de itens de ordem de serviço' },
                         { name: 'Departamentos de OS', icon: faBuilding, to: '/contratos/ordem-servico/departamentos', requiredPermission: 'Listar departamentos de ordem de serviço' },
                         { name: 'Destinos de OS', icon: faLocationArrow, to: '/contratos/ordem-servico/destinos', requiredPermission: 'Listar destinos de ordem de serviço' },
                         { name: 'Status de OS', icon: faCircleInfo, to: '/contratos/ordem-servico/status', requiredPermission: 'Listar status de ordem de serviço' }
