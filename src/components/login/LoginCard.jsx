@@ -38,15 +38,16 @@ const LoginCard = () => {
         try {
             const response = await loginUser(entities.login.create, formData);
             login(response.result);
-
-            const storedUser = JSON.parse(localStorage.getItem('user'));
-            const userRoles = await fetchRolesUser(entities.users.roles.get(storedUser.id));
-            const userPermissions = await fetchPermissionsForUser(entities.users.permissions.get(storedUser.id));
-
-            addRoles(userRoles.result);
-            addPermissions(userPermissions.result);
-            
-            navigate('/aplicacoes')
+            if(response) {
+                const storedUser = JSON.parse(localStorage.getItem('user'));
+                const userRoles = await fetchRolesUser(entities.users.roles.get(storedUser.id));
+                const userPermissions = await fetchPermissionsForUser(entities.users.permissions.get(storedUser.id));
+    
+                addRoles(userRoles.result);
+                addPermissions(userPermissions.result);
+                
+                navigate('/aplicacoes')
+            }
 
         } catch (error) {
             console.log(error)

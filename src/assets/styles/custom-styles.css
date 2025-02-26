@@ -149,6 +149,9 @@ hr {
     background-color: #333;
 }
 
+.form-control {
+    color: #333!important
+}
 .input-group {
     position: relative;
 }
