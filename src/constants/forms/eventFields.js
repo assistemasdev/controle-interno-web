@@ -5,7 +5,7 @@ export const eventFields = [
         section: "Tipo de Evento",
         fields: [
             { 
-                id: "event.event_type_id", 
+                id: "event.contract_event_type_id", 
                 label: "Tipo de Evento", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo", 
@@ -67,7 +67,7 @@ export const eventFields = [
         count: 0,
         fields: [
             { 
-                id: "products.item_id", 
+                id: "items.item_id", 
                 label: "ID", 
                 type: "text", 
                 placeholder:"Digite o Identificador",
@@ -75,7 +75,7 @@ export const eventFields = [
                 icon: faBoxOpen
             },
             { 
-                id: "products.description", 
+                id: "items.description", 
                 label: "Descrição", 
                 type: "textarea", 
                 placeholder:"Digite a Descrição",
@@ -83,14 +83,14 @@ export const eventFields = [
                 icon: faBoxOpen
             },
             { 
-                id: "products.quantity", 
+                id: "items.quantity", 
                 label: "Quantidade", 
                 type: "number", 
                 placeholder:"Digite a Quantidade",
                 icon: faBoxOpen
             },
             { 
-                id: "products.price", 
+                id: "items.price", 
                 label: "Preço", 
                 type: "number", 
                 placeholder:"Digite o Preço",
@@ -139,6 +139,31 @@ export const editEventFields = [
             },
             { 
                 id: "contract_id", 
+                label: "Contrato", 
+                type: "multi-select", 
+                placeholder: "Selecione o contrato", 
+                icon: faClipboardCheck
+            },
+        ],
+    },
+];
+
+export const detailsEventFields = [
+    {
+        section: "Dados do Evento",
+        fields: [
+            { 
+                id: "eventType", 
+                label: "Tipo de Evento", 
+                type: "multi-select", 
+                placeholder: "Selecione o tipo", 
+                entity: 'contractEventType',
+                column: 'id',
+                columnLabel: 'name',
+                icon: faClipboardCheck
+            },
+            { 
+                id: "contract", 
                 label: "Contrato", 
                 type: "multi-select", 
                 placeholder: "Selecione o contrato", 

@@ -93,6 +93,8 @@ export const entities = {
         events: {
             ...createNestedRoutes('contracts', 'events'),
             infos: createNestedRoutes('events', 'infos'),
+            items: (contractId) => createNestedRoutes(`contracts/${contractId}/events`, 'items'),
+            jobs: (contractId) => createNestedRoutes(`contracts/${contractId}/events`, 'jobs'),
 
         },
         types: createNestedRoutes('contracts', 'types', true),

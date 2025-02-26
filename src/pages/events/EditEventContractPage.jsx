@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import MainLayout from '../../../../layouts/MainLayout';
-import Form from '../../../../components/Form';
-import FormSection from '../../../../components/FormSection';
-import { editEventFields } from "../../../../constants/forms/eventFields";
-import useNotification from '../../../../hooks/useNotification';
-import useLoader from '../../../../hooks/useLoader';
-import useForm from '../../../../hooks/useForm';
+import MainLayout from '../../layouts/MainLayout';
+import Form from '../../components/Form';
+import FormSection from '../../components/FormSection';
+import { editEventFields } from "../../constants/forms/eventFields";
+import useNotification from '../../hooks/useNotification';
+import useLoader from '../../hooks/useLoader';
+import useForm from '../../hooks/useForm';
 import { useNavigate, useParams } from 'react-router-dom';
-import { setDefaultFieldValues } from '../../../../utils/objectUtils';
-import useBaseService from '../../../../hooks/services/useBaseService';
-import { entities } from '../../../../constants/entities';
-import PageHeader from '../../../../components/PageHeader';
+import { setDefaultFieldValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
+import PageHeader from '../../components/PageHeader';
 
 const EditEventContractPage = () => {
     const navigate = useNavigate();
@@ -48,7 +48,6 @@ const EditEventContractPage = () => {
                     fetchEventTypes(entities.contracts.eventsTypes.get()),
                     fetchContracts(entities.contracts.get)
                 ]);
-                console.log(entities.contracts.events.getByColumn(id, eventId))
                 formatData(contractEventResponse.result, editEventFields);
                 setEventTypes(contractEventTypesResponse.result.data.map((item) => ({
                     value: item.id,

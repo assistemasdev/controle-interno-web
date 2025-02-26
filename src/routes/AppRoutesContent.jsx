@@ -107,9 +107,9 @@ import DetailsTypeEventsPage from "../pages/contracts/typesEvents/DetailsTypeEve
 import EditTypeEventsPage from "../pages/contracts/typesEvents/EditTypeEventsPage";
 import DetailsContractPage from "../pages/contracts/contract/DetailsContractPage";
 import EditContractPage from "../pages/contracts/contract/EditContractPage";
-import CreateEventContractPage from "../pages/contracts/contract/events/CreateEventContractPage";
-import HistoryEventsContractPage from "../pages/contracts/contract/events/HistoryEventsContractPage";
-import EditEventContractPage from "../pages/contracts/contract/events/EditEventContractPage";
+import CreateEventContractPage from "../pages/events/CreateEventContractPage";
+import HistoryEventsContractPage from "../pages/events/HistoryEventsContractPage";
+import EditEventContractPage from "../pages/events/EditEventContractPage";
 import EditStatusContractPage from "../pages/contracts/status/EditStatusContractPage";
 import NotFound from "../pages/NotFound";
 import OsDepartamentsPage from "../pages/contracts/osDepartaments/OsDepartamentsPage";
@@ -149,6 +149,11 @@ import ShipmentsPage from "../pages/shipments/ShipmentsPage";
 import DetailsShipmentsPage from "../pages/shipments/DetailsShipmentsPage";
 import DetailsShipmentItemGlobalPage from "../pages/shipments/items/DetailsShipmentItemGlobalPage";
 import MovementsTypesPage from "../pages/MovementsTypes/MovementsTypesPage";
+import DetailsEventContractPage from "../pages/events/DetailsEventContractPage";
+import CreateEventItemContractPage from "../pages/events/items/CreateEventItemContractPage";
+import EditEventItemContractPage from "../pages/events/items/EditEventItemContractPage";
+import CreateEventJobContractPage from "../pages/events/jobs/CreateEventJobContractPage";
+import EditEventJobContractPage from "../pages/events/jobs/EditEventJobContractPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -367,6 +372,30 @@ const AppRoutesContent = () => {
         {
             path: "/contratos/:id/eventos/:eventId/editar/",
             element: <PrivateRoute element={EditEventContractPage}/>
+        },
+        {
+            path: "/contratos/:id/eventos/:eventId/detalhes/",
+            element: <PrivateRoute element={DetailsEventContractPage}/>
+        },
+        {
+            path: "/contratos/:id/eventos/:eventId/detalhes/",
+            element: <PrivateRoute element={DetailsEventContractPage}/>
+        },
+        {
+            path: "/contratos/:id/eventos/:eventId/itens/adicionar/",
+            element: <PrivateRoute element={CreateEventItemContractPage}/>
+        },
+        {
+            path: "/contratos/:id/eventos/:eventId/itens/editar/:eventItemId",
+            element: <PrivateRoute element={EditEventItemContractPage}/>
+        },
+        {
+            path: "/contratos/:id/eventos/:eventId/servicos/adicionar/",
+            element: <PrivateRoute element={CreateEventJobContractPage}/>
+        },
+        {
+            path: "/contratos/:id/eventos/:eventId/servicos/editar/:eventJobId",
+            element: <PrivateRoute element={EditEventJobContractPage}/>
         },
         {
             path: "/contratos/:id/ordens-servicos/",

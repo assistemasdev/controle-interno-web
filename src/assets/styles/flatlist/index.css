@@ -24,10 +24,6 @@
     gap: 10px;
 }
 
-.container-flatlist-item > p:last-child {
-    grid-column: span 2; 
-}
-
 .container-flatlist-item p {
     margin: 0;
 }
