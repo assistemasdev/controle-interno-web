@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
-import FormSection from '../../components/FormSection';
 import { productFields } from "../../constants/forms/productFields";
 import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
@@ -11,6 +10,7 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader';
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const EditProductPage = () => {
     const navigate = useNavigate();
@@ -250,34 +250,33 @@ const EditProductPage = () => {
     }, [fetchLocations, selectedOrganizationId]);
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
-        handleChange(fieldId, value);
-
-        if (field.handleChange) {
-            switch (field.handleChange) {
-                case "handleOrganizationChange":
+            handleChange(fieldId, value);
+            switch (fieldId) {
+                case "product.current_organization_id":
                     handleOrganizationChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
                     break;
-                case "handleGroupChange":
+                case "groups":
                     handleGroupChange(
                         Array.isArray(value)
                             ? value.map((val) => ({
-                                value: val,
-                                label: getOptions(fieldId).find((option) => option.value === val)?.label || "",
-                            }))
+                                    value: val,
+                                    label: getOptions(fieldId).find((option) => option.value === val)?.label || "",
+                                }))
                             : []
                     );
                     break;
-                case "handleTypeChange":
+                case "product.type_id":
                     handleTypeChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
                     break;
-                case "handleAddressChange":
+                case "product.address_id":
                     handleAddressChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
                     break;
                 default:
                     console.warn("Nenhum handle definido para:", fieldId);
             }
-        }
-    }, [handleOrganizationChange, handleGroupChange, handleTypeChange, handleAddressChange, getOptions]);
+            
+        }, [handleOrganizationChange, handleGroupChange, handleTypeChange, handleAddressChange, getOptions]);
+
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -292,7 +291,7 @@ const EditProductPage = () => {
                 >
                     {() =>
                         productFields.map(section => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

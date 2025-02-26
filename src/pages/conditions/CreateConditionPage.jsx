@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css'; 
 import Form from '../../components/Form';
 import { conditionFields } from '../../constants/forms/conditionFields';
-import FormSection from '../../components/FormSection';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader'; 
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const CreateConditionPage = () => {
     const navigate = useNavigate();
@@ -45,7 +45,7 @@ const CreateConditionPage = () => {
                 >
                     {() =>
                         conditionFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

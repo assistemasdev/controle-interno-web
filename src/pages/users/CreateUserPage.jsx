@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
-import FormSection from '../../components/FormSection';
 import { userProfileFields } from '../../constants/forms/userProfileFields';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
@@ -10,6 +9,7 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader'; 
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const CreateUserPage = () => {
     const navigate = useNavigate();
@@ -48,7 +48,7 @@ const CreateUserPage = () => {
                 >
                     {() =>
                         userProfileFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

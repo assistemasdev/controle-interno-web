@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
-import FormSection from '../../components/FormSection';
+import SimpleForm from '../../components/forms/SimpleForm';  // Caminho corrigido
 import '../../assets/styles/custom-styles.css';
 import { applicationFields } from '../../constants/forms/applicationFields';
 import useNotification from '../../hooks/useNotification';
@@ -18,7 +18,7 @@ const CreateApplicationPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { formData, handleChange, resetForm } = useForm(setDefaultFieldValues(applicationFields));
-    const { post: create, formErrors} = useBaseService(navigate);
+    const { post: create, formErrors } = useBaseService(navigate);
 
     const handleSubmit = useCallback(async () => {
         try {
@@ -29,7 +29,7 @@ const CreateApplicationPage = () => {
                 resetForm();
             }
         } catch (error) {
-            console.log(error)
+            console.log(error);
         } finally {
             hideLoader();
         }
@@ -70,7 +70,7 @@ const CreateApplicationPage = () => {
                 >
                     {() =>
                         applicationFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

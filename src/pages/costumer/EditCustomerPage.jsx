@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
-import FormSection from '../../components/FormSection';
 import PageHeader from '../../components/PageHeader';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
@@ -13,6 +12,7 @@ import { maskCpfCnpj, removeMask } from '../../utils/maskUtils';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const EditCustomerPage = () => {
     const navigate = useNavigate();
@@ -80,7 +80,7 @@ const EditCustomerPage = () => {
                     {() => (
                         <>
                             {editCustomerFields.map((section) => (
-                                <FormSection
+                                <SimpleForm
                                     key={section.section}
                                     section={section}
                                     formData={formData}

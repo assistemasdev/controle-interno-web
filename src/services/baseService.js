@@ -5,7 +5,6 @@ import { buildDynamicFilters } from "../utils/filterUtils";
 const baseService = {
     async autocomplete(entity, params, navigate = null) {
         let filters = params;
-        console.log(entity)
         if (entity) {
             try {
                 const module = await import(`../utils/filters/${entity}Filters.js`);

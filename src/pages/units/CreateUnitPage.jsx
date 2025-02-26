@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
-import FormSection from '../../components/FormSection';
 import '../../assets/styles/custom-styles.css';
 import { useNavigate } from 'react-router-dom';
 import { unitFields } from '../../constants/forms/unitFields';
@@ -12,6 +11,7 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader';
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const CreateUnitPage = () => {
     const navigate = useNavigate();
@@ -51,7 +51,7 @@ const CreateUnitPage = () => {
                 >
                     {() =>
                         unitFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

@@ -1,27 +1,27 @@
 import { faUserTag } from '@fortawesome/free-solid-svg-icons'; 
+import createField from '../../utils/factory/createField';
+
 export const roleFields = [
     {
         section: "Dados do Cargo",
         fields: [
-            { 
-                id: "name", 
-                label: "Nome", 
-                type: "text", 
-                placeholder: "Digite o nome do cargo", 
-                handleChange: "handleChange",
+            createField({
+                id: "name",
+                label: "Nome",
+                type: "text",
+                placeholder: "Digite o nome do cargo",
                 fullWidth: true,
-                icon: faUserTag 
-            },
-            { 
-                id: "permissions", 
+                icon: faUserTag
+            }),
+            createField({
+                id: "permissions",
                 isMulti: true,
-                label: "Permissões", 
-                type: "multi-select", 
-                placeholder: "Selecione as permissões", 
-                handleChange: "handleGroupChange",
+                label: "Permissões",
+                type: "multi-select",
+                placeholder: "Selecione as permissões",
                 fullWidth: true,
-                icon: faUserTag 
-            },
+                icon: faUserTag
+            }),
         ],
     },
 ];

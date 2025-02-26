@@ -1,5 +1,4 @@
 const handleError = (error, navigate = null) => {
-    console.log('oi')
     console.log("Erro capturado:", error);
 
     if (error.response) {

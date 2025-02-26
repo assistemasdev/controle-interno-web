@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import MainLayout from '../../../layouts/MainLayout';
 import Form from '../../../components/Form';
-import FormSection from '../../../components/FormSection';
 import { contractEditFields } from "../../../constants/forms/contractFields";
 import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
@@ -11,6 +10,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
+import SimpleForm from '../../../components/forms/SimpleForm';
 
 const EditContractPage = () => {
     const navigate = useNavigate();
@@ -128,7 +128,7 @@ const EditContractPage = () => {
                 >
                     {() =>
                         contractEditFields.map(section => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

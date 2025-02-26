@@ -11,6 +11,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
+import SimpleForm from '../../../components/forms/SimpleForm';
 
 const EditOsDepartamentsPage = () => {
     const navigate = useNavigate();
@@ -64,7 +65,7 @@ const EditOsDepartamentsPage = () => {
                 >
                     {() =>
                         osDepartamentsFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

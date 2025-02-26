@@ -2,28 +2,29 @@ import {
     faBuilding, faIdCard, faRoad, faMapMarkedAlt, faCity, faFlag, 
     faPhone, faEnvelope, faUser, faMapPin, faLayerGroup 
 } from '@fortawesome/free-solid-svg-icons';
+import createField from '../../utils/factory/createField'; 
 
 export const customerFields = [
     {
         section: 'Cliente',
         fields: [
-            {
+            createField({
                 id: 'customer.alias',
                 label: 'Nome Fantasia',
                 type: 'text',
                 placeholder: 'Digite o nome fantasia',
                 required: true,
                 icon: faBuilding,
-            },
-            {
+            }),
+            createField({
                 id: 'customer.name',
                 label: 'Nome',
                 type: 'text',
                 placeholder: 'Digite o nome do cliente',
                 required: true,
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'customer.cpf_cnpj',
                 label: 'CPF/CNPJ',
                 type: 'text',
@@ -31,173 +32,173 @@ export const customerFields = [
                 required: true,
                 fullWidth: true,
                 icon: faIdCard,
-            },
+            }),
         ],
     },
     {
         section: 'Endereço',
         fields: [
-            {
+            createField({
                 id: 'address.alias',
                 label: 'Apelido do Endereço',
                 type: 'text',
                 placeholder: 'Digite o apelido do endereço',
                 required: true,
                 icon: faMapMarkedAlt,
-            },
-            {
+            }),
+            createField({
                 id: 'address.zip',
                 label: 'CEP',
                 type: 'text',
                 placeholder: 'Digite o CEP',
                 required: true,
                 icon: faMapPin,
-            },
-            {
+            }),
+            createField({
                 id: 'address.street',
                 label: 'Rua',
                 type: 'text',
                 placeholder: 'Digite a rua',
                 required: true,
                 icon: faRoad,
-            },
-            {
+            }),
+            createField({
                 id: 'address.number',
                 label: 'Número',
                 type: 'text',
                 placeholder: 'Digite o número',
                 required: true,
                 icon: faMapPin,
-            },
-            {
+            }),
+            createField({
                 id: 'address.district',
                 label: 'Bairro',
                 type: 'text',
                 placeholder: 'Digite o bairro',
                 required: true,
                 icon: faMapPin,
-            },
-            {
+            }),
+            createField({
                 id: 'address.city',
                 label: 'Cidade',
                 type: 'text',
                 placeholder: 'Digite a cidade',
                 required: true,
                 icon: faCity,
-            },
-            {
+            }),
+            createField({
                 id: 'address.state',
                 label: 'Estado',
                 type: 'text',
                 placeholder: 'Digite o estado',
                 required: true,
                 icon: faLayerGroup,
-            },
-            {
+            }),
+            createField({
                 id: 'address.country',
                 label: 'País',
                 type: 'text',
                 placeholder: 'Digite o país',
                 required: true,
                 icon: faFlag,
-            },
+            }),
         ],
     },
     {
         section: 'Localização',
         fields: [
-            {
+            createField({
                 id: 'location.area',
                 label: 'Área',
                 type: 'text',
                 placeholder: 'Digite a área',
                 icon: faMapMarkedAlt,
-            },
-            {
+            }),
+            createField({
                 id: 'location.section',
                 label: 'Seção',
                 type: 'text',
                 placeholder: 'Digite a seção',
                 icon: faLayerGroup,
-            },
-            {
+            }),
+            createField({
                 id: 'location.spot',
                 label: 'Ponto',
                 type: 'text',
                 placeholder: 'Digite o ponto',
                 icon: faMapPin,
-            },
-            {
+            }),
+            createField({
                 id: 'location.details',
                 label: 'Detalhes',
                 type: 'text',
                 placeholder: 'Digite os detalhes',
                 icon: faMapPin,
-            },
+            }),
         ],
     },
     {
         section: 'Contato',
         fields: [
-            {
+            createField({
                 id: 'contact.name',
                 label: 'Nome do Contato',
                 type: 'text',
                 placeholder: 'Digite o nome do contato',
                 required: true,
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.surname',
                 label: 'Sobrenome do Contato',
                 type: 'text',
                 placeholder: 'Digite o sobrenome do contato',
                 required: true,
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.role',
                 label: 'Cargo',
                 type: 'text',
                 placeholder: 'Digite o cargo',
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.ddd',
                 label: 'DDD',
                 type: 'text',
                 placeholder: 'Digite o DDD',
                 icon: faPhone,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.phone',
                 label: 'Telefone',
                 type: 'text',
                 placeholder: 'Digite o telefone',
                 icon: faPhone,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.cell_ddd',
                 label: 'DDD (Celular)',
                 type: 'text',
                 placeholder: 'Digite o DDD do celular',
                 icon: faPhone,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.cell',
                 label: 'Celular',
                 type: 'text',
                 placeholder: 'Digite o celular',
                 icon: faPhone,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.email',
                 label: 'E-mail',
                 type: 'email',
                 placeholder: 'Digite o e-mail',
                 required: true,
                 icon: faEnvelope,
-            },
+            }),
         ],
     },
 ];
@@ -206,23 +207,23 @@ export const editCustomerFields = [
     {
         section: 'Cliente',
         fields: [
-            {
+            createField({
                 id: 'alias',
                 label: 'Nome Fantasia',
                 type: 'text',
                 placeholder: 'Digite o nome fantasia',
                 required: true,
                 icon: faBuilding,
-            },
-            {
+            }),
+            createField({
                 id: 'name',
                 label: 'Nome',
                 type: 'text',
                 placeholder: 'Digite o nome do cliente',
                 required: true,
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'cpf_cnpj',
                 label: 'CPF/CNPJ',
                 type: 'text',
@@ -230,7 +231,7 @@ export const editCustomerFields = [
                 required: true,
                 fullWidth: true,
                 icon: faIdCard,
-            },
+            }),
         ],
     },
 ];

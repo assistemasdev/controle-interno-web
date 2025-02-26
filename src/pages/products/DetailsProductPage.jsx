@@ -28,7 +28,9 @@ const DetailsProductPage = () => {
         getByColumn: fetchCategoryById,
         getByColumn: fetchSupplierById,
         getByColumn: fetchTypeById,
-        getByColumn: fetchStatusById
+        getByColumn: fetchStatusById,
+        getByColumn: fetchAddressById,
+        getByColumn: fetchLocationById,
     } = useBaseService(navigate);
 
     useEffect(() => {
@@ -56,6 +58,7 @@ const DetailsProductPage = () => {
     useEffect(() => {
         if (!productDetails || Object.keys(productDetails).length === 0) return;
     
+        console.log(productDetails)
         const fetchOptions = async () => {
             showLoader();
             try {
@@ -85,8 +88,13 @@ const DetailsProductPage = () => {
                     productDetails.status_id
                         ? fetchStatusById(entities.status.getByColumn(productDetails.status_id))
                         : Promise.resolve({ result: { id: null, name: 'Status não disponível' } }),
+                    productDetails.address_id
+                        ? fetchAddressById(entities.addresses.getByColumn(productDetails.address_id))
+                        : Promise.resolve({ result: { id: null, name: 'Endereço não disponível' } }),
+                    productDetails.location_id
+                        ? fetchLocationById(entities.addresses.locations.getByColumn(productDetails.address_id, productDetails.location_id))
+                        : Promise.resolve({ result: { id: null, name: 'Endereço não disponível' } }),
                 ]);
-    
                 const [
                     organizationResponse,
                     ownerResponse,
@@ -95,8 +103,12 @@ const DetailsProductPage = () => {
                     categoryResponse,
                     typeResponse,
                     statusResponse,
+                    addressResponse,
+                    locationResponse
                 ] = responses;
-    
+                const address = addressResponse.result
+                const location = locationResponse.result
+
                 setFormData({
                     product: {
                         name: productDetails.name || 'N/A',
@@ -105,6 +117,8 @@ const DetailsProductPage = () => {
                         current_organization: organizationResponse.result.name|| 'N/A',
                         owner_organization: ownerResponse.result.name || 'N/A',
                         supplier: supplierResponse.result.name || 'N/A',
+                        address_id: (address.street && address.city && address.state) ? `${address.street}, ${address.city} - ${address.state}` : '',
+                        location_id: `${location.area}${location.section ? `, ${location.section}` : ''}${location.spot ? ` - ${location.spot}` : ''}`,
                         purchase_date: productDetails.purchase_date || 'N/A',
                         warranty_date: productDetails.warranty_date || 'N/A',
                         condition: conditionResponse.result.name || 'N/A',

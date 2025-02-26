@@ -38,7 +38,6 @@ const DetailsContractOsItensPage = () => {
             ] = await Promise.all([
                 fetchOsItemById(entities.contracts.orders.items(id).getByColumn(contractOsId, contractOsItemId)),
             ])
-
             const [
                 osItemTypeResponse,
                 productResponse,

@@ -2,7 +2,6 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
-import FormSection from '../../components/FormSection';
 import PageHeader from '../../components/PageHeader';  
 import '../../assets/styles/custom-styles.css';
 import { applicationFields } from '../../constants/forms/applicationFields';
@@ -12,6 +11,7 @@ import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const EditApplicationPage = () => {
     const navigate = useNavigate();
@@ -24,7 +24,7 @@ const EditApplicationPage = () => {
     const fetchData = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchById();
+            const response = await fetchById(entities.applications.getByColumn(id));
             formatData(response.result, applicationFields);
         } catch (error) {
             showNotification('error', 'Erro ao carregar os dados da aplicação.');
@@ -84,7 +84,7 @@ const EditApplicationPage = () => {
                 >
                     {() =>
                         applicationFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}
