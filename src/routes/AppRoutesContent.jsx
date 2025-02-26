@@ -110,9 +110,6 @@ import EditContractPage from "../pages/contracts/contract/EditContractPage";
 import CreateEventContractPage from "../pages/contracts/contract/events/CreateEventContractPage";
 import HistoryEventsContractPage from "../pages/contracts/contract/events/HistoryEventsContractPage";
 import EditEventContractPage from "../pages/contracts/contract/events/EditEventContractPage";
-import OsItemTypePage from "../pages/contracts/OsItemType/OsItemTypePage";
-import CreateOsItemTypePage from "../pages/contracts/OsItemType/CreateOsItemTypePage";
-import EditOsItemTypePage from "../pages/contracts/OsItemType/EditOsItemTypePage";
 import EditStatusContractPage from "../pages/contracts/status/EditStatusContractPage";
 import NotFound from "../pages/NotFound";
 import OsDepartamentsPage from "../pages/contracts/osDepartaments/OsDepartamentsPage";
@@ -151,6 +148,7 @@ import DetailsItemOrderServicePage from "../pages/contracts/OrderService/items/D
 import ShipmentsPage from "../pages/shipments/ShipmentsPage";
 import DetailsShipmentsPage from "../pages/shipments/DetailsShipmentsPage";
 import DetailsShipmentItemGlobalPage from "../pages/shipments/items/DetailsShipmentItemGlobalPage";
+import MovementsTypesPage from "../pages/MovementsTypes/MovementsTypesPage";
 const AppRoutesContent = () => {
     const location = useLocation();
 
@@ -416,18 +414,10 @@ const AppRoutesContent = () => {
         }
     ];
 
-    const OsItemTypeRoutes = [
+    const movementTypesRoutes = [
         {
-            path: "/contratos/ordem-servico/tipos-itens",
-            element: <PrivateRoute element={OsItemTypePage} />,
-        },
-        {
-            path: "/contratos/ordem-servico/tipos-itens/criar",
-            element: <PrivateRoute element={CreateOsItemTypePage} />,
-        },
-        {
-            path: "/contratos/ordem-servico/tipos-itens/editar/:id",
-            element: <PrivateRoute element={EditOsItemTypePage}/>
+            path: "/movimentos/tipos",
+            element: <PrivateRoute element={MovementsTypesPage} />,
         }
     ];
 
@@ -784,7 +774,7 @@ const AppRoutesContent = () => {
             <Route key={index} path={route.path} element={route.element} />
         ))}
 
-        {OsItemTypeRoutes.map((route, index) => (
+        {movementTypesRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}
 

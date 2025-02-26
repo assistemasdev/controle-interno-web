@@ -11,8 +11,8 @@ export const DetailsOsItemFields = [
                 icon: faIdBadge
             },
             { 
-                id: "osItemType", 
-                label: "Tipo de Item de OS", 
+                id: "movementType", 
+                label: "Tipo de Movimento", 
                 type: "text", 
                 icon: faBox
             },
@@ -63,11 +63,11 @@ export const osItemFields = [
                 icon: faKey
             },
             { 
-                id: "service_order_item_type_id", 
-                label: "Tipo de Item de OS", 
+                id: "movement_type_id", 
+                label: "Tipo de Movimento", 
                 type: "multi-select", 
                 placeholder:'Selecione o tipo',
-                entity: 'serviceOrderItemType',
+                entity: 'movementType',
                 column: 'id',
                 columnLabel: 'name',
                 icon: faTags
@@ -78,7 +78,7 @@ export const osItemFields = [
                 type: "multi-select", 
                 placeholder:'Selecione o produto',
                 entity: 'product',
-                column: 'id',
+                column: 'number',
                 columnLabel: 'number',
                 columnDetails: 'name',
                 icon: faCogs

@@ -56,11 +56,11 @@ export const orderServiceFields = [
         array: true,
         fields: [
             { 
-                id: "items.service_order_item_type_id", 
-                label: "Tipo de Item de OS", 
+                id: "items.movement_type_id", 
+                label: "Tipo de Movimento", 
                 type: "multi-select", 
-                placeholder:"Digite a Descrição",
-                entity: 'serviceOrderItemType',
+                placeholder:"Digite o tipo de movimento",
+                entity: 'movementType',
                 column: 'id',
                 columnLabel: 'name',
                 icon: faClipboardCheck
@@ -76,7 +76,7 @@ export const orderServiceFields = [
                 id: "items.product_id", 
                 label: "Produto", 
                 type: "multi-select", 
-                placeholder:"Digite a Descrição",
+                placeholder:"Digite o Produto",
                 isUnique: true,
                 entity: 'product',
                 column: 'name',

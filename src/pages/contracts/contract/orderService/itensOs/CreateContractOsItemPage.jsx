@@ -20,8 +20,6 @@ const CreateContractOsItemPage = () => {
     const { showNotification } = useNotification();
     const { 
         getByColumn: fetchContractById,
-        get: fetchProducts,
-        get: fetchOsItemsTypes,
         get: fetchLocations,
         get: fetchAddress,
         post: create, 
@@ -29,8 +27,6 @@ const CreateContractOsItemPage = () => {
         setFormErrors
     } = useBaseService(navigate);
     const { formData, handleChange, resetForm, setFormData } = useForm(setDefaultFieldValues(osItemFields));
-    const [products, setProducts] = useState([]);
-    const [osItemsTypes, setOsItemsTypes] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [locations, setLocations] = useState([]);
     const [contract, setContract] = useState({});
@@ -42,12 +38,8 @@ const CreateContractOsItemPage = () => {
         try {
             showLoader()
             const [
-                productsResponse,
-                osItemsTypesResponse,
                 contractResponse
             ] = await Promise.all([
-                fetchProducts(entities.products.get, {deleted_at: false}),
-                fetchOsItemsTypes(entities.orders.itemsTypes.get(), {deleted_at: false}),
                 fetchContractById(entities.contracts.getByColumn(id), {deleted_at: false})
             ])
 
@@ -55,14 +47,6 @@ const CreateContractOsItemPage = () => {
 
             const addressResponse = await fetchAddress(entities.customers.addresses.get(contractResponse.result.customer_id), {deleted_at: false})
 
-            setProducts(productsResponse.result.data.map((product) => ({
-                label: product.name,
-                value: product.id
-            })));
-            setOsItemsTypes(osItemsTypesResponse.result.data.map((item) => ({
-                label: item.name,
-                value: item.id
-            })));
             setAddresses(addressResponse.result.data.map((address) => ({
                 label: `${address.street}, ${address.city} - ${address.state}`,
                 value: address.id
@@ -116,10 +100,6 @@ const CreateContractOsItemPage = () => {
     
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "product_id":
-                return products || [];
-            case "service_order_item_type_id":
-                return osItemsTypes || [];
             case "address_id":
                 return addresses || [];
             case "location_id":

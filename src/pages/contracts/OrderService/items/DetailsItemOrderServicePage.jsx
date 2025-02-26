@@ -19,7 +19,7 @@ const DetailsItemOrderServicePage = () => {
     const { showNotification } = useNotification();
     const { 
         getByColumn: fetchOsItemById,
-        getByColumn: fetchOsItemTypeById,
+        getByColumn: fetchMovementTypeById,
         getByColumn: fetchProductById,
     } = useBaseService(navigate);
     const { formData, setFormData } = useForm(setDefaultFieldValues(DetailsOsItemFields));
@@ -38,10 +38,10 @@ const DetailsItemOrderServicePage = () => {
             ])
 
             const [
-                osItemTypeResponse,
+                movementTypeResponse,
                 productResponse,
             ] = await Promise.all([
-                fetchOsItemTypeById(entities.orders.itemsTypes.getByColumn(null, contractOsItemResponse.result.service_order_item_type_id)),
+                fetchMovementTypeById(entities.orders.itemsTypes.getByColumn(null, contractOsItemResponse.result.movement_type_id)),
                 fetchProductById(entities.products.getByColumn(contractOsItemResponse.result.product_id)),
             ]);
             
@@ -50,7 +50,7 @@ const DetailsItemOrderServicePage = () => {
                 details: contractOsItemResponse.result.details,
                 identify: contractOsItemResponse.result.item_id,
                 location: contractOsItemResponse.result.location_id,
-                osItemType: osItemTypeResponse.result.name,
+                movementType: movementTypeResponse.result.name,
                 product: productResponse.result.name,
                 quantity: contractOsItemResponse.result.quantity
             });
