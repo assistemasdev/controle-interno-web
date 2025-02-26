@@ -1,92 +1,105 @@
+import createField from '../../utils/factory/createField';
 import { faFileAlt, faClipboardCheck, faBuilding, faUser, faCalendarAlt, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
 
 export const contractFields = [
     {
         section: "Dados do Contrato",
         fields: [
-            { 
+            createField({
                 id: "contract.number", 
                 label: "Número", 
                 type: "number", 
                 fullWidth: true,
                 placeholder: "Digite o número do contrato", 
                 icon: faFileAlt
-            },
-            { 
+            }),
+            createField({
                 id: "contract.contract_type_id", 
                 label: "Tipo", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo", 
+                entity: 'contractType',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faClipboardCheck
-            },
-            { 
+            }),
+            createField({
                 id: "contract.contract_status_id", 
                 label: "Status", 
                 type: "multi-select", 
+                entity: 'contractStatus',
+                column: 'id',
+                columnLabel: 'name',
                 placeholder: "Selecione o tipo", 
                 icon: faClipboardCheck
-            },
-            { 
+            }),
+            createField({
                 id: "contract.organization_id", 
                 label: "Organização", 
                 type: "multi-select", 
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
                 placeholder: "Selecione a organização", 
                 icon: faBuilding
-            },
-            { 
+            }),
+            createField({
                 id: "contract.customer_id", 
                 label: "Cliente", 
                 type: "multi-select", 
                 placeholder: "Selecione o cliente", 
+                entity: 'customer',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faUser
-            },
-            { 
+            }),
+            createField({
                 id: "contract.object", 
                 label: "Cláusa", 
                 type: "textarea", 
                 fullWidth: true,
                 placeholder: "Digite o número do contrato", 
                 icon: faFileAlt
-            },
-            { 
+            }),
+            createField({
                 id: "info.duration", 
                 label: "Duração", 
                 type: "number", 
                 placeholder: "Digite a duração",
                 icon: faCalendarAlt
-            },
-            { 
+            }),
+            createField({
                 id: "info.max_duration", 
                 label: "Duração Máxima", 
                 type: "number", 
                 placeholder: "Digite a duração máxima",
                 icon: faCalendarAlt
-            },
-            { 
+            }),
+            createField({
                 id: "info.start_date", 
                 label: "Data de Início", 
                 type: "date", 
                 icon: faCalendarAlt
-            },
-            { 
+            }),
+            createField({
                 id: "info.total_amount", 
                 label: "Valor Total", 
                 type: "number", 
                 placeholder: "Digite o valor total",
                 icon: faMoneyBillWave
-            },
-            { 
+            }),
+            createField({
                 id: "info.end_date", 
                 label: "Data de Término", 
                 type: "date", 
                 icon: faCalendarAlt
-            },
-            { 
+            }),
+            createField({
                 id: "info.max_end_date", 
                 label: "Data de Término Máxima", 
                 type: "date", 
                 icon: faCalendarAlt
-            },
+            }),
         ],
     },
 ];
@@ -95,50 +108,62 @@ export const contractEditFields = [
     {
         section: "Dados do Contrato",
         fields: [
-            { 
+            createField({
                 id: "number", 
                 label: "Número", 
                 type: "number", 
                 fullWidth: true,
                 placeholder: "Digite o número do contrato", 
                 icon: faFileAlt
-            },
-            { 
+            }),
+            createField({
                 id: "contract_type_id", 
                 label: "Tipo", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo", 
+                entity: 'contractType',
+                column: 'id',
+                columnLabel: 'name',
                 icon: faClipboardCheck
-            },
-            { 
+            }),
+            createField({
                 id: "contract_status_id", 
                 label: "Status", 
                 type: "multi-select", 
+                entity: 'contractStatus',
+                column: 'id',
+                columnLabel: 'name',
                 placeholder: "Selecione o tipo", 
                 icon: faClipboardCheck
-            },
-            { 
+            }),
+            createField({
                 id: "organization_id", 
                 label: "Organização", 
                 type: "multi-select", 
+                entity: 'organization',
+                column: 'id',
+                columnLabel: 'name',
                 placeholder: "Selecione a organização", 
                 icon: faBuilding
-            },
-            { 
+            }),
+            createField({
                 id: "customer_id", 
                 label: "Cliente", 
                 type: "multi-select", 
+                entity: 'customer',
+                column: 'id',
+                columnLabel: 'name',
                 placeholder: "Selecione o cliente", 
                 icon: faUser
-            },
-            { 
+            }),
+            createField({
                 id: "object", 
                 label: "Cláusa", 
                 type: "textarea", 
                 fullWidth: true,
                 placeholder: "Digite o número do contrato", 
                 icon: faFileAlt
-            }
+            })
         ],
     },
 ];

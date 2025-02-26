@@ -10,6 +10,7 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader';
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const CreateTypePage = () => {
     const navigate = useNavigate();
@@ -45,7 +46,7 @@ const CreateTypePage = () => {
                 >
                     {() =>
                         typeFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

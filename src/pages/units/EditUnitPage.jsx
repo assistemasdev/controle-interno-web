@@ -12,6 +12,7 @@ import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader';
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const EditUnitPage = () => {
     const navigate = useNavigate();
@@ -65,7 +66,7 @@ const EditUnitPage = () => {
                 >
                     {() =>
                         unitFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

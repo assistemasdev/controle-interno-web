@@ -6,12 +6,12 @@ import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import Form from '../../../components/Form'; 
-import FormSection from '../../../components/FormSection';
 import { contractFields } from "../../../constants/forms/contractFields";
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
+import SimpleForm from '../../../components/forms/SimpleForm';
 
 const CreateContractPage = () => {
     const navigate = useNavigate();
@@ -122,7 +122,7 @@ const CreateContractPage = () => {
                 >
                     {() => 
                         contractFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

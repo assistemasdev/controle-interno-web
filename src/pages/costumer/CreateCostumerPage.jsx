@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import Form from '../../components/Form';
-import FormSection from '../../components/FormSection';
 import PageHeader from '../../components/PageHeader';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/custom-styles.css';
@@ -13,7 +12,7 @@ import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
-
+import SimpleForm from '../../components/forms/SimpleForm';
 const CreateCustomerPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
@@ -53,6 +52,8 @@ const CreateCustomerPage = () => {
                         country: 'Brasil'
                     }
                 }));
+
+                showNotification('success', 'Endereço preenchido automaticamente!');
                 
             } catch (error) {
                 showNotification('error', error.message);
@@ -110,7 +111,7 @@ const CreateCustomerPage = () => {
                     {() => (
                         <>
                             {customerFields.map((section) => (
-                                <FormSection
+                                <SimpleForm
                                     key={section.section}
                                     section={section}
                                     formData={formData}

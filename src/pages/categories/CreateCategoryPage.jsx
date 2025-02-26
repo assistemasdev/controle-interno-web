@@ -3,12 +3,12 @@ import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import Form from '../../components/Form';
 import { categoryFields } from '../../constants/forms/categoryFields';
-import FormSection from '../../components/FormSection';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader'; 
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const CreateCategoryPage = () => {
     const navigate = useNavigate();
@@ -44,7 +44,7 @@ const CreateCategoryPage = () => {
                 >
                     {() =>
                         categoryFields.map((field) => (
-                            <FormSection
+                            <SimpleForm
                                 key={field.id}
                                 section={field}
                                 formData={formData}

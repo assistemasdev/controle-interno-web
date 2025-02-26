@@ -12,7 +12,7 @@ import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import { removeEmptyValues } from '../../utils/objectUtils';
 import PageHeader from '../../components/PageHeader';
-
+import SimpleForm from '../../components/forms/SimpleForm';
 const EditUserPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -160,7 +160,7 @@ const EditUserPage = () => {
                 >
                     {() =>
                         userProfileFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

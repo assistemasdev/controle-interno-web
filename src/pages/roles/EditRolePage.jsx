@@ -7,11 +7,10 @@ import Form from '../../components/Form';
 import useForm from '../../hooks/useForm';
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import { roleFields } from '../../constants/forms/roleFields';
-import FormSection from '../../components/FormSection';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader';
-
+import SimpleForm from '../../components/forms/SimpleForm';
 const EditRolePage = () => {
     const navigate = useNavigate();
     const { roleId } = useParams();
@@ -58,7 +57,7 @@ const EditRolePage = () => {
         };
     
         fetchData();
-    }, [roleId])
+    }, [roleId]);
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
@@ -83,10 +82,10 @@ const EditRolePage = () => {
         try {
             const success = await update(entities.roles.getByColumn(roleId), formData);
             if (success) {
-                await updateRolePermissions(entities.roles.permissions.update(roleId), {permissions: formData.permissions})
+                await updateRolePermissions(entities.roles.permissions.update(roleId), {permissions: formData.permissions});
             }
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
     };
 
@@ -107,7 +106,7 @@ const EditRolePage = () => {
                 >
                     {() => (
                         roleFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

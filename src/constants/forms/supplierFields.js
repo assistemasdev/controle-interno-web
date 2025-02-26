@@ -1,32 +1,33 @@
-import { faUser, faTag, faIdCard, faHome, faPhoneAlt, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import createField from '../../utils/factory/createField';
+import { faUser, faTag, faIdCard, faHome, faPhoneAlt, faEnvelope, faAddressBook, faRoad, faMapPin, faBuilding, faCity, faGlobeAmericas, faGlobe, faMobileAlt, faAt } from '@fortawesome/free-solid-svg-icons';
 
 export const supplierFields = [
     {
         section: 'Informações Gerais',
         fields: [
-            {
+            createField({
                 id: 'name',
                 label: 'Nome',
                 type: 'text',
                 placeholder: 'Nome completo do fornecedor',
                 fullWidth: true,
-                icon: faUser,
-            },
-            {
+                icon: faAddressBook,
+            }),
+            createField({
                 id: 'alias',
                 label: 'Apelido',
                 type: 'text',
                 placeholder: 'Apelido do fornecedor',
                 fullWidth: false,
-                icon: faTag,
-            },
-            {
+                icon: faUser,
+            }),
+            createField({
                 id: 'cpf_cnpj',
                 label: 'CPF/CNPJ',
                 type: 'text',
                 placeholder: 'Documento do fornecedor',
                 icon: faIdCard,
-            },
+            }),
         ],
     }
 ];
@@ -35,23 +36,23 @@ export const createSupplierFields = [
     {
         section: 'Informações do Fornecedor',
         fields: [
-            {
+            createField({
                 id: 'supplier.alias',
                 label: 'Apelido',
                 type: 'text',
                 placeholder: 'Digite o apelido do fornecedor',
                 required: true,
                 icon: faTag,
-            },
-            {
+            }),
+            createField({
                 id: 'supplier.name',
                 label: 'Nome',
                 type: 'text',
                 placeholder: 'Digite o nome do fornecedor',
                 required: true,
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'supplier.cpf_cnpj',
                 label: 'CPF/CNPJ',
                 type: 'text',
@@ -59,177 +60,177 @@ export const createSupplierFields = [
                 required: true,
                 icon: faIdCard,
                 fullWidth: true,
-            },
+            }),
         ],
     },
     {
         section: 'Endereço',
         fields: [
-            {
+            createField({
                 id: 'address.alias',
                 label: 'Apelido do Endereço',
                 type: 'text',
                 placeholder: 'Digite o apelido do endereço',
                 required: true,
                 icon: faHome,
-            },
-            {
+            }),
+            createField({
                 id: 'address.zip',
                 label: 'CEP',
                 type: 'text',
                 placeholder: 'Digite o CEP',
                 required: true,
-                icon: faHome,
-            },
-            {
+                icon: faMapPin,
+            }),
+            createField({
                 id: 'address.street',
                 label: 'Rua',
                 type: 'text',
                 placeholder: 'Digite a rua',
                 required: true,
-                icon: faHome,
-            },
-            {
+                icon: faRoad,
+            }),
+            createField({
                 id: 'address.number',
                 label: 'Número',
                 type: 'text',
                 placeholder: 'Digite o número',
                 required: true,
                 icon: faHome,
-            },
-            {
+            }),
+            createField({
                 id: 'address.details',
                 label: 'Complemento',
                 type: 'text',
                 placeholder: 'Digite detalhes adicionais',
                 required: false,
                 icon: faHome,
-            },
-            {
+            }),
+            createField({
                 id: 'address.district',
                 label: 'Bairro',
                 type: 'text',
                 placeholder: 'Digite o bairro',
                 required: true,
-                icon: faHome,
-            },
-            {
+                icon: faBuilding,
+            }),
+            createField({
                 id: 'address.city',
                 label: 'Cidade',
                 type: 'text',
                 placeholder: 'Digite a cidade',
                 required: true,
-                icon: faHome,
-            },
-            {
+                icon: faCity,
+            }),
+            createField({
                 id: 'address.state',
                 label: 'Estado',
                 type: 'text',
                 placeholder: 'Digite o estado',
                 required: true,
-                icon: faHome,
-            },
-            {
+                icon: faGlobeAmericas,
+            }),
+            createField({
                 id: 'address.country',
                 label: 'País',
                 type: 'text',
                 placeholder: 'Digite o país',
                 required: true,
-                icon: faHome,
-            },
-            {
+                icon: faGlobe,
+            }),
+            createField({
                 id: 'address.ddd',
                 label: 'DDD (Telefone)',
                 type: 'text',
                 placeholder: 'Digite o DDD',
                 required: false,
                 icon: faPhoneAlt,
-            },
-            {
+            }),
+            createField({
                 id: 'address.phone',
                 label: 'Telefone',
                 type: 'text',
                 placeholder: 'Digite o telefone',
                 required: false,
                 icon: faPhoneAlt,
-            },
-            {
+            }),
+            createField({
                 id: 'address.email',
                 label: 'E-mail',
                 type: 'email',
                 placeholder: 'Digite o e-mail',
                 required: false,
                 icon: faEnvelope,
-            },
+            }),
         ],
     },
     {
         section: 'Contato',
         fields: [
-            {
+            createField({
                 id: 'contact.name',
                 label: 'Nome do Contato',
                 type: 'text',
                 placeholder: 'Digite o nome do contato',
                 required: true,
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.surname',
                 label: 'Sobrenome',
                 type: 'text',
                 placeholder: 'Digite o sobrenome do contato',
                 required: false,
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.role',
                 label: 'Cargo',
                 type: 'text',
                 placeholder: 'Digite o cargo',
                 required: false,
                 icon: faUser,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.ddd',
                 label: 'DDD (Telefone)',
                 type: 'text',
                 placeholder: 'Digite o DDD',
                 required: true,
                 icon: faPhoneAlt,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.phone',
                 label: 'Telefone',
                 type: 'text',
                 placeholder: 'Digite o telefone',
                 required: true,
                 icon: faPhoneAlt,
-            },
-            {
+            }),
+            createField({
                 id: 'contact.cell_ddd',
                 label: 'DDD (Celular)',
                 type: 'text',
                 placeholder: 'Digite o DDD do celular',
                 required: false,
-                icon: faPhoneAlt,
-            },
-            {
+                icon: faMobileAlt,
+            }),
+            createField({
                 id: 'contact.cell',
                 label: 'Celular',
                 type: 'text',
                 placeholder: 'Digite o número do celular',
                 required: false,
-                icon: faPhoneAlt,
-            },
-            {
+                icon: faMobileAlt,
+            }),
+            createField({
                 id: 'contact.email',
                 label: 'E-mail',
                 type: 'email',
                 placeholder: 'Digite o e-mail do contato',
                 required: true,
-                icon: faEnvelope,
-            },
+                icon: faAt,
+            }),
         ],
     },
 ];

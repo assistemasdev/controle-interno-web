@@ -19,7 +19,7 @@ const CreateOrganizationLocationPage = () => {
 
     const handleSubmit = async (data) => {
         try {
-            const success = await create(entities.organizations.addresses.locations(organizationId, addressId).create(), data);
+            const success = await create(entities.organizations.addresses.locations(organizationId).create(addressId), data);
             if (success) {
                 resetForm();
             }

@@ -11,6 +11,7 @@ import FormSection from '../../components/FormSection';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader'; 
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const CreateRolePage = () => {
     const navigate = useNavigate(); 
@@ -112,7 +113,7 @@ const CreateRolePage = () => {
                 >
                     {() => (
                         roleFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

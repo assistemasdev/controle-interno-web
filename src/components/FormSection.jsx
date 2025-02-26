@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import InputField from '../components/InputField';
 import Select from 'react-select';
 import Button from './Button';
-import DynamicTable from './DynamicTable';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { v4 as uuidv4 } from 'uuid';
 import useNotification from '../hooks/useNotification';

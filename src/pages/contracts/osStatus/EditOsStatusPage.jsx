@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import MainLayout from '../../../layouts/MainLayout';
 import Form from '../../../components/Form';
-import FormSection from '../../../components/FormSection';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../../assets/styles/custom-styles.css';
 import useForm from '../../../hooks/useForm';
@@ -11,6 +10,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
+import SimpleForm from '../../../components/forms/SimpleForm';
 
 const EditOsStatusPage = () => {
     const navigate = useNavigate();
@@ -63,7 +63,7 @@ const EditOsStatusPage = () => {
                 >
                     {() =>
                         osStatusFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

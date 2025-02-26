@@ -3,7 +3,6 @@ import MainLayout from '../../../layouts/MainLayout';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../../assets/styles/custom-styles.css';
 import Form from '../../../components/Form';
-import FormSection from '../../../components/FormSection';
 import useLoader from '../../../hooks/useLoader';
 import useNotification from '../../../hooks/useNotification';
 import useForm from '../../../hooks/useForm';
@@ -12,7 +11,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
-
+import SimpleForm from '../../../components/forms/SimpleForm';
 const AttachGroupToTypePage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -104,7 +103,7 @@ const AttachGroupToTypePage = () => {
                 >
                     {() =>
                         associeteGroupFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}

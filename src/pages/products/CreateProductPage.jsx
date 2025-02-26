@@ -6,12 +6,12 @@ import useNotification from '../../hooks/useNotification';
 import useLoader from '../../hooks/useLoader';
 import useForm from '../../hooks/useForm';
 import Form from '../../components/Form'; 
-import FormSection from '../../components/FormSection';
 import { productFields } from "../../constants/forms/productFields";
 import { setDefaultFieldValues } from '../../utils/objectUtils';
 import useBaseService from '../../hooks/services/useBaseService';
 import { entities } from '../../constants/entities';
 import PageHeader from '../../components/PageHeader';
+import SimpleForm from '../../components/forms/SimpleForm';
 
 const CreateProductPage = () => {
     const navigate = useNavigate();
@@ -205,31 +205,30 @@ const CreateProductPage = () => {
     
     const handleFieldChange = useCallback((fieldId, value, field) => {
         handleChange(fieldId, value);
-        if (field.handleChange) {
-            switch (field.handleChange) {
-                case "handleOrganizationChange":
-                    handleOrganizationChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
-                    break;
-                case "handleGroupChange":
-                    handleGroupChange(
-                        Array.isArray(value)
-                            ? value.map((val) => ({
-                                  value: val,
-                                  label: getOptions(fieldId).find((option) => option.value === val)?.label || "",
-                              }))
-                            : []
-                    );
-                    break;
-                case "handleTypeChange":
-                    handleTypeChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
-                    break;
-                case "handleAddressChange":
-                    handleAddressChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
-                    break;
-                default:
-                    console.warn("Nenhum handle definido para:", fieldId);
-            }
+        switch (fieldId) {
+            case "product.current_organization_id":
+                handleOrganizationChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
+                break;
+            case "groups":
+                handleGroupChange(
+                    Array.isArray(value)
+                        ? value.map((val) => ({
+                                value: val,
+                                label: getOptions(fieldId).find((option) => option.value === val)?.label || "",
+                            }))
+                        : []
+                );
+                break;
+            case "product.type_id":
+                handleTypeChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
+                break;
+            case "product.address_id":
+                handleAddressChange({ value, label: getOptions(fieldId).find(option => option.value === value)?.label });
+                break;
+            default:
+                console.warn("Nenhum handle definido para:", fieldId);
         }
+        
     }, [handleOrganizationChange, handleGroupChange, handleTypeChange, handleAddressChange, getOptions]);
 
     return (
@@ -245,7 +244,7 @@ const CreateProductPage = () => {
                 >
                     {() => 
                         productFields.map((section) => (
-                            <FormSection
+                            <SimpleForm
                                 key={section.section}
                                 section={section}
                                 formData={formData}
