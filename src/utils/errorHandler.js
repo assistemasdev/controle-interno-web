@@ -14,9 +14,10 @@ const handleError = (error, navigate = null) => {
         } else if (status === 404) {
             navigate('/404', { state: { message: 'Recurso não encontrado.' } });
         } else if (status === 400) {
+            console.log(error)
             throw {
                 success: false,
-                message: "Solicitação inválida.",
+                message: error.response.data.message,
                 status,
                 data: error.response.data.errors || null,
             };

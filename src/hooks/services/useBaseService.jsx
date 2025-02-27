@@ -28,6 +28,7 @@ const useBaseService = (navigate) => {
                     showNotification('warning', 'Verifique os campos destacados.');
                     return;
                 }
+                console.log(error)
                 handleError(error, customErrorMessage);
                 throw error;
             }

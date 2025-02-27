@@ -16,13 +16,13 @@ const LoginCard = () => {
     const { login } = useAuth();  
     const { addRoles, addPermissions } = usePermissions();
     const location = useLocation();
-    const { formData, handleChange } = useForm({ username: '', password: '' })
-    const [formErrors, setFormErrors] = useState({ username: '', password: '' }); 
+    const { formData, handleChange  } = useForm({ username: '', password: '' })
     const { showNotification } = useNotification();
     const { 
         post: loginUser,
         get: fetchRolesUser,
-        get: fetchPermissionsForUser
+        get: fetchPermissionsForUser,
+        formErrors
     } = useBaseService(navigate);
 
     useEffect(() => {
@@ -31,14 +31,15 @@ const LoginCard = () => {
         }
     }, [location.state]);
 
+
+
     const handleLogin = async (e) => {
         e.preventDefault();
-        setFormErrors({ username: '', password: '' });
 
         try {
             const response = await loginUser(entities.login.create, formData);
-            login(response.result);
             if(response) {
+                login(response.result);
                 const storedUser = JSON.parse(localStorage.getItem('user'));
                 const userRoles = await fetchRolesUser(entities.users.roles.get(storedUser.id));
                 const userPermissions = await fetchPermissionsForUser(entities.users.permissions.get(storedUser.id));
@@ -51,7 +52,6 @@ const LoginCard = () => {
 
         } catch (error) {
             console.log(error)
-            showNotification('error', 'erro ao realizar login');
         }
     };
 
@@ -75,7 +75,7 @@ const LoginCard = () => {
                                                 placeholder={field.placeholder}
                                                 value={formData[field.id]}
                                                 onChange={(e) => handleChange(field.id, e.target.value)}
-                                                error={formErrors[field.id]}
+                                                error={formErrors && formErrors[field.id]}
                                             />
                                         </div>
                                     ))}
