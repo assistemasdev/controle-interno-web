@@ -1,5 +1,5 @@
 import createField from '../../utils/factory/createField';
-import { faFileAlt, faClipboardCheck, faBuilding, faUser, faCalendarAlt, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
+import { faFileAlt, faClipboardCheck, faBuilding, faUser, faCalendarAlt, faMoneyBillWave, faTools, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 
 export const contractFields = [
     {
@@ -102,6 +102,66 @@ export const contractFields = [
             }),
         ],
     },
+    {
+        section: "Produtos",
+        array: true,
+        count: 0,
+        fields: [
+            { 
+                id: "items.item_id", 
+                label: "ID", 
+                type: "text", 
+                placeholder:"Digite o Identificador",
+                fullWidth:true,
+                icon: faBoxOpen
+            },
+            { 
+                id: "items.description", 
+                label: "Descrição", 
+                type: "textarea", 
+                placeholder:"Digite a Descrição",
+                fullWidth:true,
+                icon: faBoxOpen
+            },
+            { 
+                id: "items.quantity", 
+                label: "Quantidade", 
+                type: "number", 
+                placeholder:"Digite a Quantidade",
+                icon: faBoxOpen
+            },
+            { 
+                id: "items.price", 
+                label: "Preço", 
+                type: "number", 
+                placeholder:"Digite o Preço",
+                icon: faMoneyBillWave
+            },
+        ]
+    },
+    {
+        section: "Serviços",
+        array: true,
+        count: 0,
+        fields: [
+            { 
+                id: "jobs.item_id", 
+                label: "ID", 
+                type: "text", 
+                placeholder:"Digite o Identificador",
+                fullWidth:true,
+                icon: faTools
+            },
+            { 
+                id: "jobs.description", 
+                label: "Descrição", 
+                type: "textarea", 
+                placeholder:"Digite a Descrição",
+                fullWidth:true,
+                icon: faTools
+            },
+        ]
+    }
 ];
 
 export const contractEditFields = [

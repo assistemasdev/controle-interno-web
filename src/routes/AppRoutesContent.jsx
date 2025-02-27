@@ -16,10 +16,11 @@ import CreateApplicationPage from "../pages/application/CreateApplicationPage";
 import EditApplicationPage from "../pages/application/EditApplicationPage";
 
 // Páginas de Usuários
-import UsersPage from "../pages/users/UsersPage";
-import CreateUserPage from "../pages/users/CreateUserPage";
-import EditUserPage from "../pages/users/EditUserPage";
-import PerfilUserPage from "../pages/users/PerfilUserPage";
+import UsersPage from "../pages/users/user/UsersPage";
+import CreateUserPage from "../pages/users/user/CreateUserPage";
+import EditUserPage from "../pages/users/user/EditUserPage";
+import PerfilUserPage from "../pages/users/user/PerfilUserPage";
+import UserOrganizationsPage from "../pages/users/user/organizations/UserOrganizationsPage";
 
 // Páginas de Organizações
 import CompanySelection from "../pages/CompanySelection";
@@ -33,14 +34,19 @@ import CreateRolePage from "../pages/roles/CreateRolePage";
 import EditRolePage from "../pages/roles/EditRolePage";
 
 // Páginas de Fornecedores
-import SuppliersPage from "../pages/suppliers/SuppliersPage";
-import CreateSupplierPage from "../pages/suppliers/CreateSupplierPage";
-import EditSupplierPage from "../pages/suppliers/EditSupplierPage";
-
+import SuppliersPage from "../pages/products/suppliers/SuppliersPage";
+import CreateSupplierPage from "../pages/products/suppliers/CreateSupplierPage";
+import EditSupplierPage from "../pages/products/suppliers/EditSupplierPage";
+import SupplierDetailsPage from "../pages/products/suppliers/SupplierDetailsPage";
+import EditSupplierAddressPage from "../pages/products/suppliers/address/EditSupplierAddressPage";
+import SupplierAddressDetailsPage from "../pages/products/suppliers/address/SupplierAddressDetailsPage";
+import CreateSupplierAddressPage from "../pages/products/suppliers/address/CreateSupplierAddressPage";
+import CreateSupplierContactPage from "../pages/products/suppliers/contact/CreateSupplierContactPage";
+import EditSupplierContactPage from "../pages/products/suppliers/contact/EditSupplierContactPage";
 // Páginas de Tipos
-import TypePage from "../pages/types/TypePage";
-import CreateTypePage from "../pages/types/CreateTypePage";
-import EditTypePage from "../pages/types/EditTypePage";
+import TypePage from "../pages/products/types/TypePage";
+import CreateTypePage from "../pages/products/types/CreateTypePage";
+import EditTypePage from "../pages/products/types/EditTypePage";
 
 // Páginas de Categorias
 import CategoryPage from "../pages/categories/CategoryPage";
@@ -53,20 +59,25 @@ import CreateConditionPage from "../pages/conditions/CreateConditionPage";
 import EditConditionPage from "../pages/conditions/EditConditionPage";
 
 // Páginas de Grupos
-import GroupPage from "../pages/groups/GroupPage";
-import CreateGroupPage from "../pages/groups/CreateGroupPage";
-import EditGroupPage from "../pages/groups/EditGroupPage";
-import AttachGroupToTypePage from "../pages/types/groups/AttachGroupToTypePage";
-import SupplierDetailsPage from "../pages/suppliers/SupplierDetailsPage";
-import EditSupplierAddressPage from "../pages/suppliers/address/EditSupplierAddressPage";
-import SupplierAddressDetailsPage from "../pages/suppliers/address/SupplierAddressDetailsPage";
-import CreateSupplierAddressPage from "../pages/suppliers/address/CreateSupplierAddressPage";
-import UnitPage from "../pages/units/UnitPage";
-import CreateUnitPage from "../pages/units/CreateUnitPage";
-import EditUnitPage from "../pages/units/EditUnitPage";
-import AttachUnitsRelatedPage from "../pages/units/unitsRelated/AttachUnitsRelatedPage";
-import ProductsPage from "../pages/products/ProductPage";
-import CreateProductPage from "../pages/products/CreateProductPage";
+import GroupPage from "../pages/products/groups/GroupPage";
+import CreateGroupPage from "../pages/products/groups/CreateGroupPage";
+import EditGroupPage from "../pages/products/groups/EditGroupPage";
+import AttachGroupToTypePage from "../pages/products/types/groups/AttachGroupToTypePage";
+
+
+// Páginas de Unidades
+import UnitPage from "../pages/products/units/UnitPage";
+import CreateUnitPage from "../pages/products/units/CreateUnitPage";
+import EditUnitPage from "../pages/products/units/EditUnitPage";
+import AttachUnitsRelatedPage from "../pages/products/units/unitsRelated/AttachUnitsRelatedPage";
+
+// Páginas de Produtos
+import ProductsPage from "../pages/products/product/ProductPage";
+import CreateProductPage from "../pages/products/product/CreateProductPage";
+import EditProductPage from "../pages/products/product/EditProductPage";
+import DetailsProductPage from "../pages/products/product/DetailsProductPage";
+
+// Páginas de Organizações - Detalhes e Localizações
 import OrganizationDetailsPage from "../pages/organization/OrganizationDetailsPage";
 import CreateOrganizationAddressPage from "../pages/organization/address/CreateOrganizationAddressPage";
 import EditOrganizationAddressPage from "../pages/organization/address/EditOrganizationAddressPage";
@@ -75,52 +86,54 @@ import LocationOrganizationPage from "../pages/organization/locations/LocationOr
 import CreateOrganizationLocationPage from "../pages/organization/locations/CreateOrganizationLocationPage";
 import EditOrganizationLocationPage from "../pages/organization/locations/EditOrganizationLocationPage";
 import DetailsOrganizationLocationPage from "../pages/organization/locations/DetailsOrganizationLocationPage";
-import CreateSupplierContactPage from "../pages/suppliers/contact/CreateSupplierContactPage";
-import EditSupplierContactPage from "../pages/suppliers/contact/EditSupplierContactPage";
-import CostumerPage from "../pages/costumer/CostumerPage";
-import CreateCustomerPage from "../pages/costumer/CreateCostumerPage";
-import EditCustomerPage from "../pages/costumer/EditCustomerPage";
-import CustomerDetailsPage from "../pages/costumer/CustomerDetailsPage";
-import CostumerAddressDetailsPage from "../pages/costumer/address/CostumerAddressDetailsPage";
-import EditCustomerAddressPage from "../pages/costumer/address/EditCustomerAddressPage";
-import EditCustomerContactPage from "../pages/costumer/contact/EditCustomerContactPage";
-import CreateCustomerContactPage from "../pages/costumer/contact/CreateCustomerContactPage";
-import CreateCustomerAddressPage from "../pages/costumer/address/CreateCustomerAddressPage";
-import LocationCustomerPage from "../pages/costumer/locations/LocationCustomerPage";
-import CreateCustomerLocationPage from "../pages/costumer/locations/CreateCustomerLocationPage";
-import EditCustomerLocationPage from "../pages/costumer/locations/EditCustomerLocationPage";
-import DetailsCustomerLocationPage from "../pages/costumer/locations/DetailsOrganizationLocationPage";
-import EditProductPage from "../pages/products/EditProductPage";
-import DetailsProductPage from "../pages/products/DetailsProductPage";
-import UserOrganizationsPage from "../pages/users/organizations/UserOrganizationsPage";
+
+
+// Páginas de Clientes
+import CostumerPage from "../pages/users/costumer/CostumerPage";
+import CreateCustomerPage from "../pages/users/costumer/CreateCostumerPage";
+import EditCustomerPage from "../pages/users/costumer/EditCustomerPage";
+import CustomerDetailsPage from "../pages/users/costumer/CustomerDetailsPage";
+import CostumerAddressDetailsPage from "../pages/users/costumer/address/CostumerAddressDetailsPage";
+import EditCustomerAddressPage from "../pages/users/costumer/address/EditCustomerAddressPage";
+import EditCustomerContactPage from "../pages/users/costumer/contact/EditCustomerContactPage";
+import CreateCustomerContactPage from "../pages/users/costumer/contact/CreateCustomerContactPage";
+import CreateCustomerAddressPage from "../pages/users/costumer/address/CreateCustomerAddressPage";
+import LocationCustomerPage from "../pages/users/costumer/locations/LocationCustomerPage";
+import CreateCustomerLocationPage from "../pages/users/costumer/locations/CreateCustomerLocationPage";
+import EditCustomerLocationPage from "../pages/users/costumer/locations/EditCustomerLocationPage";
+import DetailsCustomerLocationPage from "../pages/users/costumer/locations/DetailsOrganizationLocationPage";
+
+// Páginas de Contratos e Status
 import CalendarPage from "../pages/contracts/CalendarPage";
 import TypeContractPage from "../pages/contracts/typesContracts/TypeContractPage";
 import CreateTypeContractPage from "../pages/contracts/typesContracts/CreateTypeContractPage";
 import EditTypeContractPage from "../pages/contracts/typesContracts/EditTypeContractPage";
 import StatusContractPage from "../pages/contracts/status/StatusContractPage";
 import CreateStatusContractPage from "../pages/contracts/status/CreateStatusContractPage";
+import EditStatusContractPage from "../pages/contracts/status/EditStatusContractPage";
 import ContractPage from "../pages/contracts/contract/ContractPage";
 import CreateContractPage from "../pages/contracts/contract/CreateContractPage";
-import TypeEventsPage from "../pages/contracts/typesEvents/TypeEventsPage"
-import CreateTypeEventsPage from "../pages/contracts/typesEvents/CreateTypeEventsPage";
-import DetailsTypeEventsPage from "../pages/contracts/typesEvents/DetailsTypeEventsPage";
-import EditTypeEventsPage from "../pages/contracts/typesEvents/EditTypeEventsPage";
-import DetailsContractPage from "../pages/contracts/contract/DetailsContractPage";
 import EditContractPage from "../pages/contracts/contract/EditContractPage";
-import CreateEventContractPage from "../pages/events/CreateEventContractPage";
-import HistoryEventsContractPage from "../pages/events/HistoryEventsContractPage";
-import EditEventContractPage from "../pages/events/EditEventContractPage";
-import EditStatusContractPage from "../pages/contracts/status/EditStatusContractPage";
-import NotFound from "../pages/NotFound";
-import OsDepartamentsPage from "../pages/contracts/osDepartaments/OsDepartamentsPage";
-import CreateOsDepartamentsPage from "../pages/contracts/osDepartaments/CreateOsDepartamentsPage";
-import EditOsDepartamentsPage from "../pages/contracts/osDepartaments/EditOsDepartamentsPage";
-import OsDestinationsPage from "../pages/contracts/osDestinations/OsDestinationsPage";
-import CreateOsDestinationsPage from "../pages/contracts/osDestinations/CreateOsDestinationsPage";
-import EditOsDestinationsPage from "../pages/contracts/osDestinations/EditOsDestinationsPage";
-import OsStatusPage from "../pages/contracts/osStatus/osStatusPage";
-import CreateOsStatusPage from "../pages/contracts/osStatus/CreateOsStatusPage";
-import EditOsStatusPage from "../pages/contracts/osStatus/EditOsStatusPage";
+import DetailsContractPage from "../pages/contracts/contract/DetailsContractPage";
+
+// Páginas de Eventos de Contratos
+import TypeEventsPage from "../pages/events/typesEvents/TypeEventsPage";
+import CreateTypeEventsPage from "../pages/events/typesEvents/CreateTypeEventsPage";
+import EditTypeEventsPage from "../pages/events/typesEvents/EditTypeEventsPage";
+import DetailsTypeEventsPage from "../pages/events/typesEvents/DetailsTypeEventsPage";
+
+// Páginas de Ordens de Serviço
+import OsDepartamentsPage from "../pages/orderService/osDepartaments/OsDepartamentsPage";
+import CreateOsDepartamentsPage from "../pages/orderService/osDepartaments/CreateOsDepartamentsPage";
+import EditOsDepartamentsPage from "../pages/orderService/osDepartaments/EditOsDepartamentsPage";
+import OsDestinationsPage from "../pages/orderService/osDestinations/OsDestinationsPage";
+import CreateOsDestinationsPage from "../pages/orderService/osDestinations/CreateOsDestinationsPage";
+import EditOsDestinationsPage from "../pages/orderService/osDestinations/EditOsDestinationsPage";
+import OsStatusPage from "../pages/orderService/osStatus/osStatusPage";
+import CreateOsStatusPage from "../pages/orderService/osStatus/CreateOsStatusPage";
+import EditOsStatusPage from "../pages/orderService/osStatus/EditOsStatusPage";
+
+// Páginas de Contratos de OS
 import ContractOsPage from "../pages/contracts/contract/orderService/ContractOsPage";
 import CreateContractOsPage from "../pages/contracts/contract/orderService/CreateContractOsPage";
 import EditContractOsPage from "../pages/contracts/contract/orderService/EditContractOsPage";
@@ -128,32 +141,50 @@ import DetailsContractOsPage from "../pages/contracts/contract/orderService/Deta
 import DetailsContractOsItensPage from "../pages/contracts/contract/orderService/itensOs/DetailsContractOsItensPage";
 import EditContractOsItemPage from "../pages/contracts/contract/orderService/itensOs/EditContractOsItemPage";
 import CreateContractOsItemPage from "../pages/contracts/contract/orderService/itensOs/CreateContractOsItemPage";
-import MovementsPage from "../pages/Movements/MovementsPage";
-import CreateMovementPage from "../pages/Movements/CreateMovementPage";
-import EditMovementPage from "../pages/Movements/EditMovementPage";
-import DetailsMovementPage from "../pages/Movements/DetailsMovementPage";
-import CreateMovementItemPage from "../pages/Movements/Items/CreateMovementItemPage";
-import EditMovementItemPage from "../pages/Movements/Items/EditMovementItemPage";
-import DetailsMovementItemPage from "../pages/Movements/Items/DetailsMovementItemPage";
-import MovementsShipmentsPage from "../pages/Movements/shipments/MovementsShipmentsPage";
-import CreateMovementsShipmentsPage from "../pages/Movements/shipments/CreateMovementsShipmentsPage";
-import EditMovementsShipmentsPage from "../pages/Movements/shipments/EditMovementsShipmentsPage";
-import DetailsMovementsShipmentsPage from "../pages/Movements/shipments/DetailsMovementsShipmentsPage";
-import CreateShipmentItemPage from "../pages/Movements/shipments/items/CreateShipmentItemPage";
-import EditShipmentItemPage from "../pages/Movements/shipments/items/EditShipmentItemPage";
-import DetailsShipmentItemPage from "../pages/Movements/shipments/items/DetailsShipmentItemPage";
-import OrdersServicesPage from "../pages/contracts/OrderService/OrdersServicesPage";
-import DetailsOrderServicesPage from "../pages/contracts/OrderService/DetailsOrderServicesPage";
-import DetailsItemOrderServicePage from "../pages/contracts/OrderService/items/DetailsItemOrderServicePage";
-import ShipmentsPage from "../pages/shipments/ShipmentsPage";
-import DetailsShipmentsPage from "../pages/shipments/DetailsShipmentsPage";
-import DetailsShipmentItemGlobalPage from "../pages/shipments/items/DetailsShipmentItemGlobalPage";
-import MovementsTypesPage from "../pages/MovementsTypes/MovementsTypesPage";
-import DetailsEventContractPage from "../pages/events/DetailsEventContractPage";
-import CreateEventItemContractPage from "../pages/events/items/CreateEventItemContractPage";
-import EditEventItemContractPage from "../pages/events/items/EditEventItemContractPage";
-import CreateEventJobContractPage from "../pages/events/jobs/CreateEventJobContractPage";
-import EditEventJobContractPage from "../pages/events/jobs/EditEventJobContractPage";
+
+// Páginas de Movimentos
+import MovementsPage from "../pages/Movements/Movement/MovementsPage";
+import CreateMovementPage from "../pages/Movements/Movement/CreateMovementPage";
+import EditMovementPage from "../pages/Movements/Movement/EditMovementPage";
+import DetailsMovementPage from "../pages/Movements/Movement/DetailsMovementPage";
+import CreateMovementItemPage from "../pages/Movements/Movement/Items/CreateMovementItemPage";
+import EditMovementItemPage from "../pages/Movements/Movement/Items/EditMovementItemPage";
+import DetailsMovementItemPage from "../pages/Movements/Movement/Items/DetailsMovementItemPage";
+
+// Páginas de Movimentos de Carregamentos
+import MovementsShipmentsPage from "../pages/Movements/Movement/shipments/MovementsShipmentsPage";
+import CreateMovementsShipmentsPage from "../pages/Movements/Movement/shipments/CreateMovementsShipmentsPage";
+import EditMovementsShipmentsPage from "../pages/Movements/Movement/shipments/EditMovementsShipmentsPage";
+import DetailsMovementsShipmentsPage from "../pages/Movements/Movement/shipments/DetailsMovementsShipmentsPage";
+import CreateShipmentItemPage from "../pages/Movements/Movement/shipments/items/CreateShipmentItemPage";
+import EditShipmentItemPage from "../pages/Movements/Movement/shipments/items/EditShipmentItemPage";
+import DetailsShipmentItemPage from "../pages/Movements/Movement/shipments/items/DetailsShipmentItemPage";
+
+// Páginas de Envio de Produtos
+import OrdersServicesPage from "../pages/orderService/OrderService/OrdersServicesPage";
+import DetailsOrderServicesPage from "../pages/orderService/OrderService/DetailsOrderServicesPage";
+import DetailsItemOrderServicePage from "../pages/orderService/OrderService/items/DetailsItemOrderServicePage";
+
+// Páginas de Envios
+import ShipmentsPage from "../pages/Movements/shipments/ShipmentsPage";
+import DetailsShipmentsPage from "../pages/Movements/shipments/DetailsShipmentsPage";
+import DetailsShipmentItemGlobalPage from "../pages/Movements/shipments/items/DetailsShipmentItemGlobalPage";
+
+// Páginas de Tipos de Movimentos
+import MovementsTypesPage from "../pages/Movements/MovementsTypes/MovementsTypesPage";
+
+// Páginas de Eventos
+import DetailsEventContractPage from "../pages/events/event/DetailsEventContractPage";
+import CreateEventItemContractPage from "../pages/events/event/items/CreateEventItemContractPage";
+import EditEventItemContractPage from "../pages/events/event/items/EditEventItemContractPage";
+import CreateEventJobContractPage from "../pages/events/event/jobs/CreateEventJobContractPage";
+import EditEventJobContractPage from "../pages/events/event/jobs/EditEventJobContractPage";
+import HistoryEventsContractPage from "../pages/events/event/HistoryEventsContractPage"
+import EditEventContractPage from "../pages/events/event/EditEventContractPage";
+
+import CreateEventContractPage from "../pages/events/event/CreateEventContractPage"
+import NotFound from "../pages/NotFound";
+
 const AppRoutesContent = () => {
     const location = useLocation();
 

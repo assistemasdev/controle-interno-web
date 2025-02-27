@@ -6,32 +6,27 @@ import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import Form from '../../../components/Form'; 
-import { contractFields } from "../../../constants/forms/contractFields";
-import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import FormSection from '../../../components/FormSection';
+import { eventFields } from "../../../constants/forms/eventFields";
+import { setDefaultFieldValues, transformValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
+import { useParams } from 'react-router-dom';
 import PageHeader from '../../../components/PageHeader';
-import { transformValues } from '../../../utils/objectUtils';
-import FormSection from '../../../components/FormSection';
 
-const CreateContractPage = () => {
+const CreateEventContractPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { 
-        post: create, 
-        get: fetchOrganizations,
-        get: fetchContractTypes,
-        get: fetchCustomers,
-        get: fetchStatus,
-        formErrors,
+        get: fetchEventTypes,
+        post: createContractEvent, 
+        formErrors, 
         setFormErrors
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const { formData, setFormData, handleChange, resetForm } = useForm(setDefaultFieldValues(contractFields));
-    const [organizations, setOrganizations] = useState([]);
-    const [contractsTypes, setContractsTypes] = useState([]);
-    const [status, setStatus] = useState([]);
-    const [customers, setCustomers] = useState([]);
+    const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(eventFields));
+    const [types, setTypes] = useState([]);
+    const { id } = useParams();
     const [allFieldsData, setAllFieldsData] = useState([])
 
     useEffect(() => {
@@ -45,21 +40,11 @@ const CreateContractPage = () => {
             try {
                 showLoader();
                 const [
-                    organizationsResponse,
                     typesResponse,
-                    customersResponse,
-                    statusResponse
                 ] = await Promise.all([
-                    fetchOrganizations(entities.organizations.get, {deleted_at: false}),
-                    fetchContractTypes(entities.contracts.types.get(), {deleted_at: false}),
-                    fetchCustomers(entities.customers.get, {deleted_at: false}),
-                    fetchStatus(entities.contracts.status.get(), {deleted_at: false})
+                    fetchEventTypes(entities.contracts.eventsTypes.get(), {deleted_at: false}),
                 ]);
-
-                setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
-                setContractsTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
-                setStatus(statusResponse.result.data.map(status => ({ value: status.id, label: status.name })));
-                setCustomers(customersResponse.result.data.map(customer => ({ value: customer.id, label: customer.name })));
+                setTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
                 showNotification('error', errorMessage);
@@ -70,17 +55,12 @@ const CreateContractPage = () => {
         };
         fetchData();
     }, []);
+    
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "contract.organization_id":
-                return organizations || [];
-            case "contract.contract_type_id":
-                return contractsTypes || [];
-            case "contract.customer_id":
-                return customers || [];
-            case "contract.contract_status_id":
-                return status || [];
+            case "event.contract_event_type_id":
+                return types || [];
             default:
                 return [];
         }
@@ -103,7 +83,7 @@ const CreateContractPage = () => {
                 items: transformValues(formData.items),
                 jobs: transformValues(formData.jobs)
             }
-            const success = await create(entities.contracts.create, transformedData);
+            const success = await createContractEvent(entities.contracts.events.create(id), transformedData);
             if (success) {
                 resetForm();
                 setFormData(prev => ({
@@ -124,35 +104,49 @@ const CreateContractPage = () => {
     };
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
+        const fielBelongsToAnArray = fieldId.split('.')[0]
+        if (fielBelongsToAnArray == 'array') {
+            const fieldSplit = fieldId.split('.')
+            const idObject = fieldSplit[1]
+            const key = fieldSplit[fieldSplit.length - 2];
+            const column = fieldSplit[fieldSplit.length - 1];
+            setFormData(prev => ({
+                ...prev,
+                [key]: prev[key].map(item => 
+                    item.id === idObject ? { ...item, [column]: value } : item
+                )
+            }));
+        }
         handleChange(fieldId, value);
     
     }, [getOptions]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <PageHeader title="Cadastro de Contrato" showBackButton={true} backUrl="/contratos" />
+            <PageHeader title="Adicionar Evento no Contrato" showBackButton={true} backUrl="/contratos" />
+
             <div className="container-fluid p-1">
                 <Form
                     initialFormData={formData}
                     onSubmit={handleSubmit}
-                    textSubmit="Cadastrar"
-                    textLoadingSubmit="Cadastrando..."
+                    textSubmit="Adicionar"
+                    textLoadingSubmit="Adicionando..."
                     handleBack={handleBack}
                 >
                     {() => 
-                        contractFields.map((section) => (
+                        eventFields.map((section) => (
                             <FormSection
                                 key={section.section}
                                 section={section}
                                 formData={formData}
+                                setFormData={setFormData}
                                 handleFieldChange={handleFieldChange}
                                 getOptions={getOptions}
                                 getSelectedValue={getSelectedValue}
                                 formErrors={formErrors}
+                                setFormErrors={setFormErrors}
                                 allFieldsData={allFieldsData}
                                 setAllFieldsData={setAllFieldsData}
-                                setFormErrors={setFormErrors}
-                                setFormData={setFormData}
                             />
                         ))
                     }
@@ -162,4 +156,4 @@ const CreateContractPage = () => {
     );
 };
 
-export default CreateContractPage;
+export default CreateEventContractPage;
