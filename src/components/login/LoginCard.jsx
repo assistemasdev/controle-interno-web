@@ -55,9 +55,6 @@ const LoginCard = () => {
         }
     };
 
-    useEffect(() => {
-        console.log(formErrors)
-    }, [formErrors])
     return (
         <div className="col-xl-4 col-lg-6 col-md-8">
             <div className="card o-hidden border-0 shadow-lg">
