@@ -38,7 +38,6 @@ const LoginCard = () => {
 
         try {
             const response = await loginUser(entities.login.create, formData);
-            console.log(response)
             if(response) {
                 login(response.result);
                 const storedUser = JSON.parse(localStorage.getItem('user'));

@@ -20,10 +20,6 @@ const useNotification = () => {
         }
     }, []);
 
-    useEffect(() => {
-        console.log(lastToastRef)
-    }, [])
-
     return { showNotification };
 };
 
