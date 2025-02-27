@@ -30,10 +30,8 @@ const FlatList = ({ headers, data, actions }) => {
                 </div>
                 <div className="container-flatlist-item">
                     {headers.map((header, index) => {
-                        if (header === 'identify') return null;
-
+                        if (header === 'identify' || keys[index] === 'exclude_ids') return null;
                         const value = item[keys[index]]?.label || 'Valor não disponível';
-
                         return (
                             <p className="flatlist-item-box" key={index}>
                                 {header}: {value}

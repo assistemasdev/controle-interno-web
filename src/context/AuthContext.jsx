@@ -30,10 +30,10 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.log('Erro ao decodificar o token:', error)
-      if(user) {
-        logout();
-        navigate('/login', { state: { message: 'Sua sessão expirou. Por favor, faça login novamente.' } });
-      }
+      localStorage.clear();
+      setIsAuthenticated(false); 
+      setUser(null); 
+      document.documentElement.style.setProperty('--primary-color','#4da8ff');
     }
 
     setLoading(false);

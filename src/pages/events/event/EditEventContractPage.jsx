@@ -99,7 +99,7 @@ const EditEventContractPage = () => {
     };
 
     const handleBack = () => {
-        navigate(`/contratos/`);  
+        navigate(`/contratos/${id}/eventos/historico`);  
     };
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
@@ -109,7 +109,7 @@ const EditEventContractPage = () => {
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <PageHeader title="Editar Contrato" showBackButton={true} backUrl="/contratos" />
+            <PageHeader title="Editar Contrato" showBackButton={true} backUrl={`/contratos/${id}/eventos/historico`} />
 
             <div className="container-fluid p-1">
                 <Form

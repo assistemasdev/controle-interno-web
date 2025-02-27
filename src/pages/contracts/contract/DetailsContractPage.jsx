@@ -6,7 +6,7 @@ import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
-import { contractFields } from '../../../constants/forms/contractFields';
+import { contractDetailsFields } from '../../../constants/forms/contractFields';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
@@ -17,7 +17,7 @@ const DetailsContractPage = () => {
     const { id } = useParams();
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
-    const { formData, formatData, setFormData } = useForm(setDefaultFieldValues(contractFields))
+    const { formData, formatData, setFormData } = useForm(setDefaultFieldValues(contractDetailsFields))
     const { 
         getByColumn: fetchById,
         getByColumn: fetchOrganizationById,
@@ -46,7 +46,7 @@ const DetailsContractPage = () => {
                 formatData({
                     contract: contractResponse.result,
                     info: contractInfosResponse.result
-                }, contractFields);
+                }, contractDetailsFields);
 
                 setFormData(prev => ({
                     ...prev,
@@ -73,7 +73,7 @@ const DetailsContractPage = () => {
         <MainLayout selectedCompany="ALUCOM">
             <PageHeader title="Detalhes do Contrato" showBackButton={true} backUrl="/contratos" />
             <div className="container-fluid p-1">
-                <DetailsSectionRenderer formData={formData} sections={contractFields}/>
+                <DetailsSectionRenderer formData={formData} sections={contractDetailsFields}/>
             </div>
         </MainLayout>
     );
