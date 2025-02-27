@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { CircularProgress } from '@mui/material';
 import useBaseService from '../hooks/services/useBaseService';
 import { entities } from '../constants/entities';
+
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -11,38 +12,49 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { post: userLogout} = useBaseService(navigate)
+  const { post: userLogout } = useBaseService(navigate);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUser = JSON.parse(localStorage.getItem('user'));
 
-    try {
+    const checkAuth = () => {
       if (token && storedUser) {
-        const decodedToken = jwtDecode(token);
-  
-        if (decodedToken.exp * 1000 < Date.now()) {
-          logout();
-          navigate('/login');
-        } else {
-          setIsAuthenticated(true);
-          setUser(storedUser);
-        }
-      }
-    } catch (error) {
-      console.log('Erro ao decodificar o token:', error)
-      localStorage.clear();
-      setIsAuthenticated(false); 
-      setUser(null); 
-      document.documentElement.style.setProperty('--primary-color','#4da8ff');
-    }
+        try {
+          const decodedToken = jwtDecode(token);
 
+          // Verifica se o token está expirado
+          if (decodedToken.exp * 1000 < Date.now()) {
+            logout();
+            navigate('/login');
+          } else {
+            setIsAuthenticated(true);
+            setUser(storedUser);
+          }
+        } catch (error) {
+          console.log('Erro ao decodificar o token:', error);
+          // Se houver erro no decoding, logout, mas apenas se o usuário já estiver logado
+          if (user) {
+            logout();
+            navigate('/login', { state: { message: 'Sua sessão expirou. Por favor, faça login novamente.' } });
+          }
+        }
+      } else {
+        // Se não houver token ou usuário armazenado, não faz nada
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // Define loading como false após a verificação
     setLoading(false);
-  }, []);
+  }, [user, navigate]);
 
   const login = (token) => {
     const decoded = jwtDecode(token);
     const userData = {
-      id: decoded.user_id
+      id: decoded.user_id,
     };
 
     localStorage.setItem('token', token);
@@ -58,14 +70,26 @@ export const AuthProvider = ({ children }) => {
       console.error('Erro ao desconectar do servidor:', error);
     } finally {
       localStorage.clear();
-      setIsAuthenticated(false); 
-      setUser(null); 
-      document.documentElement.style.setProperty('--primary-color','#4da8ff');
+      setIsAuthenticated(false);
+      setUser(null);
+      document.documentElement.style.setProperty('--primary-color', '#4da8ff');
     }
   };
 
   if (loading) {
-    return <div style={{width:'100vw', height:'100vh', display:'flex', justifyContent:'center', alignItems:'center'}}><CircularProgress/></div>; 
+    return (
+      <div
+        style={{
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <CircularProgress />
+      </div>
+    );
   }
 
   return (
