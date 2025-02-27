@@ -1,18 +1,18 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import MainLayout from '../../../../layouts/MainLayout';
+import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
-import '../../../../assets/styles/custom-styles.css';
-import useNotification from '../../../../hooks/useNotification';
-import useLoader from '../../../../hooks/useLoader';
-import useForm from '../../../../hooks/useForm';
-import Form from '../../../../components/Form'; 
-import FormSection from '../../../../components/FormSection';
-import { eventFields } from "../../../../constants/forms/eventFields";
-import { setDefaultFieldValues, transformValues } from '../../../../utils/objectUtils';
-import useBaseService from '../../../../hooks/services/useBaseService';
-import { entities } from '../../../../constants/entities';
+import '../../assets/styles/custom-styles.css';
+import useNotification from '../../hooks/useNotification';
+import useLoader from '../../hooks/useLoader';
+import useForm from '../../hooks/useForm';
+import Form from '../../components/Form'; 
+import FormSection from '../../components/FormSection';
+import { eventFields } from "../../constants/forms/eventFields";
+import { setDefaultFieldValues, transformValues } from '../../utils/objectUtils';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 import { useParams } from 'react-router-dom';
-import PageHeader from '../../../../components/PageHeader';
+import PageHeader from '../../components/PageHeader';
 
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
@@ -32,7 +32,7 @@ const CreateEventContractPage = () => {
     useEffect(() => {
         setFormData(prev => ({
             ...prev,
-            products:[],
+            items:[],
             jobs:[]
         }));
 
@@ -59,7 +59,7 @@ const CreateEventContractPage = () => {
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "event.event_type_id":
+            case "event.contract_event_type_id":
                 return types || [];
             default:
                 return [];
@@ -80,12 +80,17 @@ const CreateEventContractPage = () => {
         try {
             const transformedData = {
                 ...formData,
-                products: transformValues(formData.products),
+                items: transformValues(formData.items),
                 jobs: transformValues(formData.jobs)
             }
             const success = await createContractEvent(entities.contracts.events.create(id), transformedData);
             if (success) {
                 resetForm();
+                setFormData(prev => ({
+                    ...prev,
+                    items:[],
+                    jobs:[]
+                }));
             }
         } catch (error) {
             console.error('Error creating product:', error);

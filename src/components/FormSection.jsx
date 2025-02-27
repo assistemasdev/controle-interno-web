@@ -169,8 +169,6 @@ const FormSection = ({
     };
 
     const addFieldsInData = (section) => {
-        console.log(section);
-        console.log(fieldsData);
         const key = section.fields[0].id.split('.')[0];
         const newFormErrors = {};
         let hasError = false;

@@ -1,16 +1,16 @@
 import React, { useEffect, useCallback, useState, useMemo } from 'react';
-import MainLayout from '../../../../layouts/MainLayout';
+import MainLayout from '../../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
-import '../../../../assets/styles/custom-styles.css';
-import useNotification from '../../../../hooks/useNotification';
-import useLoader from '../../../../hooks/useLoader';
-import useBaseService from '../../../../hooks/services/useBaseService';
-import { entities } from '../../../../constants/entities';
+import '../../assets/styles/custom-styles.css';
+import useNotification from '../../hooks/useNotification';
+import useLoader from '../../hooks/useLoader';
+import useBaseService from '../../hooks/services/useBaseService';
+import { entities } from '../../constants/entities';
 import { useParams } from 'react-router-dom';
-import Timeline from '../../../../components/Timeline';
-import { faEdit, faTrash, faUndo } from '@fortawesome/free-solid-svg-icons';
-import ConfirmationModal from '../../../../components/modals/ConfirmationModal';
-import PageHeader from '../../../../components/PageHeader';
+import Timeline from '../../components/Timeline';
+import { faEdit, faTrash, faUndo, faEye } from '@fortawesome/free-solid-svg-icons';
+import ConfirmationModal from '../../components/modals/ConfirmationModal';
+import PageHeader from '../../components/PageHeader';
 
 const HistoryEventsContractPage = () => {
     const navigate = useNavigate();
@@ -67,10 +67,22 @@ const HistoryEventsContractPage = () => {
     };
 
     const handleCancelConfirmation = () => {
-        setOpenModalConfirmation(false);  
-    };
+        setOpenModalConfirmation(false); 
+    }
+
+    const handleViewDetails = (event) => {
+        navigate(`/contratos/${id}/eventos/${event.id}/detalhes`)
+    }
 
     const actions = useMemo(() => [
+        {
+            id: 'view',
+            icon: faEye,
+            title: 'Ver Detalhes',
+            buttonClass: 'btn-secondary',
+            permission: 'Visualizar eventos de contratos',
+            onClick: handleViewDetails
+        },
         {
             id:'edit',
             icon: faEdit,
@@ -111,7 +123,6 @@ const HistoryEventsContractPage = () => {
                 fetchEventsContract(entities.contracts.events.get(id)),
                 fetchContractEventTypes(entities.contracts.eventsTypes.get())
             ]);
-            
             const eventTypesMap = mapEventTypes(contractEventTypesResponse.result.data);
             const filteredContractEvents = transformContractEvents(contractEventsResponse.result.data, eventTypesMap);
             setContractEvents(filteredContractEvents);
