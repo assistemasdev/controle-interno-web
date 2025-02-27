@@ -6,7 +6,7 @@ const useErrorHandling = () => {
     const { showNotification } = useNotification();
 
     const handleError = (error, fallbackMessage = 'Ocorreu um erro') => {
-        const message = error.response?.data?.error || fallbackMessage;
+        const message = error.message || fallbackMessage;
         showNotification('error', message);
 
         if (error.status === 404) navigate('/dashboard');
