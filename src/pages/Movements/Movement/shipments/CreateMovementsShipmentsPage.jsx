@@ -20,7 +20,6 @@ const CreateMovementsShipmentsPage = () => {
     const { showNotification } = useNotification();
     const { 
         post: create, 
-        get: fetchMovementsItems,
         getByColumn: fetchMovementById,
         get: fetchAddresses,
         get: fetchLocations,
@@ -34,6 +33,7 @@ const CreateMovementsShipmentsPage = () => {
     const [addresses, setAddresses] = useState([]);
     const [customerId, setCustomerId] = useState();
     const [locations, setLocations] = useState([]);
+    const [reloadForm, setReloadForm] = useState(false);
     
     useEffect(() => {
         setFormData(prev => ({
@@ -158,6 +158,7 @@ const CreateMovementsShipmentsPage = () => {
                         movement_id: id
                     }
                 }))
+                setReloadForm(true)
             }
         } catch (error) {
             console.error('Error creating movement:', error);
@@ -199,6 +200,8 @@ const CreateMovementsShipmentsPage = () => {
                                 allFieldsData={allFieldsData}
                                 setAllFieldsData={setAllFieldsData}
                                 setFormErrors={setFormErrors}
+                                setReloadForm={setReloadForm}
+                                reloadForm={reloadForm}
                             />
                         ))
                     }

@@ -35,7 +35,9 @@ const FormSection = ({
     formErrors ,
     setFormErrors = null,
     setAllFieldsData = null,
-    allFieldsData = null
+    allFieldsData = null,
+    reloadForm = null,
+    setReloadForm = null
 }) => {
     const [fieldsData, setFieldsData] = useState([]);
     const [viewTable, setViewTable] = useState(false);
@@ -75,6 +77,31 @@ const FormSection = ({
             }, ['identify']))
         }
     }, [section.array]);
+
+    useEffect(() => {
+        if(reloadForm) {
+            const fields = section.fields;
+    
+            setFieldsData(fields.reduce((acc, currentValue) => {
+                const column = currentValue.id.split('.')[1];
+            
+                if (!acc.exclude_ids) {
+                    acc.exclude_ids = {}; 
+                }
+            
+                if (column !== 'exclude_ids') {
+                    acc.exclude_ids[column] = [];
+                }
+            
+                return {
+                    ...acc,
+                    [column]: ''
+                };
+            }, { identify: '', exclude_ids: {} }));
+
+            setReloadForm(false)
+        }
+    }, [reloadForm])
 
     const handleArraySelectChange = (selectedOption, sectionField) => {
         if (sectionField.isMulti) {

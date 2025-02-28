@@ -27,6 +27,7 @@ const CreateMovementPage = () => {
     const { formData, handleChange, resetForm, setFormData } = useForm(setDefaultFieldValues(movementFields));
     const [itemsOrdersServices, setItemsOrdersServices] = useState([]);
     const [allFieldsData, setAllFieldsData] = useState({});
+    const [reloadForm, setReloadForm] = useState(false);
     
     useEffect(() => {
         setFormData(prev => ({
@@ -84,6 +85,11 @@ const CreateMovementPage = () => {
             const success = await create(entities.movements.create, transformedData);
             if (success) {
                 resetForm();
+                setFormData(prev => ({
+                    ...prev,
+                    items: []
+                }))
+                setReloadForm(true)
             }
         } catch (error) {
             console.error('Error creating movement:', error);
@@ -125,6 +131,8 @@ const CreateMovementPage = () => {
                                 allFieldsData={allFieldsData}
                                 setAllFieldsData={setAllFieldsData}
                                 setFormErrors={setFormErrors}
+                                setReloadForm={setReloadForm}
+                                reloadForm={reloadForm}
                             />
                         ))
                     }

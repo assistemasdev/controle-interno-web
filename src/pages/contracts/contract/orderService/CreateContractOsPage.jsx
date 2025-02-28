@@ -34,6 +34,7 @@ const CreateContractOsPage = () => {
     const [allFieldsData, setAllFieldsData] = useState({});
     const [contract, setContract] = useState({});
     const [locations, setLocations] = useState([]);
+    const [reloadForm, setReloadForm] = useState(false);
 
     useEffect(() => {
         setFormData(prev => ({
@@ -130,6 +131,11 @@ const CreateContractOsPage = () => {
             const success = await create(entities.contracts.orders.create(id) ,transformedData);
             if (success) {
                 resetForm();
+                setReloadForm(true);
+                setFormData(prev => ({
+                    ...prev,
+                    items: []
+                }))
             }
         } catch (error) {
             console.error('Erro ao criar status:', error);
@@ -165,6 +171,8 @@ const CreateContractOsPage = () => {
                                 getSelectedValue={getSelectedValue}
                                 allFieldsData={allFieldsData}
                                 setAllFieldsData={setAllFieldsData}
+                                setReloadForm={setReloadForm}
+                                reloadForm={reloadForm}
                             />
                         ))
                     }

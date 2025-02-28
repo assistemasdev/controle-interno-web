@@ -33,6 +33,7 @@ const CreateContractPage = () => {
     const [status, setStatus] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [allFieldsData, setAllFieldsData] = useState([])
+    const [reloadForm, setReloadForm] = useState(false);
 
     useEffect(() => {
         setFormData(prev => ({
@@ -111,6 +112,7 @@ const CreateContractPage = () => {
                     items:[],
                     jobs:[]
                 }));
+                setReloadForm(true);
             }
         } catch (error) {
             console.error('Error creating product:', error);
@@ -153,6 +155,8 @@ const CreateContractPage = () => {
                                 setAllFieldsData={setAllFieldsData}
                                 setFormErrors={setFormErrors}
                                 setFormData={setFormData}
+                                setReloadForm={setReloadForm}
+                                reloadForm={reloadForm}
                             />
                         ))
                     }
