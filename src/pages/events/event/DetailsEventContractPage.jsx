@@ -96,6 +96,7 @@ const DetailsEventContractPage = () => {
             const eventItemsResponse = await fetchAllEventItens(entities.contracts.events.items(id).get(eventId), filtersSubmit || filtersItems)
             setItems(eventItemsResponse.result.data.map((eventItem) => ({
                 id: eventItem.id,
+                item: eventItem.item_id,
                 description: eventItem.description,
                 quantity: eventItem.quantity,
                 price: eventItem.price,
@@ -135,7 +136,7 @@ const DetailsEventContractPage = () => {
         fetchData();
     }, [id]);
 
-    const itemsHeaders = useMemo(() => ['ID', 'Descrição', 'Quantidade', 'Preço'], []);
+    const itemsHeaders = useMemo(() => ['ID', 'Item Id','Descrição', 'Quantidade', 'Preço'], []);
     
     const itemsActions = useCallback([
         {

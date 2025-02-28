@@ -7,12 +7,14 @@ import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import Form from '../../../components/Form'; 
 import FormSection from '../../../components/FormSection';
-import { eventFields } from "../../../constants/forms/eventFields";
+import { baseEventFields, dynamicFields } from "../../../constants/forms/eventFields";
 import { setDefaultFieldValues, transformValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import { useParams } from 'react-router-dom';
 import PageHeader from '../../../components/PageHeader';
+import ContractEventFormSection from '../../../components/forms/ContractEventFormSection';
+import { faPray } from '@fortawesome/free-solid-svg-icons';
 
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
@@ -24,18 +26,16 @@ const CreateEventContractPage = () => {
         setFormErrors
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(eventFields));
+    const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(baseEventFields));
     const [types, setTypes] = useState([]);
     const { id } = useParams();
     const [allFieldsData, setAllFieldsData] = useState([])
+    const [selectedEventType, setSelectedEventType] = useState(null);
+    const [formFields, setFormFields] = useState(baseEventFields);
+    const [additionalFields, setAdditionalFields] = useState([]);
+
 
     useEffect(() => {
-        setFormData(prev => ({
-            ...prev,
-            items:[],
-            jobs:[]
-        }));
-
         const fetchData = async () => {
             try {
                 showLoader();
@@ -55,7 +55,48 @@ const CreateEventContractPage = () => {
         };
         fetchData();
     }, []);
+
     
+    useEffect(() => {
+        const selectedEventType = formData.event.contract_event_type_id;
+        const newFields = dynamicFields[selectedEventType] || [];
+
+        setFormFields([
+            ...baseEventFields,
+            ...newFields 
+        ]);
+        setAdditionalFields(newFields);
+    
+        const aditionalFields = setDefaultFieldValues(newFields);
+    
+        setFormData(prev => {
+            const baseFields = Object.keys(prev).filter(key => !newFields.includes(key)).reduce((acc, key) => {
+                acc[key] = prev[key];  
+                return acc;
+            }, {});
+    
+            return {
+                ...baseFields,
+                ...aditionalFields
+            };
+        });
+    }, [formData.event.contract_event_type_id]);
+    
+    
+    useEffect(() => {
+        console.log(formFields)
+    }, [formFields])
+    
+    const handleEventTypeChange = (selectedOption) => {
+        setSelectedEventType(selectedOption);
+        
+        const additionalFields = dynamicFields[selectedOption] || [];
+
+        setFormFields([
+            ...baseEventFields,
+            ...additionalFields 
+        ]);
+    };
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
@@ -134,21 +175,37 @@ const CreateEventContractPage = () => {
                     handleBack={handleBack}
                 >
                     {() => 
-                        eventFields.map((section) => (
-                            <FormSection
+                        formFields.map((section) => (
+                            <ContractEventFormSection 
                                 key={section.section}
-                                section={section}
+                                section={section} 
                                 formData={formData}
                                 setFormData={setFormData}
-                                handleFieldChange={handleFieldChange}
-                                getOptions={getOptions}
-                                getSelectedValue={getSelectedValue}
                                 formErrors={formErrors}
                                 setFormErrors={setFormErrors}
-                                allFieldsData={allFieldsData}
+                                selectedEventType={handleEventTypeChange} 
+                                handleFieldChange={handleFieldChange}
+                                dynamicFields={dynamicFields}
+                                getOptions={getOptions}
+                                getSelectedValue={getSelectedValue}
                                 setAllFieldsData={setAllFieldsData}
                             />
                         ))
+                        // eventFields.map((section) => (
+                        //     <FormSection
+                        //         key={section.section}
+                        //         section={section}
+                        //         formData={formData}
+                        //         setFormData={setFormData}
+                        //         handleFieldChange={handleFieldChange}
+                        //         getOptions={getOptions}
+                        //         getSelectedValue={getSelectedValue}
+                        //         formErrors={formErrors}
+                        //         setFormErrors={setFormErrors}
+                        //         allFieldsData={allFieldsData}
+                        //         setAllFieldsData={setAllFieldsData}
+                        //     />
+                        // ))
                     }
                 </Form>
             </div>
