@@ -120,6 +120,27 @@ export const dynamicFields = {
                 }
             ],
         },
+    ],
+    3: [
+        {
+            section: "Produtos",
+            fields: [
+                { 
+                    id: "items.item_id", 
+                    label: "Item Id", 
+                    type: "text", 
+                    icon:faBoxOpen,
+                    placeholder:"Digite o identificador",
+                },
+                { 
+                    id: "items.quantity", 
+                    label: "Quantidade", 
+                    type: "number", 
+                    placeholder:"Digite a Quantidade",
+                    icon: faBoxOpen
+                },
+            ],
+        },
     ]
 };
 

@@ -119,19 +119,9 @@ const CreateEventContractPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            const transformedData = {
-                ...formData,
-                items: transformValues(formData.items),
-                jobs: transformValues(formData.jobs)
-            }
-            const success = await createContractEvent(entities.contracts.events.create(id), transformedData);
+            const success = await createContractEvent(entities.contracts.events.create(id), formData);
             if (success) {
                 resetForm();
-                setFormData(prev => ({
-                    ...prev,
-                    items:[],
-                    jobs:[]
-                }));
             }
         } catch (error) {
             console.error('Error creating product:', error);
