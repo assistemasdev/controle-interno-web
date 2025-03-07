@@ -92,10 +92,10 @@ export const entities = {
         infos: createNestedRoutes('contracts', 'infos'),
         events: {
             ...createNestedRoutes('contracts', 'events'),
+            additives:(contractId, eventId) => createNestedRoutes(`contracts/${contractId}/events/${eventId}`, 'additives'),
             infos: createNestedRoutes('events', 'infos'),
             items: (contractId) => createNestedRoutes(`contracts/${contractId}/events`, 'items'),
             jobs: (contractId) => createNestedRoutes(`contracts/${contractId}/events`, 'jobs'),
-
         },
         types: createNestedRoutes('contracts', 'types', true),
         status: createNestedRoutes('contracts', 'status', true),
@@ -128,5 +128,6 @@ export const entities = {
     addresses: {
         ...createEntityRoutes('addresses'),
         locations: createNestedRoutes('addresses', 'locations')
-    }
+    },
+    additives: createEntityRoutes('additives')
 };

@@ -6,7 +6,6 @@ import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import Form from '../../../components/Form'; 
-import FormSection from '../../../components/FormSection';
 import { baseEventFields, dynamicFields } from "../../../constants/forms/eventFields";
 import { setDefaultFieldValues, transformValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
@@ -14,7 +13,6 @@ import { entities } from '../../../constants/entities';
 import { useParams } from 'react-router-dom';
 import PageHeader from '../../../components/PageHeader';
 import ContractEventFormSection from '../../../components/forms/ContractEventFormSection';
-import { faPray } from '@fortawesome/free-solid-svg-icons';
 
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
@@ -30,9 +28,7 @@ const CreateEventContractPage = () => {
     const [types, setTypes] = useState([]);
     const { id } = useParams();
     const [allFieldsData, setAllFieldsData] = useState([])
-    const [selectedEventType, setSelectedEventType] = useState(null);
     const [formFields, setFormFields] = useState(baseEventFields);
-    const [additionalFields, setAdditionalFields] = useState([]);
 
 
     useEffect(() => {
@@ -58,46 +54,39 @@ const CreateEventContractPage = () => {
 
     
     useEffect(() => {
-        const selectedEventType = formData.event.contract_event_type_id;
-        const newFields = dynamicFields[selectedEventType] || [];
-
-        setFormFields([
-            ...baseEventFields,
-            ...newFields 
-        ]);
-        setAdditionalFields(newFields);
+        const selectedEventTypes = Array.isArray(formData.event.contract_event_type_id) 
+            ? formData.event.contract_event_type_id 
+            : null;  
     
-        const aditionalFields = setDefaultFieldValues(newFields);
+        if (!selectedEventTypes) return; 
+        
+        const newFields = selectedEventTypes.reduce((acc, typeId) => {
+            const fieldsForType = dynamicFields[typeId] || [];
+            return [...acc, ...fieldsForType]; 
+        }, []);
+    
+        setFormFields((prevFields) => {
+            return [
+                ...baseEventFields,  
+                ...prevFields.filter(field => !newFields.some(newField => newField.id === field.id)),  
+                ...newFields  
+            ];
+        });
     
         setFormData(prev => {
-            const baseFields = Object.keys(prev).filter(key => !newFields.includes(key)).reduce((acc, key) => {
-                acc[key] = prev[key];  
-                return acc;
-            }, {});
+            const newData = { ...prev };
     
-            return {
-                ...baseFields,
-                ...aditionalFields
-            };
+            newFields.forEach((field) => {
+                if (!(field.id in newData)) {
+                    newData[field.id] = field.defaultValue || '';  
+                }
+            });
+    
+            return newData;
         });
     }, [formData.event.contract_event_type_id]);
     
     
-    useEffect(() => {
-        console.log(formFields)
-    }, [formFields])
-    
-    const handleEventTypeChange = (selectedOption) => {
-        setSelectedEventType(selectedOption);
-        
-        const additionalFields = dynamicFields[selectedOption] || [];
-
-        setFormFields([
-            ...baseEventFields,
-            ...additionalFields 
-        ]);
-    };
-
     const getOptions = (fieldId) => {
         switch (fieldId) {
             case "event.contract_event_type_id":
@@ -119,9 +108,11 @@ const CreateEventContractPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
+            console.log(formData)
             const success = await createContractEvent(entities.contracts.events.create(id), formData);
             if (success) {
                 resetForm();
+                setFormFields(baseEventFields);
             }
         } catch (error) {
             console.error('Error creating product:', error);
@@ -135,21 +126,24 @@ const CreateEventContractPage = () => {
     };
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
-        const fielBelongsToAnArray = fieldId.split('.')[0]
-        if (fielBelongsToAnArray == 'array') {
-            const fieldSplit = fieldId.split('.')
-            const idObject = fieldSplit[1]
-            const key = fieldSplit[fieldSplit.length - 2];
-            const column = fieldSplit[fieldSplit.length - 1];
-            setFormData(prev => ({
-                ...prev,
-                [key]: prev[key].map(item => 
-                    item.id === idObject ? { ...item, [column]: value } : item
-                )
-            }));
-        }
-        handleChange(fieldId, value);
+        const [category, key] = fieldId.split('.');
+        
+        if (category === 'array') {
+            const [idObject, fieldName] = fieldId.split('.').slice(1);
     
+            setFormData((prev) => {
+                const updatedFields = prev[key].map((item) =>
+                    item.id === idObject ? { ...item, [fieldName]: value } : item
+                );
+    
+                return {
+                    ...prev,
+                    [key]: updatedFields,
+                };
+            });
+        } else {
+            handleChange(fieldId, value);
+        }
     }, [getOptions]);
 
     return (
@@ -173,7 +167,6 @@ const CreateEventContractPage = () => {
                                 setFormData={setFormData}
                                 formErrors={formErrors}
                                 setFormErrors={setFormErrors}
-                                selectedEventType={handleEventTypeChange} 
                                 handleFieldChange={handleFieldChange}
                                 dynamicFields={dynamicFields}
                                 getOptions={getOptions}
@@ -181,21 +174,6 @@ const CreateEventContractPage = () => {
                                 setAllFieldsData={setAllFieldsData}
                             />
                         ))
-                        // eventFields.map((section) => (
-                        //     <FormSection
-                        //         key={section.section}
-                        //         section={section}
-                        //         formData={formData}
-                        //         setFormData={setFormData}
-                        //         handleFieldChange={handleFieldChange}
-                        //         getOptions={getOptions}
-                        //         getSelectedValue={getSelectedValue}
-                        //         formErrors={formErrors}
-                        //         setFormErrors={setFormErrors}
-                        //         allFieldsData={allFieldsData}
-                        //         setAllFieldsData={setAllFieldsData}
-                        //     />
-                        // ))
                     }
                 </Form>
             </div>

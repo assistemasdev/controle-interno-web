@@ -58,7 +58,7 @@ const Timeline = ({ data, actions }) => {
                                 </div>
                                 <Status deletedAt={item.deleted_at} />
                             </small>
-                            <p>{item.description}</p>
+                            <p dangerouslySetInnerHTML={{ __html: item.description }}></p> 
                             <span className={`${index % 2 === 0 ? 'left-container-arrow' : 'right-container-arrow'}`}></span>
                         </div>
                     </div>

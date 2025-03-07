@@ -18,6 +18,7 @@ const HistoryEventsContractPage = () => {
     const { 
         get: fetchContractEventTypes,
         get: fetchEventsContract,
+        get: fetchEventsAdditives,
         del: deleteEventContract
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
@@ -118,15 +119,19 @@ const HistoryEventsContractPage = () => {
             showLoader();
             const [
                 contractEventsResponse,
-                contractEventTypesResponse
+                contractEventTypesResponse,
+                eventsAdditivesResponse 
             ] = await Promise.all([
                 fetchEventsContract(entities.contracts.events.get(id)),
-                fetchContractEventTypes(entities.contracts.eventsTypes.get())
+                fetchContractEventTypes(entities.contracts.eventsTypes.get()),
+                fetchEventsAdditives(entities.additives.get) 
             ]);
+    
             const eventTypesMap = mapEventTypes(contractEventTypesResponse.result.data);
-            const filteredContractEvents = transformContractEvents(contractEventsResponse.result.data, eventTypesMap);
+            const additivesMap = mapEventAdditives(eventsAdditivesResponse.result.data); 
+            const filteredContractEvents = transformContractEvents(contractEventsResponse.result.data, eventTypesMap, additivesMap); 
+    
             setContractEvents(filteredContractEvents);
-
         } catch (error) {
             const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
             showNotification('error', errorMessage);
@@ -135,6 +140,16 @@ const HistoryEventsContractPage = () => {
             hideLoader();
         }
     };
+
+    const mapEventAdditives = useCallback((additivesData) => {
+        return additivesData.reduce((acc, additive) => {
+            if (!acc[additive.event_id]) {
+                acc[additive.event_id] = [];
+            }
+            acc[additive.event_id].push(additive);
+            return acc;
+        }, {});
+    }, []);
 
     const mapEventTypes = useCallback((eventTypesData) => {
         return Object.fromEntries(
@@ -145,15 +160,29 @@ const HistoryEventsContractPage = () => {
         );   
     }, []);
 
-    const transformContractEvents = useCallback((contractEvents, eventTypesMap) => {
-        return contractEvents.map((event) => ({
-            id: event.id,
-            title: eventTypesMap[event.contract_event_type_id].name || "Nome não informado",
-            description: eventTypesMap[event.contract_event_type_id].description || "Descrição não informada",
-            date: event.created_at,
-            deleted_at: event.deleted_at ? 'deleted-' + event.deleted_at : 'deleted-null'
-        }));
+    const transformContractEvents = useCallback((contractEvents, eventTypesMap, additivesMap) => {
+        return contractEvents.map((event) => {
+            const additivesDetails = additivesMap[event.id]
+                ? additivesMap[event.id]
+                      .map(additive => {
+                          const eventTypeName = eventTypesMap[additive.contract_event_type_id]?.name || "Nome não informado";
+                          const eventTypeDescription = eventTypesMap[additive.contract_event_type_id]?.description || "Descrição não informada";
+                          return `${eventTypeName}: ${eventTypeDescription}`; 
+                      })
+                      .join('<br />')  
+                : '';
+    
+            return {
+                id: event.id,
+                title: "#" + event.id || "Nome não informado",
+                description: `${additivesDetails ? `Aditivos: <br />${additivesDetails}` : ''}`, 
+                date: event.created_at,
+                deleted_at: event.deleted_at ? 'deleted-' + event.deleted_at : 'deleted-null'
+            };
+        });
     }, []);
+    
+
 
     return (
         <MainLayout selectedCompany="ALUCOM">

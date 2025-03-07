@@ -5,7 +5,6 @@ import Select from 'react-select';
 import Button from "../Button";
 import useNotification from "../../hooks/useNotification";
 import { v4 as uuidv4 } from 'uuid';
-import { setDefaultFieldValues } from "../../utils/objectUtils";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import FlatList from "../FlatList";
 
@@ -26,7 +25,6 @@ const getArrayColumnData = (fieldId, formDataFormatted) => {
     return formDataFormatted[fieldKey] || [];
 };
 
-
 const ContractEventFormSection = ({ section, formData, formErrors, setFormErrors, setFormData, getOptions, getSelectedValue, handleFieldChange, dynamicFields, allFieldsData, setAllFieldsData }) => {
     const [viewTable, setViewTable] = useState(false);
     const [fieldsData, setFieldsData] = useState([]);
@@ -34,8 +32,8 @@ const ContractEventFormSection = ({ section, formData, formErrors, setFormErrors
     const [headers, setHeaders] = useState([]);
 
      useEffect(() => {
+        const fields = section.fields;
         if (section.array) {
-            const fields = section.fields;
 
             setFieldsData(fields.reduce((acc, currentValue) => {
                 const column = currentValue.id.split('.')[1];
@@ -63,8 +61,25 @@ const ContractEventFormSection = ({ section, formData, formErrors, setFormErrors
                     cleanedValue
                 ]
             }, ['identify']))
+        } else {
+            setFieldsData(fields.reduce((acc, currentValue) => {
+                const column = currentValue.id.split('.')[1];
+            
+                if (!acc.exclude_ids) {
+                    acc.exclude_ids = {}; 
+                }
+            
+                if (column !== 'exclude_ids') {
+                    acc.exclude_ids[column] = [];
+                }
+            
+                return {
+                    ...acc,
+                    [column]: ''
+                };
+            }, { exclude_ids: {} }));
         }
-    }, [section.array]);
+    }, [section]);
 
     const handleArraySelectChange = (selectedOption, sectionField) => {
         if (sectionField.isMulti) {
@@ -206,8 +221,6 @@ const ContractEventFormSection = ({ section, formData, formErrors, setFormErrors
     
         // Adicionar o novo item no formData com os dados preenchidos
         if (key && formData) {
-            console.log(formData)
-            console.log(key)
             setFormData((prev) => ({
                 ...prev,
                 [key]: Array.isArray(prev[key]) ? [
@@ -303,11 +316,6 @@ const ContractEventFormSection = ({ section, formData, formErrors, setFormErrors
     };
 
     const flatData = useMemo(() => flattenObject(formData), [formData]);
-
-
-    useEffect(() => {
-        console.log(fieldsData)
-    }, [fieldsData])
 
     return (
         <div>
@@ -442,6 +450,7 @@ const ContractEventFormSection = ({ section, formData, formErrors, setFormErrors
                                             column={field.column}
                                             columnLabel={field.columnLabel}
                                             columnDetails={field.columnDetails}
+                                            isMulti={field.isMulti}
                                             placeholder={field.placeholder}
                                             onChange={(selectedOption) => handleSelectFieldChange(selectedOption, field)} 
                                             value={flatData[field.id]}
