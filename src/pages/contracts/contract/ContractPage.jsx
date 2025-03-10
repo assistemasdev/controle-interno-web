@@ -53,6 +53,7 @@ const ContractPage = () => {
     const transformContracts = useCallback((contractsData, customersMap) => {
         return contractsData.map((contract) => ({
             id: contract.id,
+            name: contract.name,
             number: contract.number,
             customer: customersMap[contract.customer_id] || "N/A",
             deleted_at: contract.deleted_at ? 'deleted-' + contract.deleted_at : 'deleted-null'
@@ -82,7 +83,7 @@ const ContractPage = () => {
         loadContracts();
     }, [itemsPerPage]);
 
-    const headers = useMemo(() => ['Id', 'Número', 'Cliente'], []);
+    const headers = useMemo(() => ['Id', 'Nome', 'Número', 'Cliente'], []);
 
     const actions = useMemo(() => [
         {

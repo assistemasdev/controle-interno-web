@@ -10,7 +10,7 @@ import { PAGINATION } from '../../../constants/pagination';
 import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
 import DetailsSectionRenderer from '../../../components/DetailsSectionRenderer';
-import { detailsEventFields } from '../../../constants/forms/eventFields';
+import { contractDetailsFields } from '../../../constants/forms/contractFields';
 import useForm from '../../../hooks/useForm';
 import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import { entities } from '../../../constants/entities';
@@ -26,12 +26,14 @@ const DetailsEventContractPage = () => {
     const { showNotification } = useNotification();
     const { showLoader, hideLoader } = useLoader();
     const { 
+        getByColumn: fetchContractById,
         get: fetchAllEventItens, 
         get: fetchAllEventJobs,
-        getByColumn: fetchById,
-        getByColumn: fetchEventTypeById,
     } = useBaseService(navigate);
-    const { formData, setFormData } = useForm(setDefaultFieldValues(detailsEventFields));
+    const {
+        getByColumn: fetchEventInfoByEventId,
+    } = useBaseService();
+    const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(contractDetailsFields));
     const [items, setItems] = useState([]);
     const [jobs, setJobs] = useState([]);
     const [currentPageItems, setCurrentPageItems] = useState(PAGINATION.DEFAULT_PAGE);
@@ -72,13 +74,13 @@ const DetailsEventContractPage = () => {
     const fetchData = async () => {
         showLoader();
         try {
-            const eventResponse = await fetchById(entities.contracts.events.getByColumn(id, eventId));
-            const eventTypeResponse = await fetchEventTypeById(entities.contracts.eventsTypes.getByColumn(null, eventResponse.result.contract_event_type_id))
+            const contractResponse = await fetchContractById(entities.contracts.getByColumn(id))
+            const eventInfoResponse = await fetchEventInfoByEventId(entities.contracts.events.infos(id).get(eventId) + '/previous');
            
-            setFormData({
-                contract: eventResponse.result.contract_id,
-                eventType: eventTypeResponse.result.name
-            })
+            formatData({
+                contract: contractResponse.result,
+                info: eventInfoResponse.result
+            }, contractDetailsFields);
 
             fetchItems()
             fetchJobs()
@@ -90,10 +92,11 @@ const DetailsEventContractPage = () => {
         }
     };
 
+
     const fetchItems = async (filtersSubmit) => {
         try {
             showLoader()
-            const eventItemsResponse = await fetchAllEventItens(entities.contracts.events.items(id).get(eventId), filtersSubmit || filtersItems)
+            const eventItemsResponse = await fetchAllEventItens(entities.contracts.events.items(id).get(eventId) + '/previous', filtersSubmit || filtersItems)
             setItems(eventItemsResponse.result.data.map((eventItem) => ({
                 id: eventItem.id,
                 item: eventItem.item_id,
@@ -138,80 +141,77 @@ const DetailsEventContractPage = () => {
 
     const itemsHeaders = useMemo(() => ['ID', 'Item Id','Descrição', 'Quantidade', 'Preço'], []);
     
-    const itemsActions = useCallback([
-        {
-            id:'edit',
-            icon: faEdit,
-            title: 'Editar',
-            buttonClass: 'btn-primary',
-            permission: 'Atualizar evento',
-            onClick: (eventItem) => navigate(`/contratos/${id}/eventos/${eventId}/itens/editar/${eventItem.id}`)
-        },
-        {
-            id: 'delete',
-            icon: faTrash,
-            title: 'Excluir',
-            buttonClass: 'btn-danger',
-            permission: 'Excluir evento ',
-            onClick: (eventItem) => handleDeleteItem(eventItem, 'Você tem certeza que deseja excluir: ', entities.contracts.events.items(id).delete(eventId, eventItem.id), fetchItems),
-        },
-        {
-            id: 'activate',
-            icon: faUndo,
-            title: 'Ativar',
-            buttonClass: 'btn-info',
-            permission: '',
-            onClick: (eventItem) => handleActivateItem(eventItem, 'Você tem certeza que deseja ativar: '),
-        },
-    ], [handleDeleteItem]);
+    // const itemsActions = useCallback([
+    //     {
+    //         id:'edit',
+    //         icon: faEdit,
+    //         title: 'Editar',
+    //         buttonClass: 'btn-primary',
+    //         permission: 'Atualizar evento',
+    //         onClick: (eventItem) => navigate(`/contratos/${id}/eventos/${eventId}/itens/editar/${eventItem.id}`)
+    //     },
+    //     {
+    //         id: 'delete',
+    //         icon: faTrash,
+    //         title: 'Excluir',
+    //         buttonClass: 'btn-danger',
+    //         permission: 'Excluir evento ',
+    //         onClick: (eventItem) => handleDeleteItem(eventItem, 'Você tem certeza que deseja excluir: ', entities.contracts.events.items(id).delete(eventId, eventItem.id), fetchItems),
+    //     },
+    //     {
+    //         id: 'activate',
+    //         icon: faUndo,
+    //         title: 'Ativar',
+    //         buttonClass: 'btn-info',
+    //         permission: '',
+    //         onClick: (eventItem) => handleActivateItem(eventItem, 'Você tem certeza que deseja ativar: '),
+    //     },
+    // ], [handleDeleteItem]);
 
     const jobsHeaders = useMemo(() => ['ID', 'Item ID', 'Descrição'], []);
     
-    const JobsActions = useCallback([
-        {
-            id:'edit',
-            icon: faEdit,
-            title: 'Editar',
-            buttonClass: 'btn-primary',
-            permission: 'Atualizar evento',
-            onClick: (eventItem) => navigate(`/contratos/${id}/eventos/${eventId}/servicos/editar/${eventItem.id}`)
-        },
-        {
-            id: 'delete',
-            icon: faTrash,
-            title: 'Excluir',
-            buttonClass: 'btn-danger',
-            permission: 'Excluir evento ',
-            onClick: (eventItem) => handleDeleteItem(eventItem, 'Você tem certeza que deseja excluir: ', entities.contracts.events.items(id).delete(eventId, eventItem.id), fetchItems),
-        },
-        {
-            id: 'activate',
-            icon: faUndo,
-            title: 'Ativar',
-            buttonClass: 'btn-info',
-            permission: '',
-            onClick: (eventItem) => handleActivateItem(eventItem, 'Você tem certeza que deseja ativar: '),
-        },
-    ], [handleDeleteItem]);
+    // const JobsActions = useCallback([
+    //     {
+    //         id:'edit',
+    //         icon: faEdit,
+    //         title: 'Editar',
+    //         buttonClass: 'btn-primary',
+    //         permission: 'Atualizar evento',
+    //         onClick: (eventItem) => navigate(`/contratos/${id}/eventos/${eventId}/servicos/editar/${eventItem.id}`)
+    //     },
+    //     {
+    //         id: 'delete',
+    //         icon: faTrash,
+    //         title: 'Excluir',
+    //         buttonClass: 'btn-danger',
+    //         permission: 'Excluir evento ',
+    //         onClick: (eventItem) => handleDeleteItem(eventItem, 'Você tem certeza que deseja excluir: ', entities.contracts.events.items(id).delete(eventId, eventItem.id), fetchItems),
+    //     },
+    //     {
+    //         id: 'activate',
+    //         icon: faUndo,
+    //         title: 'Ativar',
+    //         buttonClass: 'btn-info',
+    //         permission: '',
+    //         onClick: (eventItem) => handleActivateItem(eventItem, 'Você tem certeza que deseja ativar: '),
+    //     },
+    // ], [handleDeleteItem]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
-            <PageHeader title="Detalhes do Evento" showBackButton={true} backUrl={`/contratos/${id}/eventos/historico`}/>
+            <PageHeader title="Detalhes do Contrato" showBackButton={true} backUrl={`/contratos/${id}/eventos/historico`}/>
             <div className="container-fluid p-1">
-                <DetailsSectionRenderer sections={detailsEventFields} formData={formData}/>
+                <DetailsSectionRenderer sections={contractDetailsFields} formData={formData}/>
                 
                 <ListHeader
-                    title='Itens do Evento'
-                    buttonText="Adicionar Item"
-                    buttonLink={`/contratos/${id}/eventos/${eventId}/itens/adicionar`}
-                    canAccess={canAccess}
-                    permission="Adicionar Evento"
+                    title='Itens do Contrato'
+                    canAccess={() => {}}
                 />
 
                 <DynamicTable
                     headers={itemsHeaders}
                     data={items}
-                    actions={itemsActions}
+                    actions={[]}
                     currentPage={currentPageItems}
                     totalPages={totalPagesItems}
                     onPageChange={fetchItems}
@@ -228,17 +228,14 @@ const DetailsEventContractPage = () => {
                 />
 
                 <ListHeader
-                    title='Serviços do Evento'
-                    buttonText="Adicionar Serviço"
-                    buttonLink={`/contratos/${id}/eventos/${eventId}/servicos/adicionar`}
-                    canAccess={canAccess}
-                    permission="Adicionar Evento"
+                    title='Serviços do Contrato'
+                    canAccess={() => {}}
                 />
 
                 <DynamicTable
                     headers={jobsHeaders}
                     data={jobs}
-                    actions={JobsActions}
+                    actions={[]}
                     currentPage={currentPageJobs}
                     totalPages={totalPagesJobs}
                     onPageChange={fetchJobs}
@@ -246,7 +243,7 @@ const DetailsEventContractPage = () => {
                     setFilters={setFiltersJobs}
                 />
 
-                <ConfirmationModal
+                {/* <ConfirmationModal
                     open={openModalConfirmationItem}
                     onClose={handleCancelConfirmationItem}
                     onConfirm={handleConfirmActionItem}
@@ -260,7 +257,7 @@ const DetailsEventContractPage = () => {
                     onConfirm={handleConfirmActionJob}
                     itemName={selectedJob ? `${selectedJob.id} - ${selectedJob.description}` : ''}
                     text={actionJob.text}
-                />
+                /> */}
             </div>
         </MainLayout>
     );

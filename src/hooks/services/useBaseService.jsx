@@ -3,8 +3,8 @@ import baseService from '../../services/baseService';
 import useErrorHandling from '../useErrorHandling';
 import useNotification from '../useNotification';
 
-const useBaseService = (navigate) => {
-    const { handleError } = useErrorHandling();
+const useBaseService = (navigate = false) => {
+    const { handleError } = useErrorHandling(navigate);
     const { showNotification } = useNotification();
     const [formErrors, setFormErrors] = useState({});
 
@@ -17,7 +17,6 @@ const useBaseService = (navigate) => {
             clearFormErrors();
             try {
                 const response = await requestFn();
-
                 if (successMessage) {
                     showNotification('success', response.message || successMessage);
                 }

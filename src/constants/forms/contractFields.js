@@ -1,7 +1,7 @@
 import createField from '../../utils/factory/createField';
 import { 
     faFileAlt, faClipboardCheck, faBuilding, faUser, faCalendarAlt, 
-    faMoneyBillWave, faTools, faBoxOpen 
+    faMoneyBillWave, faTools, faBoxOpen , faFileSignature 
 } from '@fortawesome/free-solid-svg-icons';
 
 export const contractFields = [
@@ -9,10 +9,16 @@ export const contractFields = [
         section: "Dados do Contrato",
         fields: [
             createField({
+                id: "contract.name", 
+                label: "Nome do Contrato", 
+                type: "text", 
+                placeholder: "Digite o nome do contrato", 
+                icon: faFileSignature
+            }),
+            createField({
                 id: "contract.number", 
                 label: "Número", 
                 type: "number", 
-                fullWidth: true,
                 placeholder: "Digite o número do contrato", 
                 icon: faFileAlt
             }),
@@ -82,14 +88,8 @@ export const contractFields = [
                 id: "info.start_date", 
                 label: "Data de Início", 
                 type: "date", 
-                icon: faCalendarAlt
-            }),
-            createField({
-                id: "info.total_amount", 
-                label: "Valor Total", 
-                type: "number", 
-                placeholder: "Digite o valor total",
-                icon: faMoneyBillWave
+                icon: faCalendarAlt,
+                fullWidth: true
             }),
             createField({
                 id: "info.end_date", 
@@ -172,10 +172,16 @@ export const contractEditFields = [
         section: "Dados do Contrato",
         fields: [
             createField({
+                id: "contract.name", 
+                label: "Nome do Contrato", 
+                type: "text", 
+                placeholder: "Digite o nome do contrato", 
+                icon: faFileSignature
+            }),
+            createField({
                 id: "number", 
                 label: "Número", 
                 type: "number", 
-                fullWidth: true,
                 placeholder: "Digite o número do contrato", 
                 icon: faFileAlt
             }),
@@ -236,6 +242,14 @@ export const contractDetailsFields = [
         section: "Dados do Contrato",
         fields: [
             createField({
+                id: "contract.name", 
+                label: "Nome do Contrato", 
+                type: "text", 
+                fullWidth: true,
+                placeholder: "Digite o nome do contrato", 
+                icon: faFileSignature
+            }),
+            createField({
                 id: "contract.number", 
                 label: "Número", 
                 type: "number", 
@@ -245,7 +259,7 @@ export const contractDetailsFields = [
                 disabled: true
             }),
             createField({
-                id: "contract.contract_type_id", 
+                id: "contract.contract_type", 
                 label: "Tipo", 
                 type: "multi-select", 
                 placeholder: "Selecione o tipo", 
@@ -256,7 +270,7 @@ export const contractDetailsFields = [
                 disabled: true
             }),
             createField({
-                id: "contract.contract_status_id", 
+                id: "contract.contract_status", 
                 label: "Status", 
                 type: "multi-select", 
                 entity: 'contractStatus',
@@ -267,7 +281,7 @@ export const contractDetailsFields = [
                 disabled: true
             }),
             createField({
-                id: "contract.organization_id", 
+                id: "contract.organization_name", 
                 label: "Organização", 
                 type: "multi-select", 
                 entity: 'organization',
@@ -278,7 +292,7 @@ export const contractDetailsFields = [
                 disabled: true
             }),
             createField({
-                id: "contract.customer_id", 
+                id: "contract.customer_name", 
                 label: "Cliente", 
                 type: "multi-select", 
                 placeholder: "Selecione o cliente", 

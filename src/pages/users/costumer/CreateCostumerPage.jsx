@@ -106,6 +106,7 @@ const CreateCustomerPage = () => {
                     textSubmit="Cadastrar"
                     initialFormData={formData}
                     textLoadingSubmit="Cadastrando..."
+                    handleBack={() => navigate("/clientes")}
                 >
                     {() => (
                         <>

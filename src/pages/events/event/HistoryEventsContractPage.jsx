@@ -84,14 +84,14 @@ const HistoryEventsContractPage = () => {
             permission: 'Visualizar eventos de contratos',
             onClick: handleViewDetails
         },
-        {
-            id:'edit',
-            icon: faEdit,
-            title: 'Editar Evento',
-            buttonClass: 'btn-primary',
-            permission: 'Atualizar eventos de contratos',
-            onClick: handleEdit
-        },
+        // {
+        //     id:'edit',
+        //     icon: faEdit,
+        //     title: 'Editar Evento',
+        //     buttonClass: 'btn-primary',
+        //     permission: 'Atualizar eventos de contratos',
+        //     onClick: handleEdit
+        // },
         {
             id: 'delete',
             icon: faTrash,
@@ -128,9 +128,8 @@ const HistoryEventsContractPage = () => {
             ]);
     
             const eventTypesMap = mapEventTypes(contractEventTypesResponse.result.data);
-            const additivesMap = mapEventAdditives(eventsAdditivesResponse.result.data); 
+            const additivesMap = mapEventAdditives(eventsAdditivesResponse.result); 
             const filteredContractEvents = transformContractEvents(contractEventsResponse.result.data, eventTypesMap, additivesMap); 
-    
             setContractEvents(filteredContractEvents);
         } catch (error) {
             const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
@@ -171,7 +170,6 @@ const HistoryEventsContractPage = () => {
                       })
                       .join('<br />')  
                 : '';
-    
             return {
                 id: event.id,
                 title: "#" + event.id || "Nome não informado",

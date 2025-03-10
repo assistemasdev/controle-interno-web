@@ -29,7 +29,7 @@ const Timeline = ({ data, actions }) => {
             {data.map((item, index) => {
                 const filteredActions = getFilteredActions(item);
                 return (
-                    <div key={index} className={`container-timeline ${index % 2 === 0 ? 'left-container' : 'right-container'}`} style={{ animationDelay: `${index}s` }}>
+                    <div key={index} className={`container-timeline ${index % 2 === 0 ? 'left-container' : 'right-container'}`}>
                         <div className="icon-chevron">
                             <FontAwesomeIcon icon={faChevronDown} />
                         </div>

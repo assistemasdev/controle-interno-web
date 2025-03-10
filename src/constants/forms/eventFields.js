@@ -1,7 +1,7 @@
 import { faCalendarAlt, faMoneyBillWave, faBoxOpen, faTools, faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
 
 export const dynamicFields = {
-    1: [ // Exemplo: Tipo de evento 1 (Manutenção)
+    1: [ 
         {
             section: "Informações do Contrato",
             fields: [
@@ -109,7 +109,7 @@ export const dynamicFields = {
     ],
     2: [
         {
-            section: "Informações do Contrato",
+            section: "Aditivo de Prazo",
             fields: [
                 { 
                     id: "info.end_date", 
@@ -123,7 +123,49 @@ export const dynamicFields = {
     ],
     3: [
         {
-            section: "Produtos",
+            section: "Aditivo de Quantidade",
+            fields: [
+                { 
+                    id: "items.item_id", 
+                    label: "Item Id", 
+                    type: "text", 
+                    icon:faBoxOpen,
+                    placeholder:"Digite o identificador",
+                },
+                { 
+                    id: "items.quantity", 
+                    label: "Quantidade", 
+                    type: "number", 
+                    placeholder:"Digite a Quantidade",
+                    icon: faBoxOpen
+                },
+            ],
+        },
+    ],
+    4: [
+        {
+            section: "Aditivo de Reajuste",
+            fields: [
+                { 
+                    id: "items.item_id", 
+                    label: "Item Id", 
+                    type: "text", 
+                    icon:faBoxOpen,
+                    placeholder:"Digite o identificador",
+                },
+                { 
+                    id: "items.price", 
+                    label: "Preço", 
+                    type: "number", 
+                    placeholder:"Digite o preço",
+                    icon: faMoneyBillWave
+                },
+            ],
+        },
+    ],
+    5: [
+        {
+            section: "Aditivo de Supressão",
             fields: [
                 { 
                     id: "items.item_id", 

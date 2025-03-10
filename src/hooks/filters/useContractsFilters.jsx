@@ -21,7 +21,7 @@ const useContractsFilters = (fetchProducts, filters, setFilters) => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
         
-        const selectedIds = buildFilteredArray(selectedContracts, 'id', 'identifyFilter', false);
+        const selectedNames = buildFilteredArray(selectedContracts, 'name', 'nameFilter', true); // Mudança aqui
         const selectedNumbers = buildFilteredArray(selectedContracts, 'number', 'numberFilter', true);
         const selectedIdLikes = buildFilteredArray(selectedContracts, 'id', 'identifyFilter', true);
         const filledInputs = new Set(selectedContracts.map((option) => option.column)).size;
@@ -29,7 +29,7 @@ const useContractsFilters = (fetchProducts, filters, setFilters) => {
 
         setFilters(prev => ({
             ...prev,
-            id: selectedIds,
+            name: selectedNames,
             number: selectedNumbers,
             idLike: selectedIdLikes,
             filledInputs,
@@ -37,7 +37,7 @@ const useContractsFilters = (fetchProducts, filters, setFilters) => {
         }));
     
         fetchProducts({
-            id: selectedIds,
+            name: selectedNames,
             number: selectedNumbers,
             idLike: selectedIdLikes,
             filledInputs,
@@ -52,16 +52,16 @@ const useContractsFilters = (fetchProducts, filters, setFilters) => {
 
     const inputsfilters = [
         {
-            label: "Identificador",
+            label: "Nome",  
             component: (
                 <AutoCompleteFilter
                     service={baseService}
-                    columnDataBase="id"
+                    columnDataBase="name"  
                     model="contract"
-                    value={selectedContracts.filter((option) => option.column === "id")}
-                    onChange={(selected) => handleChangeContracts(selected, "id")}
-                    onBlurColumn="identifyFilter"
-                    placeholder="Filtre os contratos pelo identificador"
+                    value={selectedContracts.filter((option) => option.column === "name")}  
+                    onChange={(selected) => handleChangeContracts(selected, "name")} 
+                    onBlurColumn="nameFilter"  
+                    placeholder="Filtre os contratos pelo nome"  
                     isMulti
                 />
             ),
