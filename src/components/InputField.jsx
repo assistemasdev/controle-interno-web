@@ -49,6 +49,28 @@ const InputField = ({
             );
         }
 
+        if (type === 'checkbox') {
+            return (
+                <div className="form-check d-flex align-items-center">
+                    {/* Checkbox */}
+                    <input
+                        type="checkbox"
+                        id={id}
+                        className={`form-check-input ${error ? 'is-invalid' : ''}`}
+                        checked={value}
+                        onChange={onChange}
+                        disabled={disabled}
+                        style={{
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '5px', // Rounded checkbox
+                            marginRight: '10px',
+                        }}
+                    />
+                </div>
+            );
+        }
+
         return (
             <div className="position-relative">
                 {/* Icon */}
@@ -95,7 +117,7 @@ const InputField = ({
             {label && <label htmlFor={id} className="form-label fw-bold">{label}:</label>}
             {renderInputField()}
             {/* Error message */}
-            {error && <div className={`invalid-feedback ${error? 'd-block' : 'd-none'}`}>{error}</div>}
+            {error && <div className={`invalid-feedback ${error ? 'd-block' : 'd-none'}`}>{error}</div>}
         </div>
     );
 };

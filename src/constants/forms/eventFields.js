@@ -1,4 +1,4 @@
-import { faCalendarAlt, faMoneyBillWave, faBoxOpen, faTools, faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faMoneyBillWave, faBoxOpen, faTools, faClipboardCheck, faToggleOn } from '@fortawesome/free-solid-svg-icons';
 
 export const dynamicFields = {
     1: [ 
@@ -123,8 +123,15 @@ export const dynamicFields = {
     ],
     3: [
         {
-            section: "Aditivo de Quantidade",
+            section: "Aditivo de Acréscimo",
             fields: [
+                {
+                    id: 'items.new',
+                    label: 'Novo Item:',
+                    type: 'select',
+                    placeholder: 'Cadastro de Novo Item?',
+                    icon: faToggleOn,
+                },
                 { 
                     id: "items.item_id", 
                     label: "Item Id", 

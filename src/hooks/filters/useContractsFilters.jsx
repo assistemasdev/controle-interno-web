@@ -21,7 +21,7 @@ const useContractsFilters = (fetchProducts, filters, setFilters) => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
         
-        const selectedNames = buildFilteredArray(selectedContracts, 'name', 'nameFilter', true); // Mudança aqui
+        const selectedNames = buildFilteredArray(selectedContracts, 'name', 'nameFilter', true); 
         const selectedNumbers = buildFilteredArray(selectedContracts, 'number', 'numberFilter', true);
         const selectedIdLikes = buildFilteredArray(selectedContracts, 'id', 'identifyFilter', true);
         const filledInputs = new Set(selectedContracts.map((option) => option.column)).size;

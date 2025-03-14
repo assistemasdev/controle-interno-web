@@ -12,7 +12,9 @@ import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import { useParams } from 'react-router-dom';
 import PageHeader from '../../../components/PageHeader';
-import ContractEventFormSection from '../../../components/forms/ContractEventFormSection';
+import SectionHeader from '../../../components/forms/SectionHeader';
+import SimpleBody from '../../../components/forms/SimpleBody';
+import { faPen, faDollarSign } from '@fortawesome/free-solid-svg-icons';
 
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
@@ -27,10 +29,82 @@ const CreateEventContractPage = () => {
     const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(baseEventFields));
     const [types, setTypes] = useState([]);
     const { id } = useParams();
-    const [allFieldsData, setAllFieldsData] = useState([])
+    const [allFieldsData, setAllFieldsData] = useState([]);
     const [formFields, setFormFields] = useState(baseEventFields);
+    const [viewTable, setViewTable] = useState(false);
+    const [headers, setHeaders] = useState([]);
 
+    useEffect(() => {
+        formFields.forEach((section) => {
+            const fields = section.fields;
+            if (section.array) {
+                setFormData(prev => {
+                    const updatedData = fields.reduce((acc, currentValue) => {
+                        const column = currentValue.id.split('.')[1];
+                        const key = currentValue.id.split('.')[0];
+                
+                        if (!acc.exclude_ids) {
+                            acc.exclude_ids = {};
+                        }
+                
+                        if (column !== 'exclude_ids' && !acc.exclude_ids[column]) {
+                            acc.exclude_ids[column] = [];
+                        }
+                
+                        if (!acc[key]) {
+                            acc[key] = {};
+                        }
+                
+                        acc[key][column] = acc[key][column] || '';
+                
+                        return acc;
+                    }, {});
 
+                    return {
+                        ...prev,
+                        ...updatedData,
+                    };
+                });
+                
+            
+                setHeaders(fields.reduce((acc, currentValue) => {
+                    const cleanedValue = currentValue.label.replace(/:/g, '');
+                    return [
+                        ...acc,
+                        cleanedValue
+                    ];
+                }, ['identify']));
+            } else {
+                setFormData(prev => {
+                    return fields.reduce((acc, currentValue) => {
+                        const key = currentValue.id.split('.')[0];
+                        const column = currentValue.id.split('.')[1];
+                
+                        acc = { ...prev };
+                
+                        if (!acc.exclude_ids) {
+                            acc.exclude_ids = {}; 
+                        }
+                
+                        if (column !== 'exclude_ids' && !acc.exclude_ids[column]) {
+                            acc.exclude_ids[column] = [];
+                        }
+                
+                        if (!acc[key]) {
+                            acc[key] = {};
+                        }
+                
+                        if (!(column in acc[key])) {
+                            acc[key][column] = ''; 
+                        }
+                
+                        return acc;
+                    }, { exclude_ids: {} });
+                });           
+            }
+        })
+    }, [formFields]);
+    
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -52,19 +126,62 @@ const CreateEventContractPage = () => {
         fetchData();
     }, []);
 
-    
     useEffect(() => {
         const selectedEventTypes = Array.isArray(formData.event.contract_event_type_id) 
             ? formData.event.contract_event_type_id 
-            : null;  
+            : [];  
     
-        if (!selectedEventTypes) return; 
-        
+        if (selectedEventTypes.length === 0) {
+            setFormFields(baseEventFields);
+            return;
+        }
+    
         const newFields = selectedEventTypes.reduce((acc, typeId) => {
             const fieldsForType = dynamicFields[typeId] || [];
             return [...acc, ...fieldsForType]; 
         }, []);
     
+        if (formData.items?.new === true) {
+            const sectionIndex = newFields.findIndex(section => section.section === 'Aditivo de Acréscimo');
+        
+            if (sectionIndex !== -1) {
+                const section = newFields[sectionIndex];
+                const fieldIds = section.fields.map(field => field.id);
+        
+                if (!fieldIds.includes('items.price')) {
+                    section.fields.push(
+                        { 
+                            id: "items.price", 
+                            label: "Preço", 
+                            type: "number", 
+                            placeholder: "Digite o preço do item",
+                            icon: faDollarSign
+                        }
+                    );
+                }
+        
+                if (!fieldIds.includes('items.description')) {
+                    section.fields.push(
+                        { 
+                            id: "items.description", 
+                            label: "Descrição", 
+                            type: "textarea", 
+                            icon: faPen,
+                            placeholder: "Digite a descrição do item",
+                            fullWidth: true
+                        }
+                    );
+                }
+            }
+        } else {
+            const sectionIndex = newFields.findIndex(section => section.section === 'Aditivo de Acréscimo');
+        
+            if (sectionIndex !== -1) {
+                const section = newFields[sectionIndex];
+                section.fields = section.fields.filter(field => field.id !== 'items.price' && field.id !== 'items.description');
+            }
+        }
+        
         setFormFields((prevFields) => {
             return [
                 ...baseEventFields,  
@@ -84,13 +201,14 @@ const CreateEventContractPage = () => {
     
             return newData;
         });
-    }, [formData.event.contract_event_type_id]);
-    
-    
+    }, [formData.event?.contract_event_type_id, formData.items?.new]);
+
     const getOptions = (fieldId) => {
         switch (fieldId) {
             case "event.contract_event_type_id":
                 return types || [];
+            case "items.new":
+                return [{value: true, label: 'Sim'}, {value: false, label: 'Não'}];
             default:
                 return [];
         }
@@ -108,11 +226,11 @@ const CreateEventContractPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            console.log(formData)
             const success = await createContractEvent(entities.contracts.events.create(id), formData);
             if (success) {
-                resetForm();
+                setFormData(setDefaultFieldValues(baseEventFields));
                 setFormFields(baseEventFields);
+                resetForm();
             }
         } catch (error) {
             console.error('Error creating product:', error);
@@ -121,30 +239,13 @@ const CreateEventContractPage = () => {
         }
     };
 
+    useEffect(() => {
+        console.log(formData)
+    }, [formData])
+
     const handleBack = () => {
         navigate(`/contratos/`);  
     };
-
-    const handleFieldChange = useCallback((fieldId, value, field) => {
-        const [category, key] = fieldId.split('.');
-        
-        if (category === 'array') {
-            const [idObject, fieldName] = fieldId.split('.').slice(1);
-    
-            setFormData((prev) => {
-                const updatedFields = prev[key].map((item) =>
-                    item.id === idObject ? { ...item, [fieldName]: value } : item
-                );
-    
-                return {
-                    ...prev,
-                    [key]: updatedFields,
-                };
-            });
-        } else {
-            handleChange(fieldId, value);
-        }
-    }, [getOptions]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -160,19 +261,27 @@ const CreateEventContractPage = () => {
                 >
                     {() => 
                         formFields.map((section) => (
-                            <ContractEventFormSection 
-                                key={section.section}
-                                section={section} 
-                                formData={formData}
-                                setFormData={setFormData}
-                                formErrors={formErrors}
-                                setFormErrors={setFormErrors}
-                                handleFieldChange={handleFieldChange}
-                                dynamicFields={dynamicFields}
-                                getOptions={getOptions}
-                                getSelectedValue={getSelectedValue}
-                                setAllFieldsData={setAllFieldsData}
-                            />
+                            <>
+                                <SectionHeader
+                                    key={section.section}
+                                    section={section}
+                                    viewTable={viewTable}
+                                    setViewTable={setViewTable}
+                                
+                                />
+                                {section.array ? (
+                                    <></>
+                                ): (
+                                    <SimpleBody
+                                        fields={section.fields}
+                                        formErrors={formErrors}
+                                        formData={formData}
+                                        handleFieldChange={handleChange}
+                                        getOptions={getOptions}
+                                        getSelectedValue={getSelectedValue}
+                                    />
+                                )}
+                            </>
                         ))
                     }
                 </Form>
