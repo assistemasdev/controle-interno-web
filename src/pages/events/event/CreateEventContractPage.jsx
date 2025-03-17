@@ -91,23 +91,18 @@ const CreateEventContractPage = () => {
     
                 setHeaders(prev => {
                     return fields.reduce((acc, currentValue) => {
-                        const key = currentValue.id.split('.')[0];  // Extrai o 'key' do 'id'
+                        const key = currentValue.id.split('.')[0];  
                         const cleanedValue = currentValue.label.replace(/:/g, '');
-                
-                        console.log(`Key: ${key}, Cleaned Value: ${cleanedValue}`);  // Verifica o valor de key e cleanedValue
-                        
-                        // Garante que acc[key] exista
+                                        
                         if (!acc[key]) {
                             acc[key] = [];
                         }
                 
-                        // Adiciona o cleanedValue, garantindo que não seja duplicado
-                        acc[key] = Array.from(new Set([...acc[key], cleanedValue]));  // Remove duplicatas
+                        acc[key] = Array.from(new Set([...acc[key], cleanedValue]));  
                 
-                        console.log(acc);  // Verifica o objeto completo de acumulação
                 
                         return acc;
-                    }, { ...prev });  // Faz a cópia de prev antes de adicionar os novos valores
+                    }, { ...prev });  
                 });
                 
             } else {
