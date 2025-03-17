@@ -34,7 +34,6 @@ const SimpleForm = ({
         handleFieldChange(field.id, value, field);
     };
 
-    // Função para renderizar campos de tipo texto
     const renderTextField = (field, value) => (
         <div key={field.id} className={`d-flex flex-column ${field.fullWidth ? "col-md-12" : "col-md-6"}`}>
             <InputField
@@ -51,7 +50,6 @@ const SimpleForm = ({
         </div>
     );
 
-    // Função para renderizar campos de seleção (Select)
     const renderSelectField = (field, value) => (
         <div key={field.id} className={`d-flex flex-column ${field.fullWidth ? "col-md-12" : "col-md-6"}`}>
             <label htmlFor={field.id} className="font-weight-bold mt-1">
@@ -74,7 +72,6 @@ const SimpleForm = ({
         </div>
     );
 
-    // Função para renderizar campos de autocompletar (AutoComplete)
     const renderAutoCompleteField = (field, value) => (
         <div key={field.id} className={`d-flex flex-column ${field.fullWidth ? "col-md-12" : "col-md-6"}`}>
             <label htmlFor={field.id} className="font-weight-bold mt-1">

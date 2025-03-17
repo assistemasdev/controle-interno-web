@@ -76,8 +76,8 @@ const DetailsContractPage = () => {
         try {
             showLoader();
             const contractItemsResponse = await fetchItemsByContractId(entities.contracts.items.get(id), filtersSubmit || filtersItems);
-            console.log(contractItemsResponse)
-            setItems(contractItemsResponse.result.data.map((item) => ({
+            
+            setItems(Object.values(contractItemsResponse.result.data).map((item) => ({
                 id: item.id,
                 item: item.item_id,
                 description: item.description,
@@ -85,6 +85,7 @@ const DetailsContractPage = () => {
                 price: item.price,
                 deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'
             })));
+            
             setCurrentPageItems(contractItemsResponse.result.current_page);
             setTotalPagesItems(contractItemsResponse.result.last_page)
         } catch (error) {

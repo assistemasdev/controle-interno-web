@@ -1,4 +1,5 @@
 import { faCalendarAlt, faMoneyBillWave, faBoxOpen, faTools, faClipboardCheck, faToggleOn } from '@fortawesome/free-solid-svg-icons';
+import { TireRepair } from '@mui/icons-material';
 
 export const dynamicFields = {
     1: [ 
@@ -124,23 +125,33 @@ export const dynamicFields = {
     3: [
         {
             section: "Aditivo de Acréscimo",
+            array: true,
             fields: [
                 {
-                    id: 'items.new',
+                    id: 'items_addition.identify',
+                    label: 'Identificador',
+                    type: 'text',
+                    placeholder: 'Identificador',
+                    icon: faToggleOn,
+                    disabled: true,
+                    fullWidth:true
+                },
+                {
+                    id: 'items_addition.new',
                     label: 'Novo Item:',
                     type: 'select',
                     placeholder: 'Cadastro de Novo Item?',
                     icon: faToggleOn,
                 },
                 { 
-                    id: "items.item_id", 
+                    id: "items_addition.item_id", 
                     label: "Item Id", 
                     type: "text", 
                     icon:faBoxOpen,
                     placeholder:"Digite o identificador",
                 },
                 { 
-                    id: "items.quantity", 
+                    id: "items_addition.quantity", 
                     label: "Quantidade", 
                     type: "number", 
                     placeholder:"Digite a Quantidade",
@@ -152,16 +163,27 @@ export const dynamicFields = {
     4: [
         {
             section: "Aditivo de Reajuste",
+            array: true,
             fields: [
+                {
+                    id: 'items_addendum.identify',
+                    label: 'Identificador',
+                    type: 'text',
+                    placeholder: 'Identificador',
+                    icon: faToggleOn,
+                    disabled: true,
+                    fullWidth:true
+
+                },
                 { 
-                    id: "items.item_id", 
+                    id: "items_addendum.item_id", 
                     label: "Item Id", 
                     type: "text", 
                     icon:faBoxOpen,
                     placeholder:"Digite o identificador",
                 },
                 { 
-                    id: "items.price", 
+                    id: "items_addendum.price", 
                     label: "Preço", 
                     type: "number", 
                     placeholder:"Digite o preço",
@@ -173,16 +195,26 @@ export const dynamicFields = {
     5: [
         {
             section: "Aditivo de Supressão",
+            array: true,
             fields: [
+                {
+                    id: 'items_supression.identify',
+                    label: 'Identificador',
+                    type: 'text',
+                    placeholder: 'Identificador',
+                    icon: faToggleOn,
+                    disabled: true,
+                    fullWidth:true
+                },
                 { 
-                    id: "items.item_id", 
+                    id: "items_supression.item_id", 
                     label: "Item Id", 
                     type: "text", 
                     icon:faBoxOpen,
                     placeholder:"Digite o identificador",
                 },
                 { 
-                    id: "items.quantity", 
+                    id: "items_supression.quantity", 
                     label: "Quantidade", 
                     type: "number", 
                     placeholder:"Digite a Quantidade",
