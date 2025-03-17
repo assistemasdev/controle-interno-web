@@ -36,7 +36,6 @@
     "react-toastify": "^11.0.2",
     "react-transition-group": "^4.4.5",
     "swiper": "^11.1.15",
-    "use-barcode-scanner": "^0.1.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
