@@ -1,7 +1,7 @@
 import React from "react";
 import "../assets/styles/flatlist/index.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import { faIdCard } from '@fortawesome/free-solid-svg-icons';
 const FlatList = ({ headers, data, actions, columnHeader }) => {
     if (!data || !Array.isArray(data) || data.length === 0) {
         return <p className="flatlist-empty">Nenhum dado disponível</p>;
@@ -15,7 +15,9 @@ const FlatList = ({ headers, data, actions, columnHeader }) => {
                 return (
                     <div key={itemKey} className="flatlist-card">
                         <div className="container-flatlist-title">
-                            <h5>Identificador: {item.identify?.label || "Sem identificação"}</h5>
+                            <h5>
+                                <FontAwesomeIcon icon={faIdCard} /> <strong>Identificador: </strong>{item.identify?.label || "Sem identificação"}
+                            </h5>
                             <div className="container-flatlist-icons">
                                 {actions.map((action, actionIndex) => (
                                     <button

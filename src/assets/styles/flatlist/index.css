@@ -35,6 +35,10 @@
     background-color: #f8f9fc; 
 }
 
+.container-flatlist-icons {
+    display: flex;
+    gap: 5px;
+}
 .flatlist-empty {
     display: flex;
     align-items: center;
