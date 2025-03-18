@@ -115,7 +115,7 @@ export const productFields = [
                 type: "select", 
                 placeholder: "Selecione a condição", 
                 entity: 'condition',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 icon: faClipboardCheck
             }),
@@ -126,7 +126,7 @@ export const productFields = [
                 type: "select", 
                 placeholder: "Selecione o tipo",
                 entity: 'type',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name', 
                 icon: faList
             }),
@@ -137,7 +137,7 @@ export const productFields = [
                 type: "select", 
                 placeholder: "Selecione a categoria", 
                 entity: 'category',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 fullWidth: true,
                 icon: faClipboardList

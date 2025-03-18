@@ -28,7 +28,7 @@ export const contractFields = [
                 type: "multi-select", 
                 placeholder: "Selecione o tipo", 
                 entity: 'contractType',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 icon: faClipboardCheck
             }),
@@ -37,7 +37,7 @@ export const contractFields = [
                 label: "Status", 
                 type: "multi-select", 
                 entity: 'contractStatus',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 placeholder: "Selecione o status", 
                 icon: faClipboardCheck
@@ -47,7 +47,7 @@ export const contractFields = [
                 label: "Organização", 
                 type: "multi-select", 
                 entity: 'organization',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 placeholder: "Selecione a organização", 
                 icon: faBuilding
@@ -58,7 +58,7 @@ export const contractFields = [
                 type: "multi-select", 
                 placeholder: "Selecione o cliente", 
                 entity: 'customer',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 icon: faUser
             }),

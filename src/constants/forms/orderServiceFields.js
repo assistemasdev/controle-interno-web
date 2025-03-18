@@ -10,7 +10,7 @@ export const orderServiceFields = [
                 type: "multi-select", 
                 placeholder: "Selecione o status", 
                 entity: 'serviceOrderStatus',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 icon: faClipboardCheck
             },
@@ -19,7 +19,7 @@ export const orderServiceFields = [
                 label: "Departamento de OS", 
                 type: "multi-select", 
                 entity: 'serviceOrderDepartament',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 placeholder: "Selecione o departamento", 
                 icon: faClipboardCheck
@@ -29,7 +29,7 @@ export const orderServiceFields = [
                 label: "Destino de OS", 
                 type: "multi-select", 
                 entity: 'serviceOrderDestination',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 placeholder: "Selecione o destino", 
                 icon: faMapMarkerAlt
