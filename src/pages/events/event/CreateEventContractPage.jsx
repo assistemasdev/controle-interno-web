@@ -28,7 +28,17 @@ const CreateEventContractPage = () => {
         setFormErrors
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const { formData, handleChange, setFormData, resetForm } = useForm(setDefaultFieldValues(baseEventFields));
+    const { formData, handleChange, setFormData, resetForm } = useForm({
+        event: {
+            contract_event_type_id: ''
+        },
+        items_addition: [],
+        items_addendum: [],
+        items_supression: [],
+        info: {
+            end_date: ''
+        }
+    });
     const [types, setTypes] = useState([]);
     const { id } = useParams();
     const [allFieldsData, setAllFieldsData] = useState([]);
@@ -36,20 +46,6 @@ const CreateEventContractPage = () => {
     const [viewTable, setViewTable] = useState({});
     const [headers, setHeaders] = useState({});
     const [fieldsData, setFieldsData] = useState({})
-
-    useEffect(() => {
-        setFormData({
-            event: {
-                contract_event_type_id: ''
-            },
-            items_addition: [],
-            items_addendum: [],
-            items_supression: [],
-            info: {
-                end_date: ''
-            }
-        })
-    }, [])
 
     useEffect(() => {
         formFields.forEach((section) => {
@@ -134,7 +130,6 @@ const CreateEventContractPage = () => {
                         if (!(column in acc[key])) {
                             acc[key][column] = prev[key]?.[column] || ''; 
                         }
-    
                         return acc;
                     }, prev); 
     
@@ -169,6 +164,7 @@ const CreateEventContractPage = () => {
         const selectedEventTypes = Array.isArray(formData.event.contract_event_type_id) 
             ? formData.event.contract_event_type_id 
             : [];  
+
         if (selectedEventTypes.length === 0) {
             setFormFields(baseEventFields);
             setFormData({
@@ -237,7 +233,19 @@ const CreateEventContractPage = () => {
 
     }, [formData.event?.contract_event_type_id, fieldsData.items_addition?.new]);
 
-
+    useEffect(() => {
+        setFormData(prev => ({
+            ...prev,
+            exclude_ids: {
+                ...prev.exclude_ids,
+                event: prev.event ? {
+                    ...prev.exclude_ids?.event, 
+                    contract_event_type_id: prev.event.contract_event_type_id
+                } : {}
+            }
+        }));
+    }, [formData.event?.contract_event_type_id]);
+    
     const getOptions = (fieldId) => {
         switch (fieldId) {
             case "event.contract_event_type_id":

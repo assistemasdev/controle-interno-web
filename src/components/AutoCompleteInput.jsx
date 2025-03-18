@@ -82,12 +82,20 @@ const AutoCompleteInput = ({
             });
     
             setFetchedLabels(prev => ({ ...prev, ...newLabels }));
-    
+
             if (isMulti) {
-                setSelectedValues(ids.map(id => ({
-                    value: id,
-                    label: newLabels[id] || fetchedLabels[id] || 'Carregando...'
-                })));
+                setSelectedValues(
+                    ids.map(id => ({
+                        value: id,
+                        label: newLabels[id] || fetchedLabels[id] || 'Carregando...'
+                    }))
+                    .concat(
+                        Object.keys(fetchedLabels).map(id => ({
+                            value: id,
+                            label: fetchedLabels[id] || 'Carregando...'
+                        }))
+                    )
+                );
             } else {
                 setSelectedValues({
                     value: ids[0],
@@ -129,9 +137,7 @@ const AutoCompleteInput = ({
             setSelectedValues(null);
         }
     }, [value]);
-
     
-
     return (
         <Select
             options={options}
