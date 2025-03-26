@@ -17,6 +17,7 @@ const AutoCompleteInput = ({
 }) => {
     const [inputValue, setInputValue] = useState("");
     const [options, setOptions] = useState([]);
+    const [selectedValues, setSelectedValues] = useState(isMulti ? [] : {label: "", value: ""});
     const { debouncedFn } = useDebounce(fetchOptions, 500);
     const [fetchedLabels, setFetchedLabels] = useState({});
     const { showLoader, hideLoader } = useLoader();
@@ -45,6 +46,7 @@ const AutoCompleteInput = ({
     };
 
     const handleChange = (selectedOption) => {
+        setSelectedValues(selectedOption);
         setInputValue(selectedOption ? selectedOption.label : "");
 
         if (onChange) {
@@ -53,13 +55,13 @@ const AutoCompleteInput = ({
     };
 
     const getLabelByValue = (value) => {
-        if (Array.isArray(value)) {
-            const selected = value.find(opt => opt.value === value);
+        if (Array.isArray(selectedValues)) {
+            const selected = selectedValues.find(opt => opt.value === value);
             return selected ? selected.label : '';
         }
 
-        if (value && value.value === value) {
-            return value.label;
+        if (selectedValues && selectedValues.value === value) {
+            return selectedValues.label;
         }
 
         return '';
@@ -82,7 +84,8 @@ const AutoCompleteInput = ({
             setFetchedLabels(prev => ({ ...prev, ...newLabels }));
 
             if (isMulti) {
-                value = ids.map(id => ({
+                setSelectedValues(
+                    ids.map(id => ({
                         value: id,
                         label: newLabels[id] || fetchedLabels[id] || 'Carregando...'
                     }))
@@ -91,12 +94,14 @@ const AutoCompleteInput = ({
                             value: id,
                             label: fetchedLabels[id] || 'Carregando...'
                         }))
-                    );
+                    )
+                );
             } else {
-                value = {
-                    value: ids[0],
-                    label: newLabels[ids[0]] || fetchedLabels[ids[0]] || 'Carregando...'
-                };
+                const idToUse = ids[0]?.value || ids[0];                
+                setSelectedValues({
+                    value: idToUse ,
+                    label: newLabels[idToUse] || fetchedLabels[idToUse] || 'Carregando...'
+                });
             }
         } catch (error) {
             console.error("Erro ao buscar labels:", error);
@@ -105,43 +110,45 @@ const AutoCompleteInput = ({
         }
     };
 
-    // useEffect(() => {
-    //     if (value) {
-    //         const ids = Array.isArray(value) ? value : [value];
-    //         const idsToFetch = ids.filter(id => !fetchedLabels[id]); 
-            
-    //         if (idsToFetch.length > 0) {
-    //             fetchLabelsByIds(idsToFetch);
-    //         }
-    //     }
-    // }, [value, fetchedLabels]);
-
-    // useEffect(() => {
-    //     if (value) {
-    //         if (Array.isArray(value)) {
-    //             value = value.map((selected) => ({
-    //                 ...selected,
-    //                 label: getLabelByValue(selected.value)
-    //             }));
-    //         } else {
-    //             value = {
-    //                 value: value.value,
-    //                 label: getLabelByValue(value.value)
-    //             };
-    //         }
-    //     } else {
-    //         value = null;
-    //     }
-    // }, [value]);
+    useEffect(() => {
+        if (value) {
+            const ids = Array.isArray(value) ? value : [value];
+            const idsToFetch = ids.filter(id => !fetchedLabels[id]); 
+            if (idsToFetch.length > 0) {
+                fetchLabelsByIds(idsToFetch);
+            } else {
+                setSelectedValues(
+                    ids.map(id => ({
+                        value: id,
+                        label: fetchedLabels[id] || 'Carregando...'
+                    }))
+                );
+            }
+        }
+    }, [value]);
 
     useEffect(() => {
-        console.log(value)
-    }, [value])
+        if (value && selectedValues) {
+            if (Array.isArray(selectedValues)) {
+                setSelectedValues(selectedValues.map((selected) => ({
+                    ...selected,
+                    label: getLabelByValue(selected.value)
+                })));
+            } else {
+                setSelectedValues({
+                    value: selectedValues.value,
+                    label: getLabelByValue(selectedValues.value)
+                });
+            }
+        } else {
+            setSelectedValues(null);
+        }
+    }, [value]);
     
     return (
         <Select
             options={options}
-            value={value}
+            value={selectedValues}
             onInputChange={handleInputChange}
             onChange={handleChange}
             isMulti={isMulti}

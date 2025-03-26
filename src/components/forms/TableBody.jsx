@@ -144,9 +144,6 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
 
    
 
-    useEffect(() => {
-        console.log(fieldsData)
-    }, [fieldsData])
     if (!viewTable[section.section]) {
         return (
             <div className='form-row my-3'>
@@ -178,20 +175,20 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
                                 </label>
                                 
                                 {sectionField.entity ? (
-                                    <AutoCompleteInput
-                                        entity={sectionField.entity}
-                                        column={sectionField.column}
-                                        columnLabel={sectionField.columnLabel}
-                                        columnDetails={sectionField.columnDetails}
-                                        placeholder={sectionField.placeholder}
-                                        isMulti={sectionField.isMulti}
-                                        value={fieldsData?.[sectionField.id.split('.')[0]]?.[sectionField.id.split('.')[1]] || ''}
-                                        onChange={(selectedOption) => {
-                                            handleArraySelectChange(selectedOption, sectionField);
-                                        }}                                        
-                                        exclude_ids={sectionField.isUnique? fieldsData?.exclude_ids?.[sectionField.id.split('.')[1]] : []}
-                                    />
-                                ) : (
+                                        <AutoCompleteInput
+                                            entity={sectionField.entity}
+                                            column={sectionField.column}
+                                            columnLabel={sectionField.columnLabel}
+                                            columnDetails={sectionField.columnDetails}
+                                            placeholder={sectionField.placeholder}
+                                            isMulti={sectionField.isMulti}
+                                            value={fieldsData?.[sectionField.id.split('.')[0]]?.[sectionField.id.split('.')[1]] || ''}
+                                            onChange={(selectedOption) => {
+                                                handleArraySelectChange(selectedOption, sectionField);
+                                            }}                                        
+                                            exclude_ids={sectionField.isUnique? fieldsData?.exclude_ids?.[sectionField.id.split('.')[1]] : []}
+                                        />
+                                    ) : (
                                     <Select
                                         name={`${sectionField.id}`}
                                         isMulti={sectionField.isMulti}

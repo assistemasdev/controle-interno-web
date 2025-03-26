@@ -25,7 +25,7 @@ const SimpleForm = ({
         return result;
     };
 
-    const flatData = useMemo(() => flattenObject(formData), [formData]);
+    // const flatData = useMemo(() => flattenObject(formData), [formData]);
 
     const handleSelectFieldChange = (selectedOption, field) => {
         const value = field.isMulti
@@ -77,7 +77,6 @@ const SimpleForm = ({
             <label htmlFor={field.id} className="font-weight-bold mt-1">
                 {field.label}
             </label>
-
             <AutoCompleteInput
                 entity={field.entity}
                 column={field.column}
@@ -102,8 +101,7 @@ const SimpleForm = ({
 
             <div className="form-row my-3">
                 {section.fields.map((field) => {
-                    const fieldValue = flatData[field.id] || "";
-
+                    const fieldValue = formData[field.id.split('.')[0]]?.[field.id.split('.')[1]] || "";
                     if (inputTypes.includes(field.type)) {
                         return renderTextField(field, fieldValue);
                     } else if (field.entity) {

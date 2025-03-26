@@ -439,7 +439,7 @@ const FormSection = ({
                                                 columnDetails={sectionField.columnDetails}
                                                 placeholder={sectionField.placeholder}
                                                 isMulti={sectionField.isMulti}
-                                                value={fieldsData?.[sectionField.id.split('.')[1]]?.value || ''}
+                                                value={fieldsData?.[sectionField.id.split('.')[1]] || ''}
                                                 onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
                                                 exclude_ids={sectionField.isUnique? fieldsData?.exclude_ids?.[sectionField.id.split('.')[1]] : []}
                                             />
