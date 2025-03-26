@@ -12,7 +12,9 @@ const FieldWithSelectOrAutoComplete = ({
 }) => {
     
     const [category, key] = field.id.split('.')
-    
+    useEffect(() => {
+        console.log(formData)
+    }, [formData])
     return (
         <div className="d-flex flex-column">
             <label htmlFor={field.id} className="font-weight-bold mt-1">

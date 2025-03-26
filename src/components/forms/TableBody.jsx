@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import FlatList from "../FlatList";
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import InputField from "../InputField";
@@ -142,7 +142,11 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
         },
     ], []);
 
+   
 
+    useEffect(() => {
+        console.log(fieldsData)
+    }, [fieldsData])
     if (!viewTable[section.section]) {
         return (
             <div className='form-row my-3'>
@@ -181,8 +185,10 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
                                         columnDetails={sectionField.columnDetails}
                                         placeholder={sectionField.placeholder}
                                         isMulti={sectionField.isMulti}
-                                        value={fieldsData?.[sectionField.id.split('.')[1]]?.value || ''}
-                                        onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
+                                        value={fieldsData?.[sectionField.id.split('.')[0]]?.[sectionField.id.split('.')[1]] || ''}
+                                        onChange={(selectedOption) => {
+                                            handleArraySelectChange(selectedOption, sectionField);
+                                        }}                                        
                                         exclude_ids={sectionField.isUnique? fieldsData?.exclude_ids?.[sectionField.id.split('.')[1]] : []}
                                     />
                                 ) : (

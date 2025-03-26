@@ -55,7 +55,7 @@ export const productFields = [
                 type: "select", 
                 placeholder: "Selecione a organização", 
                 entity: 'organization',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 icon: faBuilding
             }),
@@ -66,7 +66,7 @@ export const productFields = [
                 type: "select", 
                 placeholder: "Selecione a organização", 
                 entity: 'organization',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 icon: faIndustry
             }),

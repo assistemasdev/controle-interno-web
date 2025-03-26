@@ -18,6 +18,7 @@ import { faPen, faDollarSign } from '@fortawesome/free-solid-svg-icons';
 import TableBody from '../../../components/forms/TableBody';
 import { v4 as uuidv4 } from 'uuid';
 import { transformValues, removeEmptyValues } from '../../../utils/objectUtils';
+
 const CreateEventContractPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
