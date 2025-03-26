@@ -440,6 +440,21 @@ export const dynamicFields = {
             icon: faBoxOpen,
             fullWidth: true
         },
+        {
+            id: "items.address_id",
+            label: "Endereço", 
+            type: "multi-select", 
+            placeholder:"Selecione o endereço",
+            icon: faMapMarkerAlt
+        },
+        {
+            id: "items.location_id",
+            label: "Localização", 
+            type: "multi-select", 
+            placeholder:"Selecione a localização",
+            icon: faMapMarkerAlt,
+            notRequired: true,
+        },
         { 
             id: "items.details", 
             label: "Detalhes", 
@@ -447,6 +462,6 @@ export const dynamicFields = {
             placeholder:"Digite os detalhes",
             fullWidth: true,
             icon: faFileAlt
-        },
+        }
     ]
 };
