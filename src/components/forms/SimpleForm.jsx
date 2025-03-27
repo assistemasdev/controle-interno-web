@@ -85,6 +85,7 @@ const SimpleForm = ({
                 placeholder={field.placeholder}
                 onChange={(selectedOption) => handleSelectFieldChange(selectedOption, field)}
                 value={value}
+                disabled={field.disabled}
             />
 
             {formErrors[field.id] && <div className="invalid-feedback d-block">{formErrors[field.id]}</div>}

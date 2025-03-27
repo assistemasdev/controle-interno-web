@@ -222,22 +222,12 @@ export const editOrderServiceFields = [
         section: "Order de Serviço",
         fields: [
             { 
-                id: "status_id", 
-                label: "Status de OS", 
-                type: "multi-select", 
-                placeholder: "Selecione o status", 
-                entity: 'serviceOrderStatus',
-                column: 'id',
-                columnLabel: 'name',
-                icon: faClipboardCheck
-            },
-            { 
                 id: "departament_id", 
                 label: "Departamento de OS", 
                 type: "multi-select", 
                 placeholder: "Selecione o departamento", 
                 entity: 'serviceOrderDepartament',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 icon: faClipboardCheck
             },
@@ -246,7 +236,7 @@ export const editOrderServiceFields = [
                 label: "Destino de OS", 
                 type: "multi-select", 
                 entity: 'serviceOrderDestination',
-                column: 'id',
+                column: 'name',
                 columnLabel: 'name',
                 placeholder: "Selecione o destino", 
                 icon: faMapMarkerAlt
@@ -256,7 +246,8 @@ export const editOrderServiceFields = [
                 label: "Prazo Final", 
                 type: "date", 
                 placeholder: "Selecione a data do prazo final", 
-                icon: faCalendarAlt
+                icon: faCalendarAlt,
+                fullWidth: true
             },
             { 
                 id: "details", 
@@ -274,16 +265,6 @@ export const baseOsFields = [
     {
         section: "Order de Serviço",
         fields: [
-            { 
-                id: "order.status_id", 
-                label: "Status de OS", 
-                type: "multi-select", 
-                placeholder: "Selecione o status", 
-                entity: 'serviceOrderStatus',
-                column: 'name',
-                columnLabel: 'name',
-                icon: faClipboardCheck
-            },
             { 
                 id: "order.departament_id", 
                 label: "Departamento de OS", 
@@ -309,7 +290,8 @@ export const baseOsFields = [
                 label: "Prazo Final", 
                 type: "date", 
                 placeholder: "Selecione a data do prazo final", 
-                icon: faCalendarAlt
+                icon: faCalendarAlt,
+                fullWidth:true
             },
             { 
                 id: "order.details", 
@@ -396,7 +378,7 @@ export const dynamicFields = {
             placeholder:"Digite o Produto",
             isUnique: true,
             entity: 'product',
-            column: 'name',
+            column: 'number',
             columnLabel: 'number',
             columnDetails: 'name',
             icon: faBoxOpen,
@@ -434,7 +416,7 @@ export const dynamicFields = {
             placeholder:"Digite o Produto",
             isUnique: true,
             entity: 'product',
-            column: 'name',
+            column: 'number',
             columnLabel: 'number',
             columnDetails: 'name',
             icon: faBoxOpen,

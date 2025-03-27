@@ -19,6 +19,7 @@ const baseService = {
         const query = qs.stringify({
             filters,
         }, { encode: false });
+        
         return request("get", `/a/${entity}?${query}`,{}, navigate);
     },
 

@@ -175,6 +175,7 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
                                 </label>
                                 
                                 {sectionField.entity ? (
+                                    <>
                                         <AutoCompleteInput
                                             entity={sectionField.entity}
                                             column={sectionField.column}
@@ -187,7 +188,10 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
                                                 handleArraySelectChange(selectedOption, sectionField);
                                             }}                                        
                                             exclude_ids={sectionField.isUnique? fieldsData?.exclude_ids?.[sectionField.id.split('.')[1]] : []}
+                                            disabled={sectionField.disabled}
+                                            filters={fieldsData?.filters?.[sectionField.id.split('.')[0]]?.[sectionField.id.split('.')[1]] || {}}
                                         />
+                                    </>
                                     ) : (
                                     <Select
                                         name={`${sectionField.id}`}

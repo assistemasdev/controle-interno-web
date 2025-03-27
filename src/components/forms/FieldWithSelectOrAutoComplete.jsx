@@ -27,6 +27,7 @@ const FieldWithSelectOrAutoComplete = ({
                     columnDetails={field.columnDetails}
                     isMulti={field.isMulti}
                     placeholder={field.placeholder}
+                    disabled={field.disabled}
                     onChange={(selectedOption) => handleSelectFieldChange(selectedOption, field)} 
                     value={formData[category] && formData[category][key] !== undefined ? formData[category][key] : formData[field.id] || ""}
                     exclude_ids={formData.exclude_ids ? formData.exclude_ids[category]?.[key] : []}

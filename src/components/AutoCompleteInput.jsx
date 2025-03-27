@@ -13,7 +13,9 @@ const AutoCompleteInput = ({
     placeholder = "Digite algo...", 
     isMulti = false, 
     value,
-    exclude_ids
+    filters = {},
+    exclude_ids,
+    disabled = false
 }) => {
     const [inputValue, setInputValue] = useState("");
     const [options, setOptions] = useState([]);
@@ -29,7 +31,7 @@ const AutoCompleteInput = ({
         }
 
         try {
-            const response = await baseService.autocomplete(entity, { [column]: inputValue, exclude_ids });
+            const response = await baseService.autocomplete(entity, { [column]: inputValue, exclude_ids, ...filters });
             setOptions(response.result.map((item) => ({
                 value: item.id,
                 label: item[columnLabel] + (item[columnDetails] ? ' - ' + item[columnDetails] : '')
@@ -154,6 +156,7 @@ const AutoCompleteInput = ({
             isMulti={isMulti}
             placeholder={placeholder}
             noOptionsMessage={() => "Nenhuma opção encontrada"}
+            isDisabled={disabled}
         />
     );
 };

@@ -28,17 +28,17 @@ const CreateContractOsPage = () => {
         get: fetchAddressCustomer,
         get: fetchLocationsCustomer,
         post: create, 
+        post: verifyExceededItemQuantities, 
         formErrors,
         setFormErrors
     } = useBaseService(navigate);
     const { formData, handleChange, resetForm, setFormData } = useForm({});
-    const [formFields, setFormFields] = useState(baseOsFields);
     const [products, setProducts] = useState([]);
     const [addresses, setAddresses] = useState([]);
-    const [allFieldsData, setAllFieldsData] = useState({});
     const [contract, setContract] = useState({});
     const [locations, setLocations] = useState([]);
-    const [reloadForm, setReloadForm] = useState(false);
+    const [allFieldsData, setAllFieldsData] = useState({});
+    const [formFields, setFormFields] = useState(baseOsFields);
     const [viewTable, setViewTable] = useState({});
     const [headers, setHeaders] = useState({});
     const [fieldsData, setFieldsData] = useState({})
@@ -171,9 +171,22 @@ const CreateContractOsPage = () => {
         }
     
         setFormFields(updatedBaseOsFields);
+        setFieldsData(prev => ({
+            ...prev,
+            filters: {
+                ...prev.filters,
+                items: (fieldsData.items?.movement_type_id?.value === 2 || fieldsData.items?.movement_type_id?.value === 3)
+                    ? { 
+                        product_id: {
+                            status_id: 2 
+                        }
+                    }
+                    : {}
+            }
+        }));
     }, [fieldsData.items?.movement_type_id?.value]);    
     
-    const addFieldsInData = (section) => {
+    const addFieldsInData = async (section) => {
         const key = section.fields[0].id.split('.')[0];
         const newFormErrors = {};
         let hasError = false;
@@ -218,52 +231,122 @@ const CreateContractOsPage = () => {
             return updatedErrors;
         });
 
-        if (formData[key] && formData[key].some(item => item.identify == fieldsData[key].identify)) {
-            setFormData((prev) => {
-                const prevArray = prev[key] || []; 
-                const updatedData = {
-                    ...prev,
-                    [key]: prevArray.map(item => {                
-                        if (item.identify === fieldsData[key].identify) {
-                            return { ...item, ...fieldsData[key] };
-                        } else {
-                            return item;
-                        }
-                    })
-                };
-                
-                return updatedData
-            });
-
-            setFieldsData(prev => {
-                const newFieldsData = {
-                    ...prev,
-                    [key]: {}
-                };
-                return newFieldsData;
-            });
-
-            return;
+        const existsInItems = formData.items?.some(item => 
+            item.contract_item_id.value === fieldsData.items.contract_item_id.value
+        );
+        
+        if (existsInItems) {
+            showNotification('warning', 'Item já foi adicionado na tabela de itens')
+        } else {
+            if(fieldsData.items?.movement_type_id.value == 1) {
+                try {
+                    showLoader()
+    
+                    await verifyExceededItemQuantities(entities.contracts.orders.create(id) + '/verify-exceeded-item-quantities', {
+                        contract_item_id: fieldsData.items?.contract_item_id.value,
+                        quantity: fieldsData.items?.quantity.value
+                    });
+                    if (formData[key] && formData[key].some(item => item.identify == fieldsData[key].identify)) {
+                        setFormData((prev) => {
+                            const prevArray = prev[key] || []; 
+                            const updatedData = {
+                                ...prev,
+                                [key]: prevArray.map(item => {                
+                                    if (item.identify === fieldsData[key].identify) {
+                                        return { ...item, ...fieldsData[key] };
+                                    } else {
+                                        return item;
+                                    }
+                                })
+                            };
+                            
+                            return updatedData
+                        });
+            
+                        setFieldsData(prev => {
+                            const newFieldsData = {
+                                ...prev,
+                                [key]: {}
+                            };
+                            return newFieldsData;
+                        });
+            
+                        return;
+                    }
+            
+                    if (key && formData) {
+                        setFormData((prev) => ({
+                            ...prev,
+                            [key]: Array.isArray(prev[key]) ? [
+                                ...prev[key],
+                                fieldsData[key] 
+                            ] : [fieldsData[key]] 
+                        }));
+                        setFieldsData(prev => {
+                            return {
+                                ...prev,
+                                [key]: {}
+                            };
+                        });
+                    }
+            
+                    setFormFields(baseOsFields);
+                } catch (error) {
+                    console.log(error)
+                } finally {
+                    hideLoader()
+                }
+            } else {
+    
+                if (formData[key] && formData[key].some(item => item.identify == fieldsData[key].identify)) {
+                    setFormData((prev) => {
+                        const prevArray = prev[key] || []; 
+                        const updatedData = {
+                            ...prev,
+                            [key]: prevArray.map(item => {                
+                                if (item.identify === fieldsData[key].identify) {
+                                    return { ...item, ...fieldsData[key] };
+                                } else {
+                                    return item;
+                                }
+                            })
+                        };
+                        
+                        return updatedData
+                    });
+        
+                    setFieldsData(prev => {
+                        const newFieldsData = {
+                            ...prev,
+                            [key]: {}
+                        };
+                        return newFieldsData;
+                    });
+        
+                    return;
+                }
+        
+                if (key && formData) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        [key]: Array.isArray(prev[key]) ? [
+                            ...prev[key],
+                            fieldsData[key] 
+                        ] : [fieldsData[key]] 
+                    }));
+                    setFieldsData(prev => {
+                        return {
+                            ...prev,
+                            [key]: {}
+                        };
+                    });
+                }
+        
+                setFormFields(baseOsFields);
+                showNotification('success', 'Dados adicionados na tabela');
+            }
         }
 
-        if (key && formData) {
-            setFormData((prev) => ({
-                ...prev,
-                [key]: Array.isArray(prev[key]) ? [
-                    ...prev[key],
-                    fieldsData[key] 
-                ] : [fieldsData[key]] 
-            }));
-            setFieldsData(prev => {
-                return {
-                    ...prev,
-                    [key]: {}
-                };
-            });
-        }
-
-        setFormFields(baseOsFields);
-        showNotification('success', 'Dados adicionados na tabela');
     };
 
     const fetchData = async () => {

@@ -6,7 +6,7 @@ const FlatList = ({ headers, data, actions, columnHeader }) => {
     if (!data || !Array.isArray(data) || data.length === 0) {
         return <p className="flatlist-empty">Nenhum dado disponível</p>;
     }
-
+    
     return (
         <div className="container-flatlist">
             {data.map((item, index) => {
