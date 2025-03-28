@@ -104,6 +104,9 @@ const DynamicTable = ({ headers, data, actions, currentPage, totalPages, onPageC
                                             {actions && item.deleted_at? (
                                                 actions.filter(action => {
                                                     const deletedAt = item.deleted_at.split('-')[1];
+                                                    if (action.condition !== undefined && !action.condition(item)) {
+                                                        return false;
+                                                    }
                                                     if (action.id === 'delete' && deletedAt != 'null') {
                                                         return false;
                                                     }

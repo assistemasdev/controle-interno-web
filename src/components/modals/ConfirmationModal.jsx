@@ -4,7 +4,7 @@ import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/
 const ConfirmationModal = ({ open, onClose, onConfirm, itemName, text }) => {
     return (
         <Dialog open={open} onClose={onClose}>
-            <DialogTitle>Excluir</DialogTitle>
+            <DialogTitle>Confirmação</DialogTitle>
             <DialogContent>
                 <p>{text} <strong>{itemName}</strong>?</p>
             </DialogContent>

@@ -49,11 +49,13 @@ const useAction = (navigate) => {
         openModalConfirmation,
         setOpenModalConfirmation,
         action,
+        setAction,
         handleActivate,
         handleDelete,
         handleConfirmAction,
         handleCancelConfirmation,
         selectedItem,
+        setSelectedItem
     };
 };
 

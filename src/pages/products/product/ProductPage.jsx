@@ -3,7 +3,7 @@ import MainLayout from "../../../layouts/MainLayout";
 import { usePermissions } from "../../../hooks/usePermissions";
 import DynamicTable from "../../../components/DynamicTable";
 import { useNavigate, useLocation } from "react-router-dom";
-import { faEdit, faTrash, faEye, faUndo } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faTrash, faEye, faUndo, faShippingFast } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../../../components/modals/ConfirmationModal";
 import { PAGINATION } from "../../../constants/pagination";
 import useLoader from "../../../hooks/useLoader";
@@ -39,8 +39,8 @@ const ProductsPage = () => {
         page: 1,
         perPage:itemsPerPage
     })
-
-    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action } = useAction(navigate);
+    const [openModalConfirmationShipment, setOpenModalConfirmationShipment] = useState(false);
+    const { openModalConfirmation, handleActivate, handleDelete, handleConfirmAction, handleCancelConfirmation, selectedItem, action, setAction, setSelectedItem } = useAction(navigate);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -92,6 +92,24 @@ const ProductsPage = () => {
         initializeData();
     }, []);
 
+    const handleOpenConfirmShipment = (item, text) => {
+        setSelectedItem(item);
+        setOpenModalConfirmationShipment(true);
+        setAction({
+            action: 'confirmShipment',
+            text: text,
+        })
+    }
+
+    const handleConfirmActionShipment = () => {
+
+    }
+
+    const handleCancelConfirmationShipment = () => {
+        setOpenModalConfirmationShipment(false);
+    }
+
+
     const headers = ["Id", "Nome", "Número", "Status"];
 
     const actions = [
@@ -110,6 +128,15 @@ const ProductsPage = () => {
             buttonClass: "btn-info",
             permission: "Ver produtos",
             onClick: (product) => navigate(`/produtos/detalhes/${product.id}`)
+        },
+        {
+            id: 'confirmShipment',
+            icon: faShippingFast,
+            title: 'Confirmar Carregamento',
+            buttonClass: 'btn-success',
+            permission: 'Gerenciar carregamento',
+            onClick: (product) => handleOpenConfirmShipment(product, 'Você tem certeza que deseja confirmar o carregamento de: ', fetchData),
+            condition: (product) => product.status == 'A CAMINHO'
         },
         {
             id: 'delete',
@@ -158,6 +185,14 @@ const ProductsPage = () => {
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
                     onConfirm={handleConfirmAction}
+                    itemName={selectedItem ? selectedItem.name : ''}
+                    text={action.text}
+                />
+
+                <ConfirmationModal
+                    open={openModalConfirmationShipment}
+                    onClose={handleCancelConfirmationShipment}
+                    onConfirm={handleConfirmActionShipment}
                     itemName={selectedItem ? selectedItem.name : ''}
                     text={action.text}
                 />
