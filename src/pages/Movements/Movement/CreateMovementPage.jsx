@@ -41,99 +41,105 @@ const CreateMovementPage = () => {
     useEffect(() => {
         setFormData(prev => ({
             ...prev,
-            items: []
+            items: [],
+            filters: {
+                movement: {
+                    service_order_id: {
+                        status_id: [1,2]
+                    }
+                }
+            }
         }))
     }, []);
 
      useEffect(() => {
-            formFields.forEach((section) => {
-                const fields = section.fields;
-                if (section.array) {
-                    setFieldsData(prev => {
-                        const updatedData = fields.reduce((acc, currentValue) => {
-                            const column = currentValue.id.split('.')[1];
-                            const key = currentValue.id.split('.')[0];
-        
-                            if (!acc.exclude_ids) {
-                                acc.exclude_ids = {};
-                            }
-        
-                            if (!acc[key]) {
-                                acc[key] = {};
+        formFields.forEach((section) => {
+            const fields = section.fields;
+            if (section.array) {
+                setFieldsData(prev => {
+                    const updatedData = fields.reduce((acc, currentValue) => {
+                        const column = currentValue.id.split('.')[1];
+                        const key = currentValue.id.split('.')[0];
+    
+                        if (!acc.exclude_ids) {
+                            acc.exclude_ids = {};
+                        }
+    
+                        if (!acc[key]) {
+                            acc[key] = {};
+                        }
+
+                        if (column === 'identify' && !prev[key]?.[column]) {
+                            const uuid = uuidv4().slice(0, 8); 
+                            acc[key][column] = { value: uuid, label: uuid };
+                        } else {
+                            acc[key][column] = prev[key]?.[column] || ''; 
+                        }
+                        return acc;
+                    }, {});
+                    Object.entries(updatedData).map(([key, headers]) => ({
+                        section: key,
+                        headers: headers,
+                    }))
+
+                    return {
+                        ...prev,
+                        ...updatedData,
+                    };
+                });
+    
+                setHeaders(prev => {
+                    return fields.reduce((acc, currentValue) => {
+                        const key = currentValue.id.split('.')[0];  
+                        const cleanedValue = currentValue.label.replace(/:/g, '');
+                                        
+                        if (!acc[key]) {
+                            acc[key] = [];
+                        }
+                
+                        acc[key] = Array.from(new Set([...acc[key], cleanedValue]));  
+                
+                
+                        return acc;
+                    }, { ...prev });  
+                });
+                
+            } else {
+                setFormData(prev => {
+                    const updatedData = fields.reduce((acc, currentValue) => {
+                        const key = currentValue.id.split('.')[0];
+                        const column = currentValue.id.split('.')[1];
+    
+                        acc = { ...prev };
+    
+                        if (!acc.exclude_ids) {
+                            acc.exclude_ids = {};
+                        }
+    
+                        if (column !== 'exclude_ids') {
+                            if (!acc.exclude_ids[key]) {
+                                acc.exclude_ids[key] = {}; 
                             }
     
-                            if (column === 'identify' && !prev[key]?.[column]) {
-                                const uuid = uuidv4().slice(0, 8); 
-                                acc[key][column] = { value: uuid, label: uuid };
-                            } else {
-                                acc[key][column] = prev[key]?.[column] || ''; 
+                            if (!acc.exclude_ids[key][column]) {
+                                acc.exclude_ids[key][column] = [];
                             }
-                            return acc;
-                        }, {});
+                        }
     
-                        Object.entries(updatedData).map(([key, headers]) => ({
-                            section: key,
-                            headers: headers,
-                        }))
+                        if (!acc[key]) {
+                            acc[key] = {};
+                        }
     
-                        return {
-                            ...prev,
-                            ...updatedData,
-                        };
-                    });
-        
-                    setHeaders(prev => {
-                        return fields.reduce((acc, currentValue) => {
-                            const key = currentValue.id.split('.')[0];  
-                            const cleanedValue = currentValue.label.replace(/:/g, '');
-                                            
-                            if (!acc[key]) {
-                                acc[key] = [];
-                            }
-                    
-                            acc[key] = Array.from(new Set([...acc[key], cleanedValue]));  
-                    
-                    
-                            return acc;
-                        }, { ...prev });  
-                    });
-                    
-                } else {
-                    setFormData(prev => {
-                        const updatedData = fields.reduce((acc, currentValue) => {
-                            const key = currentValue.id.split('.')[0];
-                            const column = currentValue.id.split('.')[1];
-        
-                            acc = { ...prev };
-        
-                            if (!acc.exclude_ids) {
-                                acc.exclude_ids = {};
-                            }
-        
-                            if (column !== 'exclude_ids') {
-                                if (!acc.exclude_ids[key]) {
-                                    acc.exclude_ids[key] = {}; 
-                                }
-        
-                                if (!acc.exclude_ids[key][column]) {
-                                    acc.exclude_ids[key][column] = [];
-                                }
-                            }
-        
-                            if (!acc[key]) {
-                                acc[key] = {};
-                            }
-        
-                            if (!(column in acc[key])) {
-                                acc[key][column] = prev[key]?.[column] || ''; 
-                            }
-                            return acc;
-                        }, prev); 
-        
-                        return updatedData;
-                    });
-                }
-            });
+                        if (!(column in acc[key])) {
+                            acc[key][column] = prev[key]?.[column] || ''; 
+                        }
+                        return acc;
+                    }, prev); 
+    
+                    return updatedData;
+                });
+            }
+        });
     }, [formFields]);
 
     useEffect(() => {
@@ -152,13 +158,18 @@ const CreateMovementPage = () => {
             }
     
             try {
-                const movementTypeId = await getMovementTypeId(fieldsData.items?.service_order_item_id?.value);
-    
+                const response = await getMovementTypeIdAndProductId(fieldsData.items?.service_order_item_id?.value);
                 setFieldsData(prev => ({
                     ...prev,
                     items: {
                         ...prev.items,
-                        movement_type_id: movementTypeId
+                        movement_type_id: response.movementTypeId,
+                        product_id: prev.items?.product_id 
+                        ? { ...prev.items.product_id } 
+                        : response.movementTypeId === 3 
+                            ? response.productId 
+                            : ''
+                                        
                     }
                 }));
     
@@ -171,8 +182,8 @@ const CreateMovementPage = () => {
                     const baseFields = sectionFields.filter(
                         field => field.id === "items.service_order_item_id" || field.id === "items.identify"
                     );
-                    const newDynamicFields = dynamicFields[movementTypeId] || [];
-                    console.log(baseFields, newDynamicFields)
+                    const newDynamicFields = dynamicFields[response.movementTypeId] || [];
+
                     updatedBaseMovementFields[sectionIndex].fields = [
                         ...baseFields, 
                         ...newDynamicFields  
@@ -180,14 +191,13 @@ const CreateMovementPage = () => {
                 }
     
                 setFormFields(updatedBaseMovementFields);
-
                 setFieldsData(prev => ({
                     ...prev,
                     filters: {
                         ...prev.filters,
                         items: { 
                                 product_id: {
-                                    status_id: movementTypeId == 1 ? 1 : 2
+                                    status_id: response.movementTypeId == 3 ? 2 : 1
                                 }
                             }
                             
@@ -202,12 +212,14 @@ const CreateMovementPage = () => {
         fetchDataAndUpdateFields();
     }, [fieldsData.items?.service_order_item_id?.value]);
 
-
-    const getMovementTypeId = async (id) => {
+    const getMovementTypeIdAndProductId = async (id) => {
         try {
             showLoader()
             const response = await fetchOrderServiceItemById(entities.orders.items.getByColumn(formData.movement.service_order_id, id))
-            return response.result.movement_type_id;
+            return {
+                movementTypeId: response.result.movement_type_id, 
+                productId: response.result.product_id
+            };
         } catch(error) {
             console.log(error)
         } finally {

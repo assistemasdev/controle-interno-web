@@ -27,7 +27,7 @@ const ProductsPage = () => {
     const { 
         get: fetchAll, 
         get: fetchAllStatus,
-        del: remove 
+        post: confirmShipment
     } = useBaseService(navigate);
     const { hideLoader, showLoader } = useLoader();
     const { showNotification } = useNotification();
@@ -101,8 +101,19 @@ const ProductsPage = () => {
         })
     }
 
-    const handleConfirmActionShipment = () => {
-
+    const handleConfirmActionShipment = async () => {
+        try {
+            showLoader()
+            const response = await confirmShipment(entities.shipments.create + '/confirm-shipment', {product_id: selectedItem.id})
+            if(response) {
+                fetchData();
+                setOpenModalConfirmationShipment(false);
+            }
+        } catch (error) {
+            console.log(error)
+        } finally {
+            hideLoader();
+        }
     }
 
     const handleCancelConfirmationShipment = () => {

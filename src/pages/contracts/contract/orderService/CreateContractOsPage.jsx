@@ -25,6 +25,9 @@ const CreateContractOsPage = () => {
     const { 
         get: fetchProducts,
         getByColumn: fetchContractById,
+        getByColumn: fetchProductById,
+        getByColumn: fetchAddressById,
+        getByColumn: fetchLocationById,
         get: fetchAddressCustomer,
         get: fetchLocationsCustomer,
         post: create, 
@@ -152,7 +155,11 @@ const CreateContractOsPage = () => {
             return;
         }
     
-        const updatedBaseOsFields = [...baseOsFields];
+        const updatedBaseOsFields = baseOsFields.map(section => ({
+            ...section,
+            fields: [...section.fields] 
+        }));
+
         const sectionIndex = updatedBaseOsFields.findIndex(item => item.section === 'Produtos');
     
         if (sectionIndex !== -1) {
@@ -164,12 +171,12 @@ const CreateContractOsPage = () => {
     
             const newDynamicFields = dynamicFields[fieldsData.items?.movement_type_id?.value] || [];
     
-            updatedBaseOsFields[sectionIndex].fields = [
-                ...baseFields, 
-                ...newDynamicFields  
-            ];
+            updatedBaseOsFields[sectionIndex] = {
+                ...updatedBaseOsFields[sectionIndex], 
+                fields: [...baseFields, ...newDynamicFields] 
+            };
         }
-    
+
         setFormFields(updatedBaseOsFields);
         setFieldsData(prev => ({
             ...prev,
@@ -185,6 +192,56 @@ const CreateContractOsPage = () => {
             }
         }));
     }, [fieldsData.items?.movement_type_id?.value]);    
+
+    useEffect(() => {
+        const fetchProductAndAddress = async () => {
+            try {
+                showLoader();
+                if (fieldsData.items?.product_id?.value) {
+                    const productResponse = await fetchProductById(entities.products.getByColumn(fieldsData.items?.product_id?.value));
+                    const addressResponse = await fetchAddressById(entities.addresses.getByColumn(productResponse.result.address_id));
+
+                    let address = addressResponse.result;
+                    address = (address.street && address.city && address.state) ? `${address.street}, ${address.city} - ${address.state}` : ''
+                    let location = "";
+
+                    setFieldsData(prev => ({
+                        ...prev,
+                        items: {
+                            ...prev.items,
+                            address_id: {value: addressResponse.result.id, label: address},
+                        }
+                    }))
+
+                    if (productResponse.result.location_id) {
+                        const locationResponse = await fetchLocationById(entities.addresses.locations.getByColumn(addressResponse.result.id, productResponse.result.location_id))
+                        location = locationResponse.result;
+                        location = `${location.area}${location.section ? `, ${location.section}` : ''}${location.spot ? ` - ${location.spot}` : ''}`
+
+                        let locationId = locationResponse.result.id ? locationResponse.result.id : ''
+                        setFieldsData(prev => ({
+                            ...prev,
+                            items: {
+                                ...prev.items,
+                                location_id: {value: locationId, label: location},
+                            }
+                        }))
+                    }                        
+
+
+
+                }
+            } catch(error) {
+                console.log(error)
+            } finally {
+                hideLoader();
+            }
+        }
+
+        if (fieldsData.items?.movement_type_id?.value === 2 || fieldsData.items?.movement_type_id?.value === 3) {
+            fetchProductAndAddress();
+        }
+    }, [fieldsData.items?.product_id?.value])
     
     const addFieldsInData = async (section) => {
         const key = section.fields[0].id.split('.')[0];
@@ -232,7 +289,8 @@ const CreateContractOsPage = () => {
         });
 
         const existsInItems = formData.items?.some(item => 
-            item.contract_item_id.value === fieldsData.items.contract_item_id.value
+            item?.contract_item_id?.value &&  
+            item.contract_item_id.value === fieldsData.items?.contract_item_id?.value
         );
         
         if (existsInItems) {

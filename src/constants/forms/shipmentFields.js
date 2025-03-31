@@ -4,7 +4,8 @@ import {
     faMapMarkerAlt, 
     faClipboardList, 
     faBoxOpen, 
-    faLocationArrow 
+    faLocationArrow,
+    faToggleOn
 } from '@fortawesome/free-solid-svg-icons';
 
 export const shipmentFields = [
@@ -43,12 +44,21 @@ export const shipmentFields = [
                 isUnique: true,
                 icon: faBoxOpen 
             },
+            {
+                id: 'items.identify',
+                label: 'Identificador',
+                type: 'text',
+                placeholder: 'Identificador',
+                icon: faToggleOn,
+                disabled: true,
+            },
             { 
                 id: "items.delivery_date", 
                 label: "Data de Entrega", 
                 type: "date", 
                 placeholder: "Selecione a data",
-                icon: faCalendarAlt 
+                icon: faCalendarAlt,
+                fullWidth:true
             },
             { 
                 id: "items.address_id", 

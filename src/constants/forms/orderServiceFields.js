@@ -389,7 +389,8 @@ export const dynamicFields = {
             label: "Endereço", 
             type: "multi-select", 
             placeholder:"Selecione o endereço",
-            icon: faMapMarkerAlt
+            icon: faMapMarkerAlt,
+            disabled: true
         },
         {
             id: "items.location_id",
@@ -398,6 +399,7 @@ export const dynamicFields = {
             placeholder:"Selecione a localização",
             icon: faMapMarkerAlt,
             notRequired: true,
+            disabled: true
         },
         { 
             id: "items.details", 
@@ -427,7 +429,8 @@ export const dynamicFields = {
             label: "Endereço", 
             type: "multi-select", 
             placeholder:"Selecione o endereço",
-            icon: faMapMarkerAlt
+            icon: faMapMarkerAlt,
+            disabled: true
         },
         {
             id: "items.location_id",
@@ -436,6 +439,7 @@ export const dynamicFields = {
             placeholder:"Selecione a localização",
             icon: faMapMarkerAlt,
             notRequired: true,
+            disabled: true
         },
         { 
             id: "items.details", 

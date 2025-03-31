@@ -374,7 +374,8 @@ export const dynamicFields = {
             isUnique: true,
             columnLabel: 'number',
             columnDetails: 'name',
-            icon: faBoxOpen
+            icon: faBoxOpen,
+            disabled: true
         },
     ]
 }

@@ -85,7 +85,13 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
             ...prevState,
             [section.section]: false,  
         }));
-        const key = section.fields[0].id.split('.')[0]
+        
+        const key = section.fields[0].id.split('.')[0];
+
+        setFormData(prev => ({
+            ...prev,
+            items: prev.items?.filter(i => i.identify !== item.identify) || []
+        }));
 
         setFieldsData(prev => ({
             ...prev,
@@ -203,6 +209,7 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
                                         onChange={(selectedOption) => handleArraySelectChange(selectedOption, sectionField)}
                                         noOptionsMessage={() => `Nenhuma opção encontrada para ${sectionField.label}`}
                                         placeholder={sectionField.placeholder}
+                                        isDisabled={sectionField.disabled}
                                     />
                                 )}
 

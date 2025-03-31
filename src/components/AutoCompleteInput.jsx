@@ -99,7 +99,7 @@ const AutoCompleteInput = ({
                     )
                 );
             } else {
-                const idToUse = ids[0]?.value || ids[0];                
+                const idToUse = ids[0]?.value || ids[0];    
                 setSelectedValues({
                     value: idToUse ,
                     label: newLabels[idToUse] || fetchedLabels[idToUse] || 'Carregando...'

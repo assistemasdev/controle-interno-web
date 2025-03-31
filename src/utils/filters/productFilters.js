@@ -13,6 +13,6 @@ export default function productFilters(data) {
             filters[key] = {$contains: value};
         }
     });
-    console.log(filters)
+    
     return filters;
 }
