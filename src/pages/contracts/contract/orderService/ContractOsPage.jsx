@@ -107,7 +107,7 @@ const ContractOsPage = () => {
             title: 'Editar',
             buttonClass: 'btn-primary',
             permission: 'Atualizar ordens de serviço',
-            onClick: (os) => navigate(`/contratos/${id}/ordens-servicos/editar/${os.id}`)
+            onClick: (os) => navigate(`/contratos/${id}/ordens-servicos/editar/${os.id}`),
         },
         {
             id: 'delete',
@@ -115,7 +115,7 @@ const ContractOsPage = () => {
             title: 'Excluir',
             buttonClass: 'btn-danger',
             permission: 'Excluir ordens de serviço',
-            onClick: (os) => handleDelete(os, 'Você tem certeza que deseja excluir: ', entities.contracts.orders.delete(id,os.id), loadOrdersServices)
+            onClick: (os) => handleDelete(os, 'Você tem certeza que deseja excluir: ', entities.contracts.orders.delete(id,os.id), loadOrdersServices),
         },
         {
             id: 'activate',

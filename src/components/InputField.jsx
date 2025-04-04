@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { faEye, faEyeSlash, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash, faFileExcel, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const InputField = ({
@@ -23,19 +23,11 @@ const InputField = ({
         if (type === 'textarea') {
             return (
                 <div className="position-relative">
-                    {/* Icon */}
                     <FontAwesomeIcon 
                         icon={icon} 
                         className="input-icon"
-                        style={{
-                            position: 'absolute', 
-                            top: '50%', 
-                            left: '10px', 
-                            transform: 'translateY(-50%)',
-                        }}
+                        style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)' }}
                     />
-
-                    {/* Textarea */}
                     <textarea
                         id={id}
                         className={`form-control ${error ? 'is-invalid' : ''} rounded input-theme`}
@@ -52,7 +44,6 @@ const InputField = ({
         if (type === 'checkbox') {
             return (
                 <div className="form-check d-flex align-items-center">
-                    {/* Checkbox */}
                     <input
                         type="checkbox"
                         id={id}
@@ -60,12 +51,28 @@ const InputField = ({
                         checked={value}
                         onChange={onChange}
                         disabled={disabled}
-                        style={{
-                            width: '20px',
-                            height: '20px',
-                            borderRadius: '5px', // Rounded checkbox
-                            marginRight: '10px',
-                        }}
+                        style={{ width: '20px', height: '20px', borderRadius: '5px', marginRight: '10px' }}
+                    />
+                </div>
+            );
+        }
+
+        if (type === 'file') {
+            return (
+                <div className="position-relative">
+                    <FontAwesomeIcon 
+                        icon={faFileExcel} 
+                        className="input-icon"
+                        style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)' }}
+                    />
+                    <input
+                        type="file"
+                        id={id}
+                        className={`form-control ${error ? 'is-invalid' : ''} rounded input-theme`}
+                        style={{ paddingLeft: '2.5rem' }}
+                        accept=".xls, .xlsx"
+                        onChange={onChange}
+                        disabled={disabled}
                     />
                 </div>
             );
@@ -73,19 +80,11 @@ const InputField = ({
 
         return (
             <div className="position-relative">
-                {/* Icon */}
                 <FontAwesomeIcon 
                     icon={icon} 
                     className="input-icon"
-                    style={{
-                        position: 'absolute', 
-                        top: '50%', 
-                        left: '10px', 
-                        transform: 'translateY(-50%)',
-                    }}
+                    style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)' }}
                 />
-
-                {/* Input field */}
                 <input
                     type={isPasswordVisible ? 'text' : type}  
                     id={id}
@@ -96,8 +95,6 @@ const InputField = ({
                     placeholder={placeholder}
                     disabled={disabled}
                 />
-
-                {/* Password visibility toggle */}
                 {type === 'password' && (
                     <button
                         type="button"
@@ -116,7 +113,6 @@ const InputField = ({
         <div className="d-flex flex-column py-1">
             {label && <label htmlFor={id} className="form-label fw-bold">{label}:</label>}
             {renderInputField()}
-            {/* Error message */}
             {error && <div className={`invalid-feedback ${error ? 'd-block' : 'd-none'}`}>{error}</div>}
         </div>
     );

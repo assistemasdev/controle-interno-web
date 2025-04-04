@@ -4,18 +4,26 @@ import Form from '../../../../components/Form';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../../../assets/styles/custom-styles.css';
 import useForm from '../../../../hooks/useForm';
+import { FaUser, FaBuilding, FaRegAddressCard, FaHashtag } from 'react-icons/fa'; 
 import { dynamicFields, baseOsFields } from '../../../../constants/forms/orderServiceFields';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
 import useLoader from '../../../../hooks/useLoader';
 import useNotification from '../../../../hooks/useNotification';
-import { transformValues } from '../../../../utils/objectUtils';
+import { transformObjectValues, transformValues } from '../../../../utils/objectUtils';
 import PageHeader from '../../../../components/PageHeader';
 import SectionHeader from '../../../../components/forms/SectionHeader';
 import TableBody from '../../../../components/forms/TableBody';
 import SimpleBody from '../../../../components/forms/SimpleBody';
 import { v4 as uuidv4 } from 'uuid';
 import { setDefaultFieldValues } from '../../../../utils/objectUtils';
+import DynamicHeaderForm from '../../../../components/forms/DynamicHeaderForm';
+import DynamicBoxForm from '../../../../components/forms/DynamicBoxForm';
+import InfoBox from '../../../../components/box/InfoBox';
+import ContainerBox from '../../../../components/box/ContainerBox';
+import ItemContainerBox from '../../../../components/box/ItemContainerBox';
+import ProgressBar from '../../../../components/box/ProgressBar';
+import { extractFirstColumnFromExcel } from '../../../../utils/extractFirstColumnFromExcel';
 
 const CreateContractOsPage = () => {
     const { id } = useParams();
@@ -24,12 +32,12 @@ const CreateContractOsPage = () => {
     const { showNotification } = useNotification();
     const { 
         get: fetchProducts,
+        get: fetchContractItems,
         getByColumn: fetchContractById,
-        getByColumn: fetchProductById,
-        getByColumn: fetchAddressById,
-        getByColumn: fetchLocationById,
+        post: fetchProductsByIds,
         get: fetchAddressCustomer,
         get: fetchLocationsCustomer,
+        get: fetchItemsKitByEquipamentKitId,
         post: create, 
         post: verifyExceededItemQuantities, 
         formErrors,
@@ -39,12 +47,20 @@ const CreateContractOsPage = () => {
     const [products, setProducts] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [contract, setContract] = useState({});
+    const [contractItems, setContractItems] = useState([]);
     const [locations, setLocations] = useState([]);
     const [allFieldsData, setAllFieldsData] = useState({});
     const [formFields, setFormFields] = useState(baseOsFields);
     const [viewTable, setViewTable] = useState({});
     const [headers, setHeaders] = useState({});
     const [fieldsData, setFieldsData] = useState({})
+    const [viewMode, setViewMode] = useState("form");
+    const [accessories, setAccessories] = useState([]);
+    const options = [
+        { value: "form", label: "Formulário" },
+        { value: "contract", label: "Contrato" },
+    ];
+    const [originalTypes, setOriginalTypes] = useState({});
 
     useEffect(() => {
         fetchData()
@@ -70,8 +86,15 @@ const CreateContractOsPage = () => {
                         if (column === 'identify' && !prev[key]?.[column]) {
                             const uuid = uuidv4().slice(0, 8); 
                             acc[key][column] = { value: uuid, label: uuid };
-                        } else {
-                            acc[key][column] = prev[key]?.[column] || ''; 
+                        } else if (column === 'excel' && !prev[key]?.[column]) {
+                            acc[key][column] = { value: true, label: 'Não' };
+                        }
+                        else {
+                            if (currentValue.isMulti && !Array.isArray(prev[key])) {
+                                acc[key][column] = prev[key]?.[column] ? [prev[key]?.[column]] : []; 
+                            } else {
+                                acc[key][column] = prev[key]?.[column] || '';
+                            }
                         }
                         return acc;
                     }, {});
@@ -194,54 +217,67 @@ const CreateContractOsPage = () => {
     }, [fieldsData.items?.movement_type_id?.value]);    
 
     useEffect(() => {
-        const fetchProductAndAddress = async () => {
+        setFormFields(prevSections =>
+            prevSections.map(section => ({
+                ...section,
+                fields: section.fields.map(field => {
+                    if (field.id === "items.product_id") {
+                        if (!fieldsData.items?.excel?.value) {
+                            if (!originalTypes[field.id]) {
+                                setOriginalTypes(prev => ({
+                                    ...prev,
+                                    [field.id]: field.type
+                                }));
+                            }
+                            return { ...field, type: "file" };
+                        } else {
+                            return { ...field, type: originalTypes[field.id] || field.type };
+                        }
+                    }
+                    return field;
+                })
+            }))
+        );
+    }, [fieldsData.items?.excel?.value]);
+
+    useEffect(() => {
+        const fetchAccessories = async () => {
             try {
                 showLoader();
-                if (fieldsData.items?.product_id?.value) {
-                    const productResponse = await fetchProductById(entities.products.getByColumn(fieldsData.items?.product_id?.value));
-                    const addressResponse = await fetchAddressById(entities.addresses.getByColumn(productResponse.result.address_id));
+    
+                const equipamentKitId = fieldsData.items?.equipament_kit?.value;
+                if (!equipamentKitId) return;
+    
+                const response = await fetchItemsKitByEquipamentKitId(
+                    entities.equipamentsKits.items.get(equipamentKitId),
+                    { perPage: 0 }
+                );
 
-                    let address = addressResponse.result;
-                    address = (address.street && address.city && address.state) ? `${address.street}, ${address.city} - ${address.state}` : ''
-                    let location = "";
-
-                    setFieldsData(prev => ({
-                        ...prev,
-                        items: {
-                            ...prev.items,
-                            address_id: {value: addressResponse.result.id, label: address},
-                        }
-                    }))
-
-                    if (productResponse.result.location_id) {
-                        const locationResponse = await fetchLocationById(entities.addresses.locations.getByColumn(addressResponse.result.id, productResponse.result.location_id))
-                        location = locationResponse.result;
-                        location = `${location.area}${location.section ? `, ${location.section}` : ''}${location.spot ? ` - ${location.spot}` : ''}`
-
-                        let locationId = locationResponse.result.id ? locationResponse.result.id : ''
-                        setFieldsData(prev => ({
-                            ...prev,
-                            items: {
-                                ...prev.items,
-                                location_id: {value: locationId, label: location},
-                            }
-                        }))
-                    }                        
-
-
-
-                }
-            } catch(error) {
-                console.log(error)
+                const accessoriesList = response.result.data.map(accessory => ({
+                    value: accessory.id,
+                    label: accessory.name
+                }));
+    
+                setAccessories(accessoriesList);
+    
+                setFieldsData(prev => ({
+                    ...prev,
+                    items: { 
+                        ...prev.items,
+                        accessories: accessoriesList 
+                    }
+                }));
+            } catch (error) {
+                console.log(error);
             } finally {
                 hideLoader();
             }
+        };
+    
+        if (fieldsData.items?.equipament_kit?.value) {
+            fetchAccessories();
         }
-
-        if (fieldsData.items?.movement_type_id?.value === 2 || fieldsData.items?.movement_type_id?.value === 3) {
-            fetchProductAndAddress();
-        }
-    }, [fieldsData.items?.product_id?.value])
+    }, [fieldsData.items?.equipament_kit?.value]);
     
     const addFieldsInData = async (section) => {
         const key = section.fields[0].id.split('.')[0];
@@ -355,75 +391,56 @@ const CreateContractOsPage = () => {
                     hideLoader()
                 }
             } else {
-    
-                if (formData[key] && formData[key].some(item => item.identify == fieldsData[key].identify)) {
-                    setFormData((prev) => {
-                        const prevArray = prev[key] || []; 
-                        const updatedData = {
-                            ...prev,
-                            [key]: prevArray.map(item => {                
-                                if (item.identify === fieldsData[key].identify) {
-                                    return { ...item, ...fieldsData[key] };
-                                } else {
-                                    return item;
-                                }
-                            })
-                        };
-                        
-                        return updatedData
-                    });
-        
-                    setFieldsData(prev => {
-                        const newFieldsData = {
-                            ...prev,
-                            [key]: {}
-                        };
-                        return newFieldsData;
-                    });
-        
-                    return;
-                }
-        
                 if (key && formData) {
-                    setFormData((prev) => ({
-                        ...prev,
-                        [key]: Array.isArray(prev[key]) ? [
-                            ...prev[key],
-                            fieldsData[key] 
-                        ] : [fieldsData[key]] 
-                    }));
-                    setFieldsData(prev => {
+                    setFormData((prev) => {
                         return {
                             ...prev,
-                            [key]: {}
+                            items: fieldsData.items.product_id && Array.isArray(fieldsData.items.product_id)
+                                ? fieldsData.items.product_id.map((product) => {
+                                    const uuid = uuidv4().slice(0, 8); 
+                                    return {
+                                        ...fieldsData.items, 
+                                        identify: { value: uuid, label: uuid },
+                                        product_id: { value: product.value, label: product.label } ,
+                                        excel: { value: true, label: 'Não'}
+                                    };
+                                })
+                                : [{ ...fieldsData.items }]
                         };
                     });
+                    
+                
+                    setFieldsData(prev => ({
+                        ...prev,
+                        [key]: {}
+                    }));
                 }
-        
+                    
                 setFormFields(baseOsFields);
                 showNotification('success', 'Dados adicionados na tabela');
             }
         }
 
     };
-
     const fetchData = async () => {
         try {
             showLoader()
             const [
                 productsResponse,
-                contractResponse
+                contractResponse,
+                contractItemsResponse
             ] = await Promise.all([
                 fetchProducts(entities.products.get, {deleted_at: false}),
-                fetchContractById(entities.contracts.getByColumn(id), {deleted_at: false})
+                fetchContractById(entities.contracts.getByColumn(id), {deleted_at: false}),
+                fetchContractItems(entities.contracts.items.get(id), {perPage: 0})
             ])
-    
+            
             const [addressesResponse] = await Promise.all([
                 fetchAddressCustomer(entities.customers.addresses.get(contractResponse.result.customer_id), {deleted_at: false})
             ])
 
             setContract(contractResponse.result);
-
+            setContractItems(contractItemsResponse.result.data);
             setAddresses(addressesResponse.result.data.map((address) => ({
                 value: address.id,
                 label: `${address.street}, ${address.city} - ${address.state}`,
@@ -445,12 +462,25 @@ const CreateContractOsPage = () => {
         switch (fieldId) {
             case "items.product_id":
                 return products || [];
+            case "items.accessories":
+                return accessories || [];
             case "items.address_id":
                 return addresses || [];
             case "items.location_id":
                 return locations || [];
             case "items.product_id":
                 return products || [];
+            case "items.excel":
+                return [
+                {
+                    value: false,
+                    label: 'Sim'
+                },
+                {
+                    value: true,
+                    label: 'Não'
+                },
+            ]
             default:
                 return [];
         }
@@ -487,18 +517,60 @@ const CreateContractOsPage = () => {
 
     const handleSubmit = async () => {
         try {
-            const transformedData = {
-                ...formData,
+            let transformedData = {
+                order: transformObjectValues(formData.order),
                 items: transformValues(formData.items)
             }
+
+            transformedData = {
+                ...transformedData,
+                items: transformedData.items.map(item => ({
+                    ...item,
+                    accessories: item.accessories ? item.accessories.map(accessory => accessory.value) : []
+                }))
+            };
+
             const success = await create(entities.contracts.orders.create(id) ,transformedData);
             if (success) {
                 setFormData(setDefaultFieldValues(baseOsFields));
                 setFormFields(baseOsFields);
                 resetForm();
+                fetchData();
             }
         } catch (error) {
             console.error('Erro ao criar status:', error);
+        }
+    };
+
+    const handleFileFieldChange = async (fieldId, event, sectionField) => {
+        const fileInput = event.target;
+        const file = fileInput.files[0];
+    
+        if (!file) return;
+        
+        try {
+            showLoader();
+            const firstColumnData = await extractFirstColumnFromExcel(file);
+            
+            const response = await fetchProductsByIds(entities.products.create + '/find-by-number', firstColumnData);
+            
+            const data = response.result.map(product => ({
+                value: product.id,
+                label: product.name
+            }));
+    
+            setFieldsData(prev => ({
+                ...prev,
+                items: {
+                    ...prev.items,
+                    product_id: data
+                }
+            }));
+        } catch (error) {
+            console.error("Erro ao processar o arquivo Excel:", error);
+            fileInput.value = "";
+        } finally {
+            hideLoader();
         }
     };
 
@@ -509,54 +581,107 @@ const CreateContractOsPage = () => {
     return (
         <MainLayout selectedCompany="ALUCOM">
             <PageHeader title="Cadastro de Ordem de Serviço" showBackButton={true} backUrl={`/contratos/${id}/ordens-servicos/`} />
+            <DynamicHeaderForm 
+                title={viewMode === "contract" ? "Detalhes do Contrato" : "Cadastro de Ordem de Serviço"} 
+                options={options} 
+                selectedOption={viewMode}
+                onChange={setViewMode}
+            />
+
             <div className="container-fluid p-1">
-                <Form
-                    initialFormData={formData}
-                    onSubmit={handleSubmit}
-                    textSubmit="Cadastrar"
-                    textLoadingSubmit="Cadastrando..."
-                    handleBack={handleBack}
-                >
-                    {() => 
-                        formFields.map((section) => (
-                            <>
-                                <SectionHeader
-                                    key={section.section}
-                                    section={section}
-                                    viewTable={viewTable}
-                                    setViewTable={setViewTable}
-                                    addFieldsInData={addFieldsInData}
-                            
-                                />
-                                {section.array ? (
-                                    <TableBody
+                {viewMode === "contract" ? (
+                     <DynamicBoxForm title="Detalhes do Contrato">
+                        <InfoBox 
+                            data={[
+                                { label: "Nome", value: contract?.name, icon: <FaUser /> },
+                                { label: "Cliente", value: contract?.customer_name, icon: <FaRegAddressCard /> },
+                                { label: "Organização", value: contract?.organization_name, icon: <FaBuilding /> }
+                            ]}
+                        />
+                        <ContainerBox title="Lista de Equipamentos do Contrato">
+                            {contractItems.length > 0 ? (
+                                contractItems.map((contractItem) => (
+                                    <div className='shadow-sm my-3 rounded p-2'>
+                                        <div className='px-2 d-flex gap-3'>
+                                            <ItemContainerBox
+                                                item={{    
+                                                    icon: <FaHashtag />,
+                                                    label: 'Equipamento',
+                                                    value: contractItem.item_id
+                                                }}
+                                            />
+                                            <ItemContainerBox
+                                                item={{
+                                                    icon: <FaHashtag />,
+                                                    label: 'Quantidade No Contrato',
+                                                    value: contractItem.quantity
+                                                }}
+                                            />
+                                            <ItemContainerBox
+                                                item={{
+                                                    icon: <FaHashtag />,
+                                                    label: 'Quantidade Solicitadas Pelo o Cliente',
+                                                    value: contractItem.quantity_request
+                                                }}
+                                            />
+                                        </div>
+                                        <ProgressBar progress={(contractItem.quantity_request / contractItem.quantity) * 100}/>
+                                    </div>
+                                ))
+                            ):(
+                                <h1>Sem items</h1>
+                            )}
+                        </ContainerBox>
+                    </DynamicBoxForm>
+                ) : (
+                    <Form
+                        initialFormData={formData}
+                        onSubmit={handleSubmit}
+                        textSubmit="Cadastrar"
+                        textLoadingSubmit="Cadastrando..."
+                        handleBack={handleBack}
+                    >
+                        {() => 
+                            formFields.map((section) => (
+                                <>
+                                    <SectionHeader
+                                        key={section.section}
                                         section={section}
-                                        headers={headers}
-                                        setFormData={setFormData}
                                         viewTable={viewTable}
                                         setViewTable={setViewTable}
-                                        formData={formData}
-                                        getOptions={getOptions}
-                                        allFieldsData={allFieldsData}
-                                        setAllFieldsData={setAllFieldsData}
-                                        formErrors={formErrors}
-                                        setFieldsData={setFieldsData}
-                                        fieldsData={fieldsData}
+                                        addFieldsInData={addFieldsInData}
                                     />
-                                ): (
-                                    <SimpleBody
-                                        fields={section.fields}
-                                        formErrors={formErrors}
-                                        formData={formData}
-                                        handleFieldChange={handleChange}
-                                        getOptions={getOptions}
-                                        getSelectedValue={getSelectedValue}
-                                    />
-                                )}
-                            </>
-                        ))
-                    }
-                </Form>
+                                    {section.array ? (
+                                        <TableBody
+                                            section={section}
+                                            headers={headers}
+                                            setFormData={setFormData}
+                                            viewTable={viewTable}
+                                            setViewTable={setViewTable}
+                                            formData={formData}
+                                            getOptions={getOptions}
+                                            allFieldsData={allFieldsData}
+                                            setAllFieldsData={setAllFieldsData}
+                                            formErrors={formErrors}
+                                            setFieldsData={setFieldsData}
+                                            fieldsData={fieldsData}
+                                            handleFileFieldChange={handleFileFieldChange}
+                                        />
+                                    ) : (
+                                        <SimpleBody
+                                            fields={section.fields}
+                                            formErrors={formErrors}
+                                            formData={formData}
+                                            handleFieldChange={handleChange}
+                                            getOptions={getOptions}
+                                            getSelectedValue={getSelectedValue}
+                                        />
+                                    )}
+                                </>
+                            ))
+                        }
+                    </Form>
+                )}
             </div>
         </MainLayout>
     );

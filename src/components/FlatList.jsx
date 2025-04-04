@@ -2,15 +2,16 @@ import React from "react";
 import "../assets/styles/flatlist/index.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faIdCard } from '@fortawesome/free-solid-svg-icons';
+
 const FlatList = ({ headers, data, actions, columnHeader }) => {
     if (!data || !Array.isArray(data) || data.length === 0) {
         return <p className="flatlist-empty">Nenhum dado disponível</p>;
     }
-    
+
     return (
         <div className="container-flatlist">
             {data.map((item, index) => {
-                const itemKey = item.id || Math.random(); 
+                const itemKey = item.id || Math.random();
 
                 return (
                     <div key={itemKey} className="flatlist-card">
@@ -36,16 +37,20 @@ const FlatList = ({ headers, data, actions, columnHeader }) => {
                         </div>
                         <div className="container-flatlist-item">
                             {headers[columnHeader].map((header, headerIndex) => {
-                                const key = Object.keys(item)[headerIndex]; 
+                                const key = Object.keys(item)[headerIndex];
                                 let value = item[key];
 
-                                if (value && (value.label || value.value)) {
-                                    value = value.label || value.value; 
+                                if (Array.isArray(value)) {
+                                    value = value.map(v => v.label || v.value || v).join(", ");
+                                } else if (value && (value.label || value.value)) {
+                                    value = value.label || value.value;
                                 }
+
+                                if (!value) return null; 
 
                                 return (
                                     <p className="flatlist-item-box" key={headerIndex}>
-                                        <strong>{header}:</strong> {value || "Valor não disponível"}
+                                        <strong>{header}:</strong> {value}
                                     </p>
                                 );
                             })}

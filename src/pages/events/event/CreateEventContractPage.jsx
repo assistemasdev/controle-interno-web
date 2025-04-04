@@ -276,6 +276,7 @@ const CreateEventContractPage = () => {
                 items_addendum: transformValues(Array.isArray(formData.items_addendum)? formData.items_addendum.map((item) => removeEmptyValues(item)) : []),
                 items_supression: transformValues(Array.isArray(formData.items_supression)? formData.items_supression.map((item) => removeEmptyValues(item)) : [])   
             }
+            
             const success = await createContractEvent(entities.contracts.events.create(id), transformedData);
             if (success) {
                 setFormData(setDefaultFieldValues(baseEventFields));

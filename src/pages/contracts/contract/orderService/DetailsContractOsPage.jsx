@@ -27,13 +27,7 @@ const DetailsContractOsPage = () => {
     const { showNotification } = useNotification();
     const { 
         getByColumn: fetchByContractOsById,
-        getByColumn: fetchOsStatusById,
-        getByColumn: fetchOsDepartamentById,
-        getByColumn: fetchOsDestinationById,
-        getByColumn: fetchUserById,
         get: fetchOsItens,
-        get: fetchMovementsTypes,
-        get: fetchProducts,
     } = useBaseService(navigate);
     const { formData,  setFormData } = useForm(setDefaultFieldValues(DetailsOrderServiceFields));
     const [osItens, setOsItens] = useState([]);
@@ -60,26 +54,13 @@ const DetailsContractOsPage = () => {
             ] = await Promise.all([
                 fetchByContractOsById(entities.contracts.orders.getByColumn(id, contractOsId)),
             ])
-
-            const [
-                osStatusResponse,
-                osDepartamentResponse,
-                osDestinationResponse,
-                userResponse,
-            ] = await Promise.all([
-                fetchOsStatusById(entities.orders.status.getByColumn(null, contractOsResponse.result.status_id)),
-                fetchOsDepartamentById(entities.orders.departaments.getByColumn(null, contractOsResponse.result.departament_id)),
-                fetchOsDestinationById(entities.orders.destinations.getByColumn(null, contractOsResponse.result.destination_id)),
-                fetchUserById(entities.users.getByColumn(contractOsResponse.result.user_id)),
-            ]);
-
             setFormData({
-                status: osStatusResponse.result.name,
-                departament: osDepartamentResponse.result.name,
-                destination: osDestinationResponse.result.name,
-                deadline: contractOsResponse.result.deadline.split(" ")[0],
+                status: contractOsResponse.result.status,
+                departament: contractOsResponse.result.departament_name,
+                destination: contractOsResponse.result.destination_name,
+                deadline: contractOsResponse.result.deadline,
                 details: contractOsResponse.result.details,
-                user: userResponse.result.name
+                user: contractOsResponse.result.user_name
             });
 
             fetchOsItensDatas();
@@ -96,17 +77,20 @@ const DetailsContractOsPage = () => {
             showLoader();
             const [
                 osItensResponse,
-                osItensTypesResponse,
-                productsResponse
             ] = await Promise.all([
                 fetchOsItens(entities.contracts.orders.items(id).get(contractOsId), filters),
-                fetchMovementsTypes(entities.movements.types.get()),
-                fetchProducts(entities.products.get)
             ]);
-            const osItensTypesMap = mapsMovementsTypes(osItensTypesResponse.result.data);
-            const productsMap = mapsProduct(productsResponse.result.data);
-            const filteredOsItens = transformOsItens(osItensResponse.result.data, osItensTypesMap, productsMap);
-            setOsItens(filteredOsItens);
+            
+            setOsItens(osItensResponse.result.data.map((item) => ({
+                id: item.id,
+                movementsTypes: item.movement_type_name || "N/A",
+                status: item.status_name || "N/A",
+                item_id: item.item_id || "N/A",
+                product: item.product_name || "N/A",
+                quantity: item.quantity,
+                deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'
+            })));
+
             setCurrentPage(osItensResponse.result.current_page);
             setTotalPages(osItensResponse.result.last_page);
         } catch (error) {
@@ -117,27 +101,11 @@ const DetailsContractOsPage = () => {
         }
     }
 
-    const mapsMovementsTypes = useCallback((movementsTypes) => {
-        return Object.fromEntries(movementsTypes.map((movementType) => [movementType.id, movementType.name]));
-    }, []);
-
-    const mapsProduct = useCallback((products) => {
-        return Object.fromEntries(products.map((product) => [product.id, product.name]));
-    }, []);
-
-    const transformOsItens = useCallback((osItensData, movementsTypesMap, productsMap) => {
-        return osItensData.map((osItem) => ({
-            id: osItem.id,
-            movementsTypes: movementsTypesMap[osItem.movement_type_id] || "N/A",
-            product: productsMap[osItem.product_id] || "N/A",
-            quantity: osItem.quantity,
-            deleted_at: osItem.deleted_at ? 'deleted-' + osItem.deleted_at : 'deleted-null'
-        }));
-    }, []);
-
     const osItensHeaders = [
         'Id',
         'Tipo de Movimento',
+        'Status',
+        'Item Contrato',
         'Produto',
         'Quantidade'
     ];
@@ -185,9 +153,7 @@ const DetailsContractOsPage = () => {
 
                 <ListHeader 
                     title="Itens da Ordem de Serviço" 
-                    buttonText="Adicionar Item" 
-                    buttonLink={`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}/itens/criar`}
-                    canAccess={canAccess} 
+                    canAccess={() => {}} 
                     permission="Criar ordens de serviço"
                 />
 

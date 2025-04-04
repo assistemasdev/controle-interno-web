@@ -8,7 +8,7 @@ import useNotification from '../hooks/useNotification';
 import AutoCompleteInput from './AutoCompleteInput';
 import FlatList from './FlatList';
 
-const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date"];
+const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date", "checkbox", "file"];
 
 const getFormErrorKey = (sectionFieldId) => {
     const [category, field] = sectionFieldId.split('.');

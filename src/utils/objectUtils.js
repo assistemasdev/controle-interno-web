@@ -31,6 +31,16 @@ export const removeEmptyValues = (obj) => {
     );
 };
 
+export const transformObjectValues = (obj) => {
+    return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => 
+            value && typeof value === "object" && "value" in value && "label" in value 
+                ? [key, value.value] 
+                : [key, value]
+        )
+    );
+};
+
 export const transformValues = (array) => {
     if(!Array.isArray(array)) {
         return []

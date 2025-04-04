@@ -70,13 +70,19 @@ const AutoCompleteInput = ({
     };
 
     const fetchLabelsByIds = async (ids) => {
-        const idsToFetch = ids.filter(id => !fetchedLabels[id]); 
-    
-        if (idsToFetch.length === 0) return; 
-    
+        const idsToFetch = ids.filter(id => !fetchedLabels[id]);
+        const idsOnlyValue = idsToFetch
+        .map(obj => {
+            if (!obj?.value) return null; 
+            return obj.value;
+        })
+        .filter(value => value !== null); 
+        
+        if (idsToFetch.length === 0 || idsOnlyValue.length === 0) return; 
+
         try {
             showLoader();
-            const response = await baseService.autocomplete(entity, { id: idsToFetch, exclude_ids });
+            const response = await baseService.autocomplete(entity, { id: idsOnlyValue, exclude_ids });
             const newLabels = {};
     
             response.result.forEach(item => {
@@ -84,36 +90,70 @@ const AutoCompleteInput = ({
             });
     
             setFetchedLabels(prev => ({ ...prev, ...newLabels }));
-
+    
+            let updatedSelectedValues = [];
+    
             if (isMulti) {
-                setSelectedValues(
-                    ids.map(id => ({
-                        value: id,
-                        label: newLabels[id] || fetchedLabels[id] || 'Carregando...'
-                    }))
-                    .concat(
-                        Object.keys(fetchedLabels).map(id => ({
-                            value: id,
-                            label: fetchedLabels[id] || 'Carregando...'
-                        }))
-                    )
-                );
+                updatedSelectedValues = [
+                    ...ids
+                        .map(id => {
+                            const label = newLabels[id.value] || fetchedLabels[id.value] || null;
+                            if (!label) return null;  
+                            const existingValue = selectedValues.find(item => item.value === id.value);
+                            if (existingValue) {
+                                return
+                            }
+                            return {
+                                value: id.value,
+                                label: label || 'Carregando...'
+                            };
+                        })
+                        .filter(item => item !== null),  
+            
+                    ...Object.keys(fetchedLabels)
+                        .map(id => {
+                            const label = fetchedLabels[id] || null;
+                            if (!label) return null; 
+            
+                            const existingValue = selectedValues.find(item => item.value === id);
+            
+                            if (existingValue) {
+                                return
+                            }
+            
+                            return {
+                                value: id,
+                                label: label || 'Carregando...'
+                            };
+                        })
+                        .filter(item => item !== null), 
+                ];
             } else {
                 const idToUse = ids[0]?.value || ids[0];    
-                setSelectedValues({
-                    value: idToUse ,
-                    label: newLabels[idToUse] || fetchedLabels[idToUse] || 'Carregando...'
-                });
+                const label = newLabels[idToUse] || fetchedLabels[idToUse] || null;
+            
+                if (!label) {
+                    updatedSelectedValues = null;  
+                } else {
+                    updatedSelectedValues = {
+                        value: idToUse,
+                        label: label || 'Carregando...'
+                    };
+                }
             }
+    
+            setSelectedValues(updatedSelectedValues);
+    
         } catch (error) {
             console.error("Erro ao buscar labels:", error);
         } finally {
             hideLoader();
         }
     };
+    
 
     useEffect(() => {
-        if (value) {
+        if (Array.isArray(value) ? value.length > 0 : value) {
             const ids = Array.isArray(value) ? value : [value];
             const idsToFetch = ids.filter(id => !fetchedLabels[id]); 
             if (idsToFetch.length > 0) {

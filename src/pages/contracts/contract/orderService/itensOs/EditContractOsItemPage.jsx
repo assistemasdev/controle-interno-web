@@ -1,17 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import MainLayout from '../../../../../layouts/MainLayout';
 import Form from '../../../../../components/Form';
-import FormSection from '../../../../../components/FormSection';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../../../../assets/styles/custom-styles.css';
 import useForm from '../../../../../hooks/useForm';
-import { osItemFields } from '../../../../../constants/forms/osItemFields';
-import { setDefaultFieldValues } from '../../../../../utils/objectUtils';
+import { dynamicFields, baseOsItemFields } from '../../../../../constants/forms/osItemFields';
+import { setDefaultFieldValues, transformObjectValues } from '../../../../../utils/objectUtils';
 import useBaseService from '../../../../../hooks/services/useBaseService';
 import { entities } from '../../../../../constants/entities';
 import useLoader from '../../../../../hooks/useLoader';
 import useNotification from '../../../../../hooks/useNotification';
 import PageHeader from '../../../../../components/PageHeader';
+import SectionHeader from '../../../../../components/forms/SectionHeader';
+import SimpleBody from '../../../../../components/forms/SimpleBody';
 
 const EditContractOsItemPage = () => {
     const { id, contractOsId, contractOsItemId } = useParams();
@@ -27,10 +28,11 @@ const EditContractOsItemPage = () => {
         formErrors,
         setFormErrors
     } = useBaseService(navigate);
-    const { formData, handleChange, formatData, setFormData } = useForm(setDefaultFieldValues(osItemFields));
+    const { formData, handleChange, formatData, setFormData } = useForm({});
     const [addresses, setAddresses] = useState([]);
     const [locations, setLocations] = useState([]);
     const [contract, setContract] = useState({});
+    const [formFields, setFormFields] = useState(baseOsItemFields);
     
     useEffect(() => {
         fetchData();
@@ -46,17 +48,25 @@ const EditContractOsItemPage = () => {
                 fetchContractOsItemById(entities.contracts.orders.items(id).getByColumn(contractOsId, contractOsItemId)),
                 fetchContractById(entities.contracts.getByColumn(id))
             ])
-
             setContract(contractResponse.result);
+            
+            if(contractOsItemResponse.result.address_id) {
+                const addressResponse = await fetchAddress(entities.customers.addresses.get(contractOsItemResponse.result.address_id))
+                fetchLocationsData(contractResponse.result.customer_id, contractOsItemResponse.result.address_id)
+                setAddresses(addressResponse.result.data.map((address) => ({
+                    label: `${address.street}, ${address.city} - ${address.state}`,
+                    value: address.id
+                })))
+            }
 
-            const addressResponse = await fetchAddress(entities.customers.addresses.get(contractResponse.result.customer_id))
-            fetchLocationsData(contractResponse.result.customer_id, contractOsItemResponse.result.address_id)
-            formatData(contractOsItemResponse.result, osItemFields);
-
-            setAddresses(addressResponse.result.data.map((address) => ({
-                label: `${address.street}, ${address.city} - ${address.state}`,
-                value: address.id
-            })))
+            formatData(contractOsItemResponse.result, baseOsItemFields);
+            setFormData((prev) => ({
+                ...prev,
+                product_id: {value: contractOsItemResponse.result.product_id ?? "", label:contractOsItemResponse.result.product_name ?? ""},
+                movement_type_id: {value: contractOsItemResponse.result.movement_type_id ?? "", label: contractOsItemResponse.result.movement_type_name ?? ""},
+                address_id: {value: contractOsItemResponse.result.address_id ?? "", label: contractOsItemResponse.result.address_name ?? ""},
+                location_id: {value: contractOsItemResponse.result.location_id ?? "", label: contractOsItemResponse.result.location_name ?? ""},
+            }))
         } catch (error) {
             console.log(error)
             showNotification('error', 'error ao carregar os dados')
@@ -64,6 +74,47 @@ const EditContractOsItemPage = () => {
             hideLoader()
         }
     }
+
+    useEffect(() => {
+        console.log(formData)
+    }, [formData]);
+
+    useEffect(() => {
+        const updatedBaseOsFields = baseOsItemFields.map(section => ({
+            ...section,
+            fields: [...section.fields] 
+        }));
+
+        const sectionIndex = updatedBaseOsFields.findIndex(item => item.section === 'Item da Order de Serviço');
+    
+        if (sectionIndex !== -1) {
+            const sectionFields = updatedBaseOsFields[sectionIndex].fields;
+    
+            const baseFields = sectionFields.filter(
+                field => field.id === "movement_type_id"
+            );
+    
+            const newDynamicFields = dynamicFields[formData.movement_type_id?.value] || [];
+            console.log(newDynamicFields)
+            updatedBaseOsFields[sectionIndex] = {
+                ...updatedBaseOsFields[sectionIndex], 
+                fields: [...baseFields, ...newDynamicFields] 
+            };
+        }
+
+        setFormFields(updatedBaseOsFields);
+        setFormData(prev => ({
+            ...prev,
+            filters: (formData.movement_type_id?.value === 2 || formData.movement_type_id?.value === 3)
+                ? {
+                    product_id: {
+                        status_id: 2
+                    }
+                }
+                : {}
+        }));
+    }, [formData.movement_type_id?.value]);    
+    
 
     const handleFieldChange = ((fieldId, value, field) => {
         handleChange(fieldId, value);
@@ -81,7 +132,6 @@ const EditContractOsItemPage = () => {
         }));
     
         if (selectedAddressId) {
-            console.log(selectedAddressId, contract.customer_id)
             fetchLocationsData(contract.customer_id, selectedAddressId);
         } else {
             setLocations([]);
@@ -126,7 +176,8 @@ const EditContractOsItemPage = () => {
 
     const handleSubmit = async () => {
         try {
-            await update(entities.contracts.orders.items(id).update(contractOsId, contractOsItemId) ,formData);
+            const transformedData = transformObjectValues(formData)
+            await update(entities.contracts.orders.items(id).update(contractOsId, contractOsItemId) ,transformedData);
         } catch (error) {
             console.error('Erro ao editar os:', error);
         }
@@ -147,20 +198,29 @@ const EditContractOsItemPage = () => {
                     textLoadingSubmit="Editando..."
                     handleBack={handleBack}
                 >
-                    {() =>
-                        osItemFields.map((section) => (
-                            <FormSection
-                                key={section.section}
-                                section={section}
-                                formData={formData}
-                                handleFieldChange={handleFieldChange}
-                                formErrors={formErrors}
-                                setFormErrors={setFormErrors}
-                                getOptions={getOptions}
-                                getSelectedValue={getSelectedValue}
-                            />
+                    {() => 
+                        formFields.map((section) => (
+                            <>
+                                <SectionHeader
+                                    key={section.section}
+                                    section={section}
+                                    viewTable={false}
+                                    setViewTable={() => {}}
+                                    addFieldsInData={() => {}}
+                                />
+                                
+                                <SimpleBody
+                                    fields={section.fields}
+                                    formErrors={formErrors}
+                                    formData={formData}
+                                    handleFieldChange={handleFieldChange}
+                                    getOptions={getOptions}
+                                    getSelectedValue={getSelectedValue}
+                                />
+                                
+                            </>
                         ))
-                    }
+                        }
                 </Form>
             </div>
         </MainLayout>

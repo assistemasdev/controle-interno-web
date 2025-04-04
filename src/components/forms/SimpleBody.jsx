@@ -13,7 +13,7 @@ const SimpleBody = ({ fields, formErrors, formData, handleFieldChange, getOption
         } else {
             handleFieldChange(
                 field.id,
-                selectedOption ? selectedOption.value : "",
+                selectedOption ? selectedOption : "",
                 field
             );
         }

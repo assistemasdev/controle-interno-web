@@ -131,5 +131,9 @@ export const entities = {
         ...createEntityRoutes('addresses'),
         locations: createNestedRoutes('addresses', 'locations')
     },
-    additives: createEntityRoutes('additives')
+    additives: createEntityRoutes('additives'),
+    equipamentsKits: {
+        ...createEntityRoutes('equipamentsKits'),
+        items: createNestedRoutes('equipamentsKits', 'items')
+    },
 };

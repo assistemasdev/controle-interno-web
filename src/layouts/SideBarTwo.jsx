@@ -4,7 +4,7 @@ import {
     faBuilding, faBriefcase, faExchangeAlt, faLocationArrow, faClipboard, faClipboardList, 
     faCalendarAlt, faCircleInfo, faFileContract, faBars, faCalendar, faUser, faMoon, faSignOutAlt, 
     faUsers, faUserFriends, faArrowLeft , faDesktop, faTruck, faTags, faFolder, faInfoCircle, 
-    faObjectGroup, faRuler, faBox 
+    faObjectGroup, faRuler, faBox, faBoxOpen
 } from "@fortawesome/free-solid-svg-icons";
 import "../assets/styles/sidebar/header.css";
 import "../assets/styles/sidebar/sidebar.css";
@@ -72,7 +72,8 @@ const SideBarTwo = ({ children }) => {
                         { name: 'Fornecedores', icon: faTruck, to: '/fornecedores', requiredPermission: 'Listar fornecedores' },
                         { name: 'Tipos', icon: faTags, to: '/tipos', requiredPermission: 'Listar tipos de produto' },
                         { name: 'Grupos', icon: faObjectGroup, to: '/grupos', requiredPermission: 'Listar grupos de produto' },
-                        { name: 'Unidades', icon: faRuler, to: '/unidades', requiredPermission: 'Listar unidades de medida' }
+                        { name: 'Unidades', icon: faRuler, to: '/unidades', requiredPermission: 'Listar unidades de medida' },
+                        { name: 'Kits', icon: faBoxOpen, to: '/kits', requiredPermission: 'Listar kits' }
                     ].filter(item => canAccess(item.requiredPermission))
                 }, 
                 {

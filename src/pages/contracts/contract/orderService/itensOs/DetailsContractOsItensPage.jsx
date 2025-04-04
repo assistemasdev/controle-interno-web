@@ -38,26 +38,14 @@ const DetailsContractOsItensPage = () => {
             ] = await Promise.all([
                 fetchOsItemById(entities.contracts.orders.items(id).getByColumn(contractOsId, contractOsItemId)),
             ])
-            const [
-                movementTypeResponse,
-                productResponse,
-                addressResponse,
-                locationResponse
-            ] = await Promise.all([
-                fetchMovementTypeById(entities.movements.types.getByColumn(null, contractOsItemResponse.result.movement_type_id)),
-                fetchProductById(entities.products.getByColumn(contractOsItemResponse.result.product_id)),
-                fetchAddress(entities.addresses.getByColumn(contractOsItemResponse.result.address_id)),
-                fetchLocation(entities.addresses.locations.getByColumn(contractOsItemResponse.result.address_id, contractOsItemResponse.result.location_id))
-            ]);
-            const address = addressResponse.result
-            const location = locationResponse.result
+                    
             setFormData({
-                address: (address.street && address.city && address.state) ? `${address.street}, ${address.city} - ${address.state}` : '',
+                address:  contractOsItemResponse.result.address_name? contractOsItemResponse.result.address_name : '',
                 details: contractOsItemResponse.result.details,
                 identify: contractOsItemResponse.result.item_id,
-                location: (location.area && location.section && location.spot) ? `${location.area}, ${location.section} - ${location.spot}` : '',
-                movementType: movementTypeResponse.result.name,
-                product: productResponse.result.name,
+                location: contractOsItemResponse.result.location_name? contractOsItemResponse.result.location_name : '',
+                movementType: contractOsItemResponse.result.movement_type_name,
+                product: contractOsItemResponse.result.product_name? contractOsItemResponse.result.product_name : '',
                 quantity: contractOsItemResponse.result.quantity
             });
 
@@ -68,10 +56,6 @@ const DetailsContractOsItensPage = () => {
             hideLoader()
         }
     }
-
-    const handleBack = useCallback(() => {
-        navigate(`/contratos/${id}/ordens-servicos/detalhes/${contractOsId}`);
-    }, [navigate]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">

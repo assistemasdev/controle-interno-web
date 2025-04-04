@@ -3,7 +3,7 @@ import InputField from "../InputField";
 import AutoCompleteInput from "../AutoCompleteInput";
 import Select from "react-select";
 
-const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date"];
+const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date", "checkbox", "file"];
 
 const SimpleForm = ({
     section,

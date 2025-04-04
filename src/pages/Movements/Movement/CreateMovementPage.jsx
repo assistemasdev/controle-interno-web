@@ -7,7 +7,7 @@ import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import Form from '../../../components/Form'; 
 import { baseMovementFields, dynamicFields } from "../../../constants/forms/movementFields";
-import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import { setDefaultFieldValues, transformObjectValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
@@ -163,13 +163,12 @@ const CreateMovementPage = () => {
                     ...prev,
                     items: {
                         ...prev.items,
-                        movement_type_id: response.movementTypeId,
-                        product_id: prev.items?.product_id 
-                        ? { ...prev.items.product_id } 
-                        : response.movementTypeId === 3 
-                            ? response.productId 
-                            : ''
-                                        
+                        movement_type_id: { value: response.movementTypeId, label: "" },
+                        product_id: prev.items?.product_id
+                            ? { ...prev.items.product_id }
+                            : response.movementTypeId === 3
+                                ? { value: response.productId, label: "" }
+                                : { value: "", label: "" }
                     }
                 }));
     
@@ -215,7 +214,7 @@ const CreateMovementPage = () => {
     const getMovementTypeIdAndProductId = async (id) => {
         try {
             showLoader()
-            const response = await fetchOrderServiceItemById(entities.orders.items.getByColumn(formData.movement.service_order_id, id))
+            const response = await fetchOrderServiceItemById(entities.orders.items.getByColumn(formData.movement.service_order_id.value, id))
             return {
                 movementTypeId: response.result.movement_type_id, 
                 productId: response.result.product_id
@@ -333,7 +332,8 @@ const CreateMovementPage = () => {
         try {
             showLoader();
             if(formData.movement?.service_order_id) {
-                const response = await fetchItemsOrdersServices(entities.orders.items.get(formData.movement.service_order_id), {deleted_at: false})
+                console.log(entities.orders.items.get(formData.movement.service_order_id.value))
+                const response = await fetchItemsOrdersServices(entities.orders.items.get(formData.movement.service_order_id.value), {deleted_at: false})
                 setItemsOrdersServices(response.result.data.map(orderItemService => ({ value: orderItemService.id, label: orderItemService.id })))
             }
         } catch (error) {
@@ -348,15 +348,16 @@ const CreateMovementPage = () => {
     const fetchCustomerAndOrganization = async () => {
         try {
             showLoader();
-            if(formData.movement?.service_order_id) {
-                const response = await fetchOrderServiceItemById(entities.orders.getByColumn(formData.movement.service_order_id), {deleted_at: false})
+            if(formData.movement?.service_order_id.value) {
+                const response = await fetchOrderServiceItemById(entities.orders.getByColumn(formData.movement.service_order_id.value), {deleted_at: false})
                 const responseContract = await fetchContractById(entities.contracts.getByColumn(response.result.contract_id));
+                console.log(responseContract)
                 setFormData(prev => ({
                     ...prev,
                     movement: {
                         ...prev.movement,
-                        customer_id: responseContract.result.customer_id,
-                        organization_id: responseContract.result.organization_id
+                        customer_id: {value: responseContract.result.customer_id, label:""},
+                        organization_id: {value:responseContract.result.organization_id, label:""}
                     }
                 }))
             }
@@ -395,7 +396,7 @@ const CreateMovementPage = () => {
         showLoader();
         try {
             const transformedData = {
-                ...formData,
+                movement: transformObjectValues(formData.movement),
                 items: transformValues(Array.isArray(formData.items)? formData.items.map((item) => removeEmptyValues(item)) : [])
             }
             const success = await create(entities.movements.create, transformedData);

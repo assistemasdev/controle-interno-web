@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import FlatList from "../FlatList";
 
-const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date"];
+const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date", "checkbox", "file"];
 
 const getFormErrorKey = (sectionFieldId) => {
     const [category, field] = sectionFieldId.split('.');

@@ -1,17 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import MainLayout from '../../../../layouts/MainLayout';
 import Form from '../../../../components/Form';
-import FormSection from '../../../../components/FormSection';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../../../assets/styles/custom-styles.css';
 import useForm from '../../../../hooks/useForm';
 import { editOrderServiceFields } from '../../../../constants/forms/orderServiceFields';
-import { setDefaultFieldValues } from '../../../../utils/objectUtils';
+import { setDefaultFieldValues, transformValues } from '../../../../utils/objectUtils';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
 import useLoader from '../../../../hooks/useLoader';
 import useNotification from '../../../../hooks/useNotification';
 import PageHeader from '../../../../components/PageHeader';
+import SectionHeader from '../../../../components/forms/SectionHeader';
+import SimpleBody from '../../../../components/forms/SimpleBody';
 
 const EditContractOsPage = () => {
     const { id, contractOsId } = useParams();
@@ -50,10 +51,11 @@ const EditContractOsPage = () => {
                 fetchOsDepartaments(entities.orders.departaments.get()),
                 fetchOsDestinations(entities.orders.destinations.get()),
             ])
-    
             formatData(contractOsResponse.result, editOrderServiceFields)
             setFormData((prev) => ({
                 ...prev,
+                departament_id: {value: contractOsResponse.result.departament_id, label: ''},
+                destination_id: {value: contractOsResponse.result.destination_id, label: ''},
                 deadline: contractOsResponse.result.deadline.split(" ")[0]
             }));
 
@@ -102,7 +104,8 @@ const EditContractOsPage = () => {
 
     const handleSubmit = async () => {
         try {
-            await update(entities.contracts.orders.update(id, contractOsId) ,formData);
+            const transformedData = transformValues(formData)
+            await update(entities.contracts.orders.update(id, contractOsId) ,transformedData);
         } catch (error) {
             console.error('Erro ao editar os:', error);
         }
@@ -125,16 +128,24 @@ const EditContractOsPage = () => {
                 >
                     {() =>
                         editOrderServiceFields.map((section) => (
-                            <FormSection
-                                key={section.section}
-                                section={section}
-                                formData={formData}
-                                handleFieldChange={handleChange}
-                                formErrors={formErrors}
-                                setFormErrors={setFormErrors}
-                                getOptions={getOptions}
-                                getSelectedValue={getSelectedValue}
-                            />
+                            <>
+                                <SectionHeader
+                                    key={section.section}
+                                    section={section}
+                                    viewTable={false}
+                                    setViewTable={() => {}}
+                                    addFieldsInData={() => {}}
+                                />
+                                <SimpleBody
+                                    fields={section.fields}
+                                    formErrors={formErrors}
+                                    formData={formData}
+                                    handleFieldChange={handleChange}
+                                    getOptions={getOptions}
+                                    getSelectedValue={getSelectedValue}
+                                />
+                                
+                            </>
                         ))
                     }
                 </Form>

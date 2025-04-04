@@ -1,4 +1,4 @@
-import { faClipboardCheck, faBoxOpen, faMapMarkerAlt, faCalendarAlt, faFileAlt, faToggleOn } from '@fortawesome/free-solid-svg-icons';
+import { faClipboardCheck, faBoxOpen, faMapMarkerAlt, faCalendarAlt, faFileAlt, faToggleOn, faCogs, faTools } from '@fortawesome/free-solid-svg-icons';
 
 export const orderServiceFields = [
     {
@@ -369,6 +369,29 @@ export const dynamicFields = {
             fullWidth: true,
             icon: faFileAlt
         },
+        {
+            id: "items.equipament_kit",
+            label: "Kit do Equipamento",
+            type: "multi-select",
+            placeholder: "Selecione o kit do equipamento",
+            icon: faCogs,
+            fullWidth: true,
+            entity: 'equipamentKit',
+            column: 'name',
+            columnLabel: 'name',
+            notRequired: true,
+        },
+        {
+            id: "items.accessories",
+            label: "Acessórios",
+            type: "multi-select",
+            placeholder: "Selecione os acessórios",
+            icon: faTools,
+            fullWidth: true,
+            isMulti: true,
+            notRequired: true
+
+        }
     ],
     2: [ 
         { 
@@ -382,24 +405,14 @@ export const dynamicFields = {
             columnLabel: 'number',
             columnDetails: 'name',
             icon: faBoxOpen,
-            fullWidth: true
+            isMulti: true,
         },
-        {
-            id: "items.address_id",
-            label: "Endereço", 
+        { 
+            id: "items.excel", 
+            label: "Selecionar Produtos por Excel", 
             type: "multi-select", 
-            placeholder:"Selecione o endereço",
-            icon: faMapMarkerAlt,
-            disabled: true
-        },
-        {
-            id: "items.location_id",
-            label: "Localização", 
-            type: "multi-select", 
-            placeholder:"Selecione a localização",
-            icon: faMapMarkerAlt,
-            notRequired: true,
-            disabled: true
+            placeholder:"Selecione",
+            icon: faBoxOpen,
         },
         { 
             id: "items.details", 
@@ -422,25 +435,16 @@ export const dynamicFields = {
             columnLabel: 'number',
             columnDetails: 'name',
             icon: faBoxOpen,
-            fullWidth: true
+            isMulti: true,
         },
-        {
-            id: "items.address_id",
-            label: "Endereço", 
+        { 
+            id: "items.excel", 
+            label: "Selecionar Produtos por Excel", 
             type: "multi-select", 
-            placeholder:"Selecione o endereço",
-            icon: faMapMarkerAlt,
-            disabled: true
+            placeholder:"Selecione",
+            icon: faBoxOpen,
         },
-        {
-            id: "items.location_id",
-            label: "Localização", 
-            type: "multi-select", 
-            placeholder:"Selecione a localização",
-            icon: faMapMarkerAlt,
-            notRequired: true,
-            disabled: true
-        },
+
         { 
             id: "items.details", 
             label: "Detalhes", 

@@ -5,9 +5,9 @@ import InputField from "../InputField";
 import AutoCompleteInput from "../AutoCompleteInput";
 import Select from "react-select";
 
-const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date", "checkbox"];
+const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date", "checkbox", "file"];
 
-const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, headers, fieldsData, setFieldsData, allFieldsData, setAllFieldsData, formErrors, getOptions }) => {
+const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, headers, fieldsData, setFieldsData, allFieldsData, setAllFieldsData, formErrors, getOptions, handleFileFieldChange }) => {
 
     const getFormErrorKey = (sectionFieldId) => {
         if (!sectionFieldId) return [];
@@ -18,9 +18,19 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
     const columnHeaderObject = section.fields[0].id.split('.')[0];
 
     const handleArrayFieldChange = (fieldId, value, field) => {
-        const [key, column] = fieldId.split('.')
-
+        const [key, column] = fieldId.split('.');
         setFieldsData((prev) => {
+            const currentValue = prev[key]?.[column];
+    
+            if (Array.isArray(value) && Array.isArray(currentValue)) {
+                const isEqual = value.length === currentValue.length && value.every((v, index) => v === currentValue[index]);
+                if (isEqual) {
+                    return prev;
+                }
+            } else if (currentValue === value) {
+                return prev;
+            }
+    
             const newFieldsData = {
                 ...prev,
                 [key]: {
@@ -29,17 +39,19 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
                 }
             };
 
+    
             if (allFieldsData) {
-                const sectionField = field.id.split('.')[0]
+                const sectionField = field.id.split('.')[0];
                 setAllFieldsData((prev) => ({
                     ...prev,
                     [sectionField]: newFieldsData
                 }));
             }
-
+    
             return newFieldsData;
         });
     };
+    
 
     const getArrayFieldValue = (fieldId, fieldsData) => {
         const [key, column] = fieldId.split('.');
@@ -70,13 +82,30 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
     };
 
     const getSelectedValueArrayField = (fieldId) => {
+        
         const [category, key] = fieldId.split(".");
-        if (category && fieldsData[category]) {  
-            const value = fieldsData[category][key];
-            if (value) {  
-                return getOptions ? getOptions(fieldId).find((option) => option.value === value?.value) : null;
+    
+        if (category && fieldsData[category]) {
+            const value = fieldsData[category][key];    
+            if (value) {
+                if (Array.isArray(value)) {
+                    return getOptions
+                        ? getOptions(fieldId).filter(option => {
+                            const isSelected = value.some(val => val.value === option.value);
+                            return isSelected;
+                        })
+                        : [];
+                } else {
+                    return getOptions
+                        ? getOptions(fieldId).find(option => {
+                            const isMatch = option.value === value?.value;
+                            return isMatch;
+                        })
+                        : null;
+                }
             }
         }
+    
         return null;
     };
 
@@ -87,16 +116,19 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
         }));
         
         const key = section.fields[0].id.split('.')[0];
-
         setFormData(prev => ({
             ...prev,
             items: prev.items?.filter(i => i.identify !== item.identify) || []
         }));
 
-        setFieldsData(prev => ({
-            ...prev,
-            [key]: item 
-        }));
+        setFieldsData(prev => {
+            const newValue = Array.isArray(prev[key]) ? [...prev[key], item] : item;
+        
+            return {
+                ...prev,
+                [key]: newValue
+            };
+        });
     };
 
     const handleDelete = (item) => {
@@ -166,11 +198,11 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
                                 icon={sectionField.icon}
                                 disabled={sectionField.disabled}
                                 value={getArrayFieldValue(sectionField.id, fieldsData)}
-                                onChange={(e) => handleArrayFieldChange(
-                                    sectionField.id, 
-                                    { value: e.target.value, label: e.target.value },  
-                                    sectionField
-                                )}
+                                onChange={(e) => 
+                                    sectionField.type === "file"
+                                        ? handleFileFieldChange(sectionField.id, e, sectionField)
+                                        : handleArrayFieldChange(sectionField.id, { value: e.target.value, label: e.target.value }, sectionField)
+                                }
                                 placeholder={sectionField.placeholder}
                                 error={formErrors[getFormErrorKey(sectionField.id)[0]] ? formErrors[getFormErrorKey(sectionField.id)[0]][getFormErrorKey(sectionField.id)[1]] : null}
                             />

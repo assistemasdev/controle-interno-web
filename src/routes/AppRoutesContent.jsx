@@ -184,6 +184,11 @@ import EditEventContractPage from "../pages/events/event/EditEventContractPage";
 
 import CreateEventContractPage from "../pages/events/event/CreateEventContractPage"
 import NotFound from "../pages/NotFound";
+import KitPage from "../pages/products/kits/KitPage";
+import CreateKitPage from "../pages/products/kits/CreateKitPage";
+import EditKitPage from "../pages/products/kits/EditKitPage";
+import KitItemsPage from "../pages/products/kits/items/KitItemsPage";
+import EditKitItemPage from "../pages/products/kits/items/EditKitItemPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -354,6 +359,30 @@ const AppRoutesContent = () => {
             element: <PrivateRoute element={AttachGroupToTypePage}/>
         }
     ];
+
+    const kitsRoutes = [
+        {
+            path: "/kits",
+            element: <PrivateRoute element={KitPage} />,
+        },
+        {
+            path: "/kits/criar",
+            element: <PrivateRoute element={CreateKitPage} />,
+        },
+        {
+            path: "/kits/editar/:id",
+            element: <PrivateRoute element={EditKitPage}/>
+        },
+        {
+            path: "/kits/:id/itens",
+            element: <PrivateRoute element={KitItemsPage}/>
+        },
+        {
+            path: "/kits/:id/itens/:itemKitId/editar",
+            element: <PrivateRoute element={EditKitItemPage}/>
+        }
+    ];
+
 
     const typesEventsRoutes = [
         {
@@ -790,10 +819,12 @@ const AppRoutesContent = () => {
     ];
 
     return (
-
         <Routes location={location}>
             <Route path="*" element={<NotFound/>}/> {/* Página 404 */}
 
+        {kitsRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+        ))}
         {applicationRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
         ))}
