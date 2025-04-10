@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import InputField from "../InputField";
 import FieldWithSelectOrAutoComplete from "./FieldWithSelectOrAutoComplete";
 
-const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date", "checkbox"];
+const inputTypes = ["text", "textarea", "email", "color", "password", "number", "date", "checkbox", "file"];
 
 const SimpleBody = ({ fields, formErrors, formData, handleFieldChange, getOptions, getSelectedValue }) => {
 

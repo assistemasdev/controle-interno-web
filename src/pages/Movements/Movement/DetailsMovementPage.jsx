@@ -18,6 +18,7 @@ import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
 import ListHeader from '../../../components/ListHeader';
 import useAction from '../../../hooks/useAction';
+import { formatDateToInput } from '../../../utils/formatDateToInput';
 
 const DetailsMovementPage = () => {
     const navigate = useNavigate();
@@ -71,34 +72,21 @@ const DetailsMovementPage = () => {
         }));
     }, []);
     
-    
+
     const fetchData = useCallback(async () => {
         showLoader();
 
         try {
             const response = await fetchById(entities.movements.getByColumn(id));
-
-            const [
-                responseCustomer,
-                responseOrganization,
-                responseProducts
-            ] = await Promise.all([
-                fetchCustomerById(entities.customers.getByColumn(response.result.customer_id)),
-                fetchOrganizationById(entities.organizations.getByColumn(response.result.organization_id)),
-                fetchProducts(entities.products.get)
-            ]);
             formatData(response.result, detailsMovementFields);
             setFormData((prev) => ({
                 ...prev,
-                customer_id: responseCustomer.result.name,
-                organization_id: responseOrganization.result.name,
-                movement_date: response.result.movement_date.split(" ")[0]
+                customer_id: response.result.customer_name,
+                organization_id: response.result.organization_name,
+                movement_date: formatDateToInput(response.result.movement_date)
             }))
-            setProducts(responseProducts.result.data);
-            const productsMap = mapProducts(responseProducts.result.data)            
-            fetchMovementsItemsData(null, productsMap)
-            setCurrentPage(response.result.current_page);
-            setTotalPages(response.result.last_page);
+
+            fetchMovementsItemsData(null)
         } catch (error) {
             console.log(error)
         } finally {
@@ -110,13 +98,18 @@ const DetailsMovementPage = () => {
         fetchData();
     }, [id]);
 
-    const fetchMovementsItemsData = async (filtersSubmit, productsMap) => {
+    const fetchMovementsItemsData = async (filtersSubmit) => {
         try {
             showLoader()
             const response =  await fetchMovementsItems(entities.movements.items.get(id), filtersSubmit || filters)
-            const productsDataMap = mapProducts(products);
-            const filteredMovementsProducts = transformMovementsProducts(response.result.data, productsMap || productsDataMap);
-            setMovementsProducts(filteredMovementsProducts);
+            console.log(response)
+            setCurrentPage(response.result.current_page);
+            setTotalPages(response.result.last_page);
+            setMovementsProducts(response.result.data.map((item) => ({
+                id:item.id,
+                product: item.product_name ?? 'N/A',
+                deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'
+            })));
         } catch (error) {
             console.log(error)
         } finally {
@@ -179,7 +172,7 @@ const DetailsMovementPage = () => {
                 />
                 
                 <DynamicTable
-                    headers={['Id', 'Tombo', 'Produto']}
+                    headers={['Id', 'Produto']}
                     data={movementsProducts}
                     actions={actions}
                     currentPage={currentPage}

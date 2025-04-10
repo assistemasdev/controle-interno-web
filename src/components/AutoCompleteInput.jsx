@@ -151,7 +151,6 @@ const AutoCompleteInput = ({
         }
     };
     
-
     useEffect(() => {
         if (Array.isArray(value) ? value.length > 0 : value) {
             const ids = Array.isArray(value) ? value : [value];
@@ -186,7 +185,6 @@ const AutoCompleteInput = ({
             setSelectedValues(null);
         }
     }, [value]);
-    
     return (
         <Select
             options={options}
@@ -194,7 +192,7 @@ const AutoCompleteInput = ({
             onInputChange={handleInputChange}
             onChange={handleChange}
             isMulti={isMulti}
-            placeholder={placeholder}
+            placeholder={placeholder || 'Digite o que está procurando'}
             noOptionsMessage={() => "Nenhuma opção encontrada"}
             isDisabled={disabled}
         />

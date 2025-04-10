@@ -37,7 +37,7 @@ const EditProductPage = () => {
     const [addresses, setAddresses] = useState([]);
     const [locations, setLocations] = useState([]);
     const [groups, setGroups] = useState([]);
-    const [selectedOrganizationId, setSelectedOrganizationId] = useState();
+    const [selectedAddressId, setSelectedAddressId] = useState();
 
     useEffect(() => {
         initializeData(productFields);
@@ -52,13 +52,13 @@ const EditProductPage = () => {
                     fetchById(entities.products.getByColumn(id)),
                     fetchProductGroups(entities.products.groups.get(id))
                 ]);
-
+                
                 setGroups(productGroups.result.map((group) => ({
                     value: group.id,
                     label: group.name,
                 })));
 
-                setSelectedOrganizationId(product.result.current_organization_id)
+                setSelectedAddressId(product.result.addressId)
                 formatData({product:product.result}, productFields)
 
                 setFormData(prev => ({
@@ -70,8 +70,8 @@ const EditProductPage = () => {
                     groups: productGroups.result.map((group) => group.id) || [],
                 }));
 
-                if (product.result.address_id && product.result.current_organization_id) {
-                    await fetchLocations(product.result.current_organization_id, product.result.address_id);
+                if (product.result.address_id) {
+                    await fetchLocations(product.result.address_id);
                 }
             } catch (error) {
                 console.error(error);
@@ -156,7 +156,7 @@ const EditProductPage = () => {
     const fetchAddresses = useCallback(async () => {
         try {
             showLoader();
-            const response = await fetchOrganizationAddresses(entities.organizations.addresses.get(selectedOrganizationId));
+            const response = await fetchOrganizationAddresses(entities.addresses.get(selectedAddressId));
             const addressesFormatted = response.result.data.map((address) => ({
                 value: address.id,
                 label: `${address.street}, ${address.city} - ${address.state}`,
@@ -170,10 +170,10 @@ const EditProductPage = () => {
         }
     }, [fetchOrganizationAddresses, showLoader, hideLoader, showNotification]);
 
-    const fetchLocations = async (organizationId, addressId) => {
+    const fetchLocations = async (addressId) => {
         try {
             showLoader();
-            const response = await fetchOrganizationLocations(entities.organizations.addresses.locations(organizationId).get(addressId));
+            const response = await fetchOrganizationLocations(entities.addresses.locations.get(addressId));
             const locationsFormatted = response.result.data.map(location => {
                 const parts = [location.area];
             
@@ -204,7 +204,6 @@ const EditProductPage = () => {
     };
 
     const handleOrganizationChange = useCallback((selectedOption) => {
-        setSelectedOrganizationId(selectedOption ? selectedOption.value : '');
         setFormData((prev) => ({
             ...prev,
             product: {
@@ -215,12 +214,12 @@ const EditProductPage = () => {
     }, [fetchAddresses]);
 
     useEffect(() => {
-        if (selectedOrganizationId) {
-            fetchAddresses(selectedOrganizationId);
+        if (selectedAddressId) {
+            fetchAddresses(selectedAddressId);
         } else {
             setAddresses([]);
         }
-    }, [selectedOrganizationId])
+    }, [selectedAddressId])
 
     const handleGroupChange = useCallback((selectedOptions) => {
         const selectedValues = Array.isArray(selectedOptions)
@@ -242,12 +241,12 @@ const EditProductPage = () => {
                 address_id: selectedAddressId,
             },
         }));
-        if (selectedAddressId && selectedOrganizationId) {
-            fetchLocations(selectedOrganizationId, selectedAddressId);
+        if (selectedAddressId && selectedAddressId) {
+            fetchLocations(selectedAddressId, selectedAddressId);
         } else {
             setLocations([]);
         }
-    }, [fetchLocations, selectedOrganizationId]);
+    }, [fetchLocations, selectedAddressId]);
 
     const handleFieldChange = useCallback((fieldId, value, field) => {
             handleChange(fieldId, value);

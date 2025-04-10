@@ -189,6 +189,7 @@ import CreateKitPage from "../pages/products/kits/CreateKitPage";
 import EditKitPage from "../pages/products/kits/EditKitPage";
 import KitItemsPage from "../pages/products/kits/items/KitItemsPage";
 import EditKitItemPage from "../pages/products/kits/items/EditKitItemPage";
+import CreateKitItemPage from "../pages/products/kits/items/CreateKitItemPage";
 
 const AppRoutesContent = () => {
     const location = useLocation();
@@ -376,6 +377,10 @@ const AppRoutesContent = () => {
         {
             path: "/kits/:id/itens",
             element: <PrivateRoute element={KitItemsPage}/>
+        },
+        {
+            path: "/kits/:id/itens/criar",
+            element: <PrivateRoute element={CreateKitItemPage}/>
         },
         {
             path: "/kits/:id/itens/:itemKitId/editar",

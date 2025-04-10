@@ -19,7 +19,7 @@ const baseService = {
         const query = qs.stringify({
             filters,
         }, { encode: false });
-        
+
         return request("get", `/a/${entity}?${query}`,{}, navigate);
     },
 
@@ -38,10 +38,11 @@ const baseService = {
         
         const query = qs.stringify({
             filters,
+            sort: data.sort ?? null,
             page: data.page,
             perPage: data.perPage,
         }, { encode: false });
-        
+
         return request("get", `${url}/${query? '?'+query : ''}`, {}, navigate);
     },
 

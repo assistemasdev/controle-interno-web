@@ -38,7 +38,6 @@ const DetailsContractOsItensPage = () => {
             ] = await Promise.all([
                 fetchOsItemById(entities.contracts.orders.items(id).getByColumn(contractOsId, contractOsItemId)),
             ])
-                    
             setFormData({
                 address:  contractOsItemResponse.result.address_name? contractOsItemResponse.result.address_name : '',
                 details: contractOsItemResponse.result.details,

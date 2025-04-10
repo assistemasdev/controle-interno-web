@@ -85,7 +85,7 @@ const DetailsContractOsPage = () => {
                 id: item.id,
                 movementsTypes: item.movement_type_name || "N/A",
                 status: item.status_name || "N/A",
-                item_id: item.item_id || "N/A",
+                contract_item_id: item.contract_item_id || "N/A",
                 product: item.product_name || "N/A",
                 quantity: item.quantity,
                 deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'

@@ -58,25 +58,19 @@ const ContractOsPage = () => {
         return Object.fromEntries(statusData.map((status) => [status.id, status.name]));
     }, []);
 
-    const transformOrdersServices = useCallback((ordersServices, contractsMap, statusMap) => {
-        return ordersServices.map((orderService) => ({
-            id: orderService.id,
-            number: contractsMap[orderService.contract_id] || "N/A",
-            status: statusMap[orderService.status_id] || "N/A",
-            deleted_at: orderService.deleted_at ? 'deleted-' + orderService.deleted_at : 'deleted-null'
-        }));
-    }, []);
 
     const loadOrdersServices = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
             const response = await fetchAll(entities.contracts.orders.get(id) ,filtersSubmit || filters);
-            const responseContracts = await fetchContracts(entities.contracts.get);
-            const responseOsStatus = await fetchOsStatus(entities.orders.status.get());
-            const contractsMap = mapContracts(responseContracts.result.data);
-            const osStatusMap = mapStatus(responseOsStatus.result.data)
-            const filteredOrdersServices = transformOrdersServices(response.result.data, contractsMap, osStatusMap)
-            setOrdersServices(filteredOrdersServices);
+            
+            setOrdersServices(response.result.data.map((item) => ({
+                id: item.id,
+                deadline:item.deadline,
+                status:item.status,
+                user:item.user_name,
+                deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'
+            })));
             setTotalPages(response.result.last_page);
             setCurrentPage(response.result.current_page);
         } finally {
@@ -90,7 +84,7 @@ const ContractOsPage = () => {
         loadOrdersServices();
     }, [itemsPerPage]);
 
-    const headers = useMemo(() => ['id', 'Nº Contrato', 'Status'], []);
+    const headers = useMemo(() => ['Id', 'Prazo', 'Status', 'Responsável'], []);
 
     const actions = useMemo(() => [
         {

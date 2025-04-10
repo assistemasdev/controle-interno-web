@@ -54,8 +54,8 @@ const CreateContractOsPage = () => {
     const [viewTable, setViewTable] = useState({});
     const [headers, setHeaders] = useState({});
     const [fieldsData, setFieldsData] = useState({})
-    const [viewMode, setViewMode] = useState("form");
     const [accessories, setAccessories] = useState([]);
+    const [viewMode, setViewMode] = useState("form");
     const options = [
         { value: "form", label: "Formulário" },
         { value: "contract", label: "Contrato" },
@@ -393,19 +393,21 @@ const CreateContractOsPage = () => {
             } else {
                 if (key && formData) {
                     setFormData((prev) => {
+                        const newItems = fieldsData.items.product_id && Array.isArray(fieldsData.items.product_id)
+                            ? fieldsData.items.product_id.map((product) => {
+                                const uuid = uuidv4().slice(0, 8);
+                                return {
+                                    ...fieldsData.items,
+                                    identify: { value: uuid, label: uuid },
+                                    product_id: { value: product.value, label: product.label },
+                                    excel: { value: true, label: 'Não' }
+                                };
+                            })
+                            : [{ ...fieldsData.items }];
+                
                         return {
                             ...prev,
-                            items: fieldsData.items.product_id && Array.isArray(fieldsData.items.product_id)
-                                ? fieldsData.items.product_id.map((product) => {
-                                    const uuid = uuidv4().slice(0, 8); 
-                                    return {
-                                        ...fieldsData.items, 
-                                        identify: { value: uuid, label: uuid },
-                                        product_id: { value: product.value, label: product.label } ,
-                                        excel: { value: true, label: 'Não'}
-                                    };
-                                })
-                                : [{ ...fieldsData.items }]
+                            items: [...(prev.items || []), ...newItems]
                         };
                     });
                     
@@ -488,13 +490,13 @@ const CreateContractOsPage = () => {
 
     useEffect(() => {
         fetchLocations()
-    }, [allFieldsData?.items?.address_id])
+    }, [fieldsData?.items?.address_id])
     
     const fetchLocations = async () => {
         try {
             showLoader()
-            if (allFieldsData?.items?.address_id) {
-                const response = await fetchLocationsCustomer(entities.customers.addresses.locations(contract.customer_id).get(allFieldsData?.items?.address_id?.value), {deleted_at: false});
+            if (fieldsData?.items?.address_id) {
+                const response = await fetchLocationsCustomer(entities.customers.addresses.locations(contract.customer_id).get(fieldsData?.items?.address_id?.value), {deleted_at: false});
                 setLocations(response.result.data.map((location) => ({
                     label: `${location.area}, ${location.section} - ${location.spot}`,
                     value: location.id
@@ -522,14 +524,12 @@ const CreateContractOsPage = () => {
                 items: transformValues(formData.items)
             }
 
-            transformedData = {
-                ...transformedData,
-                items: transformedData.items.map(item => ({
-                    ...item,
-                    accessories: item.accessories ? item.accessories.map(accessory => accessory.value) : []
-                }))
-            };
-
+            transformedData.items.forEach(item => {
+                if (item.accessories) {
+                    item.accessories = item.accessories.map(accessory => accessory.value);
+                }
+            });
+            
             const success = await create(entities.contracts.orders.create(id) ,transformedData);
             if (success) {
                 setFormData(setDefaultFieldValues(baseOsFields));
@@ -602,12 +602,12 @@ const CreateContractOsPage = () => {
                             {contractItems.length > 0 ? (
                                 contractItems.map((contractItem) => (
                                     <div className='shadow-sm my-3 rounded p-2'>
-                                        <div className='px-2 d-flex gap-3'>
+                                        <div className='px-2 d-grid gap-2 mb-3' style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
                                             <ItemContainerBox
                                                 item={{    
                                                     icon: <FaHashtag />,
                                                     label: 'Equipamento',
-                                                    value: contractItem.item_id
+                                                    value: contractItem.id
                                                 }}
                                             />
                                             <ItemContainerBox
@@ -620,12 +620,33 @@ const CreateContractOsPage = () => {
                                             <ItemContainerBox
                                                 item={{
                                                     icon: <FaHashtag />,
-                                                    label: 'Quantidade Solicitadas Pelo o Cliente',
-                                                    value: contractItem.quantity_request
+                                                    label: 'Quantidades de Equipamentos Alugados',
+                                                    value: contractItem.quantity_rented
+                                                }}
+                                            />
+                                            <ItemContainerBox
+                                                item={{
+                                                    icon: <FaHashtag />,
+                                                    label: 'Quantidades de Equipamentos Aguardando Preparo',
+                                                    value: contractItem.quantity_requested
+                                                }}
+                                            />
+                                            <ItemContainerBox
+                                                item={{
+                                                    icon: <FaHashtag />,
+                                                    label: 'Quantidades de Equipamentos Aguardando Carregamento',
+                                                    value: contractItem.quantity_awaiting_shipment
+                                                }}
+                                            />
+                                            <ItemContainerBox
+                                                item={{
+                                                    icon: <FaHashtag />,
+                                                    label: 'Quantidades de Equipamentos a Caminho',
+                                                    value: contractItem.quantity_on_the_way
                                                 }}
                                             />
                                         </div>
-                                        <ProgressBar progress={(contractItem.quantity_request / contractItem.quantity) * 100}/>
+                                        <ProgressBar progress={((contractItem.quantity_requested + contractItem.quantity_rented + contractItem.quantity_awaiting_shipment + contractItem.quantity_on_the_way) / contractItem.quantity) * 100}/>
                                     </div>
                                 ))
                             ):(

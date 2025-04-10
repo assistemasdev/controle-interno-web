@@ -43,24 +43,14 @@ const DetailsMovementItemPage = () => {
                 ] = await Promise.all([
                     fetchMovementItemById(entities.movements.items.getByColumn(id, movementProductId)),
                 ]);
-
-                const [
-                    organizationsResponse,
-                    productResponse,
-                    movementTypeResponse,
-                ] = await Promise.all([
-                    fetchOrganizations(entities.organizations.get),
-                    fetchProductByColumn(entities.products.getByColumn(response.result.product_id)),
-                    fetchMovementTypeByColumn(entities.movements.types.getByColumn(null, response.result.movement_type_id)),
-                ])
-                const organizationsMap = mapOrganizations(organizationsResponse.result.data)
-                formatData(response.result, detailsMovementItemFields)
+                
                 setFormData((prev) => ({
                     ...prev,
-                    movement_type_id: movementTypeResponse.result.name,
-                    product_id: productResponse.result.name,
-                    new_organization_id: response.result.new_organization_id ? organizationsMap[response.result.new_organization_id] : '-',
-                    old_organization_id: response.result.old_organization_id ? organizationsMap[response.result.old_organization_id] : '-'
+                    movement_type_id: response.result.movement_name,
+                    product_id: response.result.product_name,
+                    service_order_item_id: response.result.service_order_item_id,
+                    new_organization_id: response.result.new_organization_name ? response.result.new_organization_name : '-',
+                    old_organization_id: response.result.old_organization_name ? response.result.old_organization_name : '-'
                 }));
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';

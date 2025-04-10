@@ -217,10 +217,13 @@ export const baseMovementFields = [
                 disabled: true
             },
         ],
-    },
-    {
+    }
+];
+
+export const dynamicFields = {
+    1: {
         section: "Produtos",
-        array: true,
+        view: "fields",
         count: 0,
         fields: [
             { 
@@ -228,154 +231,132 @@ export const baseMovementFields = [
                 label: "Item de Ordem de Serviço", 
                 type: "multi-select", 
                 placeholder: "Selecione o Item da Ordem de Serviço",
+                disabled: true,
                 icon: faTools
             },
-            {
-                id: 'items.identify',
-                label: 'Identificador',
-                type: 'text',
-                placeholder: 'Identificador',
-                icon: faToggleOn,
-                disabled: true,
-            }
-            // { 
-            //     id: "items.movement_type_id", 
-            //     label: "Tipo de Movimento", 
-            //     type: "multi-select", 
-            //     placeholder: "Selecione o Tipo de Movimento",
-            //     entity: 'movementType',
-            //     column: 'name',
-            //     columnLabel: 'name',
-            //     icon: faTools,
-            //     fullWidth: true
-            // }
-            //,
-            // { 
-            //     id: "items.product_id", 
-            //     label: "Produto", 
-            //     type: "multi-select", 
-            //     placeholder: "Selecione o Produto",
-            //     entity: 'product',
-            //     column: 'name',
-            //     isUnique: true,
-            //     columnLabel: 'number',
-            //     columnDetails: 'name',
-            //     icon: faBoxOpen
-            // },
-            // { 
-            //     id: "items.item_id", 
-            //     label: "Item", 
-            //     type: "text", 
-            //     placeholder: "Digite o identificador",
-            //     icon: faBoxOpen
-            // },
-            // { 
-            //     id: "items.old_organization_id", 
-            //     label: "Organização Antiga", 
-            //     type: "multi-select", 
-            //     placeholder: "Selecione a Organização Antiga",
-            //     entity: 'organization',
-            //     column: 'id',
-            //     columnLabel: 'name',
-            //     columnDetails: null,
-            //     notRequired: true,
-            //     icon: faBuilding
-            // },
-            // { 
-            //     id: "items.new_organization_id", 
-            //     label: "Organização Nova", 
-            //     type: "multi-select", 
-            //     placeholder: "Selecione a Organização Nova",
-            //     entity: 'organization',
-            //     column: 'id',
-            //     columnLabel: 'name',
-            //     columnDetails: null,
-            //     notRequired: true,
-            //     icon: faBuilding
-            // },
+            { 
+                id: "items.movement_type_id", 
+                label: "Tipo de Movimento", 
+                type: "multi-select", 
+                placeholder: "Selecione o Tipo de Movimento",
+                entity: 'movementType',
+                column: 'name',
+                columnLabel: 'name',
+                icon: faTools,
+                disabled: true
+            },
+            { 
+                id: "items.contract_item_id", 
+                label: "Contract Item Id", 
+                type: "text", 
+                placeholder:"Digite o Identificador",
+                icon: faBoxOpen,
+                disabled: true
+            },
+            { 
+                id: "items.product_id", 
+                label: "Produto", 
+                type: "multi-select", 
+                placeholder: "Selecione o Produto",
+                entity: 'product',
+                column: 'number',
+                isUnique: true,
+                columnLabel: 'number',
+                columnDetails: 'name',
+                icon: faBoxOpen
+            },
         ]
     },
-];
+    2: {
+        section: "Produtos",
+        view: "fields",
+        count: 0,
+        fields: [
+            { 
+                id: "items.service_order_item_id", 
+                label: "Item de Ordem de Serviço", 
+                type: "multi-select", 
+                placeholder: "Selecione o Item da Ordem de Serviço",
+                disabled: true,
+                icon: faTools
+            },
+            { 
+                id: "items.movement_type_id", 
+                label: "Tipo de Movimento", 
+                type: "multi-select", 
+                placeholder: "Selecione o Tipo de Movimento",
+                entity: 'movementType',
+                column: 'name',
+                columnLabel: 'name',
+                icon: faTools,
+                disabled: true
+            },
+            { 
+                id: "items.product_id", 
+                label: "Produto", 
+                type: "multi-select", 
+                placeholder: "Selecione o Produto",
+                entity: 'product',
+                column: 'number',
+                isUnique: true,
+                columnLabel: 'number',
+                columnDetails: 'name',
+                icon: faBoxOpen,
+                disabled: true
+            },
+            { 
+                id: "items.new_product_id", 
+                label: "Novo Produto", 
+                type: "multi-select", 
+                placeholder: "Selecione o Novo Produto",
+                entity: 'product',
+                column: 'number',
+                isUnique: true,
+                columnLabel: 'number',
+                columnDetails: 'name',
+                icon: faBoxOpen
+            },
+        ]
+    },
+    3: {
+        section: "Produtos",
+        view: "fields",
+        count: 0,
+        fields: [
+            { 
+                id: "items.service_order_item_id", 
+                label: "Item de Ordem de Serviço", 
+                type: "multi-select", 
+                placeholder: "Selecione o Item da Ordem de Serviço",
+                disabled: true,
+                icon: faTools
+            },
+            { 
+                id: "items.movement_type_id", 
+                label: "Tipo de Movimento", 
+                type: "multi-select", 
+                placeholder: "Selecione o Tipo de Movimento",
+                entity: 'movementType',
+                column: 'name',
+                columnLabel: 'name',
+                icon: faTools,
+                disabled: true
+            },
+            { 
+                id: "items.product_id", 
+                label: "Produto", 
+                type: "multi-select", 
+                placeholder: "Selecione o Produto",
+                entity: 'product',
+                column: 'number',
+                isUnique: true,
+                columnLabel: 'number',
+                columnDetails: 'name',
+                icon: faBoxOpen,
+                disabled: true
+            },
+        ]
+    }
+};
 
 
-export const dynamicFields = {
-    1: [
-        { 
-            id: "items.movement_type_id", 
-            label: "Tipo de Movimento", 
-            type: "multi-select", 
-            placeholder: "Selecione o Tipo de Movimento",
-            entity: 'movementType',
-            column: 'name',
-            columnLabel: 'name',
-            icon: faTools,
-            disabled: true
-        }
-        ,
-        { 
-            id: "items.product_id", 
-            label: "Produto", 
-            type: "multi-select", 
-            placeholder: "Selecione o Produto",
-            entity: 'product',
-            column: 'number',
-            isUnique: true,
-            columnLabel: 'number',
-            columnDetails: 'name',
-            icon: faBoxOpen
-        },
-    ],
-    2: [
-        { 
-            id: "items.movement_type_id", 
-            label: "Tipo de Movimento", 
-            type: "multi-select", 
-            placeholder: "Selecione o Tipo de Movimento",
-            entity: 'movementType',
-            column: 'name',
-            columnLabel: 'name',
-            icon: faTools,
-            disabled: true
-        }
-        ,
-        { 
-            id: "items.product_id", 
-            label: "Produto", 
-            type: "multi-select", 
-            placeholder: "Selecione o Produto",
-            entity: 'product',
-            column: 'number',
-            isUnique: true,
-            columnLabel: 'number',
-            columnDetails: 'name',
-            icon: faBoxOpen
-        },
-    ],
-    3: [
-        { 
-            id: "items.movement_type_id", 
-            label: "Tipo de Movimento", 
-            type: "multi-select", 
-            placeholder: "Selecione o Tipo de Movimento",
-            entity: 'movementType',
-            column: 'name',
-            columnLabel: 'name',
-            icon: faTools,
-            disabled: true
-        }
-        ,
-        { 
-            id: "items.product_id", 
-            label: "Produto", 
-            type: "multi-select", 
-            placeholder: "Selecione o Produto",
-            entity: 'product',
-            column: 'number',
-            isUnique: true,
-            columnLabel: 'number',
-            columnDetails: 'name',
-            icon: faBoxOpen,
-            disabled: true
-        },
-    ]
-}
