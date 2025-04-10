@@ -1,7 +1,7 @@
 import createField from '../../utils/factory/createField';
 import { 
     faFileAlt, faClipboardCheck, faBuilding, faUser, faCalendarAlt, 
-    faMoneyBillWave, faTools, faBoxOpen , faFileSignature 
+    faMoneyBillWave, faTools, faBoxOpen , faFileSignature, faToggleOn
 } from '@fortawesome/free-solid-svg-icons';
 
 export const contractFields = [
@@ -111,6 +111,15 @@ export const contractFields = [
         count: 0,
         fields: [
             createField({ 
+                id: 'items.identify',
+                label: 'Identificador',
+                type: 'text',
+                placeholder: 'Identificador',
+                icon: faToggleOn,
+                disabled: true,
+                fullWidth: true
+            }),
+            createField({ 
                 id: "items.item_id", 
                 label: "ID", 
                 type: "text", 
@@ -141,30 +150,40 @@ export const contractFields = [
                 icon: faMoneyBillWave
             }),
         ]
-    },
-    {
-        section: "Serviços",
-        array: true,
-        count: 0,
-        fields: [
-            createField({ 
-                id: "jobs.item_id", 
-                label: "ID", 
-                type: "text", 
-                placeholder:"Digite o Identificador",
-                fullWidth:true,
-                icon: faTools
-            }),
-            createField({ 
-                id: "jobs.description", 
-                label: "Descrição", 
-                type: "textarea", 
-                placeholder:"Digite a Descrição",
-                fullWidth:true,
-                icon: faTools
-            }),
-        ]
     }
+    // ,
+    // {
+    //     section: "Serviços",
+    //     array: true,
+    //     count: 0,
+    //     fields: [
+    //         createField({ 
+    //             id: 'items.identify',
+    //             label: 'Identificador',
+    //             type: 'text',
+    //             placeholder: 'Identificador',
+    //             icon: faToggleOn,
+    //             disabled: true,
+    //             fullWidth: true
+    //         }),
+    //         createField({ 
+    //             id: "jobs.item_id", 
+    //             label: "ID", 
+    //             type: "text", 
+    //             placeholder:"Digite o Identificador",
+    //             fullWidth:true,
+    //             icon: faTools
+    //         }),
+    //         createField({ 
+    //             id: "jobs.description", 
+    //             label: "Descrição", 
+    //             type: "textarea", 
+    //             placeholder:"Digite a Descrição",
+    //             fullWidth:true,
+    //             icon: faTools
+    //         }),
+    //     ]
+    // }
 ];
 
 export const contractEditFields = [
@@ -172,7 +191,7 @@ export const contractEditFields = [
         section: "Dados do Contrato",
         fields: [
             createField({
-                id: "contract.name", 
+                id: "name", 
                 label: "Nome do Contrato", 
                 type: "text", 
                 placeholder: "Digite o nome do contrato", 

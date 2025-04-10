@@ -6,11 +6,12 @@ import useNotification from '../../../hooks/useNotification';
 import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import { useNavigate, useParams } from 'react-router-dom';
-import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import { setDefaultFieldValues, transformObjectValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
-import SimpleForm from '../../../components/forms/SimpleForm';
+import SectionHeader from '../../../components/forms/SectionHeader';
+import SimpleBody from '../../../components/forms/SimpleBody';
 
 const EditContractPage = () => {
     const navigate = useNavigate();
@@ -18,10 +19,6 @@ const EditContractPage = () => {
     const { showNotification } = useNotification();
     const { 
         getByColumn: fetchById,
-        get: fetchOrganizations, 
-        get: fetchContractTypes,
-        get: fetchCustomers,
-        get: fetchContractStatus,
         put: update, 
         formErrors 
     } = useBaseService(navigate);
@@ -30,13 +27,11 @@ const EditContractPage = () => {
         formData,
         handleChange,
         initializeData,
-        formatData
+        formatData,
+        setFormData
     } = useForm(setDefaultFieldValues(contractEditFields));
-    const [organizations, setOrganizations] = useState([]);
-    const [types, setTypes] = useState([]);
-    const [status, setStatus] = useState([]);
-    const [customers, setCustomers] = useState([]);
-    
+
+
     useEffect(() => {
         initializeData(contractEditFields);
 
@@ -45,22 +40,19 @@ const EditContractPage = () => {
             try {
                 const [
                     contractResponse,
-                    orgResponse,
-                    typesResponse,
-                    customersResponse,
-                    statusResponse
                 ] = await Promise.all([
-                    fetchById(entities.contracts.getByColumn(id)),
-                    fetchOrganizations(entities.organizations.get),
-                    fetchContractTypes(entities.contracts.types.get()),
-                    fetchCustomers(entities.customers.get),
-                    fetchContractStatus(entities.contracts.status.get())
+                    fetchById(entities.contracts.getByColumn(id))
                 ]);
-                setOrganizations(orgResponse.result.data.map((org) => ({ value: org.id, label: org.name })));
-                setTypes(typesResponse.result.data.map((type) => ({value: type.id, label: type.name}) ));
-                setCustomers(customersResponse.result.data.map((customer) => ({value: customer.id, label: customer.name})));
-                setStatus(statusResponse.result.data.map((status) => ({value: status.id, label: status.name})))
                 formatData(contractResponse.result, contractEditFields)
+                setFormData((prev) => ({
+                    ...prev,
+                    conctract_type_id: {value: contractResponse.result.id, label: contractResponse.result.contract_type},
+                    contract_status_id: {value: contractResponse.result.contract_status_id, label: contractResponse.result.contract_status},
+                    contract_type_id: {value: contractResponse.result.contract_type_id, label: contractResponse.result.contract_type},
+                    organization_id: {value: contractResponse.result.organization_id, label: contractResponse.result.organization_name},
+                    customer_id: {value: contractResponse.result.customer_id, label: contractResponse.result.customer_name},
+
+                }))
             } catch (error) {
                 console.error(error);
                 showNotification('error', 'Erro ao carregar dados do contrato.');
@@ -75,7 +67,8 @@ const EditContractPage = () => {
     const handleSubmit = async () => {
         try {
             showLoader();
-            await update(entities.contracts.update(id), formData);
+            const data = transformObjectValues(formData);
+            await update(entities.contracts.update(id), data);
         } catch (error) {
             console.log(error)
         } finally {
@@ -85,14 +78,6 @@ const EditContractPage = () => {
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case 'organization_id':
-                return organizations;
-            case 'contract_type_id':
-                return types;
-            case 'customer_id':
-                return customers;
-            case 'contract_status_id':
-                return customers;
             default:
                 return [];
         }
@@ -110,10 +95,6 @@ const EditContractPage = () => {
         navigate(`/contratos/`);  
     };
 
-    const handleFieldChange = useCallback((fieldId, value, field) => {
-        handleChange(fieldId, value);
-    
-    }, [getOptions]);
 
     return (
         <MainLayout selectedCompany="ALUCOM">
@@ -127,16 +108,25 @@ const EditContractPage = () => {
                     handleBack={handleBack}
                 >
                     {() =>
-                        contractEditFields.map(section => (
-                            <SimpleForm
-                                key={section.section}
-                                section={section}
-                                formData={formData}
-                                handleFieldChange={handleFieldChange}
-                                getOptions={getOptions}
-                                formErrors={formErrors}
-                                getSelectedValue={getSelectedValue}
-                            />
+                        contractEditFields.map((section) => (
+                            <>
+                                <SectionHeader
+                                    key={section.section}
+                                    section={section}
+                                    viewTable={false}
+                                    setViewTable={() => {}}
+                                    addFieldsInData={() => {}}
+                                />
+
+                                <SimpleBody
+                                    fields={section.fields}
+                                    formErrors={formErrors}
+                                    formData={formData}
+                                    handleFieldChange={handleChange}
+                                    getOptions={getOptions}
+                                    getSelectedValue={getSelectedValue}
+                                />
+                            </>
                         ))
                     }
                 </Form>

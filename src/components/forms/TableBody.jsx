@@ -71,6 +71,7 @@ const TableBody = ({ section, viewTable, setViewTable, formData, setFormData, he
             const values = selectedOption 
                 ? selectedOption.map(option => ({ value: option.value, label: option.label })) 
                 : []; 
+            
             handleArrayFieldChange(sectionField.id, values, sectionField);
         } else {
             handleArrayFieldChange(

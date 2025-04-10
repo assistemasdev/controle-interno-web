@@ -7,12 +7,15 @@ import useLoader from '../../../hooks/useLoader';
 import useForm from '../../../hooks/useForm';
 import Form from '../../../components/Form'; 
 import { contractFields } from "../../../constants/forms/contractFields";
-import { setDefaultFieldValues } from '../../../utils/objectUtils';
+import { setDefaultFieldValues, transformObjectValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
 import { transformValues } from '../../../utils/objectUtils';
-import FormSection from '../../../components/FormSection';
+import SectionHeader from '../../../components/forms/SectionHeader';
+import SimpleBody from '../../../components/forms/SimpleBody';
+import TableBody from '../../../components/forms/TableBody';
+import { v4 as uuidv4 } from 'uuid';
 
 const CreateContractPage = () => {
     const navigate = useNavigate();
@@ -28,12 +31,11 @@ const CreateContractPage = () => {
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
     const { formData, setFormData, handleChange, resetForm } = useForm(setDefaultFieldValues(contractFields));
-    const [organizations, setOrganizations] = useState([]);
-    const [contractsTypes, setContractsTypes] = useState([]);
-    const [status, setStatus] = useState([]);
-    const [customers, setCustomers] = useState([]);
+
     const [allFieldsData, setAllFieldsData] = useState([])
-    const [reloadForm, setReloadForm] = useState(false);
+    const [viewTable, setViewTable] = useState({});
+    const [headers, setHeaders] = useState({});
+    const [fieldsData, setFieldsData] = useState({})
 
     useEffect(() => {
         setFormData(prev => ({
@@ -41,47 +43,108 @@ const CreateContractPage = () => {
             items:[],
             jobs:[]
         }));
-
-        const fetchData = async () => {
-            try {
-                showLoader();
-                const [
-                    organizationsResponse,
-                    typesResponse,
-                    customersResponse,
-                    statusResponse
-                ] = await Promise.all([
-                    fetchOrganizations(entities.organizations.get, {deleted_at: false}),
-                    fetchContractTypes(entities.contracts.types.get(), {deleted_at: false}),
-                    fetchCustomers(entities.customers.get, {deleted_at: false}),
-                    fetchStatus(entities.contracts.status.get(), {deleted_at: false})
-                ]);
-
-                setOrganizations(organizationsResponse.result.data.map(org => ({ value: org.id, label: org.name })));
-                setContractsTypes(typesResponse.result.data.map(type => ({ value: type.id, label: type.name })));
-                setStatus(statusResponse.result.data.map(status => ({ value: status.id, label: status.name })));
-                setCustomers(customersResponse.result.data.map(customer => ({ value: customer.id, label: customer.name })));
-            } catch (error) {
-                const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
-                showNotification('error', errorMessage);
-                console.error('Erro no carregamento dos dados:', error);
-            } finally {
-                hideLoader();
-            }
-        };
-        fetchData();
     }, []);
+
+    useEffect(() => {
+        contractFields.forEach((section) => {
+            const fields = section.fields;
+            if (section.array) {
+                setFieldsData(prev => {
+                    const updatedData = fields.reduce((acc, currentValue) => {
+                        const column = currentValue.id.split('.')[1];
+                        const key = currentValue.id.split('.')[0];
+    
+                        if (!acc.exclude_ids) {
+                            acc.exclude_ids = {};
+                        }
+    
+                        if (!acc[key]) {
+                            acc[key] = {};
+                        }
+
+                        if (column === 'identify' && !prev[key]?.[column]) {
+                            const uuid = uuidv4().slice(0, 8); 
+                            acc[key][column] = { value: uuid, label: uuid };
+                        } else if (column === 'excel' && !prev[key]?.[column]) {
+                            acc[key][column] = { value: true, label: 'Não' };
+                        }
+                        else {
+                            if (currentValue.isMulti && !Array.isArray(prev[key])) {
+                                acc[key][column] = prev[key]?.[column] ? [prev[key]?.[column]] : []; 
+                            } else {
+                                acc[key][column] = prev[key]?.[column] || '';
+                            }
+                        }
+                        return acc;
+                    }, {});
+
+                    Object.entries(updatedData).map(([key, headers]) => ({
+                        section: key,
+                        headers: headers,
+                    }))
+
+                    return {
+                        ...prev,
+                        ...updatedData,
+                    };
+                });
+    
+                setHeaders(prev => {
+                    return fields.reduce((acc, currentValue) => {
+                        const key = currentValue.id.split('.')[0];  
+                        const cleanedValue = currentValue.label.replace(/:/g, '');
+                                        
+                        if (!acc[key]) {
+                            acc[key] = [];
+                        }
+                
+                        acc[key] = Array.from(new Set([...acc[key], cleanedValue]));  
+                
+                
+                        return acc;
+                    }, { ...prev });  
+                });
+                
+            } else {
+                setFormData(prev => {
+                    const updatedData = fields.reduce((acc, currentValue) => {
+                        const key = currentValue.id.split('.')[0];
+                        const column = currentValue.id.split('.')[1];
+    
+                        acc = { ...prev };
+    
+                        if (!acc.exclude_ids) {
+                            acc.exclude_ids = {};
+                        }
+    
+                        if (column !== 'exclude_ids') {
+                            if (!acc.exclude_ids[key]) {
+                                acc.exclude_ids[key] = {}; 
+                            }
+    
+                            if (!acc.exclude_ids[key][column]) {
+                                acc.exclude_ids[key][column] = [];
+                            }
+                        }
+    
+                        if (!acc[key]) {
+                            acc[key] = {};
+                        }
+    
+                        if (!(column in acc[key])) {
+                            acc[key][column] = prev[key]?.[column] || ''; 
+                        }
+                        return acc;
+                    }, prev); 
+    
+                    return updatedData;
+                });
+            }
+        });
+    }, [contractFields]);
 
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "contract.organization_id":
-                return organizations || [];
-            case "contract.contract_type_id":
-                return contractsTypes || [];
-            case "contract.customer_id":
-                return customers || [];
-            case "contract.contract_status_id":
-                return status || [];
             default:
                 return [];
         }
@@ -96,11 +159,74 @@ const CreateContractPage = () => {
         return null;
     };
 
+    const addFieldsInData = async (section) => {
+        const key = section.fields[0].id.split('.')[0];
+        const newFormErrors = {};
+        let hasError = false;
+
+        section.fields.forEach((field) => {
+            if (fieldsData[field.id.split('.')[1]]) {
+                delete formErrors[fieldsData[field.id.split('.')[1]]];
+            }
+        });
+
+        section.fields.forEach((field) => {
+            const [column, key] = field.id.split('.');
+            
+            if (!field.notRequired && (!fieldsData[column] || !fieldsData[column][key] || fieldsData[column][key]?.toString().trim() === "")) {
+                hasError = true;
+        
+                if (!newFormErrors[column]) {
+                    newFormErrors[column] = {};  
+                }
+        
+                if (!newFormErrors[column][key]) {
+                    newFormErrors[column][key] = `O campo ${field.label} é obrigatório.`;  
+                }
+            }
+        });
+
+        if (hasError) {
+            setFormErrors((prev) => ({
+                ...prev,
+                ...newFormErrors, 
+            }));
+            return;
+        }
+
+        setFormErrors((prev) => {
+            const updatedErrors = Object.keys(prev).reduce((acc, errorKey) => {
+                if (!errorKey.startsWith(`${key}.0.`)) {
+                    acc[errorKey] = prev[errorKey]; 
+                }
+                return acc;
+            }, {});
+            return updatedErrors;
+        });
+
+        if (key && formData) {
+            setFormData((prev) => ({
+                ...prev,
+                items: [...(prev.items || []), fieldsData.items]
+            }));
+            
+            setFieldsData(prev => ({
+                ...prev,
+                [key]: {}
+            }));
+        }
+            
+        showNotification('success', 'Dados adicionados na tabela');
+            
+        
+    }
+
     const handleSubmit = async () => {
         showLoader();
         try {
             const transformedData = {
                 ...formData,
+                contract: transformObjectValues(formData.contract),
                 items: transformValues(formData.items),
                 jobs: transformValues(formData.jobs)
             }
@@ -112,7 +238,6 @@ const CreateContractPage = () => {
                     items:[],
                     jobs:[]
                 }));
-                setReloadForm(true);
             }
         } catch (error) {
             console.error('Error creating product:', error);
@@ -143,21 +268,41 @@ const CreateContractPage = () => {
                 >
                     {() => 
                         contractFields.map((section) => (
-                            <FormSection
-                                key={section.section}
-                                section={section}
-                                formData={formData}
-                                handleFieldChange={handleFieldChange}
-                                getOptions={getOptions}
-                                getSelectedValue={getSelectedValue}
-                                formErrors={formErrors}
-                                allFieldsData={allFieldsData}
-                                setAllFieldsData={setAllFieldsData}
-                                setFormErrors={setFormErrors}
-                                setFormData={setFormData}
-                                setReloadForm={setReloadForm}
-                                reloadForm={reloadForm}
-                            />
+                            <>
+                                <SectionHeader
+                                    key={section.section}
+                                    section={section}
+                                    viewTable={viewTable}
+                                    setViewTable={setViewTable}
+                                    addFieldsInData={addFieldsInData}
+                                />
+                                {section.array ? (
+                                    <TableBody
+                                        section={section}
+                                        headers={headers}
+                                        setFormData={setFormData}
+                                        viewTable={viewTable}
+                                        setViewTable={setViewTable}
+                                        formData={formData}
+                                        getOptions={getOptions}
+                                        allFieldsData={allFieldsData}
+                                        setAllFieldsData={setAllFieldsData}
+                                        formErrors={formErrors}
+                                        setFieldsData={setFieldsData}
+                                        fieldsData={fieldsData}
+                                        handleFileFieldChange={() => {}}
+                                    />
+                                ) : (
+                                    <SimpleBody
+                                        fields={section.fields}
+                                        formErrors={formErrors}
+                                        formData={formData}
+                                        handleFieldChange={handleChange}
+                                        getOptions={getOptions}
+                                        getSelectedValue={getSelectedValue}
+                                    />
+                                )}
+                            </>
                         ))
                     }
                 </Form>

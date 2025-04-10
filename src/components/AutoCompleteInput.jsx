@@ -97,12 +97,10 @@ const AutoCompleteInput = ({
                 updatedSelectedValues = [
                     ...ids
                         .map(id => {
+                            console.log(id)
                             const label = newLabels[id.value] || fetchedLabels[id.value] || null;
                             if (!label) return null;  
-                            const existingValue = selectedValues.find(item => item.value === id.value);
-                            if (existingValue) {
-                                return
-                            }
+
                             return {
                                 value: id.value,
                                 label: label || 'Carregando...'
@@ -128,6 +126,7 @@ const AutoCompleteInput = ({
                         })
                         .filter(item => item !== null), 
                 ];
+                console.log(updatedSelectedValues)
             } else {
                 const idToUse = ids[0]?.value || ids[0];    
                 const label = newLabels[idToUse] || fetchedLabels[idToUse] || null;
