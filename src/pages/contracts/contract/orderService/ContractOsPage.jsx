@@ -50,15 +50,6 @@ const ContractOsPage = () => {
         }
     }, [location.state, navigate]);
 
-    const mapContracts = useCallback((contractsData) => {
-        return Object.fromEntries(contractsData.map((contract) => [contract.id, contract.number]));
-    }, []);
-
-    const mapStatus = useCallback((statusData) => {
-        return Object.fromEntries(statusData.map((status) => [status.id, status.name]));
-    }, []);
-
-
     const loadOrdersServices = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
@@ -150,7 +141,7 @@ const ContractOsPage = () => {
                     open={openModalConfirmation}
                     onClose={handleCancelConfirmation}
                     onConfirm={handleConfirmAction}
-                    itemName={selectedItem ? selectedItem.number : ''}
+                    itemName={selectedItem ? selectedItem.id : ''}
                     text={action.text}
                 />  
             </div>

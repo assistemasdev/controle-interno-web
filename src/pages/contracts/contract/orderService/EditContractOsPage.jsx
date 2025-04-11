@@ -21,17 +21,10 @@ const EditContractOsPage = () => {
     const { showNotification } = useNotification();
     const { 
         getByColumn: fetchByContractOsById,
-        get: fetchOsStatus,
-        get: fetchOsDepartaments,
-        get: fetchOsDestinations,
         put: update, 
-        formErrors,
-        setFormErrors
+        formErrors
     } = useBaseService(navigate);
     const { formData, handleChange, resetForm, formatData, setFormData } = useForm(setDefaultFieldValues(editOrderServiceFields));
-    const [oSstatus, setOsStatus] = useState([]);
-    const [osDepartaments, setOsDepartaments] = useState([]);
-    const [osDestinations, setOsDestinations] = useState([]);
 
     useEffect(() => {
         fetchData();
@@ -42,14 +35,8 @@ const EditContractOsPage = () => {
             showLoader()
             const [
                 contractOsResponse,
-                osStatusResponse,
-                osDepartamentsResponse,
-                osDestinationsResponse,
             ] = await Promise.all([
                 fetchByContractOsById(entities.contracts.orders.getByColumn(id, contractOsId)),
-                fetchOsStatus(entities.orders.status.get()),
-                fetchOsDepartaments(entities.orders.departaments.get()),
-                fetchOsDestinations(entities.orders.destinations.get()),
             ])
             formatData(contractOsResponse.result, editOrderServiceFields)
             setFormData((prev) => ({
@@ -59,20 +46,7 @@ const EditContractOsPage = () => {
                 deadline: contractOsResponse.result.deadline.split(" ")[0]
             }));
 
-            setOsStatus(osStatusResponse.result.data.map((status) => ({
-                label: status.name,
-                value: status.id
-            })));
-    
-            setOsDepartaments(osDepartamentsResponse.result.data.map((departament) => ({
-                label: departament.name,
-                value: departament.id
-            })))
-    
-            setOsDestinations(osDestinationsResponse.result.data.map((destination) => ({
-                label: destination.name,
-                value: destination.id
-            })));
+   
         } catch (error) {
             console.log(error)
             showNotification('error', 'error ao carregar os dados')
@@ -83,12 +57,6 @@ const EditContractOsPage = () => {
     
     const getOptions = (fieldId) => {
         switch (fieldId) {
-            case "status_id":
-                return oSstatus || [];
-            case "departament_id":
-                return osDepartaments || [];
-            case "destination_id":
-                return osDestinations || [];
             default:
                 return [];
         }

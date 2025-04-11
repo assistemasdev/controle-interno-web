@@ -46,30 +46,19 @@ const ContractPage = () => {
         }
     }, [location.state, navigate]);
 
-    const mapCustomers = useCallback((customers) => {
-        return Object.fromEntries(customers.map((customer) => [customer.id, customer.name]));
-    }, []);
-
-    const transformContracts = useCallback((contractsData, customersMap) => {
-        return contractsData.map((contract) => ({
-            id: contract.id,
-            name: contract.name,
-            number: contract.number,
-            customer: customersMap[contract.customer_id] || "N/A",
-            deleted_at: contract.deleted_at ? 'deleted-' + contract.deleted_at : 'deleted-null'
-
-        }));
-    }, []);
 
     const loadContracts = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
             const response = await fetchAll(entities.contracts.get, filtersSubmit || filters);
-            const customersReponse = await fetchAllCustomers(entities.customers.get);
 
-            const customersMap = mapCustomers(customersReponse.result.data);
-            const filteredContracts = transformContracts(response.result.data, customersMap)
-            setContracts(filteredContracts);
+            setContracts(response.result.data.map((item) => ({
+                id:item.id,
+                number:item.number,
+                name:item.name,
+                customer:item.customer_name,
+                deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'
+            })));
             setTotalPages(response.result.last_page);
             setCurrentPage(response.result.current_page);
         } finally {
@@ -83,7 +72,7 @@ const ContractPage = () => {
         loadContracts();
     }, [itemsPerPage]);
 
-    const headers = useMemo(() => ['Id', 'Nome', 'Número', 'Cliente'], []);
+    const headers = useMemo(() => ['Id', 'Número', 'Nome' , 'Cliente'], []);
 
     const actions = useMemo(() => [
         {

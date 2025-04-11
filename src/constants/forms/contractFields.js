@@ -264,15 +264,14 @@ export const contractDetailsFields = [
                 id: "contract.name", 
                 label: "Nome do Contrato", 
                 type: "text", 
-                fullWidth: true,
                 placeholder: "Digite o nome do contrato", 
-                icon: faFileSignature
+                icon: faFileSignature,
+                disabled: true
             }),
             createField({
                 id: "contract.number", 
                 label: "Número", 
                 type: "number", 
-                fullWidth: true,
                 placeholder: "Digite o número do contrato", 
                 icon: faFileAlt,
                 disabled: true

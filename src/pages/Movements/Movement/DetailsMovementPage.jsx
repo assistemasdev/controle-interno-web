@@ -27,9 +27,6 @@ const DetailsMovementPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { 
         getByColumn: fetchById,
-        getByColumn: fetchCustomerById,
-        getByColumn: fetchOrganizationById,
-        get: fetchProducts,
         get: fetchMovementsItems,
     } = useBaseService(navigate);
     const { formData, setFormData, formatData } = useForm(setDefaultFieldValues(detailsMovementFields));
@@ -37,7 +34,6 @@ const DetailsMovementPage = () => {
     const [itemsPerPage, setItemsPerPage] = useState(PAGINATION.DEFAULT_PER_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
     const [movementsProducts, setMovementsProducts] = useState([]);
-    const [products, setProducts] = useState([]);
     const [filters, setFilters] = useState({
         deleted_at:false,
         page: 1,

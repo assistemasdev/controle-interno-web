@@ -17,9 +17,6 @@ const DetailsMovementItemPage = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { 
-        get: fetchOrganizations,
-        getByColumn: fetchProductByColumn,
-        getByColumn: fetchMovementTypeByColumn,
         getByColumn: fetchMovementItemById,
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();

@@ -11,6 +11,7 @@ import { setDefaultFieldValues } from '../../../utils/objectUtils';
 import useBaseService from '../../../hooks/services/useBaseService';
 import { entities } from '../../../constants/entities';
 import PageHeader from '../../../components/PageHeader';
+import { formatDateToInput } from '../../../utils/formatDateToInput';
 
 const EditMovementPage = () => {
     const navigate = useNavigate();
@@ -27,7 +28,7 @@ const EditMovementPage = () => {
                 formatData(movementData.result, editMovementsFields);
                 setFormData((prev) => ({
                     ...prev,
-                    movement_date: movementData.result.movement_date.split(" ")[0]
+                    movement_date: formatDateToInput(movementData.result.movement_date)
                 }));
             } catch (error) {
                 console.log(error)

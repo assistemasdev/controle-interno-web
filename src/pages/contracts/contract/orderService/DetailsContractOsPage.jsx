@@ -18,6 +18,7 @@ import ConfirmationModal from '../../../../components/modals/ConfirmationModal';
 import PageHeader from '../../../../components/PageHeader';
 import ListHeader from '../../../../components/ListHeader';
 import useAction from '../../../../hooks/useAction';
+import { formatDateToInput } from '../../../../utils/formatDateToInput';
 
 const DetailsContractOsPage = () => {
     const { id, contractOsId } = useParams();
@@ -58,7 +59,7 @@ const DetailsContractOsPage = () => {
                 status: contractOsResponse.result.status,
                 departament: contractOsResponse.result.departament_name,
                 destination: contractOsResponse.result.destination_name,
-                deadline: contractOsResponse.result.deadline,
+                deadline: formatDateToInput(contractOsResponse.result.deadline),
                 details: contractOsResponse.result.details,
                 user: contractOsResponse.result.user_name
             });
