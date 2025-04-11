@@ -46,6 +46,7 @@ const FieldWithSelectOrAutoComplete = ({
                     onChange={(selectedOption) => handleSelectFieldChange(selectedOption, field)}
                     noOptionsMessage={() => `Nenhuma opção encontrada para ${field.label}`}
                     placeholder={field.placeholder}
+                    isDisabled={field.disabled}
                 />
             )}
 

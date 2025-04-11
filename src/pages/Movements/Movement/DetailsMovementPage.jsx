@@ -85,6 +85,7 @@ const DetailsMovementPage = () => {
             setMovementsProducts(response.result.data.map((item) => ({
                 id:item.id,
                 product: item.product_name ?? 'N/A',
+                movement_type: item.movement_name ?? 'N/A',
                 status: item.status_name ?? 'N/A',
                 deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'
             })));
@@ -150,7 +151,7 @@ const DetailsMovementPage = () => {
                 />
                 
                 <DynamicTable
-                    headers={['Id', 'Produto', 'Status']}
+                    headers={['Id', 'Produto', 'Movimento', 'Status']}
                     data={movementsProducts}
                     actions={actions}
                     currentPage={currentPage}

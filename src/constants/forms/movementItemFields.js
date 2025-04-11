@@ -3,6 +3,7 @@ import {
     faBoxOpen, 
     faTools 
 } from '@fortawesome/free-solid-svg-icons';
+import { trimEnd } from 'lodash';
 
 export const movementItemFields = [
     {
@@ -34,37 +35,108 @@ export const movementItemFields = [
                 column: 'id',
                 columnLabel: 'number',
                 columnDetails: 'name',
-                icon: faBoxOpen
+                icon: faBoxOpen,
+                fullWidth: true
             },
+            // { 
+            //     id: "item_id", 
+            //     label: "Item", 
+            //     type: "text", 
+            //     placeholder: "Digite o identificador",
+            //     icon: faBoxOpen
+            // }
+            // ,
+            // { 
+            //     id: "old_organization_id", 
+            //     label: "Organização Antiga", 
+            //     type: "multi-select", 
+            //     placeholder: "Selecione a Organização Antiga",
+            //     entity: 'organization',
+            //     column: 'id',
+            //     columnLabel: 'name',
+            //     notRequired: true,
+            //     icon: faBuilding
+            // },
+            // { 
+            //     id: "new_organization_id", 
+            //     label: "Organização Nova", 
+            //     type: "multi-select", 
+            //     placeholder: "Selecione a Organização Nova",
+            //     entity: 'organization',
+            //     column: 'id',
+            //     columnLabel: 'name',
+            //     notRequired: true,
+            //     icon: faBuilding
+            // },
+        ]
+    },
+]
+
+export const movementItemEditFields = [
+    {
+        section: "Produtos",
+        fields: [
             { 
-                id: "item_id", 
-                label: "Item", 
-                type: "text", 
-                placeholder: "Digite o identificador",
-                icon: faBoxOpen
-            },
-            { 
-                id: "old_organization_id", 
-                label: "Organização Antiga", 
+                id: "movement_type_id", 
+                label: "Tipo de Movimento", 
                 type: "multi-select", 
-                placeholder: "Selecione a Organização Antiga",
-                entity: 'organization',
+                placeholder: "Selecione o tipo",
+                entity: 'movementType',
                 column: 'id',
                 columnLabel: 'name',
-                notRequired: true,
-                icon: faBuilding
+                icon: faTools,
+                disabled: true,
             },
             { 
-                id: "new_organization_id", 
-                label: "Organização Nova", 
+                id: "service_order_item_id", 
+                label: "Item de Ordem de Serviço", 
                 type: "multi-select", 
-                placeholder: "Selecione a Organização Nova",
-                entity: 'organization',
-                column: 'id',
-                columnLabel: 'name',
-                notRequired: true,
-                icon: faBuilding
+                placeholder: "Selecione o Item da Ordem de Serviço",
+                icon: faTools,
+                disabled: true
             },
+            { 
+                id: "product_id", 
+                label: "Produto", 
+                type: "multi-select", 
+                placeholder: "Selecione o Produto",
+                entity: 'product',
+                column: 'id',
+                columnLabel: 'number',
+                columnDetails: 'name',
+                icon: faBoxOpen,
+                fullWidth: true
+            },
+            // { 
+            //     id: "item_id", 
+            //     label: "Item", 
+            //     type: "text", 
+            //     placeholder: "Digite o identificador",
+            //     icon: faBoxOpen
+            // }
+            // ,
+            // { 
+            //     id: "old_organization_id", 
+            //     label: "Organização Antiga", 
+            //     type: "multi-select", 
+            //     placeholder: "Selecione a Organização Antiga",
+            //     entity: 'organization',
+            //     column: 'id',
+            //     columnLabel: 'name',
+            //     notRequired: true,
+            //     icon: faBuilding
+            // },
+            // { 
+            //     id: "new_organization_id", 
+            //     label: "Organização Nova", 
+            //     type: "multi-select", 
+            //     placeholder: "Selecione a Organização Nova",
+            //     entity: 'organization',
+            //     column: 'id',
+            //     columnLabel: 'name',
+            //     notRequired: true,
+            //     icon: faBuilding
+            // },
         ]
     },
 ]

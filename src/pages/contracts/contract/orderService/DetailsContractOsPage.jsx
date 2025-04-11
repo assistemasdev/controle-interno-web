@@ -174,7 +174,7 @@ const DetailsContractOsPage = () => {
                 open={openModalConfirmation}
                 onClose={handleCancelConfirmation}
                 onConfirm={handleConfirmAction}
-                itemName={selectedItem ? `${selectedItem.id} - ${selectedItem.osItemType}` : ''}
+                itemName={selectedItem ? `${selectedItem.id} - ${selectedItem.movementsTypes}` : ''}
                 text={action.text}
             />
         </MainLayout>

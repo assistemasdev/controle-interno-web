@@ -6,12 +6,13 @@ import useNotification from '../../../../hooks/useNotification';
 import useLoader from '../../../../hooks/useLoader';
 import useForm from '../../../../hooks/useForm';
 import Form from '../../../../components/Form'; 
-import { movementItemFields } from "../../../../constants/forms/movementItemFields";
-import { removeEmptyValues, setDefaultFieldValues } from '../../../../utils/objectUtils';
+import { movementItemEditFields } from "../../../../constants/forms/movementItemFields";
+import { removeEmptyValues, setDefaultFieldValues, transformObjectValues } from '../../../../utils/objectUtils';
 import useBaseService from '../../../../hooks/services/useBaseService';
 import { entities } from '../../../../constants/entities';
 import PageHeader from '../../../../components/PageHeader';
-import SimpleForm from '../../../../components/forms/SimpleForm';
+import SectionHeader from '../../../../components/forms/SectionHeader';
+import SimpleBody from '../../../../components/forms/SimpleBody';
 
 const EditMovementItemPage = () => {
     const { id, movementProductId, orderServiceId} = useParams();
@@ -25,7 +26,7 @@ const EditMovementItemPage = () => {
         setFormErrors
     } = useBaseService(navigate);
     const { showLoader, hideLoader } = useLoader();
-    const { formData, handleChange, resetForm, setFormData, formatData } = useForm(setDefaultFieldValues(movementItemFields));
+    const { formData, handleChange, setFormData, formatData } = useForm(setDefaultFieldValues(movementItemEditFields));
     const [itemsOrdersServices, setItemsOrdersServices] = useState([]);
     const [allFieldsData, setAllFieldsData] = useState({});
     
@@ -45,7 +46,11 @@ const EditMovementItemPage = () => {
                     fetchMovementItemById(entities.movements.items.getByColumn(id, movementProductId)),
                     fetchItemsOrdersServices(entities.orders.items.get(orderServiceId))
                 ]);
-                formatData(response.result, movementItemFields)
+                setFormData({
+                    movement_type_id: {value:response.result.movement_type_id, label:response.result.movement_name},
+                    service_order_item_id: {value: response.result.service_order_item_id, label: response.result.service_order_item_id                    },
+                    product_id: {value: response.result.product_id, label: response.result.product_name},
+                })
                 setItemsOrdersServices(responseItemsOrdersServices.result.data.map(orderItemService => ({ value: orderItemService.id, label: orderItemService.id })))
             } catch (error) {
                 const errorMessage = error.response?.data?.error || 'Erro ao carregar os dados.';
@@ -71,7 +76,7 @@ const EditMovementItemPage = () => {
         const key = fieldId;
         if (key) {
             const value = formData[key];
-            return getOptions(fieldId).find((option) => option.value === value) || null;
+            return getOptions(fieldId).find((option) => option.value === value.value) || null;
         }
         return null;
     };
@@ -79,7 +84,7 @@ const EditMovementItemPage = () => {
     const handleSubmit = async () => {
         showLoader();
         try {
-            const formatedData = removeEmptyValues(formData)
+            const formatedData = transformObjectValues(formData)
             await update(entities.movements.items.update(id, movementProductId), formatedData);
         } catch (error) {
             console.error('Error edit movement:', error);
@@ -108,20 +113,26 @@ const EditMovementItemPage = () => {
                     handleBack={handleBack}
                 >
                     {() => 
-                        movementItemFields.map((section) => (
-                            <SimpleForm
-                                key={section.section}
-                                section={section}
-                                formData={formData}
-                                handleFieldChange={handleFieldChange}
-                                getOptions={getOptions}
-                                getSelectedValue={getSelectedValue}
-                                formErrors={formErrors}
-                                setFormData={setFormData}
-                                allFieldsData={allFieldsData}
-                                setAllFieldsData={setAllFieldsData}
-                                setFormErrors={setFormErrors}
-                            />
+                        movementItemEditFields.map((section) => (
+                            <>
+                                <SectionHeader
+                                    key={section.section}
+                                    section={section}
+                                    viewTable={false}
+                                    setViewTable={() => {}}
+                                    addFieldsInData={() => {}}
+                                />
+                                
+                                <SimpleBody
+                                    fields={section.fields}
+                                    formErrors={formErrors}
+                                    formData={formData}
+                                    handleFieldChange={handleFieldChange}
+                                    getOptions={getOptions}
+                                    getSelectedValue={getSelectedValue}
+                                />
+                                
+                            </>
                         ))
                     }
                 </Form>

@@ -51,22 +51,26 @@ const EditContractOsItemPage = () => {
             setContract(contractResponse.result);
             
             if(contractOsItemResponse.result.address_id) {
-                const addressResponse = await fetchAddress(entities.customers.addresses.get(contractOsItemResponse.result.address_id))
-                fetchLocationsData(contractResponse.result.customer_id, contractOsItemResponse.result.address_id)
-                setAddresses(addressResponse.result.data.map((address) => ({
+                const addressResponse = await fetchAddress(entities.addresses.getByColumn(contractOsItemResponse.result.address_id));
+                const responsibleId = addressResponse.result.addressable_type == 'customer' ? contractResponse.result.customer_id : contractResponse.result.organization_id;
+                const url = addressResponse.result.addressable_type == 'customer' ? entities.customers.addresses.get(responsibleId) : entities.organizations.addresses.get(responsibleId)
+                const addressesResponse = await fetchAddress(url);
+                fetchLocationsData(responsibleId, contractOsItemResponse.result.address_id, addressResponse.result.addressable_type)
+                setAddresses(addressesResponse.result.data.map((address) => ({
                     label: `${address.street}, ${address.city} - ${address.state}`,
                     value: address.id
-                })))
+                })));
             }
 
-            formatData(contractOsItemResponse.result, baseOsItemFields);
-            setFormData((prev) => ({
-                ...prev,
+            setFormData({
+                contract_item_id: contractOsItemResponse.result.contract_item_id ?? "",
+                quantity: contractOsItemResponse.result.quantity ?? "",
                 product_id: {value: contractOsItemResponse.result.product_id ?? "", label:contractOsItemResponse.result.product_name ?? ""},
                 movement_type_id: {value: contractOsItemResponse.result.movement_type_id ?? "", label: contractOsItemResponse.result.movement_type_name ?? ""},
                 address_id: {value: contractOsItemResponse.result.address_id ?? "", label: contractOsItemResponse.result.address_name ?? ""},
                 location_id: {value: contractOsItemResponse.result.location_id ?? "", label: contractOsItemResponse.result.location_name ?? ""},
-            }))
+                details: contractOsItemResponse.result.details
+            })
         } catch (error) {
             console.log(error)
             showNotification('error', 'error ao carregar os dados')
@@ -74,10 +78,6 @@ const EditContractOsItemPage = () => {
             hideLoader()
         }
     }
-
-    useEffect(() => {
-        console.log(formData)
-    }, [formData]);
 
     useEffect(() => {
         const updatedBaseOsFields = baseOsItemFields.map(section => ({
@@ -95,7 +95,6 @@ const EditContractOsItemPage = () => {
             );
     
             const newDynamicFields = dynamicFields[formData.movement_type_id?.value] || [];
-            console.log(newDynamicFields)
             updatedBaseOsFields[sectionIndex] = {
                 ...updatedBaseOsFields[sectionIndex], 
                 fields: [...baseFields, ...newDynamicFields] 
@@ -132,17 +131,17 @@ const EditContractOsItemPage = () => {
         }));
     
         if (selectedAddressId) {
-            fetchLocationsData(contract.customer_id, selectedAddressId);
+            fetchLocationsData(contract.organization_id, selectedAddressId);
         } else {
             setLocations([]);
         }
     }, [fetchLocations]);
 
-    const fetchLocationsData = async (customerId, addressId) => {
+    const fetchLocationsData = async (responsibleId, addressId, typeAddress) => {
         try {
             showLoader()
-
-            const response = await fetchLocations(entities.customers.addresses.locations(customerId).get(addressId));
+            const url = typeAddress == 'customer' ? entities.customers.addresses.locations(responsibleId).get(addressId) : entities.organizations.addresses.locations(responsibleId).get(addressId)
+            const response = await fetchLocations(url);
             setLocations(response.result.data.map((location) => ({
                 value: location.id,
                 label: `${location.area}, ${location.section} - ${location.spot}`
@@ -169,7 +168,7 @@ const EditContractOsItemPage = () => {
     const getSelectedValue = (fieldId) => {
         if (fieldId) {
             const value = formData[fieldId];
-            return getOptions(fieldId).find((option) => option.value === value) || null;
+            return getOptions(fieldId).find((option) => option.value === value.value) || null;
         }
         return null;
     };

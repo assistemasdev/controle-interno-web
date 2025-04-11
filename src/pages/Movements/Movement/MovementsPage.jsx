@@ -54,7 +54,8 @@ const MovementsPage = () => {
                 movement_date: formatDateToInput(item.movement_date),
                 status: item.status_name,
                 customer: item.customer_name,
-                organization: item.organization_name
+                organization: item.organization_name,
+                deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'
             })));
             setCurrentPage(response.result.current_page);
             setTotalPages(response.result.last_page);
