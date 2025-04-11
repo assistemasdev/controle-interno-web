@@ -4,7 +4,7 @@ import {
     faBuilding, 
     faBoxOpen, 
     faTools,
-    faToggleOn
+    faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
 
 export const movementFields = [
@@ -166,6 +166,15 @@ export const detailsMovementFields = [
                 type: "multi-select", 
                 placeholder: "Selecione a organização",
                 icon: faBuilding,
+            },
+            { 
+                id: "status_id", 
+                label: "Status", 
+                type: "multi-select", 
+                placeholder: "Selecione o status",
+                icon: faCheckCircle,
+                fullWidth:true,
+                
             },
         ],
     },

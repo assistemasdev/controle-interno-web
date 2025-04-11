@@ -53,26 +53,7 @@ const DetailsMovementPage = () => {
         handleCancelConfirmation,
         selectedItem
     } = useAction(navigate); 
-
-    const mapProducts = useCallback((productData) => {
-        return Object.fromEntries(
-            productData.map((product) => [
-                product.id, 
-                { name: product.name, number: product.number }
-            ])
-        );
-    }, []);
     
-    const transformMovementsProducts = useCallback((movementsProductData, productsMap) => {
-        return movementsProductData.map((movementProduct) => ({
-            id: movementProduct.id,
-            number: productsMap[movementProduct.product_id].number || "N/A",
-            name: productsMap[movementProduct.product_id].name || "N/A",
-            deleted_at: movementProduct.deleted_at ? 'deleted-' + movementProduct.deleted_at : 'deleted-null'
-        }));
-    }, []);
-    
-
     const fetchData = useCallback(async () => {
         showLoader();
 
@@ -83,7 +64,8 @@ const DetailsMovementPage = () => {
                 ...prev,
                 customer_id: response.result.customer_name,
                 organization_id: response.result.organization_name,
-                movement_date: formatDateToInput(response.result.movement_date)
+                movement_date: formatDateToInput(response.result.movement_date),
+                status_id: response.result.status_name
             }))
 
             fetchMovementsItemsData(null)
@@ -102,12 +84,12 @@ const DetailsMovementPage = () => {
         try {
             showLoader()
             const response =  await fetchMovementsItems(entities.movements.items.get(id), filtersSubmit || filters)
-            console.log(response)
             setCurrentPage(response.result.current_page);
             setTotalPages(response.result.last_page);
             setMovementsProducts(response.result.data.map((item) => ({
                 id:item.id,
                 product: item.product_name ?? 'N/A',
+                status: item.status_name ?? 'N/A',
                 deleted_at: item.deleted_at ? 'deleted-' + item.deleted_at : 'deleted-null'
             })));
         } catch (error) {
@@ -172,7 +154,7 @@ const DetailsMovementPage = () => {
                 />
                 
                 <DynamicTable
-                    headers={['Id', 'Produto']}
+                    headers={['Id', 'Produto', 'Status']}
                     data={movementsProducts}
                     actions={actions}
                     currentPage={currentPage}

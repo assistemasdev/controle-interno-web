@@ -97,7 +97,6 @@ const AutoCompleteInput = ({
                 updatedSelectedValues = [
                     ...ids
                         .map(id => {
-                            console.log(id)
                             const label = newLabels[id.value] || fetchedLabels[id.value] || null;
                             if (!label) return null;  
 

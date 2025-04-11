@@ -15,6 +15,7 @@ import useAction from "../../../hooks/useAction";
 import FilterForm from "../../../components/FilterForm";  
 import ListHeader from "../../../components/ListHeader";  
 import PageHeader from "../../../components/PageHeader";  
+import { formatDateToInput } from "../../../utils/formatDateToInput";
 
 const MovementsPage = () => {
     const { canAccess } = usePermissions();
@@ -24,9 +25,7 @@ const MovementsPage = () => {
     const { showLoader, hideLoader } = useLoader();
     const { showNotification } = useNotification();
     const { 
-        get: fetchAll,
-        get: fetchAllCustomers,
-        get: fetchAllOrganizations
+        get: fetchAll
     } = useBaseService(navigate);
     const [currentPage, setCurrentPage] = useState(PAGINATION.DEFAULT_PAGE);
     const [totalPages, setTotalPages] = useState(PAGINATION.DEFAULT_TOTAL_PAGES);
@@ -41,41 +40,22 @@ const MovementsPage = () => {
         }
     }, [location.state, showNotification, navigate]);
 
-    const mapCustomers = useCallback((customers) => {
-        return Object.fromEntries(customers.map((customer) => [customer.id, customer.name]));
-    }, []);
-    
-    const mapOrganizations = useCallback((organizations) => {
-        return Object.fromEntries(organizations.map((organization) => [organization.id, organization.name]));
-    }, []);
-
-    const transformMovements = useCallback((movementsData, customersMap, organizationsMap) => {
-        return movementsData.map((movement) => ({
-            id: movement.id,
-            movementDate: new Date(movement.movement_date).toLocaleDateString("pt-BR"),
-            customer: customersMap[movement.customer_id] || "N/A",
-            organization: customersMap[movement.organization_id] || "N/A",
-            deleted_at: movement.deleted_at ? 'deleted-' + movement.deleted_at : 'deleted-null'
-
-        }));
-    }, []);
     const fetchMovements = useCallback(async (filtersSubmit) => {
         showLoader();
         try {
             const [
-                response,
-                responseCustomers,
-                responseOrganizations
+                response
             ] = await Promise.all([
                 fetchAll(entities.movements.get, filtersSubmit || filters),
-                fetchAllCustomers(entities.customers.get),
-                fetchAllOrganizations(entities.organizations.get)
             ])
-
-            const customersMap = mapCustomers(responseCustomers.result.data);
-            const organizationsMap = mapOrganizations(responseOrganizations.result.data);
-            const filteredMovements = transformMovements(response.result.data, customersMap, organizationsMap)
-            setMovements(filteredMovements);
+            
+            setMovements(response.result.data.map((item) => ({
+                id:item.id,
+                movement_date: formatDateToInput(item.movement_date),
+                status: item.status_name,
+                customer: item.customer_name,
+                organization: item.organization_name
+            })));
             setCurrentPage(response.result.current_page);
             setTotalPages(response.result.last_page);
         } catch (error) {
@@ -91,7 +71,7 @@ const MovementsPage = () => {
         fetchMovements();
     }, []);
 
-    const headers = useMemo(() => ['id', 'Data', 'Cliente', 'Organização'], []);
+    const headers = useMemo(() => ['id', 'Data', 'Status', 'Cliente', 'Organização'], []);
     const actions = useMemo(() => [
         {
             id: 'edit',
